@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.connection.driver_class">
+			${hibernate.connection.driver_class}
+		</property>
+		<property name="hibernate.connection.url">
+			${hibernate.connection.url}
+		</property>
+		<property name="hibernate.connection.username">
+			${hibernate.connection.username}
+		</property>
+		<property name="hibernate.connection.password">
+			${hibernate.connection.password}
+		</property>
+		<property name="hibernate.dialect">
+			${hibernate.dialect}
+		</property>
+		<property name="hibernate.cache.provider_class">
+			${hibernate.cache.provider_class}
+		</property>
+		<property name="hibernate.transaction.factory_class">
+			${hibernate.transaction.factory_class}
+		</property>
+		<property name="hibernate.show_sql">
+			${hibernate.show_sql}
+		</property>
+		<property name="hibernate.hbm2ddl.auto"><!-- validate -->
+			update
+		</property>
+		<property name="hibernate.jdbc.batch_size">10</property>
+		<property name="hibernate.cache.use_second_level_cache">
+			false
+		</property>
+		<property name="hibernate.cache.use_query_cache">
+			false
+		</property>
+		
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditClass" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditClassProperty" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditComponentProperty" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditComponentPropertyValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditEntityRefProperty" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditEntityRefPropertyValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditObject" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditObjectProperty" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditObjectPropertyValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditOperation" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditSimpleProperty" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditSimplePropertyValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.AuditTransaction" />
+		
+		
+		<!--  TEST CLASSES -->
+		<mapping
+			class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleEntity" />
+        <mapping
+            class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleComponent" />
+        <mapping
+            class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleEmbeddedComponent" />
+
+            
+
+		<event type="pre-collection-remove">
+			<listener
+				class="com.googlecode.hibernate.audit.event.AuditPreCollectionRemoveEventListener" />
+		</event>
+		<event type="pre-collection-update">
+			<listener
+				class="com.googlecode.hibernate.audit.event.AuditPreCollectionUpdateEventListener" />
+		</event>
+		<event type="pre-collection-recreate">
+			<listener
+				class="com.googlecode.hibernate.audit.event.AuditPreCollectionRecreateEventListener" />
+		</event>
+        <event type="post-delete">
+            <listener
+                class="com.googlecode.hibernate.audit.event.AuditPostDeleteEventListener" />
+        </event>
+        <event type="post-update">
+            <listener
+                class="com.googlecode.hibernate.audit.event.AuditPostUpdateEventListener" />
+        </event>
+        <event type="post-insert">
+            <listener
+                class="com.googlecode.hibernate.audit.event.AuditPostInsertEventListener" />
+        </event>
+	</session-factory>
+</hibernate-configuration>
