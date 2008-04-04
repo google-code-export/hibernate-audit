@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.event;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
 import org.hibernate.EntityMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.PostUpdateEvent;
@@ -21,6 +22,9 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 @SuppressWarnings("serial")
 public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
+
+	private Logger LOG = Logger
+			.getLogger(AuditPostUpdateEventListener.class);
 
 	@Override
 	protected AuditOperation getAuditEntityOperation(Object event) {
@@ -69,14 +73,16 @@ public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
 			Serializable entityId, String entityName, EntityMode entityMode,
 			AuditObject auditEntity, AuditTransaction auditTransaction) {
 
-		int[] changedPropertyIndexes = persister.findDirty(event
-				.getOldState(), event.getState(), entity, event
-				.getSession());
-		
+		int[] changedPropertyIndexes = persister.findDirty(event.getOldState(),
+				event.getState(), entity, event.getSession());
+
 		String[] propertyNames = persister.getPropertyNames();
 
 		for (int i = 0; i < changedPropertyIndexes.length; i++) {
 			String propertyName = propertyNames[changedPropertyIndexes[i]];
+			if (isAuditSuppressed(entity.getClass(), propertyName)) {
+				continue;
+			}
 
 			Object propertyValue = persister.getPropertyValue(entity,
 					propertyName, entityMode);

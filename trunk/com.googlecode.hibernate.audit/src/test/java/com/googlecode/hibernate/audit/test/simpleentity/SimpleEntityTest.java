@@ -1,46 +1,21 @@
-package com.googlecode.hibernate.audit.test.model.simpleentity;
+package com.googlecode.hibernate.audit.test.simpleentity;
 
-import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import org.hibernate.Hibernate;
-import org.hibernate.Query;
+import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
-import com.googlecode.hibernate.audit.model.AuditComponentPropertyValue;
-import com.googlecode.hibernate.audit.model.AuditEntityRefPropertyValue;
-import com.googlecode.hibernate.audit.model.AuditObject;
-import com.googlecode.hibernate.audit.model.AuditObjectProperty;
-import com.googlecode.hibernate.audit.model.AuditObjectPropertyValue;
-import com.googlecode.hibernate.audit.model.AuditSimplePropertyValue;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.test.util.HibernateUtils;
+import com.googlecode.hibernate.audit.model.simpleentity.SimpleComponent;
+import com.googlecode.hibernate.audit.model.simpleentity.SimpleEmbeddedComponent;
+import com.googlecode.hibernate.audit.model.simpleentity.SimpleEntity;
+import com.googlecode.hibernate.audit.test.AuditTest;
 
-public class SimpleEntityTest {
-	private DateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:MM:ss");
-	private static final char IDENT_DELIMITER = '\t';
-
-	@BeforeSuite
-	public void doBeforeTests() {
-		/*
-		 * DOMConfigurator configurator = new DOMConfigurator(); InputStream is =
-		 * TestInsertEntity.class.getResourceAsStream("/log4j.xml");
-		 * assertNotNull(is); configurator.doConfigure(is, new Hierarchy(new
-		 * RootLogger(Level.DEBUG))); try { is.close(); } catch (IOException
-		 * ignored) { }
-		 */}
+public class SimpleEntityTest extends AuditTest {
+	private Logger LOG = Logger.getLogger(SimpleEntityTest.class);
 
 	@Test(enabled = true)
 	public void test() {
-		Session session = HibernateUtils.getCurrentSession();
+		Session session = getSession();
 
 		SimpleEntity entity = new SimpleEntity();
 		entity.setString("string");
@@ -63,7 +38,7 @@ public class SimpleEntityTest {
 		innerComp.setField2("innerCompField2");
 		comp.setInner(innerComp);
 
-		Transaction transaction = session.beginTransaction();
+		Transaction transaction = getTransaction(session);
 		transaction.begin();
 		session.save(entity);
 		transaction.commit();
@@ -72,73 +47,6 @@ public class SimpleEntityTest {
 		entity.setString("newString");
 		session.update(entity);
 		transaction.commit();
-		
-		transaction = session.beginTransaction();
-
-		Query query = session
-				.createQuery("from "
-						+ AuditObject.class.getName()
-						+ " where auditClass.name = :className and audittedEntityId = :audittedEntityId");
-		query.setParameter("className", SimpleEntity.class.getName());
-		query.setParameter("audittedEntityId", String.valueOf(entity.getId()));
-		List<AuditObject> auditObjectList = query.list();
-
-		for (AuditObject auditObject : auditObjectList) {
-			dumpAuditObject(auditObject, String.valueOf(IDENT_DELIMITER));
-		}
-
-		transaction.commit();
-	}
-
-	private void dumpAuditObject(AuditObject auditObject, String indent) {
-		System.out.println(indent + auditObject.getAuditClass().getName() + "["
-				+ auditObject.getAudittedEntityId() + "]");
-
-		for (AuditObjectProperty property : auditObject.getAuditProperties()) {
-			for (AuditObjectPropertyValue value : property.getValues()) {
-				Hibernate.initialize(value);
-
-				if (value instanceof AuditSimplePropertyValue) {
-					System.out.println(indent
-							+ property.getAuditClassProperty().getName() + "="
-							+ ((AuditSimplePropertyValue) value).getValue());
-					
-					Session session = HibernateUtils.getCurrentSession();
-					Query previousValueQuery = session.createQuery("from " + 
-								AuditSimplePropertyValue.class.getName() + 
-								" where auditObjectProperty.auditClassProperty = :classProperty and " +
-								" auditObjectProperty.auditObject.audittedEntityId = :audittedEntityId and " +
-								" auditObjectProperty.auditObject.auditTransaction.id < :transactionId order by auditObjectProperty.auditObject.auditTransaction.id desc");
-					
-					previousValueQuery.setParameter("classProperty", property.getAuditClassProperty());
-					previousValueQuery.setParameter("audittedEntityId", property.getAuditObject().getAudittedEntityId());
-					previousValueQuery.setParameter("transactionId", property.getAuditObject().getAuditTransaction().getId());
-					List<AuditSimplePropertyValue> previousValues = previousValueQuery.list();
-					for (AuditSimplePropertyValue previousValue: previousValues) {
-						System.out.println(indent + indent
-								+ "oldValue="
-								+ previousValue.getValue() + ","
-								+ "transactionId=" + previousValue.getAuditObjectProperty().getAuditObject().getAuditTransaction().getId());
-					}
-				} else if (value instanceof AuditComponentPropertyValue) {
-					AuditObject component = ((AuditComponentPropertyValue) value)
-							.getAuditObject();
-					System.out.println(indent
-							+ property.getAuditClassProperty().getName() + "["
-							+ component.getAudittedEntityId() + ","
-							+ component.getId() + "]");
-					dumpAuditObject(component, indent + IDENT_DELIMITER);
-				} else if (value instanceof AuditEntityRefPropertyValue) {
-					Serializable entityId = ((AuditEntityRefPropertyValue) value)
-							.getEntityRefId();
-					System.out.println(indent
-							+ property.getAuditClassProperty().getName() + "["
-							+ entityId + ","
-							+ ((AuditEntityRefPropertyValue) value).getId()
-							+ "]");
-				}
-			}
-		}
 	}
 
 	/*
@@ -313,8 +221,4 @@ public class SimpleEntityTest {
 	 * auditProperty = (AuditClassProperty) auditPropertyQuery .uniqueResult();
 	 * assertNotNull(auditProperty); return auditProperty; }
 	 */
-	@AfterSuite(alwaysRun = true)
-	public void doAfterTests() {
-		HibernateUtils.closeCurrentSession();
-	}
 }

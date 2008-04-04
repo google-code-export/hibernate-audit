@@ -70,25 +70,25 @@
 		
 		<!--  TEST CLASSES -->
 		<mapping
-			class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleEntity" />
+			class="com.googlecode.hibernate.audit.model.simpleentity.SimpleEntity" />
         <mapping
-            class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleComponent" />
+            class="com.googlecode.hibernate.audit.model.simpleentity.SimpleComponent" />
         <mapping
-            class="com.googlecode.hibernate.audit.test.model.simpleentity.SimpleEmbeddedComponent" />
+            class="com.googlecode.hibernate.audit.model.simpleentity.SimpleEmbeddedComponent" />
 
             
 
-		<event type="pre-collection-remove">
+		<event type="post-collection-remove">
 			<listener
-				class="com.googlecode.hibernate.audit.event.AuditPreCollectionRemoveEventListener" />
+				class="com.googlecode.hibernate.audit.event.AuditPostCollectionRemoveEventListener" />
 		</event>
-		<event type="pre-collection-update">
+		<event type="post-collection-update">
 			<listener
-				class="com.googlecode.hibernate.audit.event.AuditPreCollectionUpdateEventListener" />
+				class="com.googlecode.hibernate.audit.event.AuditPostCollectionUpdateEventListener" />
 		</event>
-		<event type="pre-collection-recreate">
+		<event type="post-collection-recreate">
 			<listener
-				class="com.googlecode.hibernate.audit.event.AuditPreCollectionRecreateEventListener" />
+				class="com.googlecode.hibernate.audit.event.AuditPostCollectionRecreateEventListener" />
 		</event>
         <event type="post-delete">
             <listener
