@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.event;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
 import org.hibernate.EntityMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.PostInsertEvent;
@@ -21,6 +22,9 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 @SuppressWarnings("serial")
 public class AuditPostInsertEventListener extends AuditAbstractEventListener {
+
+	private Logger LOG = Logger
+			.getLogger(AuditPostInsertEventListener.class);
 
 	@Override
 	protected AuditOperation getAuditEntityOperation(Object event) {
@@ -73,6 +77,9 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 			Object propertyValue = persister.getPropertyValue(entity,
 					propertyName, entityMode);
 			if (propertyValue != null) {
+				if (isAuditSuppressed(entity.getClass(), propertyName)) {
+					continue;
+				}
 				Type propertyType = persister.getPropertyType(propertyName);
 
 				if (propertyType.isEntityType()) {
@@ -81,9 +88,10 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 				} else if (propertyType.isCollectionType()) {
 					// collection event listener will process that
 				} else if (propertyType.isComponentType()) {
-					createComponent(event, session, persister, entity, entityName,
-							entityMode, auditEntity, auditTransaction,
-							propertyName, propertyName, propertyValue, (ComponentType)propertyType);
+					createComponent(event, session, persister, entity,
+							entityName, entityMode, auditEntity,
+							auditTransaction, propertyName, propertyName,
+							propertyValue, (ComponentType) propertyType);
 				} else {
 					createValue(session, entityName, auditEntity, propertyName,
 							propertyValue);
@@ -95,8 +103,9 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 	private void createComponent(PostInsertEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
 			String entityName, EntityMode entityMode, AuditObject auditEntity,
-			AuditTransaction auditTransaction, String propertyAccessPath, String propertyName,
-			Object propertyValue, ComponentType propertyType) {
+			AuditTransaction auditTransaction, String propertyAccessPath,
+			String propertyName, Object propertyValue,
+			ComponentType propertyType) {
 		AuditComponentProperty componentObjectProperty = new AuditComponentProperty();
 		componentObjectProperty.setAuditClassProperty(getOrCreateAuditProperty(
 				session, entityName, propertyName));
@@ -106,8 +115,8 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 
 		AuditComponentPropertyValue componentObjectValue = new AuditComponentPropertyValue();
 		AuditObject component = persistComponent(event, session, persister,
-				entity, auditEntity, propertyValue, propertyAccessPath, propertyName,
-				propertyType, auditTransaction, entityMode);
+				entity, auditEntity, propertyValue, propertyAccessPath,
+				propertyName, propertyType, auditTransaction, entityMode);
 
 		componentObjectValue.setAuditObject(component);
 		componentObjectProperty.addValue(componentObjectValue);
@@ -160,7 +169,8 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 
 	private AuditObject persistComponent(PostInsertEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
-			AuditObject auditEntity, Object component, String parentPropertyAccessPath, String parentPropertyName,
+			AuditObject auditEntity, Object component,
+			String parentPropertyAccessPath, String parentPropertyName,
 			ComponentType componentType, AuditTransaction auditTransaction,
 			EntityMode entityMode) {
 
@@ -172,15 +182,17 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 		String[] propertyNames = componentType.getPropertyNames();
 		for (int i = 0; i < propertyNames.length; i++) {
 			String propertyName = propertyNames[i];
-			
+
 			Type componentPropertyType = persister
-					.getPropertyType(parentPropertyAccessPath + "." + propertyName);
-			
+					.getPropertyType(parentPropertyAccessPath + "."
+							+ propertyName);
+
 			Object componentPropertyValue = null;
-			
+
 			if (componentPropertyType.isEntityType()) {
 				componentPropertyValue = persister.getPropertyValue(entity,
-						parentPropertyAccessPath + "." + propertyName, entityMode);
+						parentPropertyAccessPath + "." + propertyName,
+						entityMode);
 			} else if (componentPropertyType.isCollectionType()) {
 				// collection ....
 			} else if (componentPropertyType.isComponentType()) {
@@ -190,7 +202,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 				componentPropertyValue = componentType.getPropertyValue(
 						component, i, entityMode);
 			}
-			
+
 			if (componentPropertyValue != null) {
 				if (componentPropertyType.isEntityType()) {
 					createEntityRef(event, session, componentName, entityMode,
@@ -199,12 +211,15 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 					// see if we need to handle collections inside components -
 					// e.g. if the collection listener will process that.
 				} else if (componentPropertyType.isComponentType()) {
-					String childComponentName = componentPropertyType.getReturnedClass().getName();
-					
-					createComponent(event, session, persister, result, childComponentName,
-							entityMode, result, auditTransaction,
-							parentPropertyAccessPath + "." + propertyName, propertyName,
-							componentPropertyValue, (ComponentType)componentPropertyType);
+					String childComponentName = componentPropertyType
+							.getReturnedClass().getName();
+
+					createComponent(event, session, persister, result,
+							childComponentName, entityMode, result,
+							auditTransaction, parentPropertyAccessPath + "."
+									+ propertyName, propertyName,
+							componentPropertyValue,
+							(ComponentType) componentPropertyType);
 				} else {
 					createValue(session, componentName, result, propertyName,
 							componentPropertyValue);

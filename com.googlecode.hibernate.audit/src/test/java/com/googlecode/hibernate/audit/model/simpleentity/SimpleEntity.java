@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.model.simpleentity;
+package com.googlecode.hibernate.audit.model.simpleentity;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,6 +11,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import com.googlecode.hibernate.audit.annotations.Audit;
+
 @javax.persistence.Entity
 @Table(name = "SIMPLE_ENTITY")
 @SequenceGenerator(name = "sequence", sequenceName = "SIMPLE_ENTITY_ID_SEQ")
@@ -21,6 +23,7 @@ public class SimpleEntity {
 	private Long id;
 	
 	@Column(name = "string")
+	@Audit(suppressAudit=true)
 	private String string;
 	
 	@OneToOne(cascade = CascadeType.ALL)

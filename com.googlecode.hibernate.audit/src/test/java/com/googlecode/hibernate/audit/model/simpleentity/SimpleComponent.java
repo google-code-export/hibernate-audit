@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.model.simpleentity;
+package com.googlecode.hibernate.audit.model.simpleentity;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;

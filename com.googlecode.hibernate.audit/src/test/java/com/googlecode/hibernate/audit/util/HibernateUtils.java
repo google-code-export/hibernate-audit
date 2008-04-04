@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.util;
+package com.googlecode.hibernate.audit.util;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
