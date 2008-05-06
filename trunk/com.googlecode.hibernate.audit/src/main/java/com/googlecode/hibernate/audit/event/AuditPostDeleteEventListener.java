@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.event;
 
 import org.apache.log4j.Logger;
 import org.hibernate.StatelessSession;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
 
@@ -13,26 +14,26 @@ public class AuditPostDeleteEventListener extends AuditAbstractEventListener {
 			.getLogger(AuditPostDeleteEventListener.class);
 
 	@Override
-	protected Object getEntity(Object object) {
+	protected Object getEntity(AbstractEvent object) {
 		PostDeleteEvent event = (PostDeleteEvent) object;
 		return event.getEntity();
 	}
 
 	@Override
-	protected EntityPersister getEntityPersister(Object object) {
+	protected EntityPersister getEntityPersister(AbstractEvent object) {
 		PostDeleteEvent event = (PostDeleteEvent) object;
 		return event.getPersister();
 	}
 
 	@Override
-	protected StatelessSession openStatelessSession(Object object) {
+	protected StatelessSession openStatelessSession(AbstractEvent object) {
 		PostDeleteEvent event = (PostDeleteEvent) object;
 		return event.getPersister().getFactory().openStatelessSession(
 				event.getSession().connection());
 	}
 
 	@Override
-	protected AuditOperation getAuditEntityOperation(Object event) {
+	protected AuditOperation getAuditEntityOperation(AbstractEvent event) {
 		return AuditOperation.DELETE;
 	}
 }
