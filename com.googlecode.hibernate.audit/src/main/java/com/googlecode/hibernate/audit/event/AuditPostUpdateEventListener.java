@@ -2,23 +2,27 @@ package com.googlecode.hibernate.audit.event;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.EntityMode;
 import org.hibernate.StatelessSession;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.Type;
 
-import com.googlecode.hibernate.audit.model.AuditComponentProperty;
-import com.googlecode.hibernate.audit.model.AuditComponentPropertyValue;
-import com.googlecode.hibernate.audit.model.AuditEntityRefProperty;
-import com.googlecode.hibernate.audit.model.AuditEntityRefPropertyValue;
-import com.googlecode.hibernate.audit.model.AuditObject;
 import com.googlecode.hibernate.audit.model.AuditOperation;
-import com.googlecode.hibernate.audit.model.AuditSimpleProperty;
-import com.googlecode.hibernate.audit.model.AuditSimplePropertyValue;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
+import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
+import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField;
+import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue;
+import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
+import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldSimpleValue;
+import com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue;
+import com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue;
+import com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue;
 
 @SuppressWarnings("serial")
 public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
@@ -27,51 +31,54 @@ public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
 			.getLogger(AuditPostUpdateEventListener.class);
 
 	@Override
-	protected AuditOperation getAuditEntityOperation(Object event) {
+	protected AuditOperation getAuditEntityOperation(AbstractEvent event) {
 		return AuditOperation.UPDATE;
 	}
 
 	@Override
-	protected Object getEntity(Object object) {
+	protected Object getEntity(AbstractEvent object) {
 		PostUpdateEvent event = (PostUpdateEvent) object;
 		return event.getEntity();
 	}
 
 	@Override
-	protected EntityPersister getEntityPersister(Object object) {
+	protected EntityPersister getEntityPersister(AbstractEvent object) {
 		PostUpdateEvent event = (PostUpdateEvent) object;
 		return event.getPersister();
 	}
 
 	@Override
-	protected StatelessSession openStatelessSession(Object object) {
+	protected StatelessSession openStatelessSession(AbstractEvent object) {
 		PostUpdateEvent event = (PostUpdateEvent) object;
 		return event.getSession().getFactory().openStatelessSession(
 				event.getSession().connection());
 	}
 
 	protected void doAuditEntityProperties(StatelessSession session,
-			Object object, AuditTransaction auditTransaction,
-			AuditObject auditEntity) {
+			AbstractEvent object, AuditTransaction auditTransaction,
+			AuditTransactionRecord auditEntity) {
+		if (LOG.isEnabledFor(Level.DEBUG)) {
+			LOG.debug("Invoke PostUpdateEvent listener");
+		}
 		PostUpdateEvent event = (PostUpdateEvent) object;
 		Object entity = getEntity(object);
-		EntityMode entityMode = getEntityPersister(object).guessEntityMode(
-				entity);
+		EntityMode entityMode = event.getSession().getEntityMode();
+		
 		EntityPersister persister = getEntityPersister(object);
-		Serializable entityId = null;
+		Serializable entityId = event.getId();
 		String entityName = entity.getClass().getName().toString();
 
-		if (persister.hasIdentifierProperty()) {
+/*		if (persister.hasIdentifierProperty()) {
 			entityId = persister.getIdentifier(entity, entityMode);
 		}
-		processProperties(event, session, persister, entity, entityId,
+*/		processProperties(event, session, persister, entity, entityId,
 				entityName, entityMode, auditEntity, auditTransaction);
 	}
 
 	private void processProperties(PostUpdateEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
 			Serializable entityId, String entityName, EntityMode entityMode,
-			AuditObject auditEntity, AuditTransaction auditTransaction) {
+			AuditTransactionRecord auditEntity, AuditTransaction auditTransaction) {
 
 		int[] changedPropertyIndexes = persister.findDirty(event.getOldState(),
 				event.getState(), entity, event.getSession());
@@ -108,52 +115,58 @@ public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
 
 	private void createComponent(PostUpdateEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
-			String entityName, EntityMode entityMode, AuditObject auditEntity,
+			String entityName, EntityMode entityMode, AuditTransactionRecord auditEntity,
 			AuditTransaction auditTransaction, String propertyAccessPath,
 			String propertyName, Object propertyValue,
 			ComponentType propertyType) {
-		AuditComponentProperty componentObjectProperty = new AuditComponentProperty();
+		AuditTransactionRecordField componentObjectProperty = new AuditTransactionRecordField();
 		componentObjectProperty.setAuditClassProperty(getOrCreateAuditProperty(
 				session, entityName, propertyName));
 		componentObjectProperty.setOperation(AuditOperation.UPDATE);
 
-		auditEntity.addAuditObjectProperty(componentObjectProperty);
-
-		AuditComponentPropertyValue componentObjectValue = new AuditComponentPropertyValue();
-		AuditObject component = null;
+		//auditEntity.addAuditTransactionRecordField(componentObjectProperty);
+		componentObjectProperty.setAuditTransactionRecord(auditEntity);
+		
+		AuditTransactionRecordFieldComponentReferenceValue componentObjectValue = new AuditTransactionRecordFieldComponentReferenceValue();
+		AuditTransactionComponentRecord component = null;
 		if (propertyValue != null) {
 			component = persistComponent(event, session, persister, entity,
 					auditEntity, propertyValue, propertyAccessPath,
 					propertyName, propertyType, auditTransaction, entityMode);
 		}
-		componentObjectValue.setAuditObject(component);
-		componentObjectProperty.addValue(componentObjectValue);
-
+		componentObjectValue.setValue(new ComponentReferenceAuditValue(component));
+		componentObjectValue.setRecordField(componentObjectProperty);
+		//componentObjectProperty.setValue(componentObjectValue);
+		componentObjectValue.setRecordField(componentObjectProperty);
+		
 		session.insert(componentObjectProperty);
 		session.insert(componentObjectValue);
 	}
 
 	private void createValue(StatelessSession session, String entityName,
-			AuditObject auditEntity, String propertyName, Object propertyValue) {
-		AuditSimpleProperty simpleObjectProperty = new AuditSimpleProperty();
+			AuditTransactionRecord auditEntity, String propertyName, Object propertyValue) {
+		AuditTransactionRecordField simpleObjectProperty = new AuditTransactionRecordField();
 		simpleObjectProperty.setAuditClassProperty(getOrCreateAuditProperty(
 				session, entityName, propertyName));
 		simpleObjectProperty.setOperation(AuditOperation.UPDATE);
 
-		auditEntity.addAuditObjectProperty(simpleObjectProperty);
-
-		AuditSimplePropertyValue simpleObjectValue = new AuditSimplePropertyValue();
-		simpleObjectValue.setValue(propertyValue == null ? null : String
-				.valueOf(propertyValue));
-		simpleObjectProperty.addValue(simpleObjectValue);
-
+		//auditEntity.addAuditTransactionRecordField(simpleObjectProperty);
+		simpleObjectProperty.setAuditTransactionRecord(auditEntity);
+		
+		AuditTransactionRecordFieldSimpleValue simpleObjectValue = new AuditTransactionRecordFieldSimpleValue();
+		simpleObjectValue.setValue(propertyValue == null ? null : new SimpleAuditValue(String
+				.valueOf(propertyValue)));
+		simpleObjectValue.setRecordField(simpleObjectProperty);
+		//simpleObjectProperty.setValue(simpleObjectValue);
+		simpleObjectValue.setRecordField(simpleObjectProperty);
+		
 		session.insert(simpleObjectProperty);
 		session.insert(simpleObjectValue);
 	}
 
 	private void createEntityRef(PostUpdateEvent event,
 			StatelessSession session, String entityName, EntityMode entityMode,
-			AuditObject auditEntity, String propertyName, Object propertyValue) {
+			AuditTransactionRecord auditEntity, String propertyName, Object propertyValue) {
 		Serializable entityRefId = null;
 		if (propertyValue != null) {
 			EntityPersister propertyPersister = event.getSession()
@@ -165,29 +178,32 @@ public class AuditPostUpdateEventListener extends AuditAbstractEventListener {
 					entityMode);
 		}
 
-		AuditEntityRefProperty entityRefProperty = new AuditEntityRefProperty();
+		AuditTransactionRecordField entityRefProperty = new AuditTransactionRecordField();
 		entityRefProperty.setAuditClassProperty(getOrCreateAuditProperty(
 				session, entityName, propertyName));
 		entityRefProperty.setOperation(AuditOperation.UPDATE);
-		auditEntity.addAuditObjectProperty(entityRefProperty);
-
-		AuditEntityRefPropertyValue entityRefPropertyValue = new AuditEntityRefPropertyValue();
-		entityRefPropertyValue.setEntityRefId(String.valueOf(entityRefId));
-		entityRefProperty.addValue(entityRefPropertyValue);
-
+		//auditEntity.addAuditTransactionRecordField(entityRefProperty);
+		entityRefProperty.setAuditTransactionRecord(auditEntity);
+		
+		AuditTransactionRecordFieldEntityReferenceValue entityRefPropertyValue = new AuditTransactionRecordFieldEntityReferenceValue();
+		entityRefPropertyValue.setValue(new EntityReferenceAuditValue(String.valueOf(entityRefId)));
+		entityRefPropertyValue.setRecordField(entityRefProperty);
+		//entityRefProperty.setValue(entityRefPropertyValue);
+		entityRefPropertyValue.setRecordField(entityRefProperty);
+		
 		session.insert(entityRefProperty);
 		session.insert(entityRefPropertyValue);
 	}
 
-	private AuditObject persistComponent(PostUpdateEvent event,
+	private AuditTransactionComponentRecord persistComponent(PostUpdateEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
-			AuditObject auditEntity, Object component,
+			AuditTransactionRecord auditEntity, Object component,
 			String parentPropertyAccessPath, String parentPropertyName,
 			ComponentType componentType, AuditTransaction auditTransaction,
 			EntityMode entityMode) {
 
 		String componentName = componentType.getReturnedClass().getName();
-		AuditObject result = createAuditEntity(session, auditEntity
+		AuditTransactionComponentRecord result = createAuditComponent(session, auditEntity
 				.getAudittedEntityId(), componentName, AuditOperation.UPDATE,
 				auditTransaction);
 

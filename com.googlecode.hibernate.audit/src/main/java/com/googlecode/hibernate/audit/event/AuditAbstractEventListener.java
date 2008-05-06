@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.engine.SessionImplementor;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostCollectionRecreateEvent;
 import org.hibernate.event.PostCollectionRecreateEventListener;
 import org.hibernate.event.PostCollectionRemoveEvent;
@@ -26,15 +27,21 @@ import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostUpdateEventListener;
+import org.hibernate.event.PreCollectionRecreateEvent;
+import org.hibernate.event.PreCollectionRecreateEventListener;
+import org.hibernate.event.PreCollectionUpdateEvent;
+import org.hibernate.event.PreCollectionUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.transaction.JTATransaction;
 
 import com.googlecode.hibernate.audit.annotations.Audit;
-import com.googlecode.hibernate.audit.model.AuditClass;
-import com.googlecode.hibernate.audit.model.AuditClassProperty;
-import com.googlecode.hibernate.audit.model.AuditObject;
 import com.googlecode.hibernate.audit.model.AuditOperation;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.clazz.AuditClass;
+import com.googlecode.hibernate.audit.model.clazz.AuditClassProperty;
+import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
+import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
+import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord;
+import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
 
 public abstract class AuditAbstractEventListener implements
 		PostCollectionRecreateEventListener, PostCollectionRemoveEventListener,
@@ -43,11 +50,7 @@ public abstract class AuditAbstractEventListener implements
 
 	private Logger LOG = Logger.getLogger(AuditAbstractEventListener.class);
 
-	private ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
-
-	public void onPostRemoveCollection(PostCollectionRemoveEvent event) {
-		processEvent(event, event.getSession());
-	}
+	private static ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
 
 	public void onPostInsert(PostInsertEvent event) {
 		processEvent(event, event.getSession());
@@ -68,8 +71,12 @@ public abstract class AuditAbstractEventListener implements
 	public void onPostUpdateCollection(PostCollectionUpdateEvent event) {
 		processEvent(event, event.getSession());
 	}
+	
+	public void onPostRemoveCollection(PostCollectionRemoveEvent event) {
+		processEvent(event, event.getSession());
+	}
 
-	protected void processEvent(Object event, Session originalSession) {
+	protected void processEvent(AbstractEvent event, Session originalSession) {
 		StatelessSession session = null;
 		try {
 			session = openStatelessSession(event);
@@ -78,7 +85,6 @@ public abstract class AuditAbstractEventListener implements
 			// we are not invoking the commit method on the
 			// session which invokes getBatcher().excuteBatch();
 			((SessionImplementor) session).getBatcher().executeBatch();
-
 		} finally {
 			if (session != null) {
 				session.close();
@@ -87,25 +93,24 @@ public abstract class AuditAbstractEventListener implements
 
 	}
 
-	protected abstract StatelessSession openStatelessSession(Object event);
+	protected abstract StatelessSession openStatelessSession(AbstractEvent event);
 
-	protected abstract Object getEntity(Object event);
+	protected abstract Object getEntity(AbstractEvent event);
 
-	protected abstract AuditOperation getAuditEntityOperation(Object event);
+	protected abstract AuditOperation getAuditEntityOperation(AbstractEvent event);
 
-	protected abstract EntityPersister getEntityPersister(Object event);
+	protected abstract EntityPersister getEntityPersister(AbstractEvent event);
 
-	protected void doAuditEvent(StatelessSession session, Object event,
+	protected void doAuditEvent(StatelessSession session, AbstractEvent event,
 			Session originalSession) {
 		AuditTransaction auditTransaction = doAuditTransaction(session, event,
 				originalSession);
-		AuditObject auditEntity = doAuditEntity(session, event,
-				auditTransaction);
+		AuditTransactionRecord	auditEntity = doAuditEntity(session, originalSession, event, auditTransaction);
 		doAuditEntityProperties(session, event, auditTransaction, auditEntity);
 	}
 
 	protected AuditTransaction doAuditTransaction(StatelessSession session,
-			Object event, Session originalSession) {
+			AbstractEvent event, Session originalSession) {
 		// TODO:get actorId from somewhere
 		String actorId = null;
 		AuditTransaction auditTransaction = getOrCreateAuditTransaction(
@@ -113,7 +118,7 @@ public abstract class AuditAbstractEventListener implements
 		return auditTransaction;
 	}
 
-	protected AuditObject doAuditEntity(StatelessSession session, Object event,
+	protected AuditTransactionRecord doAuditEntity(StatelessSession session, Session originalSession, AbstractEvent event,
 			AuditTransaction auditTransaction) {
 		Serializable entityId = null;
 		Object entity = getEntity(event);
@@ -125,20 +130,31 @@ public abstract class AuditAbstractEventListener implements
 		if (persister.hasIdentifierProperty()) {
 			entityId = persister.getIdentifier(entity, entityMode);
 		}
-		// add audit entity
-		AuditObject auditEntity = createAuditEntity(session, entityId,
-				entityName, getAuditEntityOperation(event), auditTransaction);
-
-		/*
-		 * if (LOG.isDebugEnabled()) { LOG.debug("Add audit entity with id " +
-		 * auditEntity.getId() + " for object entity '" + entityName + "' with
-		 * id " + entityId); }
-		 */return auditEntity;
+		AuditOperation operation = getAuditEntityOperation(event);
+		AuditClass auditClass = getOrCreateAuditClass(session, entityName);
+		
+		Query getAuditObjectQuery = originalSession.createQuery("from " + AuditTransactionRecord.class.getName() + " as audit where " +
+				"auditTransaction = :auditTransaction and " +
+				"auditClass = :auditClass and " +
+				"operation = :operation and " +
+				"audittedEntityId = :audittedEntityId");
+		getAuditObjectQuery.setParameter("auditTransaction", auditTransaction);
+		getAuditObjectQuery.setParameter("auditClass", auditClass);
+		getAuditObjectQuery.setParameter("operation", operation);
+		getAuditObjectQuery.setParameter("audittedEntityId", String.valueOf(entityId));
+		
+		AuditTransactionRecord existingAuditEntity = (AuditTransactionRecord)getAuditObjectQuery.uniqueResult();
+		if (existingAuditEntity != null) {
+			return existingAuditEntity;
+		}
+		
+		return  createAuditEntity(session, entityId,
+						entityName, operation, auditTransaction, auditClass);
 	}
 
 	protected void doAuditEntityProperties(StatelessSession session,
-			Object event, AuditTransaction auditTransaction,
-			AuditObject auditEntity) {
+			AbstractEvent event, AuditTransaction auditTransaction,
+			AuditTransactionRecord auditEntity) {
 	}
 
 	protected synchronized AuditTransaction getOrCreateAuditTransaction(
@@ -175,7 +191,7 @@ public abstract class AuditAbstractEventListener implements
 	protected AuditClass getOrCreateAuditClass(StatelessSession session,
 			String entityName) {
 		Query auditClassQuery = session.createQuery(
-				"from AuditClass where name = :entityName").setMaxResults(1);
+				"from " +  AuditClass.class.getName() + " where name = :entityName").setMaxResults(1);
 		auditClassQuery.setString("entityName", entityName);
 
 		@SuppressWarnings("unchecked")
@@ -189,10 +205,8 @@ public abstract class AuditAbstractEventListener implements
 			AuditClass auditClass = new AuditClass();
 			auditClass.setName(entityName);
 			session.insert(auditClass);
-			/*
-			 * if (LOG.isDebugEnabled()) { LOG.debug("Add audit class '" +
-			 * entityName + "' with id " + auditClass.getId()); }
-			 */return auditClass;
+			
+			return auditClass;
 		}
 	}
 
@@ -226,47 +240,43 @@ public abstract class AuditAbstractEventListener implements
 		}
 	}
 
-	protected AuditObject createAuditEntity(StatelessSession session,
+	protected AuditTransactionComponentRecord createAuditComponent(StatelessSession session,
 			Serializable audittedEntityId, String entityName,
 			AuditOperation operation, AuditTransaction auditTransaction) {
-		AuditObject auditEntity = new AuditObject();
+		AuditTransactionComponentRecord auditComponent = new AuditTransactionComponentRecord();
+		
+		AuditClass auditClass = getOrCreateAuditClass(session, entityName);
+		persistAuditObject(session, audittedEntityId, entityName,
+				operation, auditTransaction, auditComponent, auditClass);
+		
+		return auditComponent;
+	}
+	
+	protected AuditTransactionRecord createAuditEntity(StatelessSession session,
+			Serializable audittedEntityId, String entityName,
+			AuditOperation operation, AuditTransaction auditTransaction, AuditClass auditClass) {
+		AuditTransactionEntityRecord auditEntity = new AuditTransactionEntityRecord();
 
+		persistAuditObject(session, audittedEntityId, entityName,
+				operation, auditTransaction, auditEntity, auditClass);
+		
+		return auditEntity;
+	}
+
+	private void persistAuditObject(StatelessSession session,
+			Serializable audittedEntityId, String entityName,
+			AuditOperation operation, AuditTransaction auditTransaction,
+			AuditTransactionRecord auditEntity, AuditClass auditClass) {
+		//auditTransaction.addAuditObject(auditEntity);
 		auditEntity.setAuditTransaction(auditTransaction);
 		auditEntity
 				.setAudittedEntityId(audittedEntityId != null ? audittedEntityId
 						.toString()
 						: null);
-		auditEntity.setAuditClass(getOrCreateAuditClass(session, entityName));
+		auditEntity.setAuditClass(auditClass);
 		auditEntity.setOperation(operation);
 		session.insert(auditEntity);
-		return auditEntity;
 	}
-
-	/*
-	 * protected AuditEntityProperty createAuditEntityProperty( StatelessSession
-	 * session, AuditObject auditEntity, String entityName, String propertyName,
-	 * AuditEntityPropertyOperation operation) { AuditEntityProperty
-	 * auditEntityProperty = new AuditEntityProperty();
-	 * auditEntityProperty.setAuditEntity(auditEntity);
-	 * auditEntityProperty.setAuditProperty(getOrCreateAuditProperty(session,
-	 * entityName, propertyName)); auditEntityProperty.setOperation(operation);
-	 * session.insert(auditEntityProperty); return auditEntityProperty; }
-	 * 
-	 * protected AuditEntityPropertyValue createAuditEntityPropertyValue(
-	 * StatelessSession session, Object propertyValue,
-	 * AuditEntityPropertyValueOperation operation, AuditEntityProperty
-	 * auditEntityProperty) { AuditEntityPropertyValue auditEntityPropertyValue =
-	 * new AuditEntityPropertyValue();
-	 * auditEntityPropertyValue.setAuditEntityProperty(auditEntityProperty);
-	 * auditEntityPropertyValue.setOperation(operation);
-	 * 
-	 * if (propertyValue instanceof Date) {
-	 * auditEntityPropertyValue.setValue(formatter.format(propertyValue)); }
-	 * else { auditEntityPropertyValue .setValue(propertyValue != null ?
-	 * propertyValue.toString() : null); }
-	 * session.insert(auditEntityPropertyValue); return
-	 * auditEntityPropertyValue; }
-	 */
 
 	protected Object getTransactionKey(Session originalSession) {
 		Object transactionKey = null;

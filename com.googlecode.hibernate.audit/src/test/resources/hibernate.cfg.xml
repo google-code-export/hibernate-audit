@@ -39,34 +39,42 @@
 		<property name="hibernate.cache.use_query_cache">
 			false
 		</property>
+		<property name="hibernate.transaction.flush_before_completion">
+			true
+		</property>
 		
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditClass" />
+            class="com.googlecode.hibernate.audit.model.clazz.AuditClass" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditClassProperty" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditComponentProperty" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditComponentPropertyValue" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditEntityRefProperty" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditEntityRefPropertyValue" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditObject" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditObjectProperty" />
-        <mapping
-            class="com.googlecode.hibernate.audit.model.AuditObjectPropertyValue" />
+            class="com.googlecode.hibernate.audit.model.clazz.AuditClassProperty" />
         <mapping
             class="com.googlecode.hibernate.audit.model.AuditOperation" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditSimpleProperty" />
+            class="com.googlecode.hibernate.audit.model.transaction.AuditTransaction" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditSimplePropertyValue" />
+            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditTransaction" />
-		
+            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldSimpleValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue" />
+        <mapping
+            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue" />
 		
 		<!--  TEST CLASSES -->
 		<mapping
@@ -75,7 +83,10 @@
             class="com.googlecode.hibernate.audit.model.simpleentity.SimpleComponent" />
         <mapping
             class="com.googlecode.hibernate.audit.model.simpleentity.SimpleEmbeddedComponent" />
-
+		<mapping
+			class="com.googlecode.hibernate.audit.model.collection.Parent" />
+		<mapping
+			class="com.googlecode.hibernate.audit.model.collection.Child" />
             
 
 		<event type="post-collection-remove">
@@ -90,7 +101,7 @@
 			<listener
 				class="com.googlecode.hibernate.audit.event.AuditPostCollectionRecreateEventListener" />
 		</event>
-        <event type="post-delete">
+	    <event type="post-delete">
             <listener
                 class="com.googlecode.hibernate.audit.event.AuditPostDeleteEventListener" />
         </event>

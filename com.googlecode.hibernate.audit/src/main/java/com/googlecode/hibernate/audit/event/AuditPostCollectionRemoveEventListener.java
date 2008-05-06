@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.event;
 
 import org.apache.log4j.Logger;
 import org.hibernate.StatelessSession;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostCollectionRecreateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 
@@ -14,7 +15,7 @@ public class AuditPostCollectionRemoveEventListener extends
 			.getLogger(AuditPostCollectionRemoveEventListener.class);
 
 	@Override
-	protected StatelessSession openStatelessSession(Object object) {
+	protected StatelessSession openStatelessSession(AbstractEvent object) {
 		PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) object;
 		return event.getSession().getFactory().openStatelessSession(
 				event.getSession().connection());
@@ -22,13 +23,13 @@ public class AuditPostCollectionRemoveEventListener extends
 	}
 
 	@Override
-	protected Object getEntity(Object object) {
+	protected Object getEntity(AbstractEvent object) {
 		PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) object;
 		return event.getCollection().getOwner();
 	}
 
 	@Override
-	protected EntityPersister getEntityPersister(Object object) {
+	protected EntityPersister getEntityPersister(AbstractEvent object) {
 		PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) object;
 		Object entity = event.getCollection().getOwner();
 		return event.getSession().getEntityPersister(
@@ -36,7 +37,7 @@ public class AuditPostCollectionRemoveEventListener extends
 	}
 
 	@Override
-	protected AuditOperation getAuditEntityOperation(Object object) {
+	protected AuditOperation getAuditEntityOperation(AbstractEvent object) {
 		return AuditOperation.UPDATE;
 	}
 
