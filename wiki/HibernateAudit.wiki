@@ -18,3 +18,10 @@ svn co http://hibernate-audit.googlecode.com/svn/trunk ./hibernate-audit-read-on
 {{{
 svn checkout --username <your_google_account> https://hibernate-audit.googlecode.com/svn/trunk/ ./hibernate-audit 
 }}}
+
+== How do I build? ==
+
+{{{
+cd ./hibernate-audit
+mvn clean install
+}}}
