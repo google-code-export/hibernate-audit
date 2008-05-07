@@ -14,3 +14,7 @@ svn co http://hibernate-audit.googlecode.com/svn/trunk ./hibernate-audit-read-on
 }}}
 
 == Contributor check out ==
+
+{{{
+svn checkout --username <your_google_account> https://hibernate-audit.googlecode.com/svn/trunk/ ./hibernate-audit 
+}}}
