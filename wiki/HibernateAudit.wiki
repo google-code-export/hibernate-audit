@@ -1,0 +1,12 @@
+#summary HibernateAudit's Main Page
+
+= Overview =
+
+The project provides auditing capabilities to Hibernate. It uses a set of tables in the database that do not depend on the object model.
+
+
+= How do I check out? =
+
+== Anonymous check out ==
+
+== Contributor check out ==
