@@ -9,4 +9,8 @@ The project provides auditing capabilities to Hibernate. It uses a set of tables
 
 == Anonymous check out ==
 
+{{{
+svn co http://hibernate-audit.googlecode.com/svn/trunk ./hibernate-audit-read-only
+}}}
+
 == Contributor check out ==
