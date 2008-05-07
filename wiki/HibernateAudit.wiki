@@ -4,6 +4,11 @@
 
 The project provides auditing capabilities to Hibernate. It uses a set of tables in the database that do not depend on the object model.
 
+= Resources ==
+
+* Issue Tracking: [http://code.google.com/p/hibernate-audit/issues/list]
+* Mail List TBD
+
 
 = How do I check out? =
 
