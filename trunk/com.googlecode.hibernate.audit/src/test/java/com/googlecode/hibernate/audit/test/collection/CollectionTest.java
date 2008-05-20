@@ -28,14 +28,9 @@ public class CollectionTest extends AuditTest {
 		Child childEntity2 = new Child();
 		childEntity2.setChildProperty("Child 2");
 		parentEntity.addChild(childEntity2);
-		
-		
+
 		session.save(parentEntity);
 		((EventSource)session).getActionQueue().executeActions();
 		transaction.commit();
-		
-		//session.flush();
-		//session.close();
-		//dumpAuditLog();
 	}
 }
