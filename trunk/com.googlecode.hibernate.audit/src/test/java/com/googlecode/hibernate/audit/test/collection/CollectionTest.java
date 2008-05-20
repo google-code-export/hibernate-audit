@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.test.collection;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.event.EventSource;
 import org.testng.annotations.Test;
 
@@ -15,7 +16,7 @@ public class CollectionTest extends AuditTest {
 	@Test(enabled = true)
 	public void test() {
 		Session session = getSession();
-		org.hibernate.Transaction transaction = session.beginTransaction();
+		Transaction transaction = session.beginTransaction();
 
 		Parent parentEntity = new Parent();
 		parentEntity.setParentProperty("Parent 1");
