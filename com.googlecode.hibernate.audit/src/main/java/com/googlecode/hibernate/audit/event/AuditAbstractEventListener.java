@@ -4,10 +4,9 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.HashMap;
 
-import org.apache.log4j.Logger;
 import org.hibernate.EntityMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -27,10 +26,6 @@ import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostUpdateEventListener;
-import org.hibernate.event.PreCollectionRecreateEvent;
-import org.hibernate.event.PreCollectionRecreateEventListener;
-import org.hibernate.event.PreCollectionUpdateEvent;
-import org.hibernate.event.PreCollectionUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.transaction.JTATransaction;
 
@@ -47,8 +42,6 @@ public abstract class AuditAbstractEventListener implements
 		PostCollectionRecreateEventListener, PostCollectionRemoveEventListener,
 		PostCollectionUpdateEventListener, PostDeleteEventListener,
 		PostInsertEventListener, PostUpdateEventListener {
-
-	private Logger LOG = Logger.getLogger(AuditAbstractEventListener.class);
 
 	private static ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
 
@@ -198,8 +191,7 @@ public abstract class AuditAbstractEventListener implements
 		Iterator<AuditClass> auditClassQueryIterator = auditClassQuery.list()
 				.iterator();
 		if (auditClassQueryIterator.hasNext()) {
-			AuditClass auditClass = auditClassQueryIterator.next();
-			return auditClass;
+			return auditClassQueryIterator.next();
 		} else {
 			// create the entity
 			AuditClass auditClass = new AuditClass();

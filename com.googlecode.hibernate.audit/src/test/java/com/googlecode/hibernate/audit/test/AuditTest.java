@@ -21,7 +21,6 @@ import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionC
 import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord;
 import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
 import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
 import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldValue;
 import com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue;
 import com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue;
