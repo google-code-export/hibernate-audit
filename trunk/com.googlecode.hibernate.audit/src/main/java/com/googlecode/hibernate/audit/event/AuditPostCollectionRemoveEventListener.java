@@ -43,11 +43,11 @@ public class AuditPostCollectionRemoveEventListener extends
 
 	/*
 	 * protected void doAuditEntityProperties(StatelessSession session, Object
-	 * object, AuditTransaction auditTransaction, AuditObject auditEntity) {
-	 * PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) object;
-	 * Object entity = getEntity(object); String entityName =
+	 * transaction, AuditTransaction auditTransaction, AuditObject auditEntity) {
+	 * PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) transaction;
+	 * Object entity = getEntity(transaction); String entityName =
 	 * entity.getClass().getName().toString(); EntityPersister persister =
-	 * getEntityPersister(object); EntityMode entityMode =
+	 * getEntityPersister(transaction); EntityMode entityMode =
 	 * persister.guessEntityMode(entity);
 	 * 
 	 * CollectionPersister collectionPersister = event.getSession()
