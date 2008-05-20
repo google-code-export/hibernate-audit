@@ -13,6 +13,7 @@
     <orderEntry type="library" name="log4j-1.2.14" level="project" />
     <orderEntry type="library" name="testng-5.7-jdk15" level="project" />
     <orderEntry type="library" name="jta-1.0.1B" level="project" />
+    <orderEntry type="library" name="persistence-api-1.0" level="project" />
     <orderEntryProperties />
   </component>
   <component name="VcsManagerConfiguration">
