@@ -13,6 +13,10 @@
 
 reldir=`dirname $0`
 
+if [ -z "$TARGET_CLASS" -a -f $reldir/.testrc ]; then
+   . $reldir/.testrc
+fi
+
 DEBUG_OPTS_SOCKET="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=12348"
 DEBUG_OPTS_SHMEM="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=mvn"
 
@@ -34,9 +38,9 @@ fi
 while [ "$1" != "" ]; do
     if [ "$1" = "-debug" ]; then
         if [ $cygwin = false ]; then
-            DEBUG_OPTS="-Dmaven.surefire.debug=$DEBUG_OPTS_SOCKET"
+            DEBUG_OPTS="$DEBUG_OPTS_SOCKET"
         else
-            DEBUG_OPTS="-Dmaven.surefire.debug=$DEBUG_OPTS_SHMEM"
+            DEBUG_OPTS="$DEBUG_OPTS_SHMEM"
         fi
         shift
         continue;
@@ -46,11 +50,12 @@ while [ "$1" != "" ]; do
     fi
 done
 
-if [ "$DEBUG_OPTS" = "" ]; then
-    (cd ..; mvn test)
-else
-    (cd ..; mvn "$DEBUG_OPTS" test)
+if [ "$TARGET_CLASS" != "" ]; then
+    SINGLE_TEST="-Dtest=$TARGET_CLASS"
 fi
+
+echo "(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST test)"
+(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST test)
 
 
 
