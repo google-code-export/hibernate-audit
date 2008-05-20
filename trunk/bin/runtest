@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Convenience script to individually run (and debug) tests
+#
+# Usage:
+#
+# To run the tests: ./runtest
+#
+# To run the tests in debug mode: ./runtest -debug
+#
+# @Author: Ovidiu Feodorov <ovidiu@feodorov.com>
+#
+
+reldir=`dirname $0`
+
+DEBUG_OPTS_SOCKET="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=12348"
+DEBUG_OPTS_SHMEM="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=mvn"
+
+os=unix
+cygwin=false;
+case "`uname`" in
+    CYGWIN*)
+        cygwin=true
+        os=windows
+        ;;
+esac
+
+if [ $cygwin = true ]; then
+    SEP=";"
+else
+    SEP=":"
+fi
+
+while [ "$1" != "" ]; do
+    if [ "$1" = "-debug" ]; then
+        if [ $cygwin = false ]; then
+            DEBUG_OPTS="-Dmaven.surefire.debug=$DEBUG_OPTS_SOCKET"
+        else
+            DEBUG_OPTS="-Dmaven.surefire.debug=$DEBUG_OPTS_SHMEM"
+        fi
+        shift
+        continue;
+    else
+        echo "Error, unknown switch: $1"
+        exit 1
+    fi
+done
+
+if [ "$DEBUG_OPTS" = "" ]; then
+    (cd ..; mvn test)
+else
+    (cd ..; mvn "$DEBUG_OPTS" test)
+fi
+
+
+
+
