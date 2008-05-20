@@ -13,7 +13,7 @@ import com.googlecode.hibernate.audit.test.AuditTest;
 public class SimpleEntityTest extends AuditTest {
 	private static final Logger LOG = Logger.getLogger(SimpleEntityTest.class);
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test() {
 		Session session = getSession();
 
