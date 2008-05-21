@@ -106,9 +106,7 @@ public abstract class AuditAbstractEventListener implements
 			AbstractEvent event, Session originalSession) {
 		// TODO:get actorId from somewhere
 		String actorId = null;
-		AuditTransaction auditTransaction = getOrCreateAuditTransaction(
-				session, actorId, originalSession);
-		return auditTransaction;
+		return getOrCreateAuditTransaction(session, actorId, originalSession);
 	}
 
 	protected AuditTransactionRecord doAuditEntity(StatelessSession session, Session originalSession, AbstractEvent event,
