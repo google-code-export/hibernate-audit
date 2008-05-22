@@ -33,4 +33,11 @@ public class CollectionTest extends AuditTest {
 		((EventSource)session).getActionQueue().executeActions();
 		transaction.commit();
 	}
+
+    @Override
+    protected String[] getTestTables()
+    {
+        //return new String[] { "PARENT", "CHILD" };
+        return new String[0];
+    }
 }

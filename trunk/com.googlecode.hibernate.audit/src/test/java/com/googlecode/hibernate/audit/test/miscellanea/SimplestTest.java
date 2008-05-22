@@ -1,10 +1,12 @@
 package com.googlecode.hibernate.audit.test.miscellanea;
 
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.Query;
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.test.AuditTest;
 import com.googlecode.hibernate.audit.test.miscellanea.model.A;
 
@@ -17,11 +19,12 @@ import java.util.List;
  *
  * $Id$
  */
+@Test(sequential = true)
 public class SimplestTest extends AuditTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    //private static final Logger log = Logger.getLogger(SimplestTest.class);
+    private static final Logger log = Logger.getLogger(SimplestTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -31,7 +34,6 @@ public class SimplestTest extends AuditTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test
     public void testSave() throws Exception
     {
         Session session = getSession();
@@ -45,7 +47,6 @@ public class SimplestTest extends AuditTest
         t.commit();
     }
 
-    @Test
     public void testGet() throws Exception
     {
         Session session = getSession();
@@ -57,12 +58,18 @@ public class SimplestTest extends AuditTest
 
         t.commit();
 
-        assert !result.isEmpty();
+        assert result.isEmpty();
     }
 
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
+
+    @Override
+    protected String[] getTestTables()
+    {
+        return new String[] { "A" };
+    }
 
     // Private -------------------------------------------------------------------------------------
 

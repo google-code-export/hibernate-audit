@@ -6,8 +6,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.apache.log4j.Logger;
 
-import java.util.Iterator;
-
 /**
  * Utility class for Hibernate related routines.
  *
@@ -44,10 +42,7 @@ public class HibernateUtils {
         config.configure();
 
         sessionFactory = config.buildSessionFactory();
-
-        dropTestTables(config);
     }
-
 
     public static synchronized void dropPersistenceUnit() throws Exception
     {
@@ -56,6 +51,8 @@ public class HibernateUtils {
             log.debug("Hibernate persistence unit already dropped");
             return;
         }
+
+        log.debug("dropping Hibernate persistence unit");
 
         sessionFactory.close(); // this will drop all tables, assuming that 'hbm2ddl.auto' is
                                 // "create-drop", which it should.
@@ -105,14 +102,6 @@ public class HibernateUtils {
         }
 
         throw new IllegalStateException("Hibernate persistence unit not initialized");
-    }
-
-    private static void dropTestTables(AnnotationConfiguration config) throws Exception
-    {
-        for(Iterator i = config.getTableMappings(); i.hasNext(); )
-        {
-            System.out.println(">>>" + i.next());
-        }
     }
 
 }

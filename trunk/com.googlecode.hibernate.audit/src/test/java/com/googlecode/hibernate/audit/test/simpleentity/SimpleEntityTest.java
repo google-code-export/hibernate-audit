@@ -47,5 +47,13 @@ public class SimpleEntityTest extends AuditTest {
 		session.update(entity);
 		transaction.commit();
 	}
-	
+
+    @Override
+    protected String[] getTestTables()
+    {
+        //return new String[] { "SIMPLE_ENTITY" };
+        return new String[0];
+
+    }
+
 }
