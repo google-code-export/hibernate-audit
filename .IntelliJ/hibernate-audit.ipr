@@ -410,7 +410,9 @@
         <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/hibernate/hibernate/3.2.6.ga/hibernate-3.2.6.ga.jar!/" />
       </CLASSES>
       <JAVADOC />
-      <SOURCES />
+      <SOURCES>
+        <root url="file://C:/work/hibernate-3.2.6.GA.src/src" />
+      </SOURCES>
     </library>
     <library name="log4j-1.2.14">
       <CLASSES>
@@ -445,7 +447,9 @@
         <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/hibernate/hibernate-annotations/3.3.0.ga/hibernate-annotations-3.3.0.ga.jar!/" />
       </CLASSES>
       <JAVADOC />
-      <SOURCES />
+      <SOURCES>
+        <root url="file://C:/work/hibernate-annotations-3.3.0.GA/src" />
+      </SOURCES>
     </library>
   </component>
   <component name="uidesigner-configuration">

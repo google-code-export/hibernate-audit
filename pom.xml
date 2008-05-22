@@ -192,34 +192,21 @@
 	</reporting>
 
 	<properties>
-		<hibernate.dialect>
-			org.hibernate.dialect.Oracle10gDialect
-		</hibernate.dialect>
-		<hibernate.cache.provider_class>
-			org.hibernate.cache.EhCacheProvider
-		</hibernate.cache.provider_class>
-		<!-- 
-			delegates to database (JDBC) transactions
-			other options: 
-			org.hibernate.transaction.JTATransactionFactory
-			org.hibernate.transaction.CMTTransactionFactory 
-		-->
-		<hibernate.transaction.factory_class>
-			org.hibernate.transaction.JDBCTransactionFactory
-		</hibernate.transaction.factory_class>
-		<hibernate.show_sql>false</hibernate.show_sql>
-
-		<hibernate.connection.driver_class>
-			oracle.jdbc.driver.OracleDriver
-		</hibernate.connection.driver_class>
-		<hibernate.connection.url>
-			jdbc:oracle:thin:@localhost:1521:XE
-		</hibernate.connection.url>
-		<hibernate.connection.username>
-			test
-		</hibernate.connection.username>
-		<hibernate.connection.password>
-			test
-		</hibernate.connection.password>
-	</properties>
+		<hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
+		<hibernate.cache.provider_class>org.hibernate.cache.EhCacheProvider</hibernate.cache.provider_class>
+        <hibernate.show_sql>true</hibernate.show_sql>
+        <hibernate.hbm2ddl.auto>create-drop</hibernate.hbm2ddl.auto> <!-- update -->
+        <hibernate.connection.driver_class>oracle.jdbc.driver.OracleDriver</hibernate.connection.driver_class>
+        <hibernate.connection.url>jdbc:oracle:thin:@localhost:1521:XE</hibernate.connection.url>
+        <hibernate.connection.username>test</hibernate.connection.username>
+        <hibernate.connection.password>test</hibernate.connection.password>
+        <!--
+            delegates to database (JDBC) transactions
+            other options:
+            org.hibernate.transaction.JTATransactionFactory
+            org.hibernate.transaction.CMTTransactionFactory
+        -->
+        <hibernate.transaction.factory_class>org.hibernate.transaction.JDBCTransactionFactory</hibernate.transaction.factory_class>
+        
+    </properties>
 </project>
