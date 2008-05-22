@@ -5,6 +5,7 @@ import static org.testng.Assert.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.lang.reflect.Method;
 
 import org.apache.log4j.Hierarchy;
 import org.apache.log4j.Level;
@@ -15,6 +16,8 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterMethod;
 
 import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
 import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
@@ -27,23 +30,27 @@ import com.googlecode.hibernate.audit.model.transaction.record.field.value.Compo
 import com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue;
 import com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue;
 import com.googlecode.hibernate.audit.util.HibernateUtils;
+import com.googlecode.hibernate.audit.util.Util;
 
-public abstract class AuditTest /* implements Synchronization */{
-	/*
-	 * private static final String IDENT_DELIMITER = "\t";
-	 */private Logger LOG = Logger.getLogger(AuditTest.class);
+/**
+ * @author <a href="mailto:jchobantonov@gmail.com">Zhelyazko Chobantonov</a>
+ * @author <a href="mailto:kchobantonov@gmail.com">Krasimir Chobantonov</a>
+ * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * @version <tt>$Revision$</tt>
+ *
+ * $Id$
+ */
+public abstract class AuditTest {
 
-	/*
-	 * public void afterCompletion(int status) { if (status != 0) {
-	 * logTransactionModifications(LOG); } else { if (LOG.isDebugEnabled()) {
-	 * LOG.debug("Transaction rolledback"); } } }
-	 * 
-	 * public void beforeCompletion() { }
-	 */
+    private static final Logger log = Logger.getLogger(AuditTest.class);
+
 	@BeforeSuite
-	public void doBeforeTests() {
-		DOMConfigurator configurator = new DOMConfigurator();
-		InputStream is = null;
+	public void beforeSuite() throws Exception {
+
+        DOMConfigurator configurator = new DOMConfigurator();
+
+        InputStream is = null;
 		try {
 			is = AuditTest.class.getResourceAsStream("/log4j.xml");
 			assertNotNull(is);
@@ -54,17 +61,37 @@ public abstract class AuditTest /* implements Synchronization */{
 				if (is != null) {
 					is.close();
 				}
-			} catch (IOException ignored) {
-			}
-		}
+            } catch (IOException e) {
+                log.warn(e);
+            }
+        }
+
+        // take explicit control over Hibernate persistence unit initialization, don't leave it to
+        // the (quasi)undeterminism associated with running a static block.
+        HibernateUtils.initPersistenceUnit();
+    }
+
+    @AfterSuite(alwaysRun = true)
+	public void afterSuite() {
+
+        HibernateUtils.closeCurrentSession();
 	}
 
-	@AfterSuite(alwaysRun = true)
-	public void doAfterTests() {
-		HibernateUtils.closeCurrentSession();
-	}
+    @BeforeMethod
+    public void beforeMethod(Method m)
+    {
+        log.info("####################################################### running " +
+                 Util.methodToString(m));
+    }
 
-	/*
+    @AfterMethod
+    public void afterMethod(Method m)
+    {
+        log.info("####################################################### finished " +
+                 Util.methodToString(m));
+    }
+
+    /*
 	 * protected void logTransactionModifications(Logger log) {
 	 * logTransactionModifications(log, 1); }
 	 * 
@@ -163,14 +190,14 @@ public abstract class AuditTest /* implements Synchronization */{
 			List<AuditTransaction> auditTransactions = getAuditTransactionQuery
 					.list();
 			for (AuditTransaction auditTransaction : auditTransactions) {
-				LOG.debug("AuditTransaction[id=" + auditTransaction.getId()
+				log.debug("AuditTransaction[id=" + auditTransaction.getId()
 						+ ",time=" + auditTransaction.getTransactionTime()
 						+ "] {");
 				List<AuditTransactionEntityRecord> entities = getEntityObjects(session,
 						auditTransaction);
 				for (AuditTransactionEntityRecord entity : entities) {
 					dumpAuditEntity("\t", '\t', entity);
-					LOG.debug("}");
+					log.debug("}");
 				}
 			}
 		} finally {
@@ -179,27 +206,27 @@ public abstract class AuditTest /* implements Synchronization */{
 	}
 
 	private void dumpAuditEntity(String indent, char indentChar, AuditTransactionEntityRecord entity) {
-		LOG.debug(indent + "AuditEntityObject[id=" + entity.getId()
+		log.debug(indent + "AuditEntityObject[id=" + entity.getId()
 				+ ",className=" + entity.getAuditClass().getName()
 				+ ",audittedEntityId=" + entity.getAudittedEntityId()
 				+ ",operation=" + entity.getOperation() + "] {");
 		dumpAuditObjectProperties(indent, indentChar, entity);
-		LOG.debug(indent + "}");
+		log.debug(indent + "}");
 	}
 
 	private void dumpAuditComponent(String indent, char indentChar, AuditTransactionComponentRecord component) {
-		LOG.debug(indent + "AuditComponentObject[id=" + component.getId()
+		log.debug(indent + "AuditComponentObject[id=" + component.getId()
 				+ ",className=" + component.getAuditClass().getName()
 				+ ",audittedEntityId=" + component.getAudittedEntityId()
 				+ ",operation=" + component.getOperation() + "] {");
 		dumpAuditObjectProperties(indent, indentChar, component);
-		LOG.debug(indent + "}");
+		log.debug(indent + "}");
 	}
 	
 	private void dumpAuditObjectProperties(String indent, char indentChar,
 			AuditTransactionRecord auditObject) {
 		for (AuditTransactionRecordField auditProperty : getRecordFields(auditObject)) {
-			LOG.debug(indent + indentChar + "AuditTransactionRecordField[id="
+			log.debug(indent + indentChar + "AuditTransactionRecordField[id="
 					+ auditProperty.getId() + ",propertyName="
 					+ auditProperty.getAuditClassProperty().getName() 
 					+ ",operation=" + auditProperty.getOperation() 
@@ -208,21 +235,21 @@ public abstract class AuditTest /* implements Synchronization */{
 			for (AuditTransactionRecordFieldValue recordFieldValue : getRecordFieldValues(auditProperty)) {
 				AuditValue value = recordFieldValue.getValue();
 				if (value.isOfType(SimpleAuditValue.class)) {
-					LOG.debug(indent + indentChar + ((SimpleAuditValue)value).getValue());
+					log.debug(indent + indentChar + ((SimpleAuditValue)value).getValue());
 				} else if (value.isOfType(ComponentReferenceAuditValue.class)) {
-					LOG.debug(indent + indentChar + "component{");
+					log.debug(indent + indentChar + "component{");
 					dumpAuditComponent(indent + indentChar, indentChar, ((ComponentReferenceAuditValue)value).getComponentAuditObject());
-					LOG.debug(indent + indentChar + "}");
+					log.debug(indent + indentChar + "}");
 				} else if (value.isOfType(EntityReferenceAuditValue.class)) {
-					LOG.debug(indent + indentChar + "entityRef[" + ((EntityReferenceAuditValue)value).getEntityReferenceId() + "]");
+					log.debug(indent + indentChar + "entityRef[" + ((EntityReferenceAuditValue)value).getEntityReferenceId() + "]");
 				} else {
-					LOG.debug(indent + indentChar + "UNKNOWN VALUE");
+					log.debug(indent + indentChar + "UNKNOWN VALUE");
 				}
 				
-				LOG.debug(indent + indentChar + ",");
+				log.debug(indent + indentChar + ",");
 			}
 
-			LOG.debug(indent + indentChar + "}");
+			log.debug(indent + indentChar + "}");
 		}
 	}
 
