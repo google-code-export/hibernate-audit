@@ -194,7 +194,7 @@
 	<properties>
 		<hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
 		<hibernate.cache.provider_class>org.hibernate.cache.EhCacheProvider</hibernate.cache.provider_class>
-        <hibernate.show_sql>true</hibernate.show_sql>
+        <hibernate.show_sql>false</hibernate.show_sql>
         <hibernate.hbm2ddl.auto>create-drop</hibernate.hbm2ddl.auto> <!-- update -->
         <hibernate.connection.driver_class>oracle.jdbc.driver.OracleDriver</hibernate.connection.driver_class>
         <hibernate.connection.url>jdbc:oracle:thin:@localhost:1521:XE</hibernate.connection.url>

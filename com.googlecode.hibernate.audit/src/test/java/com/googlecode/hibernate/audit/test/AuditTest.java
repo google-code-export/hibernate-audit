@@ -14,6 +14,7 @@ import org.apache.log4j.spi.RootLogger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeMethod;
@@ -81,17 +82,20 @@ public abstract class AuditTest {
     }
 
     @BeforeMethod
-    public void beforeMethod(Method m)
+    public void beforeMethod(Method m) throws Exception
     {
-        log.info("####################################################### running " +
-                 Util.methodToString(m));
+        verifyTestTables();
+        log.info("####################################################### " +
+                 Util.methodToString(m) + " beginning");
     }
 
     @AfterMethod
-    public void afterMethod(Method m)
+    public void afterMethod(Method m) throws Exception
     {
-        log.info("####################################################### finished " +
-                 Util.methodToString(m));
+        cleanTestTables();
+        log.info("####################################################### " +
+                 Util.methodToString(m) + " done");
+
     }
 
     /*
@@ -208,7 +212,14 @@ public abstract class AuditTest {
 		}
 	}
 
-	private void dumpAuditEntity(String indent, char indentChar, AuditTransactionEntityRecord entity) {
+    /**
+     * @return the tables "touched" by a specific test. The infrastructure will make sure those
+     *         tables are empty before each test begins, and the tables are cleared after the test
+     *         ends.
+     */
+    protected abstract String[] getTestTables();
+
+    private void dumpAuditEntity(String indent, char indentChar, AuditTransactionEntityRecord entity) {
 		log.debug(indent + "AuditEntityObject[id=" + entity.getId()
 				+ ",className=" + entity.getAuditClass().getName()
 				+ ",audittedEntityId=" + entity.getAudittedEntityId()
@@ -284,4 +295,51 @@ public abstract class AuditTest {
 		query.setParameter("recordField", recordField);
 		return query.list();
 	}
+
+    private void verifyTestTables() throws Exception
+    {
+        String[] tables = getTestTables();
+
+        Session s = getSession();
+        Transaction t = s.beginTransaction();
+
+        for(String table: tables)
+        {
+            Query q = s.createQuery("SELECT COUNT(*) FROM " + table);
+            Long l = (Long)q.uniqueResult();
+            assert l.longValue() == 0;
+        }
+
+        t.commit();
+    }
+
+    /**
+     * This method ensures that all tables associated with this test are clean afther each test
+     * method exits.
+     */
+    private void cleanTestTables() throws Exception
+    {
+        // we leave tables associated with this test clean after each test method
+
+        String[] tables = getTestTables();
+
+        Session s = getSession();
+        Transaction t = s.beginTransaction();
+
+        for(String table: tables)
+        {
+            try
+            {
+                Query q = s.createQuery("DELETE FROM " + table);
+                q.executeUpdate();
+                log.debug("cleaned table " + table);
+            }
+            catch(Exception e)
+            {
+                log.error("failed to delete " + table + "'s content", e);
+            }
+        }
+
+        t.commit();
+    }
 }
