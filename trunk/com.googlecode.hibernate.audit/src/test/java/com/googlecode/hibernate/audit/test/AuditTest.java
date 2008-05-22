@@ -72,10 +72,13 @@ public abstract class AuditTest {
     }
 
     @AfterSuite(alwaysRun = true)
-	public void afterSuite() {
+	public void afterSuite() throws Exception {
 
         HibernateUtils.closeCurrentSession();
-	}
+
+        // leave the database clean
+        HibernateUtils.dropPersistenceUnit();
+    }
 
     @BeforeMethod
     public void beforeMethod(Method m)

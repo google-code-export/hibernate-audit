@@ -29,10 +29,10 @@
 		<property name="hibernate.show_sql">
 			${hibernate.show_sql}
 		</property>
-		<property name="hibernate.hbm2ddl.auto"><!-- validate -->
-			update
-		</property>
-		<property name="hibernate.jdbc.batch_size">10</property>
+
+        <property name="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</property>
+        
+        <property name="hibernate.jdbc.batch_size">10</property>
 		<property name="hibernate.cache.use_second_level_cache">
 			false
 		</property>
