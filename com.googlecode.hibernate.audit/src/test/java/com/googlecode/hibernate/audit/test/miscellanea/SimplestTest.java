@@ -1,6 +1,10 @@
-package com.googlecode.hibernate.audit.test;
+package com.googlecode.hibernate.audit.test.miscellanea;
 
 import org.testng.annotations.Test;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import com.googlecode.hibernate.audit.test.AuditTest;
+import com.googlecode.hibernate.audit.test.miscellanea.model.A;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -9,7 +13,7 @@ import org.testng.annotations.Test;
  *
  * $Id$
  */
-public class SimplestTest extends AuditTest 
+public class SimplestTest extends AuditTest
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -22,15 +26,18 @@ public class SimplestTest extends AuditTest
     // Public --------------------------------------------------------------------------------------
 
     @Test
-    public void testSomething() throws Exception
+    public void testSave() throws Exception
     {
-        assert "a".equals("b");
-    }
+        Session session = getSession();
 
-    @Test
-    public void testSomethingElse() throws Exception
-    {
-        assert "a".equals("a");
+        A a = new A();
+        a.setName("alice");
+
+        Transaction transaction = session.beginTransaction();
+
+        session.save(a);
+
+        transaction.commit();
     }
 
     // Package protected ---------------------------------------------------------------------------

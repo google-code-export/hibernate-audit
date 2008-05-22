@@ -87,9 +87,10 @@
 			class="com.googlecode.hibernate.audit.model.collection.Parent" />
 		<mapping
 			class="com.googlecode.hibernate.audit.model.collection.Child" />
-            
 
-		<event type="post-collection-remove">
+        <mapping class="com.googlecode.hibernate.audit.test.miscellanea.model.A"/>
+
+        <event type="post-collection-remove">
 			<listener
 				class="com.googlecode.hibernate.audit.event.AuditPostCollectionRemoveEventListener" />
 		</event>
