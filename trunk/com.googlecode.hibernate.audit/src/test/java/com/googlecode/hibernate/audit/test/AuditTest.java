@@ -331,8 +331,8 @@ public abstract class AuditTest {
             try
             {
                 Query q = s.createQuery("DELETE FROM " + table);
-                q.executeUpdate();
-                log.debug("cleaned table " + table);
+                int i = q.executeUpdate();
+                log.debug("cleaned table " + table + ", " + i + " row(s) deleted");
             }
             catch(Exception e)
             {
