@@ -28,6 +28,7 @@ import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.transaction.JTATransaction;
+import org.apache.log4j.Logger;
 
 import com.googlecode.hibernate.audit.annotations.Audit;
 import com.googlecode.hibernate.audit.model.AuditOperation;
@@ -43,7 +44,9 @@ public abstract class AuditAbstractEventListener implements
 		PostCollectionUpdateEventListener, PostDeleteEventListener,
 		PostInsertEventListener, PostUpdateEventListener {
 
-	private static ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
+    private static final Logger log = Logger.getLogger(AuditAbstractEventListener.class);
+
+    private static ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
 
 	public void onPostInsert(PostInsertEvent event) {
 		processEvent(event, event.getSession());
@@ -269,18 +272,21 @@ public abstract class AuditAbstractEventListener implements
 	}
 
 	protected Object getTransactionKey(Session originalSession) {
-		Object transactionKey = null;
-		Transaction transaction = originalSession.getTransaction();
-		if (transaction instanceof JTATransaction) {
+
+        Object transactionKey = null;
+
+        Transaction transaction = originalSession.getTransaction();
+
+        if (transaction instanceof JTATransaction) {
+
 			// try to get transaction ID from TransactionSynchronizationRegistry
 			try {
 				// we are going to use reflection so the audit don't depend on
-				// JNDI or JTA interfaces
+                // JNDI or JTA interfaces
 				Class transactionSynchronizationRegistryClass = Class
 						.forName(
 								"javax.transaction.TransactionSynchronizationRegistry",
-								true, AuditAbstractEventListener.class
-										.getClassLoader());
+								true, AuditAbstractEventListener.class.getClassLoader());
 
 				// If we came here, we might be on Java EE 5, since the JTA 1.1
 				// API is present.
@@ -288,22 +294,29 @@ public abstract class AuditAbstractEventListener implements
 						"javax.naming.InitialContext", true,
 						AuditAbstractEventListener.class.getClassLoader());
 				Object initialContext = initialContextClass.newInstance();
-				Method lookupMethod = initialContextClass.getMethod("lookup",
-						String.class);
-				Object transactionSynchronizationRegistry = lookupMethod
+
+                Method lookupMethod = initialContextClass.getMethod("lookup", String.class);
+
+                Object transactionSynchronizationRegistry = lookupMethod
 						.invoke(initialContext,
 								"java:comp/TransactionSynchronizationRegistry");
-				Method method = transactionSynchronizationRegistryClass
-						.getMethod("getTransactionKey");
-				transactionKey = method
-						.invoke(transactionSynchronizationRegistry);
-			} catch (Exception ex) {
-			}
+
+                Method method = transactionSynchronizationRegistryClass
+                    .getMethod("getTransactionKey");
+
+                transactionKey = method.invoke(transactionSynchronizationRegistry);
+
+            } catch (Exception e) {
+                
+                log.debug("JTA transaction lookup failed", e);
+            }
 		}
-		if (transactionKey == null) {
+
+        if (transactionKey == null) {
 			transactionKey = originalSession.getTransaction();
 		}
-		return transactionKey;
+        
+        return transactionKey;
 	}
 
 	protected boolean isAuditSuppressed(Class entityClass, String propertyName) {
