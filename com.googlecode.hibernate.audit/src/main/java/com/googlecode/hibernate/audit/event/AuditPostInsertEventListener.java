@@ -137,22 +137,22 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 
 	private void createValue(StatelessSession session, String entityName,
 			AuditTransactionRecord auditEntity, String propertyName, Object propertyValue) {
-		AuditTransactionRecordField simpleObjectProperty = new AuditTransactionRecordField();
-		simpleObjectProperty.setAuditClassProperty(getOrCreateAuditProperty(
-				session, entityName, propertyName));
-		simpleObjectProperty.setOperation(AuditOperation.INSERT);
+
+        AuditTransactionRecordField field = new AuditTransactionRecordField();
+
+        field.setAuditClassProperty(getOrCreateAuditProperty(session, entityName, propertyName));
+		field.setOperation(AuditOperation.INSERT);
 
 		//auditEntity.addAuditTransactionRecordField(simpleObjectProperty);
-		simpleObjectProperty.setAuditTransactionRecord(auditEntity);
+		field.setAuditTransactionRecord(auditEntity);
 		
-		AuditTransactionRecordFieldSimpleValue simpleObjectValue = new AuditTransactionRecordFieldSimpleValue();
-		simpleObjectValue.setValue(new SimpleAuditValue(String.valueOf(propertyValue)));
-		simpleObjectValue.setRecordField(simpleObjectProperty);
+		AuditTransactionRecordFieldSimpleValue value = new AuditTransactionRecordFieldSimpleValue();
+		value.setValue(new SimpleAuditValue(String.valueOf(propertyValue)));
+		value.setRecordField(field);
 		//simpleObjectProperty.setValue(simpleObjectValue);
-		simpleObjectValue.setRecordField(simpleObjectProperty);
-		
-		session.insert(simpleObjectProperty);
-		session.insert(simpleObjectValue);
+
+		session.insert(field);
+		session.insert(value);
 	}
 
 	private void createEntityRef(PostInsertEvent event,
