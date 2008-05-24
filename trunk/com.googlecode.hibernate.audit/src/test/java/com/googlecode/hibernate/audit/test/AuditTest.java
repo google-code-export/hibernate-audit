@@ -236,7 +236,7 @@ public abstract class AuditTest {
     private void dumpAuditEntity(String indent, char indentChar, AuditTransactionEntityRecord entity) {
 		log.debug(indent + "AuditEntityObject[id=" + entity.getId()
 				+ ",className=" + entity.getAuditClass().getName()
-				+ ",audittedEntityId=" + entity.getAudittedEntityId()
+				+ ",audittedEntityId=" + entity.getAuditedEntityId()
 				+ ",operation=" + entity.getOperation() + "] {");
 		dumpAuditObjectProperties(indent, indentChar, entity);
 		log.debug(indent + "}");
@@ -245,7 +245,7 @@ public abstract class AuditTest {
 	private void dumpAuditComponent(String indent, char indentChar, AuditTransactionComponentRecord component) {
 		log.debug(indent + "AuditComponentObject[id=" + component.getId()
 				+ ",className=" + component.getAuditClass().getName()
-				+ ",audittedEntityId=" + component.getAudittedEntityId()
+				+ ",audittedEntityId=" + component.getAuditedEntityId()
 				+ ",operation=" + component.getOperation() + "] {");
 		dumpAuditObjectProperties(indent, indentChar, component);
 		log.debug(indent + "}");

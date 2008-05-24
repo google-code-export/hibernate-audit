@@ -45,8 +45,8 @@ public abstract class AuditTransactionRecord {
 	@JoinColumn(name = "AUDIT_CLASS_ID")
 	private AuditClass auditClass;
 
-	@Column(name = "AUDITTED_ENTITY_ID")
-	private String audittedEntityId;
+	@Column(name = "AUDITED_ENTITY_ID")
+	private String auditedEntityId;
 
 /*	@OneToMany(mappedBy = "auditTransactionRecord")
 	private Set<AuditTransactionRecordField> auditTransactionRecordFields = new HashSet<AuditTransactionRecordField>(); 
@@ -65,12 +65,12 @@ public abstract class AuditTransactionRecord {
 		this.id = id;
 	}
 
-	public String getAudittedEntityId() {
-		return audittedEntityId;
+	public String getAuditedEntityId() {
+		return auditedEntityId;
 	}
 
-	public void setAudittedEntityId(String audittedEntityId) {
-		this.audittedEntityId = audittedEntityId;
+	public void setAuditedEntityId(String auditedEntityId) {
+		this.auditedEntityId = auditedEntityId;
 	}
 
 /*	public void addAuditTransactionRecordField(AuditTransactionRecordField property) {
