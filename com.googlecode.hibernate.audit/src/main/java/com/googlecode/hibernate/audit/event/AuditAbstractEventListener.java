@@ -104,8 +104,8 @@ public abstract class AuditAbstractEventListener implements
 
 	protected AuditTransaction doAuditTransaction(StatelessSession session,
 			AbstractEvent event, Session originalSession) {
-		// TODO:get actorId from somewhere
-		String actorId = null;
+		// TODO:get actorId from somewhere (https://jira.novaordis.org/browse/HBA-11)
+        String actorId = null;
 		return getOrCreateAuditTransaction(session, actorId, originalSession);
 	}
 
