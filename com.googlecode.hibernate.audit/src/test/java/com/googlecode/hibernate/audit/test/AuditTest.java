@@ -46,7 +46,21 @@ public abstract class AuditTest {
 
     private static final Logger log = Logger.getLogger(AuditTest.class);
 
-	@BeforeSuite
+//    private static final String[] DEFAULT_AUDIT_TABLES =
+//        {
+//            "AUDIT_TRANSACTION",
+//            "AUDIT_CLASS",
+//            "AUDIT_TRANSACTION_RECORD",
+//            "AUDIT_CLASS_PROPERTY",
+//            "AUDIT_TRANSACTION_RECORD_FIELD",
+//            "AUDIT_TRAN_RECORD_FIELD_VALUE"
+//        };
+
+    private static final String[] DEFAULT_AUDIT_TABLES =
+        {
+        };
+
+    @BeforeSuite
 	public void beforeSuite() throws Exception {
 
         DOMConfigurator configurator = new DOMConfigurator();
@@ -213,7 +227,7 @@ public abstract class AuditTest {
 	}
 
     /**
-     * @return the tables "touched" by a specific test. The infrastructure will make sure those
+     * @return the tables "touched" by a sub-class test. The infrastructure will make sure those
      *         tables are empty before each test begins, and the tables are cleared after the test
      *         ends.
      */
@@ -296,9 +310,23 @@ public abstract class AuditTest {
 		return query.list();
 	}
 
+    private String[] getAllTestTables()
+    {
+        String[] subclassTestTables = getTestTables();
+
+        String[] result = new String[DEFAULT_AUDIT_TABLES.length + subclassTestTables.length];
+
+        System.arraycopy(DEFAULT_AUDIT_TABLES, 0,
+                         result, 0, DEFAULT_AUDIT_TABLES.length);
+        System.arraycopy(subclassTestTables, 0,
+                         result, DEFAULT_AUDIT_TABLES.length, subclassTestTables.length);
+
+        return result;
+    }
+
     private void verifyTestTables() throws Exception
     {
-        String[] tables = getTestTables();
+        String[] tables = getAllTestTables();
 
         Session s = getSession();
         Transaction t = s.beginTransaction();
@@ -321,7 +349,7 @@ public abstract class AuditTest {
     {
         // we leave tables associated with this test clean after each test method
 
-        String[] tables = getTestTables();
+        String[] tables = getAllTestTables();
 
         Session s = getSession();
         Transaction t = s.beginTransaction();
