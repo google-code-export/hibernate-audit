@@ -3,8 +3,11 @@ package com.googlecode.hibernate.audit.util;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.apache.log4j.Logger;
+
+import java.sql.Connection;
 
 /**
  * Utility class for Hibernate related routines.
@@ -93,6 +96,12 @@ public class HibernateUtils {
 			s.close();
 		}
 	}
+
+    public static StatelessSession getStatelessSession() throws Exception
+    {
+        checkInit();
+        return sessionFactory.openStatelessSession();
+    }
 
     private static synchronized void checkInit() throws IllegalStateException
     {

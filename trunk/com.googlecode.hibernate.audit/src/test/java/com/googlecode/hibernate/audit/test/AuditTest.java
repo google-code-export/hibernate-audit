@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import org.apache.log4j.Hierarchy;
 import org.apache.log4j.Level;
@@ -15,6 +18,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.StatelessSession;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeMethod;
@@ -46,18 +50,14 @@ public abstract class AuditTest {
 
     private static final Logger log = Logger.getLogger(AuditTest.class);
 
-//    private static final String[] DEFAULT_AUDIT_TABLES =
-//        {
-//            "AUDIT_TRANSACTION",
-//            "AUDIT_CLASS",
-//            "AUDIT_TRANSACTION_RECORD",
-//            "AUDIT_CLASS_PROPERTY",
-//            "AUDIT_TRANSACTION_RECORD_FIELD",
-//            "AUDIT_TRAN_RECORD_FIELD_VALUE"
-//        };
-
     private static final String[] DEFAULT_AUDIT_TABLES =
         {
+            "AUDIT_TRANSACTION",
+            "AUDIT_CLASS",
+            "AUDIT_TRANSACTION_RECORD",
+            "AUDIT_CLASS_PROPERTY",
+            "AUDIT_TRANSACTION_RECORD_FIELD",
+            "AUDIT_TRAN_RECORD_FIELD_VALUE"
         };
 
     @BeforeSuite
@@ -328,14 +328,16 @@ public abstract class AuditTest {
     {
         String[] tables = getAllTestTables();
 
-        Session s = getSession();
+        StatelessSession s = HibernateUtils.getStatelessSession();
         Transaction t = s.beginTransaction();
+        Connection c = s.connection();
 
         for(String table: tables)
         {
-            Query q = s.createQuery("SELECT COUNT(*) FROM " + table);
-            Long l = (Long)q.uniqueResult();
-            assert l.longValue() == 0;
+            Statement stat = c.createStatement();
+            ResultSet rs = stat.executeQuery("SELECT * FROM " + table);
+            assert !rs.next();
+            stat.close();
         }
 
         t.commit();
@@ -351,16 +353,19 @@ public abstract class AuditTest {
 
         String[] tables = getAllTestTables();
 
-        Session s = getSession();
+        StatelessSession s = HibernateUtils.getStatelessSession();
         Transaction t = s.beginTransaction();
+        Connection c = s.connection();
 
-        for(String table: tables)
+        for(int i = tables.length - 1; i >=0; i --)
         {
+            String table = tables[i];
             try
             {
-                Query q = s.createQuery("DELETE FROM " + table);
-                int i = q.executeUpdate();
-                log.debug("cleaned table " + table + ", " + i + " row(s) deleted");
+                Statement stat = c.createStatement();
+                int r = stat.executeUpdate("DELETE FROM " + table);
+                log.debug("cleaned table " + table + ", " + r + " row(s) deleted");
+                stat.close();
             }
             catch(Exception e)
             {
