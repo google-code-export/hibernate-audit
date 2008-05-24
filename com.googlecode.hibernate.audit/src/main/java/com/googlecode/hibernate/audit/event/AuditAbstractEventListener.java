@@ -39,6 +39,11 @@ import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionC
 import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord;
 import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
 
+/**
+ * @author <a href="mailto:chobantonov@gmail.com">Petko Chobantonov</a>
+ * @author <a href="mailto:jchobantonov@gmail.com">Zhelyazko Chobantonov</a>
+ * @author <a href="mailto:kchobantonov@gmail.com">Krasimir Chobantonov</a>
+ */
 public abstract class AuditAbstractEventListener implements
 		PostCollectionRecreateEventListener, PostCollectionRemoveEventListener,
 		PostCollectionUpdateEventListener, PostDeleteEventListener,
@@ -86,7 +91,6 @@ public abstract class AuditAbstractEventListener implements
 				session.close();
 			}
 		}
-
 	}
 
 	protected abstract StatelessSession openStatelessSession(AbstractEvent event);
@@ -126,19 +130,23 @@ public abstract class AuditAbstractEventListener implements
 		}
 		AuditOperation operation = getAuditEntityOperation(event);
 		AuditClass auditClass = getOrCreateAuditClass(session, entityName);
-		
-		Query getAuditObjectQuery = originalSession.createQuery("from " + AuditTransactionRecord.class.getName() + " as audit where " +
-				"auditTransaction = :auditTransaction and " +
-				"auditClass = :auditClass and " +
-				"operation = :operation and " +
-				"audittedEntityId = :audittedEntityId");
+
+        String qs =
+            "from " + AuditTransactionRecord.class.getName() + " as audit where " +
+            "auditTransaction = :auditTransaction and " +
+            "auditClass = :auditClass and " +
+            "operation = :operation and " +
+            "audittedEntityId = :audittedEntityId";
+        Query getAuditObjectQuery = originalSession.createQuery(qs);
 		getAuditObjectQuery.setParameter("auditTransaction", auditTransaction);
 		getAuditObjectQuery.setParameter("auditClass", auditClass);
 		getAuditObjectQuery.setParameter("operation", operation);
 		getAuditObjectQuery.setParameter("audittedEntityId", String.valueOf(entityId));
 		
-		AuditTransactionRecord existingAuditEntity = (AuditTransactionRecord)getAuditObjectQuery.uniqueResult();
-		if (existingAuditEntity != null) {
+		AuditTransactionRecord existingAuditEntity =
+            (AuditTransactionRecord)getAuditObjectQuery.uniqueResult();
+
+        if (existingAuditEntity != null) {
 			return existingAuditEntity;
 		}
 		
@@ -182,15 +190,14 @@ public abstract class AuditAbstractEventListener implements
 		return auditTransaction;
 	}
 
-	protected AuditClass getOrCreateAuditClass(StatelessSession session,
-			String entityName) {
-		Query auditClassQuery = session.createQuery(
-				"from " +  AuditClass.class.getName() + " where name = :entityName").setMaxResults(1);
-		auditClassQuery.setString("entityName", entityName);
+	protected AuditClass getOrCreateAuditClass(StatelessSession session, String entityName) {
+
+        String qs = "from " +  AuditClass.class.getName() + " where name = :entityName"; 
+        Query auditClassQuery = session.createQuery(qs).setMaxResults(1);
+        auditClassQuery.setString("entityName", entityName);
 
 		@SuppressWarnings("unchecked")
-		Iterator<AuditClass> auditClassQueryIterator = auditClassQuery.list()
-				.iterator();
+		Iterator<AuditClass> auditClassQueryIterator = auditClassQuery.list().iterator();
 		if (auditClassQueryIterator.hasNext()) {
 			return auditClassQueryIterator.next();
 		} else {
@@ -263,7 +270,7 @@ public abstract class AuditAbstractEventListener implements
 		//auditTransaction.addAuditObject(auditEntity);
 		auditEntity.setAuditTransaction(auditTransaction);
 		auditEntity
-				.setAudittedEntityId(audittedEntityId != null ? audittedEntityId
+				.setAuditedEntityId(audittedEntityId != null ? audittedEntityId
 						.toString()
 						: null);
 		auditEntity.setAuditClass(auditClass);

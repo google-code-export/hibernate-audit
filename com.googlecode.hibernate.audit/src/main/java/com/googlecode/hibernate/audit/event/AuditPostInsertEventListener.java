@@ -192,7 +192,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 
 		String componentName = componentType.getReturnedClass().getName();
 		AuditTransactionComponentRecord result = createAuditComponent(session, auditEntity
-				.getAudittedEntityId(), componentName, AuditOperation.INSERT,
+				.getAuditedEntityId(), componentName, AuditOperation.INSERT,
 				auditTransaction);
 
 		String[] propertyNames = componentType.getPropertyNames();
