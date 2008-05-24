@@ -136,12 +136,12 @@ public abstract class AuditAbstractEventListener implements
             "auditTransaction = :auditTransaction and " +
             "auditClass = :auditClass and " +
             "operation = :operation and " +
-            "audittedEntityId = :audittedEntityId";
+            "auditedEntityId = :auditedEntityId";
         Query getAuditObjectQuery = originalSession.createQuery(qs);
 		getAuditObjectQuery.setParameter("auditTransaction", auditTransaction);
 		getAuditObjectQuery.setParameter("auditClass", auditClass);
 		getAuditObjectQuery.setParameter("operation", operation);
-		getAuditObjectQuery.setParameter("audittedEntityId", String.valueOf(entityId));
+		getAuditObjectQuery.setParameter("auditedEntityId", String.valueOf(entityId));
 		
 		AuditTransactionRecord existingAuditEntity =
             (AuditTransactionRecord)getAuditObjectQuery.uniqueResult();
@@ -241,36 +241,36 @@ public abstract class AuditAbstractEventListener implements
 	}
 
 	protected AuditTransactionComponentRecord createAuditComponent(StatelessSession session,
-			Serializable audittedEntityId, String entityName,
+			Serializable auditedEntryId, String entityName,
 			AuditOperation operation, AuditTransaction auditTransaction) {
 		AuditTransactionComponentRecord auditComponent = new AuditTransactionComponentRecord();
 		
 		AuditClass auditClass = getOrCreateAuditClass(session, entityName);
-		persistAuditObject(session, audittedEntityId, entityName,
+		persistAuditObject(session, auditedEntryId, entityName,
 				operation, auditTransaction, auditComponent, auditClass);
 		
 		return auditComponent;
 	}
 	
 	protected AuditTransactionRecord createAuditEntity(StatelessSession session,
-			Serializable audittedEntityId, String entityName,
+			Serializable auditedEntityId, String entityName,
 			AuditOperation operation, AuditTransaction auditTransaction, AuditClass auditClass) {
 		AuditTransactionEntityRecord auditEntity = new AuditTransactionEntityRecord();
 
-		persistAuditObject(session, audittedEntityId, entityName,
+		persistAuditObject(session, auditedEntityId, entityName,
 				operation, auditTransaction, auditEntity, auditClass);
 		
 		return auditEntity;
 	}
 
 	private void persistAuditObject(StatelessSession session,
-			Serializable audittedEntityId, String entityName,
+			Serializable auditedEntityId, String entityName,
 			AuditOperation operation, AuditTransaction auditTransaction,
 			AuditTransactionRecord auditEntity, AuditClass auditClass) {
 		//auditTransaction.addAuditObject(auditEntity);
 		auditEntity.setAuditTransaction(auditTransaction);
 		auditEntity
-				.setAuditedEntityId(audittedEntityId != null ? audittedEntityId
+				.setAuditedEntityId(auditedEntityId != null ? auditedEntityId
 						.toString()
 						: null);
 		auditEntity.setAuditClass(auditClass);
