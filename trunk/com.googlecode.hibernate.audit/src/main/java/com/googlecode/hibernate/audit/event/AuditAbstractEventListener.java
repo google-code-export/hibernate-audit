@@ -102,11 +102,11 @@ public abstract class AuditAbstractEventListener implements
 	protected abstract EntityPersister getEntityPersister(AbstractEvent event);
 
 	protected void doAuditEvent(StatelessSession session, AbstractEvent event,
-			Session originalSession) {
-		AuditTransaction auditTransaction = doAuditTransaction(session, event,
-				originalSession);
-		AuditTransactionRecord	auditEntity = doAuditEntity(session, originalSession, event, auditTransaction);
-		doAuditEntityProperties(session, event, auditTransaction, auditEntity);
+                                Session originalSession) {
+
+        AuditTransaction at = doAuditTransaction(session, event, originalSession);
+		AuditTransactionRecord rec = doAuditEntity(session, originalSession, event, at);
+		doAuditEntityProperties(session, event, at, rec);
 	}
 
 	protected AuditTransaction doAuditTransaction(StatelessSession session,
@@ -212,12 +212,12 @@ public abstract class AuditAbstractEventListener implements
 
 	protected AuditClassProperty getOrCreateAuditProperty(
 			StatelessSession session, String entityName, String propertyName) {
-		Query auditPropertyQuery = session
-				.createQuery(
-						"from "
-								+ AuditClassProperty.class.getName()
-								+ " auditProperty where auditProperty.name = :propertyName and auditProperty.auditClass.name = :entityName")
-				.setMaxResults(1);
+
+        String qs =
+            "from "	+ AuditClassProperty.class.getName() + " auditProperty where " +
+            "auditProperty.name = :propertyName and auditProperty.auditClass.name = :entityName";
+
+        Query auditPropertyQuery = session.createQuery(qs).setMaxResults(1);
 		auditPropertyQuery.setString("propertyName", propertyName);
 		auditPropertyQuery.setString("entityName", entityName);
 
