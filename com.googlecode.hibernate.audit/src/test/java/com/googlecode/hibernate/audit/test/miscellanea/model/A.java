@@ -8,6 +8,9 @@ import javax.persistence.GeneratedValue;
 /**
  * A simple data model used for various tests. Colocating it with the tests themselved for maximum
  * isolation.
+ *
+ * This class represents the simplest kind of persistent entity, containing an id and a String
+ * property.
  * 
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
