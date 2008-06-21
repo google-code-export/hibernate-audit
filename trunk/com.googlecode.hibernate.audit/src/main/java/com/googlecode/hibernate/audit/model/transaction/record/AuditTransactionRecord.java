@@ -25,10 +25,10 @@ import com.googlecode.hibernate.audit.model.clazz.AuditClass;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRAN_RECORD_ID_SEQ")
 public abstract class AuditTransactionRecord {
-	/** the id. */
+
 	@Id
 	@Column(name = "AUDIT_TRANSACTION_RECORD_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
 	private Long id;
 
 	/** the transaction id. */

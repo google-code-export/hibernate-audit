@@ -12,11 +12,11 @@ import javax.persistence.Table;
 @Table(name = "AUDIT_CLASS")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_ID_SEQ")
 public class AuditClass {
-	/** the id. */
+
 	@Id
 	@Column(name = "AUDIT_CLASS_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
-	private Long id;
+    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    private Long id;
 
 	/** the entity class name. */
 	@Column(name = "NAME", unique=true)

@@ -10,20 +10,22 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 import com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue;
 
-@javax.persistence.Entity
-@javax.persistence.Table(name = "AUDIT_TRAN_RECORD_FIELD_VALUE")
+@Entity
+@Table(name = "AUDIT_TRAN_RECORD_FIELD_VALUE")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "VALUE_TYPE")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRAN_REC_FLD_VAL_ID_SEQ")
 public abstract class AuditTransactionRecordFieldValue {
-	/** the id. */
+
 	@Id
 	@Column(name = "AUDIT_TRAN_RECORD_FIELD_VAL_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
-	private Long id;
+    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    private Long id;
 
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "AUDIT_TRAN_RECORD_FIELD_ID")

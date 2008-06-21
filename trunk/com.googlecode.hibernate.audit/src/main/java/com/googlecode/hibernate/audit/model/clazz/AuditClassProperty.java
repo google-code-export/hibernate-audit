@@ -12,14 +12,14 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "AUDIT_CLASS_PROPERTY", uniqueConstraints = @UniqueConstraint(columnNames = {
-		"AUDIT_CLASS_ID", "NAME" }))
+@Table(name = "AUDIT_CLASS_PROPERTY",
+       uniqueConstraints = @UniqueConstraint(columnNames = { "AUDIT_CLASS_ID", "NAME" }))
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_PROP_ID_SEQ")
 public class AuditClassProperty {
-	/** the id. */
+
 	@Id
 	@Column(name = "AUDIT_PROPERTY_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
 	private Long id;
 
 	/** the property name. */

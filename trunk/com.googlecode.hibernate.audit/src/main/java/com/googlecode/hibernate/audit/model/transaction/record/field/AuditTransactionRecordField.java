@@ -20,10 +20,10 @@ import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionR
 @Table(name = "AUDIT_TRANSACTION_RECORD_FIELD")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRAN_RECORD_FIELD_ID_SEQ")
 public class AuditTransactionRecordField {
-	/** the id. */
+
 	@Id
 	@Column(name = "AUDIT_TRAN_RECORD_FIELD_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
 	private Long id;
 
 	@ManyToOne
