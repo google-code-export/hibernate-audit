@@ -16,10 +16,10 @@ import javax.persistence.TemporalType;
 @Table(name = "AUDIT_TRANSACTION")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQ")
 public class AuditTransaction {
-	/** the id. */
+	
 	@Id
 	@Column(name = "AUDIT_TRANSACTION_ID")
-	@GeneratedValue(generator = "sequence", strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
 	private Long id;
 
 	/** the transaction time. */
