@@ -35,4 +35,6 @@ mvn clean install
 
 ==Testing Prerequisites==
 
-To run a complete testsuite there are necessary two distinct persistence units. One will be used to persist test data and the other to persist audit data. 
+In order to run a complete testsuite there are necessary two distinct persistence units. One will be used to persist test data and the other to persist audit data. 
+
+Both persistence units are configured in the main `pom.xml`.
