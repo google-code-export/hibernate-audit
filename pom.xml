@@ -122,7 +122,17 @@
 				<scope>provided</scope>
 			</dependency>
 
-		</dependencies>
+            <!--
+                Need this to test the secondary persistence unit with a database other than Oracle.
+            -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.6</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
 	</dependencyManagement>
 
 	<reporting>
@@ -192,7 +202,12 @@
 	</reporting>
 
 	<properties>
-		<hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
+
+        <!--
+            The 'main' persistence unit definition, used to persist test data and optionally
+            audit data.
+        -->
+        <hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
 		<hibernate.cache.provider_class>org.hibernate.cache.EhCacheProvider</hibernate.cache.provider_class>
         <hibernate.show_sql>true</hibernate.show_sql>
         <hibernate.hbm2ddl.auto>create-drop</hibernate.hbm2ddl.auto> <!-- update -->
@@ -207,6 +222,20 @@
             org.hibernate.transaction.CMTTransactionFactory
         -->
         <hibernate.transaction.factory_class>org.hibernate.transaction.JDBCTransactionFactory</hibernate.transaction.factory_class>
-        
+
+        <!--
+            The secondary persistence unit definition, used to test storing audit data in a
+            separated persistence unit.
+        -->
+        <secondary.hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</secondary.hibernate.dialect>
+		<secondary.hibernate.cache.provider_class>org.hibernate.cache.EhCacheProvider</secondary.hibernate.cache.provider_class>
+        <secondary.hibernate.show_sql>true</secondary.hibernate.show_sql>
+        <secondary.hibernate.hbm2ddl.auto>create-drop</secondary.hibernate.hbm2ddl.auto>
+        <secondary.hibernate.connection.driver_class>com.mysql.jdbc.Driver</secondary.hibernate.connection.driver_class>
+        <secondary.hibernate.connection.url>jdbc:mysql://localhost/playground</secondary.hibernate.connection.url>
+        <secondary.hibernate.connection.username>playground</secondary.hibernate.connection.username>
+        <secondary.hibernate.connection.password>playground</secondary.hibernate.connection.password>
+        <secondary.hibernate.transaction.factory_class>org.hibernate.transaction.JDBCTransactionFactory</secondary.hibernate.transaction.factory_class>
+
     </properties>
 </project>

@@ -54,9 +54,19 @@ if [ "$TARGET_CLASS" != "" ]; then
     SINGLE_TEST="-Dtest=$TARGET_CLASS"
 fi
 
-echo "(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST test)"
-(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST test)
+echo "(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST clean test)"
+(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST clean test)
 
+#
+# running from jar
+#CP="\
+#C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15.jar;\
+#../com.googlecode.hibernate.audit/target/com.googlecode.hibernate.audit-1.0.0-SNAPSHOT.jar;\
+#../tmp/test-classes;\
+#C:\Documents and Settings\ofeodoro\.m2\repository\log4j\log4j\1.2.14\log4j-1.2.14.jar"
+#
+#java -ea $DEBUG_OPTS -cp "$CP" org.testng.TestNG testng.xml
+#
 
 
 

@@ -1,2 +1,4 @@
 
-TARGET_CLASS=SaveTest
+#>TARGET_CLASS=DifferentSessionFactoryTest
+#>TARGET_CLASS=HibernateAuditTest
+TARGET_CLASS=ListenersTest

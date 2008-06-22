@@ -426,7 +426,9 @@
         <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15.jar!/" />
       </CLASSES>
       <JAVADOC />
-      <SOURCES />
+      <SOURCES>
+        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15-src.jar!/" />
+      </SOURCES>
     </library>
     <library name="jta-1.0.1B">
       <CLASSES>
