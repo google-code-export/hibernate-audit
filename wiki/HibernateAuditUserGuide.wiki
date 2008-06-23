@@ -1,0 +1,11 @@
+=Deployment=
+
+Add `hba.jar` in your Hibernate application classpath.
+
+=Run time activation=
+
+Call
+
+{{{
+HibernateAudit.enable(SessionFactory auditedSessionFactory)
+}}}
