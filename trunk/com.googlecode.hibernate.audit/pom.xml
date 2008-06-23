@@ -2,16 +2,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<parent>
-		<artifactId>com.googlecode.hibernate</artifactId>
-		<groupId>com.googlecode.hibernate</groupId>
-		<version>1.0.0-SNAPSHOT</version>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.googlecode.hibernate</groupId>
+        <artifactId>com.googlecode.hibernate</artifactId>
+        <!--
+           Releases should follow an Alpha/Beta/CR/GA/SP naming convention.
+           See https://jira.novaordis.org/browse/HBA-14.
+        -->
+        <version>1.0.0.Alpha1</version>
 	</parent>
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>com.googlecode.hibernate.audit</artifactId>
-	<name>com.googlecode.hibernate.audit</name>
-	<url>http://maven.apache.org</url>
-	<build>
+
+	<artifactId>hba</artifactId>
+	<name>hba</name>
+
+    <url>http://maven.apache.org</url>
+
+    <build>
 		<resources>
 			<resource>
 				<filtering>true</filtering>
