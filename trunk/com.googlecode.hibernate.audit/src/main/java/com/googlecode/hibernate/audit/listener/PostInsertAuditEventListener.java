@@ -12,7 +12,8 @@ import org.hibernate.event.PostInsertEvent;
  * 
  * $Id$
  */
-public class PostInsertAuditEventListener implements AuditEventListener, PostInsertEventListener
+public class PostInsertAuditEventListener
+    extends AbstractAuditEventListener implements PostInsertEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -26,7 +27,7 @@ public class PostInsertAuditEventListener implements AuditEventListener, PostIns
 
     public void onPostInsert(PostInsertEvent event)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        // noop for the time being
     }
 
     // Public --------------------------------------------------------------------------------------
