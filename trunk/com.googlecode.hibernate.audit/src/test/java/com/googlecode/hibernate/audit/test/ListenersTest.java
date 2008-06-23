@@ -39,6 +39,42 @@ public class ListenersTest
         assert types.contains("post-insert");
     }
 
+    @Test(enabled = true)
+    public void testGetEventListenersGetterName()
+    {
+        assert "getMergeEventListeners".equals(Listeners.getEventListenersGetterName("merge"));
+        assert "getPostInsertEventListeners".
+            equals(Listeners.getEventListenersGetterName("post-insert"));
+        assert "getPreCollectionRecreateEventListeners".
+            equals(Listeners.getEventListenersGetterName("pre-collection-recreate"));
+        assert "getPersistOnFlushEventListeners".
+            equals(Listeners.getEventListenersGetterName("create-onflush"));
+        assert "getSaveOrUpdateEventListeners".
+            equals(Listeners.getEventListenersGetterName("save-update"));
+        assert "getPersistEventListeners".
+            equals(Listeners.getEventListenersGetterName("create"));
+        assert "getInitializeCollectionEventListeners".
+            equals(Listeners.getEventListenersGetterName("load-collection"));
+    }
+
+    @Test(enabled = true)
+    public void testSetEventListenersGetterName()
+    {
+        assert "setMergeEventListeners".equals(Listeners.getEventListenersSetterName("merge"));
+        assert "setPostInsertEventListeners".
+            equals(Listeners.getEventListenersSetterName("post-insert"));
+        assert "setPreCollectionRecreateEventListeners".
+            equals(Listeners.getEventListenersSetterName("pre-collection-recreate"));
+        assert "setPersistOnFlushEventListeners".
+            equals(Listeners.getEventListenersSetterName("create-onflush"));
+        assert "setSaveOrUpdateEventListeners".
+            equals(Listeners.getEventListenersSetterName("save-update"));
+        assert "setPersistEventListeners".
+            equals(Listeners.getEventListenersSetterName("create"));
+        assert "setInitializeCollectionEventListeners".
+            equals(Listeners.getEventListenersSetterName("load-collection"));
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------

@@ -3,9 +3,15 @@ package com.googlecode.hibernate.audit;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.event.EventListeners;
-import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
+import com.googlecode.hibernate.audit.listener.Listeners;
+
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.reflect.Method;
+import java.lang.reflect.Array;
 
 /**
  * The main programmatic entry point. This class allows turning audit on/off at runtime, and various
@@ -50,12 +56,13 @@ public class HibernateAudit
      * The caller has a choice in using a different persistence unit to store audited data.
      *
      * @param auditedSessionFactory - the session factory of the audited persistence unit.
-     * @param resource - the resource which contains the configuration for the secondary persistence
-     *        unit (used to persist audit data). A null resource means that there is no secondary
-     *        persistence unit, the audited persistence unit will be used to persist audit data as
-     *        well.
+     * @param secondaryPersistenceUnitConfigFile - the resource which contains the configuration for
+     *        the secondary persistence unit (used to persist audit data). A null resource means
+     *        that there is no secondary persistence unit, the audited persistence unit will be used
+     *        to persist audit data as well.
      */
-    public static synchronized void enable(SessionFactory auditedSessionFactory, String resource)
+    public static synchronized void enable(SessionFactory auditedSessionFactory,
+                                           String secondaryPersistenceUnitConfigFile)
         throws Exception
     {
         if (singleton != null)
@@ -64,7 +71,7 @@ public class HibernateAudit
             return;
         }
 
-        singleton = new HibernateAudit(auditedSessionFactory, resource);
+        singleton = new HibernateAudit(auditedSessionFactory, secondaryPersistenceUnitConfigFile);
         singleton.start();
     }
 
@@ -74,7 +81,7 @@ public class HibernateAudit
      * @return true if calling this method ended up in audit being disabled, or false if there was
      *         no active audit runtime to disable.
      */
-    public static boolean disable()
+    public static boolean disable() throws Exception
     {
         if (singleton == null)
         {
@@ -189,7 +196,7 @@ public class HibernateAudit
         log.debug(this + " started");
     }
 
-    private void stop()
+    private void stop() throws Exception
     {
         log.debug(this + " stopping ...");
 
@@ -202,26 +209,97 @@ public class HibernateAudit
         log.debug(this + " stopped");
     }
 
-    private void installAuditListeners(SessionFactoryImpl sf)
+    private void installAuditListeners(SessionFactoryImpl sf) throws Exception
     {
         EventListeners els = sf.getEventListeners();
 
-        PostInsertEventListener[] piels = els.getPostInsertEventListeners();
-
-        // at this stage, we should not have any registered audit listeners
-        for(PostInsertEventListener piel: piels)
+        // at this stage, we should not have any registered audit listeners, but trust and verify
+        for(String eventType: Listeners.ALL_EVENT_TYPES)
         {
-            if (piel instanceof AuditEventListener)
+            Method getter = Listeners.getEventListenersGetter(eventType);
+            Object[] listeners = (Object[])getter.invoke(els);
+            for(Object listener: listeners)
             {
-                throw new IllegalStateException("Hibernate audit already enabled");
+                if (listener instanceof AuditEventListener)
+                {
+                    throw new IllegalStateException("Hibernate audit already enabled, " +
+                                                    "found " + listener);
+                }
             }
+        }
+
+        Set<String> eventTypes = Listeners.getAuditedEventTypes();
+
+        for(String auditEventType: eventTypes)
+        {
+            Method getter = Listeners.getEventListenersGetter(auditEventType);
+            Method setter = Listeners.getEventListenersSetter(auditEventType);
+
+            // we expect a listener array here, anything else would be invalid state
+            Object[] listeners = (Object[])getter.invoke(els);
+            Class hibernateListenerInteface = els.getListenerClassFor(auditEventType);
+            Object[] newListeners =
+                (Object[])Array.newInstance(hibernateListenerInteface, listeners.length + 1);
+            System.arraycopy(listeners, 0, newListeners, 0, listeners.length);
+
+            Class c = Listeners.getAuditEventListenerClass(auditEventType);
+            AuditEventListener ael = (AuditEventListener)c.newInstance();
+
+            newListeners[newListeners.length - 1] = ael;
+            setter.invoke(els, ((Object)newListeners));
         }
 
         log.debug(this + " installed audit listeners");
     }
 
-    private void uninstallAuditListeners(SessionFactoryImpl sf)
+    private void uninstallAuditListeners(SessionFactoryImpl sf) throws Exception
     {
+        EventListeners els = sf.getEventListeners();
+
+        // scan all listener and uninstall all AuditEventListeners
+        for(String eventType: Listeners.ALL_EVENT_TYPES)
+        {
+            Method getter = Listeners.getEventListenersGetter(eventType);
+            Object[] listeners = (Object[])getter.invoke(els);
+
+            boolean needUninstall = false;
+            for(Object listener: listeners)
+            {
+                if (listener instanceof AuditEventListener)
+                {
+                    // uninstall it
+                    needUninstall = true;
+                    break;
+                }
+            }
+
+            if (needUninstall)
+            {
+                log.debug("uninstalling '" + eventType + "' audit listeners");
+
+                List<Object> clean = new ArrayList<Object>();
+                for(Object listener: listeners)
+                {
+                    if (!(listener instanceof AuditEventListener))
+                    {
+                        clean.add(listener);
+                    }
+                }
+
+                Object[] cleanArray =
+                    (Object[])Array.newInstance(els.getListenerClassFor(eventType), clean.size());
+
+                int i = 0;
+                for(Object cleanListener: clean)
+                {
+                    cleanArray[i++] = cleanListener;
+                }
+
+                Method setter = Listeners.getEventListenersSetter(eventType);
+                setter.invoke(els, ((Object)cleanArray));
+            }
+        }
+
         log.debug(this + " uninstalled audit listeners");
     }
 
