@@ -1,10 +1,14 @@
 package com.googlecode.hibernate.audit.listener;
 
 import org.apache.log4j.Logger;
+import org.hibernate.event.EventListeners;
 
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.jar.JarFile;
 import java.util.jar.JarEntry;
 import java.security.ProtectionDomain;
@@ -12,6 +16,7 @@ import java.security.CodeSource;
 import java.net.URL;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.reflect.Method;
 
 /**
  * Event listener manipulation utilities.
@@ -32,10 +37,56 @@ public class Listeners
 
     // Static --------------------------------------------------------------------------------------
 
-    private static Set<String> auditedEventTypes;
+    public static Set<String> ALL_EVENT_TYPES = new HashSet<String>();
+
+    static
+    {
+        // based on Hibernate 3.2.6.GA
+        
+        ALL_EVENT_TYPES.add("auto-flush");
+        ALL_EVENT_TYPES.add("merge");
+        ALL_EVENT_TYPES.add("create");
+        ALL_EVENT_TYPES.add("create-onflush");
+        ALL_EVENT_TYPES.add("delete");
+        ALL_EVENT_TYPES.add("dirty-check");
+        ALL_EVENT_TYPES.add("evict");
+        ALL_EVENT_TYPES.add("flush");
+        ALL_EVENT_TYPES.add("flush-entity");
+        ALL_EVENT_TYPES.add("load");
+        ALL_EVENT_TYPES.add("load-collection");
+        ALL_EVENT_TYPES.add("lock");
+        ALL_EVENT_TYPES.add("refresh");
+        ALL_EVENT_TYPES.add("replicate");
+        ALL_EVENT_TYPES.add("save-update");
+        ALL_EVENT_TYPES.add("save");
+        ALL_EVENT_TYPES.add("update");
+        ALL_EVENT_TYPES.add("pre-load");
+        ALL_EVENT_TYPES.add("pre-update");
+        ALL_EVENT_TYPES.add("pre-delete");
+        ALL_EVENT_TYPES.add("pre-insert");
+        ALL_EVENT_TYPES.add("pre-collection-recreate");
+        ALL_EVENT_TYPES.add("pre-collection-remove");
+        ALL_EVENT_TYPES.add("pre-collection-update");
+        ALL_EVENT_TYPES.add("post-load");
+        ALL_EVENT_TYPES.add("post-update");
+        ALL_EVENT_TYPES.add("post-delete");
+        ALL_EVENT_TYPES.add("post-insert");
+        ALL_EVENT_TYPES.add("post-commit-update");
+        ALL_EVENT_TYPES.add("post-commit-delete");
+        ALL_EVENT_TYPES.add("post-commit-insert");
+        ALL_EVENT_TYPES.add("post-collection-recreate");
+        ALL_EVENT_TYPES.add("post-collection-remove");
+        ALL_EVENT_TYPES.add("post-collection-update");
+
+        ALL_EVENT_TYPES = Collections.unmodifiableSet(ALL_EVENT_TYPES);
+    }
+
+    private static Map<String, TypeHolder> auditedEventTypes;
 
     private static final AuditedEventTypesUpdatingFilenameFilter auditedEventTypesUpdater =
         new AuditedEventTypesUpdatingFilenameFilter();
+
+    private static String packageName;
 
     /**
      * @return all audited event types, determined based on the static list of avaliable audit
@@ -54,7 +105,7 @@ public class Listeners
         {
             if (auditedEventTypes == null)
             {
-                auditedEventTypes = new HashSet<String>();
+                auditedEventTypes = new HashMap<String, TypeHolder>();
 
                 ProtectionDomain pd = Listeners.class.getProtectionDomain();
                 CodeSource cs = pd.getCodeSource();
@@ -65,9 +116,13 @@ public class Listeners
                 {
                     File base = new File(url.getFile());
 
-                    String relativePath = Listeners.class.getName();
-                    relativePath =
-                        relativePath.substring(0, relativePath.lastIndexOf(".")).replace('.', '/');
+                    if (packageName == null)
+                    {
+                        packageName = Listeners.class.getName();
+                        packageName = packageName.substring(0, packageName.lastIndexOf("."));
+                    }
+                    
+                    String relativePath = packageName.replace('.', '/');
                     relativePath += "/";
 
                     if (base.isDirectory())
@@ -109,9 +164,90 @@ public class Listeners
                 }
             }
 
-            return auditedEventTypes;
+            return auditedEventTypes.keySet();
         }
     }
+
+    public static String getEventListenersGetterName(String eventType)
+    {
+        return getEventListenersAccessorName(eventType, false);
+    }
+
+    public static String getEventListenersSetterName(String eventType)
+    {
+        return getEventListenersAccessorName(eventType, true);
+    }
+
+    /**
+     * Returns the org.hibernate.event.EventListener getter method that returns the array of
+     * listeners corresponding to the given eventType. For example, if eventType is 'post-insert',
+     * then the returned getter method would be org.hibernate.event.EventListener's:
+     *
+     * public PostInsertEventListener[] getPostInsertEventListeners();
+     *
+     */
+    public static Method getEventListenersGetter(String eventType) throws Exception
+    {
+        String getterName = getEventListenersGetterName(eventType);
+        return EventListeners.class.getMethod(getterName);
+    }
+
+    /**
+     * Returns the org.hibernate.event.EventListener setter method that can be used to set the array
+     * of listeners corresponding to the given eventType. For example, if eventType is
+     * 'post-insert', then the returned setter method would be org.hibernate.event.EventListener's:
+     *
+     * 	public void setPostInsertEventListeners(PostInsertEventListener[] postInsertEventListener);
+     *
+     */
+    public static Method getEventListenersSetter(String eventType) throws Exception
+    {
+        String setterName = getEventListenersSetterName(eventType);
+        Method[] ms = EventListeners.class.getMethods();
+        for(Method m: ms)
+        {
+            if (m.getName().equals(setterName))
+            {
+                return m;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns an AuditEventListener subtype.
+     *
+     * @return null if there's no such audit event type
+     */
+    public static Class getAuditEventListenerClass(String eventType)
+    {
+        if (auditedEventTypes == null)
+        {
+            return null;
+        }
+
+        TypeHolder h = auditedEventTypes.get(eventType);
+
+        if (h == null)
+        {
+            return null;
+        }
+
+        return h.auditListenerClass;
+    }
+
+    // Attributes ----------------------------------------------------------------------------------
+
+    // Constructors --------------------------------------------------------------------------------
+
+    // Public --------------------------------------------------------------------------------------
+
+    // Package protected ---------------------------------------------------------------------------
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
 
     /**
      * Gets something like "PostInsertAuditEventListener" and returns "post-insert".
@@ -133,7 +269,7 @@ public class Listeners
         for(i = 0; i < s.length(); i++)
         {
             char c = s.charAt(i);
-            
+
             if (c < 91)
             {
                 if (i > 0)
@@ -153,17 +289,58 @@ public class Listeners
         return sb.toString();
     }
 
-    // Attributes ----------------------------------------------------------------------------------
+    private static String getEventListenersAccessorName(String eventType, boolean setter)
+    {
 
-    // Constructors --------------------------------------------------------------------------------
+        StringBuffer sb = new StringBuffer();
 
-    // Public --------------------------------------------------------------------------------------
+        if ("create-onflush".equals(eventType))
+        {
+            sb.append("PersistOnFlush");
+        }
+        else if ("save-update".equals(eventType))
+        {
+            sb.append("SaveOrUpdate");
+        }
+        else if ("create".equals(eventType))
+        {
+            sb.append("Persist");
+        }
+        else if ("load-collection".equals(eventType))
+        {
+            sb.append("InitializeCollection");
+        }
+        else
+        {
+            int length = eventType.length();
+            for(int i = 0; i < length; i ++)
+            {
+                char c = eventType.charAt(i);
 
-    // Package protected ---------------------------------------------------------------------------
+                if (i == 0)
+                {
+                    sb.append((char)(c - 32));
+                }
+                else
+                {
+                    if (c == '-')
+                    {
+                        c = eventType.charAt(++i);
+                        sb.append((char)(c - 32));
+                    }
+                    else
+                    {
+                        sb.append(c);
+                    }
+                }
+            }
+        }
 
-    // Protected -----------------------------------------------------------------------------------
+        sb.append("EventListeners");
+        return (setter ? "set" : "get") + sb.toString();
 
-    // Private -------------------------------------------------------------------------------------
+    }
+
 
     // Inner classes -------------------------------------------------------------------------------
 
@@ -183,14 +360,40 @@ public class Listeners
                 return false;
             }
 
-            String eventType = classNameToHibernateEventType(name.substring(0, i));
+            name = name.substring(0, i);
+
+            String eventType = classNameToHibernateEventType(name);
             if (eventType != null)
             {
-                auditedEventTypes.add(eventType);
-                return true;
+                String fullyQualifiedClassName = packageName + "." + name;
+
+                try
+                {
+                    Class c = Class.forName(fullyQualifiedClassName);
+                    auditedEventTypes.put(eventType, new TypeHolder(eventType, c));
+                    return true;
+                }
+                catch(Exception e)
+                {
+                    // trouble loading the class
+                    log.error("cannot find " + fullyQualifiedClassName, e);
+                    return false;
+                }
             }
 
             return false;
+        }
+    }
+
+    private static class TypeHolder
+    {
+        public String eventType;
+        public Class auditListenerClass;
+
+        public TypeHolder(String eventType, Class listenerClass)
+        {
+            this.eventType = eventType;
+            this.auditListenerClass = listenerClass;
         }
     }
 }

@@ -1,4 +1,4 @@
 
 #>TARGET_CLASS=DifferentSessionFactoryTest
-#>TARGET_CLASS=HibernateAuditTest
-TARGET_CLASS=ListenersTest
+TARGET_CLASS=HibernateAuditTest
+#TARGET_CLASS=ListenersTest
