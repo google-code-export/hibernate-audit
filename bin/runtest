@@ -68,5 +68,3 @@ echo "(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $SINGLE_TEST clean test)"
 #java -ea $DEBUG_OPTS -cp "$CP" org.testng.TestNG testng.xml
 #
 
-
-
