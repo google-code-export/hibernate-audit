@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+    <session-factory>
+
+		<property name="hibernate.connection.driver_class">${secondary.hibernate.dialect}</property>
+		<property name="hibernate.connection.url">${secondary.hibernate.connection.url}</property>
+		<property name="hibernate.connection.username">${secondary.hibernate.connection.username}</property>
+		<property name="hibernate.connection.password">${secondary.hibernate.connection.password}</property>
+		<property name="hibernate.dialect">${secondary.hibernate.dialect}</property>
+		<property name="hibernate.cache.provider_class">${secondary.hibernate.cache.provider_class}</property>
+		<property name="hibernate.transaction.factory_class">${secondary.hibernate.transaction.factory_class}</property>
+		<property name="hibernate.show_sql">${secondary.hibernate.show_sql}</property>
+        <property name="hibernate.hbm2ddl.auto">${secondary.hibernate.hbm2ddl.auto}</property>
+
+        <property name="hibernate.jdbc.batch_size">10</property>
+		<property name="hibernate.cache.use_second_level_cache">false</property>
+		<property name="hibernate.cache.use_query_cache">false</property>
+		<property name="hibernate.transaction.flush_before_completion">true</property>
+
+        <mapping class="com.googlecode.hibernate.audit.model.clazz.AuditClass" />
+        <mapping class="com.googlecode.hibernate.audit.model.clazz.AuditClassProperty" />
+        <mapping class="com.googlecode.hibernate.audit.model.AuditOperation" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.AuditTransaction" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldSimpleValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue" />
+        <mapping class="com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue" />
+
+	</session-factory>
+    
+</hibernate-configuration>
