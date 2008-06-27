@@ -9,7 +9,7 @@ MAVEN_REPOSITORY="C:/Documents and Settings/ofeodoro/.m2/repository";
 
 CP="\
 .;\
-../com.googlecode.hibernate.audit/target/hba-1.0.0.Alpha1.jar;\
+../com.googlecode.hibernate.audit/target/hba-1.0.0.Alpha2.jar;\
 $MAVEN_REPOSITORY\log4j\log4j\1.2.14\log4j-1.2.14.jar;\
 $MAVEN_REPOSITORY\org\hibernate\hibernate\3.2.6.ga\hibernate-3.2.6.ga.jar;\
 $MAVEN_REPOSITORY\org\hibernate\hibernate-annotations\3.3.0.ga\hibernate-annotations-3.3.0.ga.jar;\
