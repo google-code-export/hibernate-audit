@@ -137,7 +137,7 @@ public abstract class AuditAbstractEventListener implements
             "auditClass = :auditClass and " +
             "operation = :operation and " +
             "auditedEntityId = :auditedEntityId";
-        Query getAuditObjectQuery = originalSession.createQuery(qs);
+        Query getAuditObjectQuery = session.createQuery(qs);
 		getAuditObjectQuery.setParameter("auditTransaction", auditTransaction);
 		getAuditObjectQuery.setParameter("auditClass", auditClass);
 		getAuditObjectQuery.setParameter("operation", operation);
