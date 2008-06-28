@@ -1,29 +1,28 @@
-package com.googlecode.hibernate.audit.test.different_factory;
+package com.googlecode.hibernate.audit.test.post_insert;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 /**
- * Tests "different session factory for audit" functionality.
- * See https://jira.novaordis.org/browse/HBA-11.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
 @Test(sequential = true)
-public class DifferentSessionFactoryTest
+public class PostInsertTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(DifferentSessionFactoryTest.class);
+    private static final Logger log = Logger.getLogger(PostInsertTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -33,28 +32,33 @@ public class DifferentSessionFactoryTest
 
     // Public --------------------------------------------------------------------------------------
 
-    public void testOne() throws Exception
+    @Test(enabled = true)
+    public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure("hibernate.cfg.xml");
+        config.configure("/hibernate.cfg.xml");
         config.addAnnotatedClass(A.class);
-
-        SessionFactory sessionFactory = config.buildSessionFactory();
-
-        HibernateAudit.enable(sessionFactory);
-
-        Session session = sessionFactory.openSession();
-        Transaction tx = session.beginTransaction();
+        SessionFactory sf = config.buildSessionFactory();
+        HibernateAudit.enable(sf);
 
         A a = new A();
         a.setName("alice");
-        session.save(a);
 
-        tx.commit();
+        Session s = sf.openSession();
+        Transaction t = s.beginTransaction();
 
-        sessionFactory.close();
+        s.save(a);
 
-        log.info("done");
+        t.commit();
+
+        HibernateAudit.disable();
+        sf.close();
+    }
+
+    @Test(enabled = false)
+    public void testSuccesiveInserts() throws Exception
+    {
+        throw new Exception("NOT YET IMPLEMENTED");
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -146,6 +146,7 @@ public class Listeners
                             {
                                 continue;
                             }
+
                             name = name.substring(relativePath.length());
 
                             if (name.indexOf("/") != -1)
@@ -361,6 +362,12 @@ public class Listeners
             }
 
             name = name.substring(0, i);
+
+            if (name.startsWith("Abstract"))
+            {
+                // ignore
+                return false;
+            }
 
             String eventType = classNameToHibernateEventType(name);
             if (eventType != null)

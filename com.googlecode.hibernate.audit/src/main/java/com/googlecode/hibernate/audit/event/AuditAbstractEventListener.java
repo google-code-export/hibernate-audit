@@ -161,7 +161,8 @@ public abstract class AuditAbstractEventListener implements
 			AuditTransactionRecord auditEntity) {
 	}
 
-	protected synchronized AuditTransaction getOrCreateAuditTransaction(
+    // TODO get rid of this method after refactoring
+    protected synchronized AuditTransaction getOrCreateAuditTransaction(
 			StatelessSession session, String actorId, Session originalSession) {
 		Object transactionKey = getTransactionKey(originalSession);
 		AuditTransaction auditTransaction = null;
@@ -280,7 +281,8 @@ public abstract class AuditAbstractEventListener implements
 		session.insert(auditEntity);
 	}
 
-	protected Object getTransactionKey(Session originalSession) {
+    // TODO get rid of this method after refactoring
+    protected Object getTransactionKey(Session originalSession) {
 
         Object transactionKey = null;
 
