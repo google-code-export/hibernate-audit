@@ -88,7 +88,9 @@ public abstract class AuditAbstractEventListener implements
 			((SessionImplementor) session).getBatcher().executeBatch();
 		} finally {
 			if (session != null) {
-				session.close();
+                // THIS WON'T WORK IN A JTA ENVIRONMENT!
+                // See https://jira.novaordis.org/browse/HBA-19
+                session.close();
 			}
 		}
 	}
