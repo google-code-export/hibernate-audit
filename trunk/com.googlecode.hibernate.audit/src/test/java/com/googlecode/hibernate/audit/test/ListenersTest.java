@@ -37,6 +37,7 @@ public class ListenersTest
 
         assert types.size() == 1;
         assert types.contains("post-insert");
+        assert !types.contains("abstract");
     }
 
     @Test(enabled = true)

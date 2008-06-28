@@ -39,9 +39,19 @@ public class AuditTransaction {
 	private Set<AuditTransactionRecord> auditObjects = new HashSet<AuditTransactionRecord>();
 */	
 	public AuditTransaction() {
-	}
 
-	/**
+        transactionTime = new Date();
+
+    }
+
+    public AuditTransaction(int originalTransactionIdentity) {
+
+        this();
+
+    }
+
+
+    /**
 	 * @return the id
 	 */
 	public Long getId() {

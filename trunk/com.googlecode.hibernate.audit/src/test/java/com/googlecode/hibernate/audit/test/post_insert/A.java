@@ -1,43 +1,56 @@
-package com.googlecode.hibernate.audit.listener;
+package com.googlecode.hibernate.audit.test.post_insert;
 
-import org.hibernate.event.PostInsertEventListener;
-import org.hibernate.event.PostInsertEvent;
-import org.hibernate.StatelessSession;
-import org.apache.log4j.Logger;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
- * Copyright 2008 Ovidiu Feodorov
- *
  * @version <tt>$Revision$</tt>
- * 
+ *
  * $Id$
  */
-public class PostInsertAuditEventListener
-    extends AbstractAuditEventListener implements PostInsertEventListener
+@Entity
+@Table(name = "A")
+public class A
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostInsertAuditEventListener.class);
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    @Id
+    @GeneratedValue
+    private Integer id;
+
+    private String name;
+
     // Constructors --------------------------------------------------------------------------------
 
-    // PostInsertEventListener implementation ------------------------------------------------------
+    // Public --------------------------------------------------------------------------------------
 
-    public void onPostInsert(PostInsertEvent event)
+    public Integer getId()
     {
-        log.debug("onPostInsert(" + event + ")");
-
-        logTransaction(event.getSession());
-
+        return id;
     }
 
-    // Public --------------------------------------------------------------------------------------
+    public void setId(Integer id)
+    {
+        this.id = id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -46,5 +59,4 @@ public class PostInsertAuditEventListener
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }
