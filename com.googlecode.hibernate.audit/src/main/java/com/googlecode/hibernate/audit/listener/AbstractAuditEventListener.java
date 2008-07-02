@@ -3,7 +3,7 @@ package com.googlecode.hibernate.audit.listener;
 import org.apache.log4j.Logger;
 import org.hibernate.Transaction;
 import org.hibernate.event.EventSource;
-import com.googlecode.hibernate.audit.model2.AuditTransaction2;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -21,11 +21,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     private static final Logger log = Logger.getLogger(AbstractAuditEventListener.class);
 
     // TODO this should be a member of HibernateAudit, not AbstractAuditEventListener
-    private static final ThreadLocal<AuditTransaction2> auditTransaction;
+    private static final ThreadLocal<AuditTransaction> auditTransaction;
 
     static
     {
-       auditTransaction = new ThreadLocal<AuditTransaction2>();
+       auditTransaction = new ThreadLocal<AuditTransaction>();
     }
 
     // Static --------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     protected void logTransaction(EventSource auditedSession, String user)
     {
         Transaction ht = auditedSession.getTransaction();
-        AuditTransaction2 at = auditTransaction.get();
+        AuditTransaction at = auditTransaction.get();
 
         if (at != null)
         {
@@ -58,7 +58,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             return;
         }
 
-        at = new AuditTransaction2(auditedSession, user);
+        at = new AuditTransaction(auditedSession, user);
         at.log();
         auditTransaction.set(at);
 

@@ -46,7 +46,7 @@
         <mapping class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.EntityReferenceAuditValue"/>
         <mapping class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.SimpleAuditValue"/>
 
-        <mapping class="com.googlecode.hibernate.audit.model2.AuditTransaction2"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditTransaction"/>
 
         <event type="post-collection-remove">
 			<listener class="com.googlecode.hibernate.audit.event.AuditPostCollectionRemoveEventListener" />
