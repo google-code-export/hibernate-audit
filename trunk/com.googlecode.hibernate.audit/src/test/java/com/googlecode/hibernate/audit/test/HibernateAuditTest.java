@@ -11,6 +11,7 @@ import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
 import java.util.Set;
+import java.util.List;
 import java.lang.reflect.Method;
 
 /**
@@ -108,6 +109,43 @@ public class HibernateAuditTest
 
         // testing noop behavior
         assert !HibernateAudit.disable();
+    }
+
+    @Test(enabled = true)
+    public void testQueryOnDisabledRuntime() throws Exception
+    {
+        assert !HibernateAudit.isEnabled();
+
+        try
+        {
+            HibernateAudit.query("form AuditTransaction");
+
+            throw new Error("Should've failed");
+        }
+        catch(IllegalStateException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testQueryOnEmptyAuditState() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure("/hibernate.cfg.xml");
+        SessionFactory sf = config.buildSessionFactory();
+
+        HibernateAudit.enable(sf);
+        
+        try
+        {
+            List ats = HibernateAudit.query("from com.googlecode.hibernate.audit.model.AuditTransaction");
+            assert ats.isEmpty();
+        }
+        finally
+        {
+            assert HibernateAudit.disable();
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------
