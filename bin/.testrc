@@ -1,4 +1,3 @@
 
 #>TARGET_CLASS=DifferentSessionFactoryTest
 TARGET_CLASS=PostInsertTest
-#TARGET_CLASS=ListenersTest

@@ -2,10 +2,13 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
+import org.hibernate.Query;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
+import com.googlecode.hibernate.audit.util.QueryParameters;
 
 import java.util.Set;
 import java.util.List;
@@ -81,7 +84,7 @@ public class HibernateAudit
      * @return true if calling this method ended up in audit being disabled, or false if there was
      *         no active audit runtime to disable.
      */
-    public static boolean disable() throws Exception
+    public static synchronized boolean disable() throws Exception
     {
         if (singleton == null)
         {
@@ -91,6 +94,21 @@ public class HibernateAudit
         singleton.stop();
         singleton = null;
         return true;
+    }
+
+    /**
+     * A general purpose query facility. Understands HQL.
+     *
+     * @exception IllegalStateException if audit is not enabled.
+     */
+    public synchronized static List query(String query, Object... args) throws Exception
+    {
+        if (singleton == null)
+        {
+            throw new IllegalStateException("Hibernate Audit runtime disabled");
+        }
+
+        return singleton.doQuery(query, args);
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -301,6 +319,28 @@ public class HibernateAudit
         }
 
         log.debug(this + " uninstalled audit listeners");
+    }
+
+    private List doQuery(String query, Object... args) throws Exception
+    {
+        if (secondaryConfigurationResource != null)
+        {
+            throw new Exception("NOT YET IMPLEMENTED");
+        }
+
+        StatelessSession ss = auditedSessionFactory.openStatelessSession();
+        ss.beginTransaction();
+
+        try
+        {
+            Query q = ss.createQuery(query);
+            QueryParameters.fill(q, args);
+            return q.list();
+        }
+        finally
+        {
+            ss.getTransaction().commit();
+        }
     }
 
     // Inner classes -------------------------------------------------------------------------------

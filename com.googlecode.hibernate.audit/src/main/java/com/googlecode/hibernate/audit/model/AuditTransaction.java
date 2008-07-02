@@ -19,6 +19,9 @@ import javax.transaction.Synchronization;
 import java.util.Date;
 
 /**
+ * TODO mixing administrative logic with persistence concerns in such a way does not feel good to
+        me, this class must likely will be refactored.
+ 
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -28,7 +31,7 @@ import java.util.Date;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_TRANSACTION_2")
+@Table(name = "AUDIT_TRANSACTION")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQ")
 public class AuditTransaction implements Synchronization
 {
@@ -45,11 +48,11 @@ public class AuditTransaction implements Synchronization
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "TIMESTAMPX")
+    @Column(name = "TRANSACTION_TIMESTAMP")
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
 
-    @Column(name = "USERX")
+    @Column(name = "TRANSACTION_USER")
     private String user;
 
     @Column(name = "DESCRIPTION", length = 4000)
