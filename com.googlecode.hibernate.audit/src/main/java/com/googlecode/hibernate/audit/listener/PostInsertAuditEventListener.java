@@ -2,7 +2,6 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostInsertEvent;
-import org.hibernate.StatelessSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -33,7 +32,8 @@ public class PostInsertAuditEventListener
     {
         log.debug("onPostInsert(" + event + ")");
 
-        logTransaction(event.getSession());
+        String user = null; // TODO properly determine the user
+        logTransaction(event.getSession(), user);
 
     }
 

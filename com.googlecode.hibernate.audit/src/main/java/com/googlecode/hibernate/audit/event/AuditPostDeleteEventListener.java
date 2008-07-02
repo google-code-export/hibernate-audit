@@ -6,7 +6,7 @@ import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
 
-import com.googlecode.hibernate.audit.model.AuditOperation;
+import com.googlecode.hibernate.audit.model_obsolete.AuditOperation;
 
 @SuppressWarnings("serial")
 public class AuditPostDeleteEventListener extends AuditAbstractEventListener {

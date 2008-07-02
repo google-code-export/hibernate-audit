@@ -44,49 +44,49 @@
 		</property>
 		
         <mapping
-            class="com.googlecode.hibernate.audit.model.clazz.AuditClass" />
+            class="com.googlecode.hibernate.audit.model_obsolete.clazz.AuditClass" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.clazz.AuditClassProperty" />
+            class="com.googlecode.hibernate.audit.model_obsolete.clazz.AuditClassProperty" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.AuditOperation" />
+            class="com.googlecode.hibernate.audit.model_obsolete.AuditOperation" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.AuditTransaction" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionComponentRecord" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionEntityRecord" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordField" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldSimpleValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldSimpleValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.AuditValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.ComponentReferenceAuditValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.EntityReferenceAuditValue" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue" />
+            class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.SimpleAuditValue" />
 		
 		<!--  TEST CLASSES -->
 		<mapping
-			class="com.googlecode.hibernate.audit.model.simpleentity.SimpleEntity" />
+			class="com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleEntity" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.simpleentity.SimpleComponent" />
+            class="com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleComponent" />
         <mapping
-            class="com.googlecode.hibernate.audit.model.simpleentity.SimpleEmbeddedComponent" />
+            class="com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleEmbeddedComponent" />
 		<mapping
-			class="com.googlecode.hibernate.audit.model.collection.Parent" />
+			class="com.googlecode.hibernate.audit.model_obsolete.collection.Parent" />
 		<mapping
-			class="com.googlecode.hibernate.audit.model.collection.Child" />
+			class="com.googlecode.hibernate.audit.model_obsolete.collection.Child" />
 
         <event type="post-collection-remove">
 			<listener

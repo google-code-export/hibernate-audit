@@ -36,7 +36,7 @@ public class PostInsertTest
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure("/hibernate.cfg.xml");
+        config.configure("/hibernate-thread.cfg.xml");
         config.addAnnotatedClass(A.class);
         SessionFactory sf = config.buildSessionFactory();
         HibernateAudit.enable(sf);

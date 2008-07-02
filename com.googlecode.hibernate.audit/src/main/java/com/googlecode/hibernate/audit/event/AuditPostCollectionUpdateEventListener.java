@@ -13,12 +13,12 @@ import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 
-import com.googlecode.hibernate.audit.model.AuditOperation;
-import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.AuditOperation;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordField;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.EntityReferenceAuditValue;
 
 @SuppressWarnings("serial")
 public class AuditPostCollectionUpdateEventListener extends
@@ -54,7 +54,7 @@ public class AuditPostCollectionUpdateEventListener extends
 
 	@Override
 	protected void doAuditEntityProperties(StatelessSession session,
-			AbstractEvent eventObject, AuditTransaction auditTransaction,
+			AbstractEvent eventObject, AuditTransactionObsolete auditTransaction,
 			AuditTransactionRecord auditEntity) {
 		if (LOG.isEnabledFor(Level.DEBUG)) {
 			LOG.debug("Invoke PostCollectionUpdateEvent listener");

@@ -5,9 +5,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.testng.annotations.Test;
 
-import com.googlecode.hibernate.audit.model.simpleentity.SimpleComponent;
-import com.googlecode.hibernate.audit.model.simpleentity.SimpleEmbeddedComponent;
-import com.googlecode.hibernate.audit.model.simpleentity.SimpleEntity;
+import com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleComponent;
+import com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleEmbeddedComponent;
+import com.googlecode.hibernate.audit.model_obsolete.simpleentity.SimpleEntity;
 import com.googlecode.hibernate.audit.test.AuditTest;
 
 public class SimpleEntityTest extends AuditTest {

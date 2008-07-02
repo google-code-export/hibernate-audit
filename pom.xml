@@ -222,13 +222,6 @@
         <hibernate.connection.url>jdbc:oracle:thin:@localhost:1521:XE</hibernate.connection.url>
         <hibernate.connection.username>test</hibernate.connection.username>
         <hibernate.connection.password>test</hibernate.connection.password>
-        <!--
-            delegates to database (JDBC) transactions
-            other options:
-            org.hibernate.transaction.JTATransactionFactory
-            org.hibernate.transaction.CMTTransactionFactory
-        -->
-        <hibernate.transaction.factory_class>org.hibernate.transaction.JDBCTransactionFactory</hibernate.transaction.factory_class>
 
         <!--
             The secondary persistence unit definition, used to test storing audit data in a

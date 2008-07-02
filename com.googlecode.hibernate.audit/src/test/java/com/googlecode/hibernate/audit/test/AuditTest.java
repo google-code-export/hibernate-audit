@@ -24,16 +24,16 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.AfterMethod;
 
-import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.AuditValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionComponentRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionEntityRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordField;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.AuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.ComponentReferenceAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.EntityReferenceAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.SimpleAuditValue;
 import com.googlecode.hibernate.audit.util.HibernateUtils;
 import com.googlecode.hibernate.audit.util.Util;
 
@@ -206,12 +206,12 @@ public abstract class AuditTest {
 		try {
 
 			Query getAuditTransactionQuery = session.createQuery("from "
-					+ AuditTransaction.class.getName()
+					+ AuditTransactionObsolete.class.getName()
 					+ " order by transactionTime desc");
-			List<AuditTransaction> auditTransactions = getAuditTransactionQuery
+			List<AuditTransactionObsolete> auditTransactions = getAuditTransactionQuery
 					.list();
-			for (AuditTransaction auditTransaction : auditTransactions) {
-				log.debug("AuditTransaction[id=" + auditTransaction.getId()
+			for (AuditTransactionObsolete auditTransaction : auditTransactions) {
+				log.debug("AuditTransaction2[id=" + auditTransaction.getId()
 						+ ",time=" + auditTransaction.getTransactionTime()
 						+ "] {");
 				List<AuditTransactionEntityRecord> entities = getEntityObjects(session,
@@ -282,7 +282,7 @@ public abstract class AuditTest {
 	}
 
 	private List<AuditTransactionEntityRecord> getEntityObjects(Session session,
-			AuditTransaction transaction) {
+			AuditTransactionObsolete transaction) {
 		Query getEntityObjectsQuery = session.createQuery("from "
 				+ AuditTransactionEntityRecord.class.getName() + " where "
 				+ "auditTransaction = :auditTransaction");

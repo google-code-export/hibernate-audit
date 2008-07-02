@@ -12,17 +12,17 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.Type;
 
-import com.googlecode.hibernate.audit.model.AuditOperation;
-import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordField;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.AuditTransactionRecordFieldSimpleValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.ComponentReferenceAuditValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.EntityReferenceAuditValue;
-import com.googlecode.hibernate.audit.model.transaction.record.field.value.SimpleAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.AuditOperation;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionComponentRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordField;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldComponentReferenceValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldEntityReferenceValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.AuditTransactionRecordFieldSimpleValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.ComponentReferenceAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.EntityReferenceAuditValue;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.SimpleAuditValue;
 
 @SuppressWarnings("serial")
 public class AuditPostInsertEventListener extends AuditAbstractEventListener {
@@ -55,7 +55,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 	}
 
 	protected void doAuditEntityProperties(StatelessSession session,
-			AbstractEvent object, AuditTransaction auditTransaction,
+			AbstractEvent object, AuditTransactionObsolete auditTransaction,
 			AuditTransactionRecord auditEntity) {
 		if (LOG.isEnabledFor(Level.DEBUG)) {
 			LOG.debug("Invoke PostInsertEvent listener");
@@ -78,7 +78,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 	private void processProperties(PostInsertEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
 			Serializable entityId, String entityName, EntityMode entityMode,
-			AuditTransactionRecord auditEntity, AuditTransaction auditTransaction) {
+			AuditTransactionRecord auditEntity, AuditTransactionObsolete auditTransaction) {
 
 		for (String propertyName : persister.getPropertyNames()) {
 			Object propertyValue = persister.getPropertyValue(entity,
@@ -110,7 +110,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 	private void createComponent(PostInsertEvent event,
 			StatelessSession session, EntityPersister persister, Object entity,
 			String entityName, EntityMode entityMode, AuditTransactionRecord auditEntity,
-			AuditTransaction auditTransaction, String propertyAccessPath,
+			AuditTransactionObsolete auditTransaction, String propertyAccessPath,
 			String propertyName, Object propertyValue,
 			ComponentType propertyType) {
 		AuditTransactionRecordField componentObjectProperty = new AuditTransactionRecordField();
@@ -187,7 +187,7 @@ public class AuditPostInsertEventListener extends AuditAbstractEventListener {
 			StatelessSession session, EntityPersister persister, Object entity,
 			AuditTransactionRecord auditEntity, Object component,
 			String parentPropertyAccessPath, String parentPropertyName,
-			ComponentType componentType, AuditTransaction auditTransaction,
+			ComponentType componentType, AuditTransactionObsolete auditTransaction,
 			EntityMode entityMode) {
 
 		String componentName = componentType.getReturnedClass().getName();
