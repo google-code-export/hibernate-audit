@@ -31,13 +31,13 @@ import org.hibernate.transaction.JTATransaction;
 import org.apache.log4j.Logger;
 
 import com.googlecode.hibernate.audit.annotations.Audit;
-import com.googlecode.hibernate.audit.model.AuditOperation;
-import com.googlecode.hibernate.audit.model.clazz.AuditClass;
-import com.googlecode.hibernate.audit.model.clazz.AuditClassProperty;
-import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionComponentRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionEntityRecord;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model_obsolete.AuditOperation;
+import com.googlecode.hibernate.audit.model_obsolete.clazz.AuditClass;
+import com.googlecode.hibernate.audit.model_obsolete.clazz.AuditClassProperty;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionComponentRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionEntityRecord;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord;
 
 /**
  * @author <a href="mailto:chobantonov@gmail.com">Petko Chobantonov</a>
@@ -51,7 +51,7 @@ public abstract class AuditAbstractEventListener implements
 
     private static final Logger log = Logger.getLogger(AuditAbstractEventListener.class);
 
-    private static ThreadLocal<HashMap<Object, AuditTransaction>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransaction>>();
+    private static ThreadLocal<HashMap<Object, AuditTransactionObsolete>> transactionKeyToAuditTransaction = new ThreadLocal<HashMap<Object, AuditTransactionObsolete>>();
 
 	public void onPostInsert(PostInsertEvent event) {
 		processEvent(event, event.getSession());
@@ -106,12 +106,12 @@ public abstract class AuditAbstractEventListener implements
 	protected void doAuditEvent(StatelessSession session, AbstractEvent event,
                                 Session originalSession) {
 
-        AuditTransaction at = doAuditTransaction(session, event, originalSession);
+        AuditTransactionObsolete at = doAuditTransaction(session, event, originalSession);
 		AuditTransactionRecord rec = doAuditEntity(session, originalSession, event, at);
 		doAuditEntityProperties(session, event, at, rec);
 	}
 
-	protected AuditTransaction doAuditTransaction(StatelessSession session,
+	protected AuditTransactionObsolete doAuditTransaction(StatelessSession session,
 			AbstractEvent event, Session originalSession) {
 		// TODO:get actorId from somewhere (https://jira.novaordis.org/browse/HBA-11)
         String actorId = null;
@@ -119,7 +119,7 @@ public abstract class AuditAbstractEventListener implements
 	}
 
 	protected AuditTransactionRecord doAuditEntity(StatelessSession session, Session originalSession, AbstractEvent event,
-			AuditTransaction auditTransaction) {
+			AuditTransactionObsolete auditTransaction) {
 		Serializable entityId = null;
 		Object entity = getEntity(event);
 		String entityName = entity.getClass().getName().toString();
@@ -157,28 +157,28 @@ public abstract class AuditAbstractEventListener implements
 	}
 
 	protected void doAuditEntityProperties(StatelessSession session,
-			AbstractEvent event, AuditTransaction auditTransaction,
+			AbstractEvent event, AuditTransactionObsolete auditTransaction,
 			AuditTransactionRecord auditEntity) {
 	}
 
     // TODO get rid of this method after refactoring
-    protected synchronized AuditTransaction getOrCreateAuditTransaction(
+    protected synchronized AuditTransactionObsolete getOrCreateAuditTransaction(
 			StatelessSession session, String actorId, Session originalSession) {
 		Object transactionKey = getTransactionKey(originalSession);
-		AuditTransaction auditTransaction = null;
+		AuditTransactionObsolete auditTransaction = null;
 
 		// create HashMap if necessary
-		HashMap<Object, AuditTransaction> auditTransactions = transactionKeyToAuditTransaction
+		HashMap<Object, AuditTransactionObsolete> auditTransactions = transactionKeyToAuditTransaction
 				.get();
 		if (auditTransactions == null) {
-			auditTransactions = new HashMap<Object, AuditTransaction>();
+			auditTransactions = new HashMap<Object, AuditTransactionObsolete>();
 			transactionKeyToAuditTransaction.set(auditTransactions);
 		} else {
 			auditTransaction = auditTransactions.get(transactionKey);
 		}
 
 		if (auditTransaction == null) {
-			auditTransaction = new AuditTransaction();
+			auditTransaction = new AuditTransactionObsolete();
 			auditTransaction.setTransactionTime(new Date());
 			auditTransaction.setUser(actorId);
 			session.insert(auditTransaction);
@@ -245,7 +245,7 @@ public abstract class AuditAbstractEventListener implements
 
 	protected AuditTransactionComponentRecord createAuditComponent(StatelessSession session,
 			Serializable auditedEntryId, String entityName,
-			AuditOperation operation, AuditTransaction auditTransaction) {
+			AuditOperation operation, AuditTransactionObsolete auditTransaction) {
 		AuditTransactionComponentRecord auditComponent = new AuditTransactionComponentRecord();
 		
 		AuditClass auditClass = getOrCreateAuditClass(session, entityName);
@@ -257,7 +257,7 @@ public abstract class AuditAbstractEventListener implements
 	
 	protected AuditTransactionRecord createAuditEntity(StatelessSession session,
 			Serializable auditedEntityId, String entityName,
-			AuditOperation operation, AuditTransaction auditTransaction, AuditClass auditClass) {
+			AuditOperation operation, AuditTransactionObsolete auditTransaction, AuditClass auditClass) {
 		AuditTransactionEntityRecord auditEntity = new AuditTransactionEntityRecord();
 
 		persistAuditObject(session, auditedEntityId, entityName,
@@ -268,7 +268,7 @@ public abstract class AuditAbstractEventListener implements
 
 	private void persistAuditObject(StatelessSession session,
 			Serializable auditedEntityId, String entityName,
-			AuditOperation operation, AuditTransaction auditTransaction,
+			AuditOperation operation, AuditTransactionObsolete auditTransaction,
 			AuditTransactionRecord auditEntity, AuditClass auditClass) {
 		//auditTransaction.addAuditObject(auditEntity);
 		auditEntity.setAuditTransaction(auditTransaction);

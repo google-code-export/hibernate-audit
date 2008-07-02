@@ -7,9 +7,9 @@ import org.hibernate.Transaction;
 import org.hibernate.Query;
 import com.googlecode.hibernate.audit.test.AuditTest;
 import com.googlecode.hibernate.audit.test.miscellanea.model.A;
-import com.googlecode.hibernate.audit.model.transaction.AuditTransaction;
-import com.googlecode.hibernate.audit.model.transaction.record.AuditTransactionRecord;
-import com.googlecode.hibernate.audit.model.AuditOperation;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.AuditTransactionObsolete;
+import com.googlecode.hibernate.audit.model_obsolete.transaction.record.AuditTransactionRecord;
+import com.googlecode.hibernate.audit.model_obsolete.AuditOperation;
 
 import java.util.List;
 
@@ -55,12 +55,12 @@ public class SaveTest extends AuditTest
 
         // looking up the AuditTransaction
 
-        Query q = session.createQuery("from " + AuditTransaction.class.getName());
+        Query q = session.createQuery("from " + AuditTransactionObsolete.class.getName());
         List result = q.list();
 
         assert result.size() == 1;
 
-        AuditTransaction at = (AuditTransaction)result.get(0);
+        AuditTransactionObsolete at = (AuditTransactionObsolete)result.get(0);
 
         // looking up the record
 

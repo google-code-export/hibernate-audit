@@ -6,8 +6,8 @@ import org.hibernate.Transaction;
 import org.hibernate.event.EventSource;
 import org.testng.annotations.Test;
 
-import com.googlecode.hibernate.audit.model.collection.Child;
-import com.googlecode.hibernate.audit.model.collection.Parent;
+import com.googlecode.hibernate.audit.model_obsolete.collection.Child;
+import com.googlecode.hibernate.audit.model_obsolete.collection.Parent;
 import com.googlecode.hibernate.audit.test.AuditTest;
 
 public class CollectionTest extends AuditTest {
