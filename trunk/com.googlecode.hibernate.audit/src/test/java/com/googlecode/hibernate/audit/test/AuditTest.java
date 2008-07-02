@@ -211,7 +211,7 @@ public abstract class AuditTest {
 			List<AuditTransactionObsolete> auditTransactions = getAuditTransactionQuery
 					.list();
 			for (AuditTransactionObsolete auditTransaction : auditTransactions) {
-				log.debug("AuditTransaction2[id=" + auditTransaction.getId()
+				log.debug("AuditTransaction[id=" + auditTransaction.getId()
 						+ ",time=" + auditTransaction.getTransactionTime()
 						+ "] {");
 				List<AuditTransactionEntityRecord> entities = getEntityObjects(session,

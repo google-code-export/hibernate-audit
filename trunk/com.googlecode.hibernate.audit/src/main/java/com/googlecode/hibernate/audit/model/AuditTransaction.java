@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.model2;
+package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
@@ -30,13 +30,13 @@ import java.util.Date;
 @Entity
 @Table(name = "AUDIT_TRANSACTION_2")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQ")
-public class AuditTransaction2 implements Synchronization
+public class AuditTransaction implements Synchronization
 {
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(AuditTransaction2.class);
+    private static final Logger log = Logger.getLogger(AuditTransaction.class);
 
     // Attributes ----------------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ public class AuditTransaction2 implements Synchronization
 
     // Constructors --------------------------------------------------------------------------------
 
-    AuditTransaction2()
+    AuditTransaction()
     {
         timestamp = new Date();
     }
@@ -77,7 +77,7 @@ public class AuditTransaction2 implements Synchronization
     /**
      * @param auditedSession - the Hibernate session the audited event belongs to.
      */
-    public AuditTransaction2(EventSource auditedSession, String user)
+    public AuditTransaction(EventSource auditedSession, String user)
     {
         this();
         this.transaction = auditedSession.getTransaction();
