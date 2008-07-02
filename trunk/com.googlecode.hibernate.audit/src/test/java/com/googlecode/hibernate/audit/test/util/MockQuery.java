@@ -25,21 +25,27 @@ class MockQuery implements InvocationHandler
 
     // Static --------------------------------------------------------------------------------------
 
-    static Query newInstance()
+    /**
+     * A string that mocks the presence of named or positional parameters.
+     */
+    static Query newInstance(String hql)
     {
         return (Query)Proxy.newProxyInstance(MockQuery.class.getClassLoader(),
                                              new Class[] { Query.class,  InvocationHistory.class},
-                                             new MockQuery());
+                                             new MockQuery(hql));
     }
 
     // Attributes ----------------------------------------------------------------------------------
+
+    private String hql;
 
     private List<InvocationRecord> history;
 
     // Constructors --------------------------------------------------------------------------------
 
-    MockQuery()
+    MockQuery(String hql)
     {
+        this.hql = hql;
         history = new ArrayList<InvocationRecord>();
     }
 
@@ -47,11 +53,22 @@ class MockQuery implements InvocationHandler
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
     {
-        if ("getHistory".equals(method.getName()))
+        String methodName = method.getName();
+
+        if ("getHistory".equals(methodName))
         {
             return history;
         }
+        else if ("getQueryString".equals(methodName))
+        {
+            return hql;
+        }
+        else if ("toString".equals(methodName))
+        {
+            return "MockQuery[" + hql + "]";
+        }
 
+        // record in history everyting else
         history.add(new InvocationRecord(method.getName(), args));
         return null;
     }

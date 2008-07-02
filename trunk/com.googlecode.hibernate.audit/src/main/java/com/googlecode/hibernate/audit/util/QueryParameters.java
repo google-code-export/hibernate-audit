@@ -6,6 +6,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
 /**
  * A simple static utility class that makes working with parameterized queries easier.
@@ -25,21 +29,31 @@ public class QueryParameters
     // Constants -----------------------------------------------------------------------------------
 
     // Map<argument type - method instance>
-    private static final Map<Class, Method> mutators;
+    private static final Map<Class, Method> namedParameterMutators;
+    private static final Map<Class, Method> positionalParameterMutators;
 
     static
     {
-        mutators = new HashMap<Class, Method>();
+        namedParameterMutators = new HashMap<Class, Method>();
+        positionalParameterMutators = new HashMap<Class, Method>();
 
         for(Method m: Query.class.getMethods())
         {
             if (m.getName().startsWith("set") &&
-                m.getParameterTypes().length == 2 &&
-                m.getParameterTypes()[0].equals(Integer.TYPE))
+                m.getParameterTypes().length == 2)
             {
-                // a method of kind "setSomething(int, Something)"
                 Class c = m.getParameterTypes()[1];
-                mutators.put(c, m);
+
+                if (m.getParameterTypes()[0].equals(Integer.TYPE))
+                {
+                    // a method of kind "setSomething(int, Something)", positional mutator
+                    positionalParameterMutators.put(c, m);
+                }
+                else if (m.getParameterTypes()[0].equals(String.class))
+                {
+                    // a method of kind "setSomething(String, Something)", named parameter mutator
+                    namedParameterMutators.put(c, m);
+                }
             }
         }
     }
@@ -49,23 +63,46 @@ public class QueryParameters
     /**
      * @exception IllegalStateException or other runtime exceptions on gross violations.
      */
-    public static void fill(Query q, Object... params)
+    public static void fill(Query q, Object... args)
     {
-        int position = 0;
-        for(Object p: params)
+        Iterator<QueryParameter> pari = extractParameters(q.getQueryString()).iterator();
+        
+        for(Object a: args)
         {
-            Class c = p.getClass();
-            Method mutator = mutators.get(c);
-
-            if (mutator == null)
+            if (!pari.hasNext())
             {
                 throw new IllegalStateException(
-                    "found no mutator to set a " + c.getName() + " instance on query");
+                    "Argument " + a + " does not have a corresponding query parameter");
+            }
+
+            QueryParameter p = pari.next();
+            Class c = a.getClass();
+            Method mutator = null;
+
+            if (p.isNamed())
+            {
+                mutator = namedParameterMutators.get(c);
+
+                if (mutator == null)
+                {
+                    throw new IllegalStateException("found no named parameter mutator to set a " +
+                                                    c.getName() + " instance on query");
+                }
+            }
+            else
+            {
+                mutator = positionalParameterMutators.get(c);
+
+                if (mutator == null)
+                {
+                    throw new IllegalStateException("found no positional parameter mutator to " +
+                                                    "set a " + c.getName() + " instance on query");
+                }
             }
 
             try
             {
-                mutator.invoke(q, position, p);
+                mutator.invoke(q, p.isNamed() ? p.getName() : p.getPosition(), a);
             }
             catch(IllegalAccessException e)
             {
@@ -75,9 +112,39 @@ public class QueryParameters
             {
                 throw new IllegalStateException("mutator invocation on query failed", e);
             }
-
-            position ++;
         }
+    }
+
+    /**
+     * Look for named parameters (:something) or JDBC-style (?) positional parameters.
+     */
+    public static List<QueryParameter> extractParameters(String hql)
+    {
+        List<QueryParameter> pars = new ArrayList<QueryParameter>();
+
+        boolean namedExpected = false;
+        int position = 0;
+        for(StringTokenizer st = new StringTokenizer(hql, ":? \t", true); st.hasMoreTokens(); )
+        {
+            String tok = st.nextToken();
+
+            if (namedExpected)
+            {
+                pars.add(new QueryParameter(position ++, tok));
+                namedExpected = false;
+            }
+
+            if (":".equals(tok))
+            {
+                namedExpected = true;
+            }
+            else if ("?".equals(tok))
+            {
+                pars.add(new QueryParameter(position ++, null));
+            }
+        }
+
+        return pars;
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -93,4 +160,5 @@ public class QueryParameters
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+    
 }

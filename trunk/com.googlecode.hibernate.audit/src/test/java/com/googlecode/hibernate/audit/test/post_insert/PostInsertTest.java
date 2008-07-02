@@ -1,7 +1,6 @@
 package com.googlecode.hibernate.audit.test.post_insert;
 
 import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
@@ -25,8 +24,6 @@ import java.util.Date;
 public class PostInsertTest
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostInsertTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -59,10 +56,10 @@ public class PostInsertTest
 
         Date t2 = new Date();
 
-        // make sure information was logged
+        // make sure information was logged. Since we wipe out tables for each test, only one
+        // audit transaction is expected to be found
 
-        String qs = "from AuditTransaction as a where a.timestamp >= :t1 and a.timestamp <= :t2";
-        List ts = HibernateAudit.query(qs, t1, t2);
+        List ts = HibernateAudit.query("from AuditTransaction");
 
         assert ts.size() == 1;
 
@@ -74,7 +71,7 @@ public class PostInsertTest
         sf.close();
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSuccesiveInserts() throws Exception
     {
         throw new Exception("NOT YET IMPLEMENTED");
