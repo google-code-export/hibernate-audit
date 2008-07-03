@@ -46,69 +46,81 @@ public class HibernateAuditTest
         assert !HibernateAudit.isEnabled();
 
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate.cfg.xml");
-        SessionFactory sf = config.buildSessionFactory();
+        config.configure("/hibernate-thread.cfg.xml");
+        SessionFactory sf = null;
 
-        HibernateAudit.enable(sf);
-
-        assert HibernateAudit.isEnabled();
-
-        // make sure that all available HBA listeners are installed
-        Set<String> aets = Listeners.getAuditedEventTypes();
-
-        assert !aets.isEmpty();
-
-        outer: for(String aet: aets)
+        try
         {
-            log.debug("verifying '" + aet + "' listeners");
+            sf = config.buildSessionFactory();
 
-            Method m = Listeners.getEventListenersGetter(aet);
-            Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+            HibernateAudit.enable(sf);
 
-            assert listeners.length != 0;
-            Class c = Listeners.getAuditEventListenerClass(aet);
+            assert HibernateAudit.isEnabled();
 
-            for(Object o: listeners)
+            // make sure that all available HBA listeners are installed
+            Set<String> aets = Listeners.getAuditedEventTypes();
+
+            assert !aets.isEmpty();
+
+            outer: for(String aet: aets)
             {
-                if (c.isInstance(o))
+                log.debug("verifying '" + aet + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(aet);
+                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+
+                assert listeners.length != 0;
+                Class c = Listeners.getAuditEventListenerClass(aet);
+
+                for(Object o: listeners)
                 {
-                    // found, all good
-                    continue outer;
+                    if (c.isInstance(o))
+                    {
+                        // found, all good
+                        continue outer;
+                    }
+                }
+
+                throw new Exception("Did not find a " + aet + " audit listener");
+            }
+
+            // testing noop behavior
+            HibernateAudit.enable(sf);
+
+            assert HibernateAudit.disable();
+
+            // make sure none of the audit listeners are still registered
+
+            assert !Listeners.ALL_EVENT_TYPES.isEmpty();
+
+            for(String et: Listeners.ALL_EVENT_TYPES)
+            {
+                log.debug("verifying '" + et + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(et);
+                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+
+                if (listeners == null)
+                {
+                    continue; // we're ok
+                }
+
+                for(Object o: listeners)
+                {
+                    assert !(o instanceof AuditEventListener);
                 }
             }
 
-            throw new Exception("Did not find a " + aet + " audit listener");
+            // testing noop behavior
+            assert !HibernateAudit.disable();
         }
-
-        // testing noop behavior
-        HibernateAudit.enable(sf);
-
-        assert HibernateAudit.disable();
-
-        // make sure none of the audit listeners are still registered
-
-        assert !Listeners.ALL_EVENT_TYPES.isEmpty();
-
-        for(String et: Listeners.ALL_EVENT_TYPES)
+        finally
         {
-            log.debug("verifying '" + et + "' listeners");
-
-            Method m = Listeners.getEventListenersGetter(et);
-            Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
-
-            if (listeners == null)
+            if (sf != null)
             {
-                continue; // we're ok
-            }
-
-            for(Object o: listeners)
-            {
-                assert !(o instanceof AuditEventListener);
+                sf.close();
             }
         }
-
-        // testing noop behavior
-        assert !HibernateAudit.disable();
     }
 
     @Test(enabled = true)
@@ -132,19 +144,31 @@ public class HibernateAuditTest
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate.cfg.xml");
-        SessionFactory sf = config.buildSessionFactory();
+        config.configure("/hibernate-thread.cfg.xml");
+        SessionFactory sf = null;
 
-        HibernateAudit.enable(sf);
-        
         try
         {
-            List ats = HibernateAudit.query("from com.googlecode.hibernate.audit.model.AuditTransaction");
-            assert ats.isEmpty();
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            try
+            {
+                List ats = HibernateAudit.query("from com.googlecode.hibernate.audit.model.AuditTransaction");
+                assert ats.isEmpty();
+            }
+            finally
+            {
+                assert HibernateAudit.disable();
+            }
         }
         finally
         {
-            assert HibernateAudit.disable();
+            if (sf != null)
+            {
+                sf.close();
+            }
         }
     }
 

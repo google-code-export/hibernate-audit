@@ -22,7 +22,7 @@ public class DDL
     public static void main(String[] args) throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate.cfg.xml");
+        config.configure("/hibernate-thread.cfg.xml");
         SchemaExport se = new SchemaExport(config);
 
         if (args.length == 0)
