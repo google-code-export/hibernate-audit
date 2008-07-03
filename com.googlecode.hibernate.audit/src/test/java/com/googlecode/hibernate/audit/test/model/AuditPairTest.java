@@ -13,7 +13,7 @@ import com.googlecode.hibernate.audit.model.AuditPair;
  * $Id$
  */
 @Test(sequential = true)
-public class AuditNameValuePairTest
+public class AuditPairTest
 {
     // Constants -----------------------------------------------------------------------------------
 
