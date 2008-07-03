@@ -47,6 +47,8 @@
         <mapping class="com.googlecode.hibernate.audit.model_obsolete.transaction.record.field.value.SimpleAuditValue"/>
 
         <mapping class="com.googlecode.hibernate.audit.model.AuditTransaction"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditEvent"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditPair"/>
 
         <!--
         <event type="post-collection-remove">
@@ -64,8 +66,11 @@
         <event type="post-update">
             <listener class="com.googlecode.hibernate.audit.event.AuditPostUpdateEventListener" />
         </event>
+        -->
+
+        <!--
         <event type="post-insert">
-            <listener class="com.googlecode.hibernate.audit.event.AuditPostInsertEventListener" />
+            <listener class="com.googlecode.hibernate.audit.event.AuditPostInsertEventListener"/>
         </event>
         -->
 

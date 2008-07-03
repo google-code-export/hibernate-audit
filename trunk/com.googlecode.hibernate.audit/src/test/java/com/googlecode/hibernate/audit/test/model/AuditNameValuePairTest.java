@@ -1,20 +1,19 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+import org.testng.annotations.Test;
+import com.googlecode.hibernate.audit.model.AuditPair;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-@Entity
-@Table(name = "A")
-public class A
+@Test(sequential = true)
+public class AuditNameValuePairTest
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -22,34 +21,33 @@ public class A
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String name;
-
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
 
-    public Long getId()
+    @Test(enabled = true)
+    public void testToString() throws Exception
     {
-        return id;
+        AuditPair p = new AuditPair();
+        p.setValue("abc");
+
+        assert "abc".equals(p.getValue());
+        assert "abc".equals(p.getStringValue());
+        assert String.class.getName().equals(p.getValueClassName());
     }
 
-    public void setId(Long id)
+    @Test(enabled = true)
+    public void testFromString() throws Exception
     {
-        this.id = id;
-    }
+        // same as AuditPair, with the exception that it offers access to protected methods
+        AuditPairAccess pa = new AuditPairAccess();
 
-    public String getName()
-    {
-        return name;
-    }
+        pa.setStringValue("abc");
+        pa.setValueClassName(String.class.getName());
 
-    public void setName(String name)
-    {
-        this.name = name;
+        assert "abc".equals(pa.getValue());
+        assert "abc".equals(pa.getStringValue());
+        assert String.class.getName().equals(pa.getValueClassName());
     }
 
     // Package protected ---------------------------------------------------------------------------

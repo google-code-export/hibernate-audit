@@ -2,8 +2,8 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -350,18 +350,32 @@ public class HibernateAudit
             throw new Exception("NOT YET IMPLEMENTED");
         }
 
-        StatelessSession ss = auditedSessionFactory.openStatelessSession();
-        ss.beginTransaction();
+        Session s = null;
 
         try
         {
-            Query q = ss.createQuery(query);
+            s = auditedSessionFactory.openSession();
+            s.beginTransaction();
+
+            Query q = s.createQuery(query);
             QueryParameters.fill(q, args);
             return q.list();
         }
         finally
         {
-            ss.getTransaction().commit();
+            if (s != null)
+            {
+                try
+                {
+                    s.getTransaction().commit();
+                }
+                catch(Exception e)
+                {
+                    log.error("failed to commit query transaction", e);
+                }
+
+                s.close();
+            }
         }
     }
 
