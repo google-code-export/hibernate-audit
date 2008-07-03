@@ -9,6 +9,7 @@ import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.util.QueryParameters;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.Set;
 import java.util.List;
@@ -36,7 +37,15 @@ public class HibernateAudit
 
     // Static --------------------------------------------------------------------------------------
 
+    // the (mostly one) audit transaction associated with a current thread
+    private static final ThreadLocal<AuditTransaction> auditTransaction;
+
     private static HibernateAudit singleton;
+
+    static
+    {
+       auditTransaction = new ThreadLocal<AuditTransaction>();
+    }
 
     public static synchronized boolean isEnabled()
     {
@@ -109,6 +118,19 @@ public class HibernateAudit
         }
 
         return singleton.doQuery(query, args);
+    }
+
+    /**
+     * @return the AuditTransaction instance associated with the thread, if any. May return null.
+     */
+    public static AuditTransaction getCurrentAuditTransaction()
+    {
+        return auditTransaction.get();
+    }
+
+    public static void setCurrentAuditTransaction(AuditTransaction at)
+    {
+        auditTransaction.set(at);
     }
 
     // Attributes ----------------------------------------------------------------------------------
