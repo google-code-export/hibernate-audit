@@ -32,6 +32,9 @@ public class QueryParameters
     private static final Map<Class, Method> namedParameterMutators;
     private static final Map<Class, Method> positionalParameterMutators;
 
+    private static Method setNamedParameterMethod;
+    private static Method setPositionalParameterMethod;
+
     static
     {
         namedParameterMutators = new HashMap<Class, Method>();
@@ -46,13 +49,27 @@ public class QueryParameters
 
                 if (m.getParameterTypes()[0].equals(Integer.TYPE))
                 {
-                    // a method of kind "setSomething(int, Something)", positional mutator
-                    positionalParameterMutators.put(c, m);
+                    if ("setParameter".equals(m.getName()))
+                    {
+                        setPositionalParameterMethod = m;
+                    }
+                    else
+                    {
+                        // a method of kind "setSomething(int, Something)", positional mutator
+                        positionalParameterMutators.put(c, m);
+                    }
                 }
                 else if (m.getParameterTypes()[0].equals(String.class))
                 {
-                    // a method of kind "setSomething(String, Something)", named parameter mutator
-                    namedParameterMutators.put(c, m);
+                    if ("setParameter".equals(m.getName()))
+                    {
+                        setNamedParameterMethod = m;
+                    }
+                    else
+                    {
+                        // a method of kind "setSomething(String, Something)", named parameter mutator
+                        namedParameterMutators.put(c, m);
+                    }
                 }
             }
         }
@@ -77,27 +94,16 @@ public class QueryParameters
 
             QueryParameter p = pari.next();
             Class c = a.getClass();
-            Method mutator = null;
 
-            if (p.isNamed())
+            Method mutator =
+                p.isNamed() ? namedParameterMutators.get(c) : positionalParameterMutators.get(c);
+
+            if (mutator == null)
             {
-                mutator = namedParameterMutators.get(c);
-
-                if (mutator == null)
-                {
-                    throw new IllegalStateException("found no named parameter mutator to set a " +
-                                                    c.getName() + " instance on query");
-                }
-            }
-            else
-            {
-                mutator = positionalParameterMutators.get(c);
-
-                if (mutator == null)
-                {
-                    throw new IllegalStateException("found no positional parameter mutator to " +
-                                                    "set a " + c.getName() + " instance on query");
-                }
+                // we use the generic setParameter(..., java.lang.Object) and defer to the query
+                // implementation to throw an exception if it gets upset by this
+                mutator = 
+                    p.isNamed() ? setNamedParameterMethod : setPositionalParameterMethod;
             }
 
             try
@@ -146,14 +152,6 @@ public class QueryParameters
 
         return pars;
     }
-
-//    Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 131.375 sec <<< FAILURE!
-//    testSingleInsert(com.googlecode.hibernate.audit.test.post_insert.PostInsertTest)  Time elapsed: 130.672 sec  <<< FAILURE!
-//    java.lang.IllegalStateException: found no named parameter mutator to set a com.googlecode.hibernate.audit.model.AuditEvent instance on query
-//        at com.googlecode.hibernate.audit.util.QueryParameters.fill(QueryParameters.java:88)
-//        at com.googlecode.hibernate.audit.HibernateAudit.doQuery(HibernateAudit.java:361)
-//        at com.googlecode.hibernate.audit.HibernateAudit.query(HibernateAudit.java:120)
-//        at com.googlecode.hibernate.audit.test.post_insert.PostInsertTest.testSingleInsert(PostInsertTest.java:86)
 
     // Attributes ----------------------------------------------------------------------------------
 

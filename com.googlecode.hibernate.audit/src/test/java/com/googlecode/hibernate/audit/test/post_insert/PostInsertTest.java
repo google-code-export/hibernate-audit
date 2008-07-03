@@ -87,9 +87,7 @@ public class PostInsertTest
             assert A.class.getName().equals(ae.getEntityClassName());
             assert a.getId().equals(ae.getEntityId());
 
-//        List nvps = HibernateAudit.
-//            query("from AuditPair as nvp where nvp.event = :event", ae);
-            List nvps = HibernateAudit.query("from AuditPair");
+            List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
 
             assert nvps.size() == 1;
 
@@ -179,6 +177,13 @@ public class PostInsertTest
             assert A.class.getName().equals(ae.getEntityClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
+            List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
+
+            assert nvps.size() == 1;
+
+            AuditPair nvp = (AuditPair)nvps.get(0);
+            assert "name".equals(nvp.getName());
+            assert expectedPairValues.remove((String)nvp.getValue());
 
             ae = (AuditEvent)es.get(1);
             assert AuditEventType.INSERT.equals(ae.getType());
@@ -186,17 +191,11 @@ public class PostInsertTest
             assert A.class.getName().equals(ae.getEntityClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
-//        List nvps = HibernateAudit.
-//            query("from AuditPair as nvp where nvp.event = :event", ae);
-            List nvps = HibernateAudit.query("from AuditPair");
+            nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
 
-            assert nvps.size() == 2;
+            assert nvps.size() == 1;
 
-            AuditPair nvp = (AuditPair)nvps.get(0);
-            assert "name".equals(nvp.getName());
-            assert expectedPairValues.remove((String)nvp.getValue());
-
-            nvp = (AuditPair)nvps.get(1);
+            nvp = (AuditPair)nvps.get(0);
             assert "name".equals(nvp.getName());
             assert expectedPairValues.remove((String)nvp.getValue());
 
