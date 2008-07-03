@@ -21,7 +21,7 @@
         <property name="hibernate.cache.use_second_level_cache">false</property>
         <property name="hibernate.cache.use_query_cache">false</property>
         <property name="hibernate.show_sql">${hibernate.show_sql}</property>
-        <property name="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</property>
+        <property name="hibernate.hbm2ddl.auto">create-drop</property>
         <property name="hibernate.jdbc.batch_size">10</property>
 
         <!--
@@ -48,6 +48,7 @@
 
         <mapping class="com.googlecode.hibernate.audit.model.AuditTransaction"/>
 
+        <!--
         <event type="post-collection-remove">
 			<listener class="com.googlecode.hibernate.audit.event.AuditPostCollectionRemoveEventListener" />
         </event>
@@ -66,6 +67,7 @@
         <event type="post-insert">
             <listener class="com.googlecode.hibernate.audit.event.AuditPostInsertEventListener" />
         </event>
+        -->
 
     </session-factory>
 

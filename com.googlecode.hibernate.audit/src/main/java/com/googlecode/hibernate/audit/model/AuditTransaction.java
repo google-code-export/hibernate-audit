@@ -18,6 +18,8 @@ import javax.persistence.Transient;
 import javax.transaction.Synchronization;
 import java.util.Date;
 
+import com.googlecode.hibernate.audit.HibernateAudit;
+
 /**
  * TODO mixing administrative logic with persistence concerns in such a way does not feel good to
         me, this class must likely will be refactored.
@@ -104,8 +106,16 @@ public class AuditTransaction implements Synchronization
 
     public void beforeCompletion()
     {
-        session.getTransaction().commit();
-        log.debug("audit transaction committed");
+        try
+        {
+            session.getTransaction().commit();
+            log.debug("audit transaction committed");
+        }
+        finally
+        {
+            // no matter what happens, disassociate myself from the thread
+            HibernateAudit.setCurrentAuditTransaction(null);
+        }
     }
 
     public void afterCompletion(int i)
