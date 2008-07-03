@@ -34,7 +34,7 @@ import com.googlecode.hibernate.audit.HibernateAudit;
  */
 @Entity
 @Table(name = "AUDIT_TRANSACTION")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQ")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQUENCE")
 public class AuditTransaction implements Synchronization
 {
     // Constants -----------------------------------------------------------------------------------
@@ -171,11 +171,66 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
-     * Write this transaction information on persistent storage.
+     * Write this transaction information on persistent storage, in the context of the transaction
+     * itself.
      */
     public void log()
     {
         session.insert(this);
+    }
+
+    /**
+     * Write audit event information on persistent storage, in the context of this transaction.
+     */
+    public void logEvent(AuditEvent ae)
+    {
+        ae.setTransaction(this);
+        session.insert(ae);
+    }
+
+    /**
+     * Write a name/value pair on persistent storage, in the context of this transaction.
+     */
+    public void logNameValuePair(AuditPair nvp)
+    {
+        if (nvp.getEvent() == null)
+        {
+            throw new IllegalArgumentException("orphan name/value pair " + nvp);
+        }
+
+        session.insert(nvp);
+    }
+
+    /**
+     * Falls back to database identity.
+     */
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (!(o instanceof AuditTransaction))
+        {
+            return false;
+        }
+
+        AuditTransaction that = (AuditTransaction)o;
+
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        if (id == null)
+        {
+            return 0;
+        }
+
+        return id.hashCode();
     }
 
     // Package protected ---------------------------------------------------------------------------

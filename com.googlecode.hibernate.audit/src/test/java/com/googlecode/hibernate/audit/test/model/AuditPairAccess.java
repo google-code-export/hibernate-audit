@@ -1,20 +1,20 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+import com.googlecode.hibernate.audit.model.AuditPair;
 
 /**
+ * This class exists to allow access to protected methods of AuditPair.
+ * Access is necessary for testing, while we would like to restrict access to those methods.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-@Entity
-@Table(name = "A")
-public class A
+class AuditPairAccess extends AuditPair
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -22,34 +22,31 @@ public class A
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String name;
-
     // Constructors --------------------------------------------------------------------------------
+
+    AuditPairAccess()
+    {
+        super();
+    }
 
     // Public --------------------------------------------------------------------------------------
 
-    public Long getId()
+    /**
+     * Allow access for testing.
+     */
+    @Override
+    public void setStringValue(String s)
     {
-        return id;
+        super.setStringValue(s);
     }
 
-    public void setId(Long id)
+    /**
+     * Allow access for testing.
+     */
+    @Override
+    public void setValueClassName(String s)
     {
-        this.id = id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
+        super.setValueClassName(s);
     }
 
     // Package protected ---------------------------------------------------------------------------

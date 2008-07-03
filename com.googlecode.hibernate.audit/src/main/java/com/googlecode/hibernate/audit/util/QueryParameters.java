@@ -147,6 +147,14 @@ public class QueryParameters
         return pars;
     }
 
+//    Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 131.375 sec <<< FAILURE!
+//    testSingleInsert(com.googlecode.hibernate.audit.test.post_insert.PostInsertTest)  Time elapsed: 130.672 sec  <<< FAILURE!
+//    java.lang.IllegalStateException: found no named parameter mutator to set a com.googlecode.hibernate.audit.model.AuditEvent instance on query
+//        at com.googlecode.hibernate.audit.util.QueryParameters.fill(QueryParameters.java:88)
+//        at com.googlecode.hibernate.audit.HibernateAudit.doQuery(HibernateAudit.java:361)
+//        at com.googlecode.hibernate.audit.HibernateAudit.query(HibernateAudit.java:120)
+//        at com.googlecode.hibernate.audit.test.post_insert.PostInsertTest.testSingleInsert(PostInsertTest.java:86)
+
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------

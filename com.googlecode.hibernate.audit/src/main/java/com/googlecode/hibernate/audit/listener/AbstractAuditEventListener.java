@@ -36,9 +36,10 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     // Protected -----------------------------------------------------------------------------------
 
     /**
-     * Make sure we log the transaction the current event occured in scope of.
+     * Make sure we log the transaction the current event occured in scope of and return a reference
+     * to it.
      */
-    protected void logTransaction(EventSource auditedSession, String user)
+    protected AuditTransaction logTransaction(EventSource auditedSession, String user)
     {
         Transaction ht = auditedSession.getTransaction();
         AuditTransaction at = HibernateAudit.getCurrentAuditTransaction();
@@ -48,7 +49,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             // already logged
 
             assert ht == at.getTransaction();
-            return;
+            return at;
         }
 
         at = new AuditTransaction(auditedSession, user);
@@ -58,6 +59,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         HibernateAudit.setCurrentAuditTransaction(at);
 
         log.debug("logged transaction " + ht);
+
+        return at;
     }
 
     // Private -------------------------------------------------------------------------------------

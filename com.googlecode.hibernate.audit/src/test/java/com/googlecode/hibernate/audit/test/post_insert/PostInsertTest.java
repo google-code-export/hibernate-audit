@@ -7,9 +7,14 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.AuditEventType;
+import com.googlecode.hibernate.audit.model.AuditPair;
 
 import java.util.List;
 import java.util.Date;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -39,36 +44,69 @@ public class PostInsertTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure("/hibernate-thread.cfg.xml");
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = config.buildSessionFactory();
-        HibernateAudit.enable(sf);
+        SessionFactory sf = null;
 
-        Date t1 = new Date();
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
 
-        A a = new A();
-        a.setName("alice");
+            Date t1 = new Date();
 
-        Session s = sf.openSession();
-        Transaction t = s.beginTransaction();
+            A a = new A();
+            a.setName("alice");
 
-        s.save(a);
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
 
-        t.commit();
+            s.save(a);
 
-        Date t2 = new Date();
+            t.commit();
 
-        // make sure information was logged. Since we wipe out tables for each test, only one
-        // audit transaction is expected to be found
+            Date t2 = new Date();
 
-        List ts = HibernateAudit.query("from AuditTransaction");
+            // make sure information was logged. Since we wipe out tables for each test, only one
+            // audit transaction is expected to be found
 
-        assert ts.size() == 1;
+            List ts = HibernateAudit.query("from AuditTransaction");
 
-        AuditTransaction at = (AuditTransaction)ts.get(0);
-        assert at.getTimestamp().getTime() >= t1.getTime();
-        assert at.getTimestamp().getTime() <= t2.getTime();
+            assert ts.size() == 1;
 
-        HibernateAudit.disable();
-        sf.close();
+            AuditTransaction at = (AuditTransaction)ts.get(0);
+            assert at.getTimestamp().getTime() >= t1.getTime();
+            assert at.getTimestamp().getTime() <= t2.getTime();
+
+            List es = HibernateAudit.query("from AuditEvent");
+
+            assert ts.size() == 1;
+
+            AuditEvent ae = (AuditEvent)es.get(0);
+
+            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ts.remove(ae.getTransaction());
+            assert A.class.getName().equals(ae.getEntityClassName());
+            assert a.getId().equals(ae.getEntityId());
+
+//        List nvps = HibernateAudit.
+//            query("from AuditPair as nvp where nvp.event = :event", ae);
+            List nvps = HibernateAudit.query("from AuditPair");
+
+            assert nvps.size() == 1;
+
+            AuditPair nvp = (AuditPair)nvps.get(0);
+
+            assert "name".equals(nvp.getName());
+            assert "alice".equals(nvp.getValue());
+
+            HibernateAudit.disable();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
@@ -77,49 +115,100 @@ public class PostInsertTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure("/hibernate-thread.cfg.xml");
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = config.buildSessionFactory();
-        HibernateAudit.enable(sf);
+        SessionFactory sf = null;
 
-        Date t1 = new Date();
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
 
-        A a = new A();
-        a.setName("alice");
+            Set<Long> expectedEntityIds = new HashSet<Long>();
+            Set<String> expectedPairValues = new HashSet<String>();
 
-        Session s = sf.openSession();
-        Transaction t = s.beginTransaction();
+            Date t1 = new Date();
 
-        s.save(a);
+            A a = new A();
+            a.setName("alice");
+            expectedPairValues.add(a.getName());
 
-        t.commit();
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
 
-        Date t2 = new Date();
+            s.save(a);
 
-        a = new A();
-        a.setName("alex");
+            t.commit();
 
-        s = sf.openSession();
-        t = s.beginTransaction();
+            expectedEntityIds.add(a.getId());
 
-        s.save(a);
+            Date t2 = new Date();
 
-        t.commit();
+            a = new A();
+            a.setName("alex");
+            expectedPairValues.add(a.getName());
 
-        Date t3 = new Date();
+            s = sf.openSession();
+            t = s.beginTransaction();
 
-        List ts = HibernateAudit.query("from AuditTransaction as a order by a.timestamp asc");
+            s.save(a);
 
-        assert ts.size() == 2;
+            t.commit();
 
-        AuditTransaction at = (AuditTransaction)ts.get(0);
-        assert at.getTimestamp().getTime() >= t1.getTime();
-        assert at.getTimestamp().getTime() <= t2.getTime();
+            expectedEntityIds.add(a.getId());
 
-        at = (AuditTransaction)ts.get(1);
-        assert at.getTimestamp().getTime() >= t2.getTime();
-        assert at.getTimestamp().getTime() <= t3.getTime();
+            Date t3 = new Date();
 
-        HibernateAudit.disable();
-        sf.close();
+            List ts = HibernateAudit.query("from AuditTransaction as a order by a.timestamp asc");
+
+            assert ts.size() == 2;
+
+            AuditTransaction at = (AuditTransaction)ts.get(0);
+            assert at.getTimestamp().getTime() >= t1.getTime();
+            assert at.getTimestamp().getTime() <= t2.getTime();
+
+            at = (AuditTransaction)ts.get(1);
+            assert at.getTimestamp().getTime() >= t2.getTime();
+            assert at.getTimestamp().getTime() <= t3.getTime();
+
+            List es = HibernateAudit.query("from AuditEvent");
+
+            assert ts.size() == 2;
+
+            AuditEvent ae = (AuditEvent)es.get(0);
+            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ts.remove(ae.getTransaction());
+            assert A.class.getName().equals(ae.getEntityClassName());
+            assert expectedEntityIds.remove(ae.getEntityId());
+
+
+            ae = (AuditEvent)es.get(1);
+            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ts.remove(ae.getTransaction());
+            assert A.class.getName().equals(ae.getEntityClassName());
+            assert expectedEntityIds.remove(ae.getEntityId());
+
+//        List nvps = HibernateAudit.
+//            query("from AuditPair as nvp where nvp.event = :event", ae);
+            List nvps = HibernateAudit.query("from AuditPair");
+
+            assert nvps.size() == 2;
+
+            AuditPair nvp = (AuditPair)nvps.get(0);
+            assert "name".equals(nvp.getName());
+            assert expectedPairValues.remove((String)nvp.getValue());
+
+            nvp = (AuditPair)nvps.get(1);
+            assert "name".equals(nvp.getName());
+            assert expectedPairValues.remove((String)nvp.getValue());
+
+            HibernateAudit.disable();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------
