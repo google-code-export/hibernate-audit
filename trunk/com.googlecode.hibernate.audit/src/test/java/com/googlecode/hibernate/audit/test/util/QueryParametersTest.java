@@ -165,6 +165,48 @@ public class QueryParametersTest
     }
 
     @Test(enabled = true)
+    public void testFillGenericParameterNamed() throws Exception
+    {
+        Object param = new RandomType();
+        Query q = MockQuery.newInstance("something :genpar");
+        QueryParameters.fill(q, param);
+
+        List<InvocationRecord> history = ((InvocationHistory)q).getHistory();
+        assert history.size() == 1;
+
+        InvocationRecord r = history.get(0);
+
+        assert "setParameter".equals(r.getMethodName());
+        Object[] args = r.getArguments();
+
+        assert args.length == 2;
+
+        assert "genpar".equals(args[0]);
+        assert param == args[1];
+    }
+
+    @Test(enabled = true)
+    public void testFillGenericParameterPositional() throws Exception
+    {
+        Object param = new RandomType();
+        Query q = MockQuery.newInstance("something ?");
+        QueryParameters.fill(q, param);
+
+        List<InvocationRecord> history = ((InvocationHistory)q).getHistory();
+        assert history.size() == 1;
+
+        InvocationRecord r = history.get(0);
+
+        assert "setParameter".equals(r.getMethodName());
+        Object[] args = r.getArguments();
+
+        assert args.length == 2;
+
+        assert new Integer(0).equals(args[0]);
+        assert param == args[1];
+    }
+
+    @Test(enabled = true)
     public void testExtractParametersEmtpyList() throws Exception
     {
         List<QueryParameter> ps = QueryParameters.extractParameters("");
