@@ -5,7 +5,9 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.test.base.ConfigurableEnvironmentTest;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
@@ -26,9 +28,11 @@ import java.util.HashSet;
  * $Id$
  */
 @Test(sequential = true)
-public class PostInsertTest
+public class PostInsertTest extends ConfigurableEnvironmentTest
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(PostInsertTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -42,7 +46,7 @@ public class PostInsertTest
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
+        config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
         SessionFactory sf = null;
 
@@ -73,7 +77,8 @@ public class PostInsertTest
             assert ts.size() == 1;
 
             AuditTransaction at = (AuditTransaction)ts.get(0);
-            assert at.getTimestamp().getTime() >= t1.getTime();
+
+            assert at.getTimestamp().getTime() >= floorTime(t1.getTime());
             assert at.getTimestamp().getTime() <= t2.getTime();
 
             List es = HibernateAudit.query("from AuditEvent");
@@ -98,6 +103,11 @@ public class PostInsertTest
 
             HibernateAudit.disable();
         }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
         finally
         {
             if (sf != null)
@@ -111,7 +121,7 @@ public class PostInsertTest
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
+        config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
         SessionFactory sf = null;
 
@@ -160,11 +170,11 @@ public class PostInsertTest
             assert ts.size() == 2;
 
             AuditTransaction at = (AuditTransaction)ts.get(0);
-            assert at.getTimestamp().getTime() >= t1.getTime();
+            assert at.getTimestamp().getTime() >= floorTime(t1.getTime());
             assert at.getTimestamp().getTime() <= t2.getTime();
 
             at = (AuditTransaction)ts.get(1);
-            assert at.getTimestamp().getTime() >= t2.getTime();
+            assert at.getTimestamp().getTime() >= floorTime(t2.getTime());
             assert at.getTimestamp().getTime() <= t3.getTime();
 
             List es = HibernateAudit.query("from AuditEvent");
