@@ -7,7 +7,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.test.base.ConfigurableEnvironmentTest;
+import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
@@ -28,7 +28,7 @@ import java.util.HashSet;
  * $Id$
  */
 @Test(sequential = true)
-public class PostInsertTest extends ConfigurableEnvironmentTest
+public class PostInsertTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
