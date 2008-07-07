@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.jca;
+package com.googlecode.hibernate.audit.test.jta;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
