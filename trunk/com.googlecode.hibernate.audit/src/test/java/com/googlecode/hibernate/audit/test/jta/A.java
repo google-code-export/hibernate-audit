@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.jca;
+package com.googlecode.hibernate.audit.test.jta;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
