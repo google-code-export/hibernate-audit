@@ -7,7 +7,7 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.test.base.ConfigurableEnvironmentTest;
+import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
  * $Id$
  */
 @Test(sequential = true)
-public class HibernateAuditTest extends ConfigurableEnvironmentTest
+public class HibernateAuditTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 

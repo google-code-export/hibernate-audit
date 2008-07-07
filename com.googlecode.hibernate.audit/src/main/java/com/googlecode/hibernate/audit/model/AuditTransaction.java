@@ -89,17 +89,15 @@ public class AuditTransaction implements Synchronization
         this.user = user;
 
         // persist in the context of the audited session, if no dedicated session is available, or
-        // in the context of the dedicated session, if available
-
-        // TODO for the time being we operate under assumption that no dedicated session is available
-
-        // TODO for JTA, a stateless session is enrolled. Make sure.
+        // in the context of the dedicated session, if available. TODO: for the time being we
+        // operate under the assumption that no dedicated session is available
 
         session = auditedSession.getFactory().openStatelessSession();
+
+        // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
 
         this.transaction.registerSynchronization(this);
-
     }
 
     // Synchronization implementation --------------------------------------------------------------
@@ -110,6 +108,8 @@ public class AuditTransaction implements Synchronization
         {
             session.getTransaction().commit();
             log.debug("audit transaction committed");
+            session.close();
+            session = null;
         }
         finally
         {

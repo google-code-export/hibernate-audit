@@ -1,1 +1,2 @@
 TARGET_CLASS=PostInsertTest
+TARGET_CLASS=StatelessSessionWithJTATransactionTest

@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.mock.jta;
 
+import org.apache.log4j.Logger;
+
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
 import javax.transaction.RollbackException;
@@ -23,6 +25,8 @@ public class MockUserTransaction implements UserTransaction
 {
     // Constants -----------------------------------------------------------------------------------
 
+    private static final Logger log = Logger.getLogger(MockUserTransaction.class);
+
     public static final String DEFAULT_USER_TRANSACTION_JNDI_NAME = "local:MockUserTransaction";
 
     // Static --------------------------------------------------------------------------------------
@@ -37,6 +41,8 @@ public class MockUserTransaction implements UserTransaction
     public MockUserTransaction(TransactionManager tm)
     {
         this.tm = tm;
+
+        log.debug(this + " created");
     }
 
     // UserTransaction implementation --------------------------------------------------------------

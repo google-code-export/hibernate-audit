@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.mock.jta;
 
+import org.apache.log4j.Logger;
+
 import javax.transaction.TransactionManager;
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
@@ -31,7 +33,9 @@ public class MockTransactionManager implements TransactionManager
 {
     // Constants -----------------------------------------------------------------------------------
 
-    public static final String DEFAULT_TRANSACTION_MANAGER_JNDI_NAME = 
+    private static final Logger log = Logger.getLogger(MockTransactionManager.class);
+
+    public static final String DEFAULT_TRANSACTION_MANAGER_JNDI_NAME =
         "local:MockTransactionManager";
 
     // Static --------------------------------------------------------------------------------------
@@ -162,6 +166,16 @@ public class MockTransactionManager implements TransactionManager
     }
 
     // Public --------------------------------------------------------------------------------------
+
+    public void start() throws Exception
+    {
+        log.debug(this + " started");
+    }
+
+    public void stop() throws Exception
+    {
+        log.debug(this + " stopped");
+    }
 
     // Package protected ---------------------------------------------------------------------------
 
