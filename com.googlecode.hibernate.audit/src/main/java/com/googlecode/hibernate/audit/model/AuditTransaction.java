@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
+import org.hibernate.Query;
 import org.hibernate.event.EventSource;
 import org.apache.log4j.Logger;
 
@@ -192,6 +193,30 @@ public class AuditTransaction implements Synchronization
     {
         log.debug(this + " logging " + ae);
         ae.setTransaction(this);
+
+        // because we're using a stateless session, we cannot rely on persistence by reachability
+        // so if the AuditEntity instance is not persisted, explicitely persist it
+
+        AuditEntity aent = ae.getEntity();
+
+        // TODO remove this if using a non-stateless session, it will be persisted by reachability
+        if (aent != null && aent.getId() == null)
+        {
+            // look it up in the database first
+            Query q = session.createQuery("from AuditEntity as a where a.className = :className");
+            q.setString("className", aent.getClassName());
+            AuditEntity persisted = (AuditEntity)q.uniqueResult();
+
+            if (persisted != null)
+            {
+                ae.setEntity(persisted);
+            }
+            else
+            {
+                session.insert(aent);
+            }
+        }
+
         session.insert(ae);
     }
 
@@ -230,6 +255,9 @@ public class AuditTransaction implements Synchronization
         return id != null && id.equals(that.id);
     }
 
+    /**
+     * Falls back to database identity.
+     */
     @Override
     public int hashCode()
     {

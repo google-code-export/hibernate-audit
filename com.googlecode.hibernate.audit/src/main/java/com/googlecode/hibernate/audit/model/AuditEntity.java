@@ -6,16 +6,9 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
-import javax.persistence.EnumType;
 import javax.persistence.GenerationType;
-import javax.persistence.Enumerated;
-import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
-import javax.persistence.CascadeType;
 
 /**
- * An atomic audit event as captured by Hibernate listeners.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -25,9 +18,9 @@ import javax.persistence.CascadeType;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_EVENT")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_ID_SEQUENCE")
-public class AuditEvent
+@Table(name = "AUDIT_ENTITY")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_ENTITY_ID_SEQUENCE")
+public class AuditEntity 
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -40,25 +33,12 @@ public class AuditEvent
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "EVENT_TYPE")
-    @Enumerated(EnumType.STRING)
-    private AuditEventType type;
-
-    @ManyToOne
-    @JoinColumn(name = "TRANSACTION_ID")
-    private AuditTransaction transaction;
-
-    @Column(name = "ENTITY_ID")
-    private Long entityId; // TODO current implementation supports only Longs as ids, this needs
-                           // to be generalized if audited model uses other stuff as ids.
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "ENTITY_TYPE_ID")
-    private AuditEntity entity;
+    @Column(name = "CLASS_NAME", unique=true)
+    private String className;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public AuditEvent()
+    public AuditEntity()
     {
     }
 
@@ -74,52 +54,55 @@ public class AuditEvent
         this.id = id;
     }
 
-    public AuditEventType getType()
+    public String getClassName()
     {
-        return type;
+        return className;
     }
 
-    public void setType(AuditEventType type)
+    public void setClassName(String className)
     {
-        this.type = type;
+        this.className = className;
     }
 
-    public AuditTransaction getTransaction()
+    /**
+     * Falls back to database identity.
+     */
+    @Override
+    public boolean equals(Object o)
     {
-        return transaction;
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (!(o instanceof AuditEntity))
+        {
+            return false;
+        }
+
+        AuditEntity that = (AuditEntity)o;
+
+        return id != null && id.equals(that.id);
     }
 
-    public void setTransaction(AuditTransaction transaction)
+    /**
+     * Falls back to database identity.
+     */
+    @Override
+    public int hashCode()
     {
-        this.transaction = transaction;
-    }
+        if (id == null)
+        {
+            return 0;
+        }
 
-    public Long getEntityId()
-    {
-        return entityId;
-    }
-
-    public void setEntityId(Long entityId)
-    {
-        this.entityId = entityId;
-    }
-
-    public AuditEntity getEntity()
-    {
-        return entity;
-    }
-
-    public void setEntity(AuditEntity entity)
-    {
-        this.entity = entity;
+        return id.hashCode();
     }
 
     @Override
     public String toString()
     {
-        return "AuditEvent[" + (id == null ? "TRANSIENT" : id) + ", " +
-               type + ", " + entityId + "]";
-
+        return "AuditEntity[" + (id == null ? "TRANSIENT" : id) + ", " + className + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------
