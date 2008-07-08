@@ -37,7 +37,7 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

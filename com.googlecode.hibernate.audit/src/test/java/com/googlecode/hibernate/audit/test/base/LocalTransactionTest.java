@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.test.base;
 
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.AfterTest;
+import org.testng.annotations.Test;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -12,6 +13,7 @@ import org.testng.annotations.AfterTest;
  *
  * $Id$
  */
+@Test(enabled = false)
 public class LocalTransactionTest extends ConfigurableEnvironmentSupport
 {
     // Constants -----------------------------------------------------------------------------------

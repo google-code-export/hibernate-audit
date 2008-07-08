@@ -47,7 +47,7 @@ public class HibernateAuditTest extends JTATransactionTest
         assert !HibernateAudit.isEnabled();
 
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
+        config.configure(getHibernateConfigurationFileName());
         SessionFactory sf = null;
 
         try
@@ -145,7 +145,7 @@ public class HibernateAuditTest extends JTATransactionTest
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
+        config.configure(getHibernateConfigurationFileName());
         SessionFactory sf = null;
 
         try
