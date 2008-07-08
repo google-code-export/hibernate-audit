@@ -47,6 +47,8 @@ public class MockJTAAwareDataSource implements DataSource
 
     private Map<Transaction, InterceptedConnection> connections;
 
+    private boolean broken;
+
     // Constructors --------------------------------------------------------------------------------
 
     public MockJTAAwareDataSource(String driverClassName,
@@ -221,6 +223,16 @@ public class MockJTAAwareDataSource implements DataSource
     public String getConnectionPassword()
     {
         return connectionPassword;
+    }
+
+    public boolean isBroken()
+    {
+        return broken;
+    }
+
+    public void setBroken(boolean b)
+    {
+        this.broken = b;
     }
 
     @Override

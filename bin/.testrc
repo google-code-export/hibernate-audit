@@ -16,3 +16,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=HibernateAuditTest
 TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=StatelessSessionWithJTATransactionTest
+TARGET_CLASS=FailedCommitTest

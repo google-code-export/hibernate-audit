@@ -36,7 +36,6 @@ public class InterceptedConnection implements Connection
     private MockJTAAwareDataSource manager;
     private Connection delegate;
 
-
     // Constructors --------------------------------------------------------------------------------
 
     public InterceptedConnection(MockJTAAwareDataSource manager, Connection delegate)
@@ -79,7 +78,14 @@ public class InterceptedConnection implements Connection
 
     public void commit() throws SQLException
     {
-        delegate.commit();
+        if (manager.isBroken())
+        {
+            throw new RuntimeException("THIS CONNECTION IS INTENTIONALLY BROKEN");
+        }
+        else
+        {
+            delegate.commit();
+        }
     }
 
     public void rollback() throws SQLException
