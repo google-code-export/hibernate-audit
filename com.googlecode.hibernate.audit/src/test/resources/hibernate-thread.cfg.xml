@@ -48,6 +48,8 @@
 
         <mapping class="com.googlecode.hibernate.audit.model.AuditTransaction"/>
         <mapping class="com.googlecode.hibernate.audit.model.AuditEvent"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditType"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditField"/>
         <mapping class="com.googlecode.hibernate.audit.model.AuditPair"/>
 
         <!--

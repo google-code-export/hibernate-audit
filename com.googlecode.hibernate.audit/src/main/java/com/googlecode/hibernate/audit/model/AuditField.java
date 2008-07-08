@@ -7,6 +7,8 @@ import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -33,8 +35,12 @@ public class AuditField
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-//    @Column(name = "CLASS_NAME", unique=true)
-//    private String className;
+    @ManyToOne
+    @JoinColumn(name = "TYPE_ID")
+    private AuditType type;
+
+    @Column(name = "NAME")
+    private String name;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -52,6 +58,43 @@ public class AuditField
     public void setId(Long id)
     {
         this.id = id;
+    }
+
+    public AuditType getType()
+    {
+        return type;
+    }
+
+    public void setType(AuditType type)
+    {
+        this.type = type;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    /**
+     * Convertor from string to native type.
+     */
+    public Object stringToValue(String s)
+    {
+        return type.stringToValue(s);
+    }
+
+    /**
+     * @exception NullPointerException no type was previously set on this field.
+     * @exception IllegalArgumentException if the conversion fails for some reason.
+     */
+    public String valueToString(Object o)
+    {
+        return type.valueToString(o);
     }
 
     /**
@@ -92,7 +135,7 @@ public class AuditField
     @Override
     public String toString()
     {
-        return " ";
+        return name + "[" + type + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

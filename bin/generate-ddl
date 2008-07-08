@@ -5,6 +5,8 @@
 
 #DEBUG_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=mvn2"
 
+. .testrc
+
 MAVEN_REPOSITORY="C:/Documents and Settings/ofeodoro/.m2/repository";
 
 CP="\
@@ -22,7 +24,9 @@ $MAVEN_REPOSITORY\..\javax\transaction\jta\1.0.1B\jta-1.0.1B.jar"
 
 # usage: DDL <create|drop>
 
-java -ea $DEBUG_OPTS -cp "$CP" com.googlecode.hibernate.audit.util.DDL $1
+JAVA_OPTS="-Dhibernate.dialect=$DIALECT -Dhibernate.connection.driver_class=$DRIVER_CLASS -Dhibernate.connection.url=${CONNECTION_URL} -Dhibernate.connection.username=$CONNECTION_USERNAME -Dhibernate.connection.password=$CONNECTION_PASSWORD"
+
+java -ea $DEBUG_OPTS $JAVA_OPTS -cp "$CP" com.googlecode.hibernate.audit.util.DDL $1
 
 
 

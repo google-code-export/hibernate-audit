@@ -38,18 +38,16 @@ public class AuditPair
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "NAME")
-    private String name;
-
-    @Column(name = "VALUE")
-    private String stringValue;
-
-    @Column(name = "VALUE_CLASS_NAME")
-    private String valueClassName;
-
     @ManyToOne
     @JoinColumn(name = "EVENT_ID")
     private AuditEvent event;
+
+    @ManyToOne
+    @JoinColumn(name = "FIELD_ID")
+    private AuditField field;
+
+    @Column(name = "VALUE")
+    private String stringValue;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -59,27 +57,33 @@ public class AuditPair
 
     // Public --------------------------------------------------------------------------------------
 
-    public String getName()
+    public AuditField getField()
     {
-        return name;
+        return field;
     }
 
-    public void setName(String name)
+    public void setField(AuditField field)
     {
-        this.name = name;
+        this.field = field;
     }
 
     public Object getValue()
     {
-        return stringToValue();
+        if (field == null)
+        {
+            return null;
+        }
+
+        return field.stringToValue(stringValue);
     }
 
     /**
+     * @exception NullPointerException no field was previously set on this pair.
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
-    public void setValue(Object value)
+    public void setValue(Object o)
     {
-        valueToString(value);
+        stringValue = field.valueToString(o);
     }
 
     public AuditEvent getEvent()
@@ -97,15 +101,10 @@ public class AuditPair
         return stringValue;
     }
 
-    public String getValueClassName()
-    {
-        return valueClassName;
-    }
-
     @Override
     public String toString()
     {
-        return name + "=" + stringValue;
+        return field + "=" + stringValue;
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -130,45 +129,7 @@ public class AuditPair
         this.stringValue = stringValue;
     }
 
-    /**
-     * protected to allow access for testing.
-     */
-    protected void setValueClassName(String valueClassName)
-    {
-        this.valueClassName = valueClassName;
-    }
-
     // Private -------------------------------------------------------------------------------------
-
-    private void valueToString(Object o)
-    {
-        if (o instanceof String)
-        {
-            stringValue = (String)o;
-            valueClassName = String.class.getName();
-        }
-        else
-        {
-            throw new IllegalArgumentException("don't know how to convert " + o + " to string");
-        }
-    }
-
-    private Object stringToValue()
-    {
-        if (stringValue == null)
-        {
-            return null;
-        }
-
-        if (String.class.getName().equals(valueClassName))
-        {
-            return stringValue;
-        }
-        else
-        {
-            throw new IllegalStateException("unknown type: " + valueClassName);
-        }
-    }
 
     // Inner classes -------------------------------------------------------------------------------
 }

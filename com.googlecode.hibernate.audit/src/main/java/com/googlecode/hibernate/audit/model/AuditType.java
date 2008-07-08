@@ -7,6 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.Transient;
+import java.lang.reflect.Method;
+import java.util.Date;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -18,11 +24,14 @@ import javax.persistence.GenerationType;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_ENTITY")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_ENTITY_ID_SEQUENCE")
+@Table(name = "AUDIT_TYPE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TYPE_ID_SEQUENCE")
 public class AuditType 
 {
     // Constants -----------------------------------------------------------------------------------
+
+    public static final Format oracleDateFormat =
+        new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
 
     // Static --------------------------------------------------------------------------------------
 
@@ -35,6 +44,9 @@ public class AuditType
 
     @Column(name = "CLASS_NAME", unique=true)
     private String className;
+
+    @Transient
+    private Class c;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -59,9 +71,90 @@ public class AuditType
         return className;
     }
 
+    /**
+     *
+     * @exception IllegalArgumentException if the class name cannot be converted to a type known
+     *            to the VM.
+     */
     public void setClassName(String className)
     {
         this.className = className;
+    }
+
+    public Class getClassInstance()
+    {
+        if (className == null)
+        {
+            return null;
+        }
+
+        if (c == null)
+        {
+            try
+            {
+                c = Class.forName(this.className);
+            }
+            catch(ClassNotFoundException e)
+            {
+                throw new IllegalArgumentException("cannot resolve type " + className, e);
+            }
+        }
+
+        return c;
+    }
+
+    /**
+     * @exception IllegalArgumentException if the conversion fails for some reason.
+     */
+    public String valueToString(Object o)
+    {
+        getClassInstance();
+        if (!c.isInstance(o))
+        {
+            throw new IllegalArgumentException(
+                "the argument is not a " + c.getName() + " instance");
+        }
+
+        try
+        {
+            Method m = c.getMethod("toString");
+            return (String)m.invoke(o);
+        }
+        catch(Exception e)
+        {
+            throw new IllegalArgumentException(
+                "failed to invoke " + c.getName() + "'s toString()", e);
+        }
+    }
+
+    /**
+     * @exception IllegalArgumentException if the conversion fails for some reason.
+     */
+    public Object stringToValue(String s)
+    {
+        getClassInstance();
+        if (String.class == c)
+        {
+            return s;
+        }
+        else if (Integer.class == c)
+        {
+            return Integer.parseInt(s);
+        }
+        else if (Date.class == c)
+        {
+            try
+            {
+                return (Date)oracleDateFormat.parseObject(s);
+            }
+            catch(ParseException e)
+            {
+                throw new IllegalArgumentException(
+                    "conversion of '" + s + "' to a Date value failed", e);
+            }
+        }
+
+        throw new RuntimeException("don't know to convert string to " + c.getName());
     }
 
     /**
@@ -102,7 +195,7 @@ public class AuditType
     @Override
     public String toString()
     {
-        return "AuditType[" + (id == null ? "TRANSIENT" : id) + ", " + className + "]";
+        return className + "[" + (id == null ? "TRANSIENT" : id) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------
