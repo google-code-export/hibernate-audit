@@ -10,7 +10,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditPair;
-import com.googlecode.hibernate.audit.model.AuditEntity;
+import com.googlecode.hibernate.audit.model.AuditType;
 
 import java.io.Serializable;
 
@@ -49,7 +49,7 @@ public class PostInsertAuditEventListener
         Object entity = event.getEntity();
         String entityClassName = entity.getClass().getName();
 
-        AuditEntity aent = new AuditEntity();
+        AuditType aent = new AuditType();
         aent.setClassName(entityClassName);
 
         // TODO currently we only support Long as ids, we may need to generalize this
@@ -62,9 +62,9 @@ public class PostInsertAuditEventListener
 
         AuditEvent ae = new AuditEvent();
 
-        ae.setType(AuditEventType.INSERT);
+        ae.setTargetType(AuditEventType.INSERT);
         ae.setEntityId((Long)id);
-        ae.setEntity(aent);
+        ae.setTargetType(aent);
 
         auditTransaction.logEvent(ae);
 
