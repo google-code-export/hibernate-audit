@@ -12,6 +12,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditPair;
+import com.googlecode.hibernate.audit.model.AuditEntity;
 
 import java.util.List;
 import java.util.Date;
@@ -89,7 +90,9 @@ public class PostInsertTest extends JTATransactionTest
 
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
-            assert A.class.getName().equals(ae.getEntityClassName());
+
+            AuditEntity aent = ae.getEntity();
+            assert A.class.getName().equals(aent.getClassName());
             assert a.getId().equals(ae.getEntityId());
 
             List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
@@ -184,7 +187,8 @@ public class PostInsertTest extends JTATransactionTest
             AuditEvent ae = (AuditEvent)es.get(0);
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
-            assert A.class.getName().equals(ae.getEntityClassName());
+            AuditEntity aent = ae.getEntity();
+            assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
             List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
@@ -198,7 +202,8 @@ public class PostInsertTest extends JTATransactionTest
             ae = (AuditEvent)es.get(1);
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
-            assert A.class.getName().equals(ae.getEntityClassName());
+            aent = ae.getEntity();
+            assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
             nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
@@ -210,6 +215,262 @@ public class PostInsertTest extends JTATransactionTest
             assert expectedPairValues.remove((String)nvp.getValue());
 
             HibernateAudit.disable();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditEntity() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            A a = new A();
+            a.setName("alice");
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            s.save(a);
+            t.commit();
+
+            List rs = HibernateAudit.query("from AuditEntity");
+
+            assert rs.size() == 1;
+
+            AuditEntity aent = (AuditEntity)rs.get(0);
+            assert A.class.getName().equals(aent.getClassName());
+
+            rs = HibernateAudit.query("from AuditEvent");
+
+            assert rs.size() == 1;
+
+            AuditEvent ae = (AuditEvent)rs.get(0);
+            AuditEntity aent2 = ae.getEntity();
+            assert A.class.getName().equals(aent2.getClassName());
+
+            assert aent.getId().equals(aent2.getId());
+            assert aent.equals(aent2);
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditEntity_TwoInsertsSameEntity_OneTransaction() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            a = new A();
+            a.setName("alex");
+            s.save(a);
+
+            t.commit();
+
+            List rs = HibernateAudit.query("from AuditEntity");
+
+            assert rs.size() == 1;
+
+            AuditEntity aent = (AuditEntity)rs.get(0);
+            assert A.class.getName().equals(aent.getClassName());
+
+            rs = HibernateAudit.query("from AuditEvent");
+
+            assert rs.size() == 2;
+
+            AuditEvent ae = (AuditEvent)rs.get(0);
+            AuditEntity aent2 = ae.getEntity();
+            assert A.class.getName().equals(aent2.getClassName());
+            assert aent.getId().equals(aent2.getId());
+            assert aent.equals(aent2);
+
+            ae = (AuditEvent)rs.get(1);
+            AuditEntity aent3 = ae.getEntity();
+            assert A.class.getName().equals(aent3.getClassName());
+            assert aent.getId().equals(aent3.getId());
+            assert aent.equals(aent3);
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditEntity_TwoInsertsSameEntity_TwoTransactions() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            t.commit();
+            s.close();
+
+            s = sf.openSession();
+            t = s.beginTransaction();
+
+            a = new A();
+            a.setName("alex");
+            s.save(a);
+
+            t.commit();
+            s.close();
+
+            List rs = HibernateAudit.query("from AuditEntity");
+
+            assert rs.size() == 1;
+
+            AuditEntity aent = (AuditEntity)rs.get(0);
+            assert A.class.getName().equals(aent.getClassName());
+
+            rs = HibernateAudit.query("from AuditEvent");
+
+            assert rs.size() == 2;
+
+            AuditEvent ae = (AuditEvent)rs.get(0);
+            AuditEntity aent2 = ae.getEntity();
+            assert A.class.getName().equals(aent2.getClassName());
+            assert aent.getId().equals(aent2.getId());
+            assert aent.equals(aent2);
+
+            ae = (AuditEvent)rs.get(1);
+            AuditEntity aent3 = ae.getEntity();
+            assert A.class.getName().equals(aent3.getClassName());
+            assert aent.getId().equals(aent3.getId());
+            assert aent.equals(aent3);
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditEntity_TwoEntities() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactory sf = null;
+
+        Set<String> expectedClassNames = new HashSet<String>();
+        expectedClassNames.add(A.class.getName());
+        expectedClassNames.add(B.class.getName());
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            B b = new B();
+            b.setName("bob");
+            s.save(b);
+
+            b = new B();
+            b.setName("ben");
+            s.save(b);
+
+            a = new A();
+            a.setName("alex");
+            s.save(a);
+
+            t.commit();
+            s.close();
+
+            List rs = HibernateAudit.query("from AuditEntity");
+
+            assert rs.size() == 2;
+
+            assert expectedClassNames.remove(((AuditEntity)rs.get(0)).getClassName());
+            assert expectedClassNames.remove(((AuditEntity)rs.get(1)).getClassName());
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
         }
         finally
         {
