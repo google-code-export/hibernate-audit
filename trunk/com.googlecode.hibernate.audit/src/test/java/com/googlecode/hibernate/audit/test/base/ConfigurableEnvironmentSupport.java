@@ -139,7 +139,9 @@ abstract class ConfigurableEnvironmentSupport
 
         if (connectionDriverClassName == null)
         {
-            throw new IllegalStateException("cannot figure out connection's driver class name");
+            // we cheat for the time being, see https://jira.novaordis.org/browse/HBA-38
+            //throw new IllegalStateException("cannot figure out connection's driver class name");
+            connectionDriverClassName = "oracle.jdbc.driver.OracleDriver";
         }
 
         connectionUrl = System.getProperty("hibernate.connection.url");
@@ -151,7 +153,9 @@ abstract class ConfigurableEnvironmentSupport
 
         if (connectionUrl == null)
         {
-            throw new IllegalStateException("cannot figure out connection's URL");
+            // we cheat for the time being, see https://jira.novaordis.org/browse/HBA-38
+            //throw new IllegalStateException("cannot figure out connection's URL");
+            connectionUrl = "jdbc:oracle:thin:@localhost:1521:XE";
         }
 
         connectionUsername = System.getProperty("hibernate.connection.username");
@@ -163,7 +167,9 @@ abstract class ConfigurableEnvironmentSupport
 
         if (connectionUsername == null)
         {
-            throw new IllegalStateException("cannot figure out connection's username");
+            // we cheat for the time being, see https://jira.novaordis.org/browse/HBA-38
+            //throw new IllegalStateException("cannot figure out connection's username");
+            connectionUsername = "test";
         }
 
         if (TransactionType.JTA.equals(getTransactionType()))
@@ -178,12 +184,14 @@ abstract class ConfigurableEnvironmentSupport
 
         if (connectionPassword == null)
         {
-            connectionUrl = System.getProperty("connection.password");
+            connectionPassword = System.getProperty("connection.password");
         }
 
         if (connectionPassword == null)
         {
-            throw new IllegalStateException("cannot figure out connection's password");
+            // we cheat for the time being, see https://jira.novaordis.org/browse/HBA-38
+            //throw new IllegalStateException("cannot figure out connection's password");
+            connectionPassword = "test";
         }
 
         if (TransactionType.JTA.equals(getTransactionType()))
@@ -193,6 +201,9 @@ abstract class ConfigurableEnvironmentSupport
             System.clearProperty("hibernate.connection.password");
             System.clearProperty("connection.password");
         }
+
+        // also cheating, see https://jira.novaordis.org/browse/HBA-38
+        System.setProperty("hibernate.dialect", "org.hibernate.dialect.Oracle10gDialect");
     }
 
     private void setDataSourceJNDIName()
