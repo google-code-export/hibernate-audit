@@ -72,6 +72,11 @@ abstract class ConfigurableEnvironmentSupport
         return MockUserTransaction.DEFAULT_USER_TRANSACTION_JNDI_NAME;
     }
 
+    protected String getDataSourceJNDIName()
+    {
+        return mockDataSourceJNDIName;
+    }
+
     protected void startJTAEnvironment() throws Exception
     {
         log.info("starting JTA environment");
@@ -124,6 +129,17 @@ abstract class ConfigurableEnvironmentSupport
         // won't allow it
     }
 
+    /**
+     * TODO some databases "floor" the time stamp to second. Need to investigate why this happen,
+     * fix it and get rid of all floorTime() call throughout the code base.
+     */
+    protected long floorTime(long timestamp)
+    {
+        timestamp = timestamp / 1000;
+        return timestamp * 1000;
+    }
+
+    // Private -------------------------------------------------------------------------------------
     /**
      * Extracts Data Source configuration (connection URL, username, password, driver) from the
      * environment.
@@ -211,18 +227,6 @@ abstract class ConfigurableEnvironmentSupport
         mockDataSourceJNDIName = "local:MockDS";
         System.setProperty("local.test.datasource", mockDataSourceJNDIName);
     }
-
-    /**
-     * TODO some databases "floor" the time stamp to second. Need to investigate why this happen,
-     * fix it and get rid of all floorTime() call throughout the code base.
-     */
-    protected long floorTime(long timestamp)
-    {
-        timestamp = timestamp / 1000;
-        return timestamp * 1000;
-    }
-
-    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 }

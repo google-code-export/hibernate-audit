@@ -45,11 +45,10 @@ public class JDBCConnectionXAResource implements XAResource
             throw new XAException("wrong Xid in commit");
         }
 
-        currentXid = null;
-
         try
         {
             rawConnection.commit();
+            currentXid = null;
         }
         catch (Throwable t)
         {
@@ -124,7 +123,22 @@ public class JDBCConnectionXAResource implements XAResource
 
     public void rollback(Xid xid) throws XAException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        if (!xid.equals(currentXid))
+        {
+            throw new XAException("wrong Xid in rollback");
+        }
+
+        currentXid = null;
+
+        try
+        {
+            rawConnection.rollback();
+        }
+        catch (Throwable t)
+        {
+            log.error("cound not rollback local transaction", t);
+            throw new XAException("cound not rollback local transaction");
+        }
     }
 
     public boolean setTransactionTimeout(int i) throws XAException

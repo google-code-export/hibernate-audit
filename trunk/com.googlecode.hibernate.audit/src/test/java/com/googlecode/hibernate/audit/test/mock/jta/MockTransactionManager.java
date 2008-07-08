@@ -115,7 +115,7 @@ public class MockTransactionManager implements TransactionManager
         catch(Exception e)
         {
             log.error("commit failed unexpectedly", e);
-            throw new RuntimeException("NOT YET IMPLEMENTED");
+            throw new RollbackException("transaction rolled back");
         }
         finally
         {

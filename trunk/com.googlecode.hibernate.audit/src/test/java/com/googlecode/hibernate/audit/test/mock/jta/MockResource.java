@@ -91,7 +91,22 @@ public class MockResource
 
     public void rollback() throws XAException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        if (ResourceState.VOTE_READONLY.equals(state))
+        {
+           return;
+        }
+
+        if (ResourceState.FORGOT.equals(state))
+        {
+           return;
+        }
+
+        if (sameResourceManager != null)
+        {
+           return;
+        }
+
+        xaResource.rollback(branchXid);
     }
 
     public XAResource getXAResource()
