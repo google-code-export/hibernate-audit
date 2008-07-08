@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
+import java.util.Date;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -28,6 +29,8 @@ public class B
 
     private String name;
 
+    private Date birthDate;
+
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
@@ -50,6 +53,16 @@ public class B
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public Date getBirthDate()
+    {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate)
+    {
+        this.birthDate = birthDate;
     }
 
     // Package protected ---------------------------------------------------------------------------

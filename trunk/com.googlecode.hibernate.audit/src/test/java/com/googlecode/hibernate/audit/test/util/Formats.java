@@ -1,11 +1,9 @@
-package com.googlecode.hibernate.audit.test.model;
+package com.googlecode.hibernate.audit.test.util;
 
-import com.googlecode.hibernate.audit.model.AuditPair;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
- * This class exists to allow access to protected methods of AuditPair.
- * Access is necessary for testing, while we would like to restrict access to those methods.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -14,9 +12,11 @@ import com.googlecode.hibernate.audit.model.AuditPair;
  *
  * $Id$
  */
-class AuditPairAccess extends AuditPair
+public class Formats
 {
     // Constants -----------------------------------------------------------------------------------
+
+    public static final DateFormat testDateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     // Static --------------------------------------------------------------------------------------
 
@@ -24,30 +24,7 @@ class AuditPairAccess extends AuditPair
 
     // Constructors --------------------------------------------------------------------------------
 
-    AuditPairAccess()
-    {
-        super();
-    }
-
     // Public --------------------------------------------------------------------------------------
-
-    /**
-     * Allow access for testing.
-     */
-    @Override
-    public void setStringValue(String s)
-    {
-        super.setStringValue(s);
-    }
-
-    /**
-     * Allow access for testing.
-     */
-    @Override
-    public void setValueClassName(String s)
-    {
-        super.setValueClassName(s);
-    }
 
     // Package protected ---------------------------------------------------------------------------
 

@@ -11,6 +11,7 @@ import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditPair;
 import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditField;
 
 import java.io.Serializable;
 
@@ -89,7 +90,6 @@ public class PostInsertAuditEventListener
                 {
                     // collection event listener will be triggered by and process this.
                     // See https://jira.novaordis.org/browse/HBA-30
-                    
                 }
                 else if (type.isComponentType())
                 {
@@ -99,11 +99,20 @@ public class PostInsertAuditEventListener
                 }
                 else
                 {
-                    AuditPair nvp = new AuditPair();
-                    nvp.setEvent(ae);
-                    nvp.setName(name);
-                    nvp.setValue(value);
-                    auditTransaction.logNameValuePair(nvp);
+                    AuditType fieldType = new AuditType();
+                    fieldType.setClassName(type.getReturnedClass().getName());
+                    
+                    AuditField field = new AuditField();
+                    field.setType(fieldType);
+                    field.setName(name);
+
+                    AuditPair pair = new AuditPair();
+
+                    pair.setField(field);
+                    pair.setValue(value);
+                    pair.setEvent(ae);
+
+                    auditTransaction.logPair(pair);
                 }
             }
         }

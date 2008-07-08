@@ -12,8 +12,11 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #DIALECT=org.hibernate.dialect.MySQL5Dialect
 
 
-TARGET_CLASS=ListenersTest
+#TARGET_CLASS=ListenersTest
 #TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=StatelessSessionWithJTATransactionTest
 #TARGET_CLASS=FailedCommitTest
+#TARGET_CLASS=AuditPairTest
+TARGET_CLASS=AuditTypeTest
+TARGET_CLASS=DDLTest

@@ -8,16 +8,19 @@ import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditPair;
 import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditField;
 
 import java.util.List;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -43,7 +46,7 @@ public class PostInsertTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -95,14 +98,18 @@ public class PostInsertTest extends JTATransactionTest
             assert A.class.getName().equals(aent.getClassName());
             assert a.getId().equals(ae.getEntityId());
 
-            List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
+            List pairs = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
 
-            assert nvps.size() == 1;
+            assert pairs.size() == 1;
 
-            AuditPair nvp = (AuditPair)nvps.get(0);
+            AuditPair pair = (AuditPair)pairs.get(0);
+            assert "alice".equals(pair.getValue());
 
-            assert "name".equals(nvp.getName());
-            assert "alice".equals(nvp.getValue());
+            AuditField field = pair.getField();
+            assert "name".equals(field.getName());
+
+            AuditType type = field.getType();
+            assert String.class.getName().equals(type.getClassName());
 
             HibernateAudit.disable();
         }
@@ -120,7 +127,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -191,13 +198,13 @@ public class PostInsertTest extends JTATransactionTest
             assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
-            List nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
+            List pairs = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
 
-            assert nvps.size() == 1;
+            assert pairs.size() == 1;
 
-            AuditPair nvp = (AuditPair)nvps.get(0);
-            assert "name".equals(nvp.getName());
-            assert expectedPairValues.remove((String)nvp.getValue());
+            AuditPair pair = (AuditPair) pairs.get(0);
+            assert "name".equals(pair.getField().getName());
+            assert expectedPairValues.remove((String)pair.getValue());
 
             ae = (AuditEvent)es.get(1);
             assert AuditEventType.INSERT.equals(ae.getType());
@@ -206,13 +213,13 @@ public class PostInsertTest extends JTATransactionTest
             assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
-            nvps = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
+            pairs = HibernateAudit.query("from AuditPair as ap where ap.event = :event", ae);
 
-            assert nvps.size() == 1;
+            assert pairs.size() == 1;
 
-            nvp = (AuditPair)nvps.get(0);
-            assert "name".equals(nvp.getName());
-            assert expectedPairValues.remove((String)nvp.getValue());
+            pair = (AuditPair)pairs.get(0);
+            assert "name".equals(pair.getField().getName());
+            assert expectedPairValues.remove((String)pair.getValue());
 
             HibernateAudit.disable();
         }
@@ -225,7 +232,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -238,6 +245,10 @@ public class PostInsertTest extends JTATransactionTest
             sf = config.buildSessionFactory();
             HibernateAudit.enable(sf);
 
+            Set<String> expectedTypes = new HashSet<String>();
+            expectedTypes.add(A.class.getName());
+            expectedTypes.add(String.class.getName());
+
             A a = new A();
             a.setName("alice");
 
@@ -249,21 +260,29 @@ public class PostInsertTest extends JTATransactionTest
 
             List rs = HibernateAudit.query("from AuditType");
 
-            assert rs.size() == 1;
-
-            AuditType aent = (AuditType)rs.get(0);
-            assert A.class.getName().equals(aent.getClassName());
+            // we inserted two types, the entity and the field type
+            assert rs.size() == 2;
+            AuditType entityAuditType = null;
+            for(Object o: rs)
+            {
+                AuditType at = (AuditType)o;
+                assert expectedTypes.remove(at.getClassName());
+                if (A.class.getName().equals(at.getClassName()))
+                {
+                    entityAuditType = at;
+                }
+            }
 
             rs = HibernateAudit.query("from AuditEvent");
 
             assert rs.size() == 1;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditType aent2 = ae.getTargetType();
-            assert A.class.getName().equals(aent2.getClassName());
+            AuditType at2 = ae.getTargetType();
+            assert A.class.getName().equals(at2.getClassName());
 
-            assert aent.getId().equals(aent2.getId());
-            assert aent.equals(aent2);
+            assert entityAuditType.getId().equals(at2.getId());
+            assert entityAuditType.equals(at2);
 
             HibernateAudit.disable();
         }
@@ -281,7 +300,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -293,6 +312,10 @@ public class PostInsertTest extends JTATransactionTest
         {
             sf = config.buildSessionFactory();
             HibernateAudit.enable(sf);
+
+            Set<String> expectedTypes = new HashSet<String>();
+            expectedTypes.add(A.class.getName());
+            expectedTypes.add(String.class.getName());
 
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
@@ -309,26 +332,34 @@ public class PostInsertTest extends JTATransactionTest
 
             List rs = HibernateAudit.query("from AuditType");
 
-            assert rs.size() == 1;
+            assert rs.size() == 2;
+            AuditType entityType = null;
 
-            AuditType aent = (AuditType)rs.get(0);
-            assert A.class.getName().equals(aent.getClassName());
+            for(Object o: rs)
+            {
+                AuditType at = (AuditType)o;
+                assert expectedTypes.remove((at.getClassName()));
+                if (A.class.getName().equals(at.getClassName()))
+                {
+                    entityType = at;
+                }
+            }
 
             rs = HibernateAudit.query("from AuditEvent");
 
             assert rs.size() == 2;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditType aent2 = ae.getTargetType();
-            assert A.class.getName().equals(aent2.getClassName());
-            assert aent.getId().equals(aent2.getId());
-            assert aent.equals(aent2);
+            AuditType at2 = ae.getTargetType();
+            assert A.class.getName().equals(at2.getClassName());
+            assert entityType.getId().equals(at2.getId());
+            assert entityType.equals(at2);
 
             ae = (AuditEvent)rs.get(1);
-            AuditType aent3 = ae.getTargetType();
-            assert A.class.getName().equals(aent3.getClassName());
-            assert aent.getId().equals(aent3.getId());
-            assert aent.equals(aent3);
+            AuditType at3 = ae.getTargetType();
+            assert A.class.getName().equals(at3.getClassName());
+            assert entityType.getId().equals(at3.getId());
+            assert entityType.equals(at3);
 
             HibernateAudit.disable();
         }
@@ -346,7 +377,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -361,6 +392,10 @@ public class PostInsertTest extends JTATransactionTest
 
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
+
+            Set<String> expectedTypes = new HashSet<String>();
+            expectedTypes.add(String.class.getName());
+            expectedTypes.add(A.class.getName());
 
             A a = new A();
             a.setName("alice");
@@ -381,26 +416,36 @@ public class PostInsertTest extends JTATransactionTest
 
             List rs = HibernateAudit.query("from AuditType");
 
-            assert rs.size() == 1;
+            assert rs.size() == 2;
 
-            AuditType aent = (AuditType)rs.get(0);
-            assert A.class.getName().equals(aent.getClassName());
+            AuditType entityType = null;
+
+            for(Object o: rs)
+            {
+                AuditType at = (AuditType)o;
+                assert expectedTypes.remove(at.getClassName());
+
+                if (A.class.getName().equals(at.getClassName()))
+                {
+                    entityType = at;
+                }
+            }
 
             rs = HibernateAudit.query("from AuditEvent");
 
             assert rs.size() == 2;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditType aent2 = ae.getTargetType();
-            assert A.class.getName().equals(aent2.getClassName());
-            assert aent.getId().equals(aent2.getId());
-            assert aent.equals(aent2);
+            AuditType at2 = ae.getTargetType();
+            assert A.class.getName().equals(at2.getClassName());
+            assert entityType.getId().equals(at2.getId());
+            assert entityType.equals(at2);
 
             ae = (AuditEvent)rs.get(1);
-            AuditType aent3 = ae.getTargetType();
-            assert A.class.getName().equals(aent3.getClassName());
-            assert aent.getId().equals(aent3.getId());
-            assert aent.equals(aent3);
+            AuditType at3 = ae.getTargetType();
+            assert A.class.getName().equals(at3.getClassName());
+            assert entityType.getId().equals(at3.getId());
+            assert entityType.equals(at3);
 
             HibernateAudit.disable();
         }
@@ -418,7 +463,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -430,6 +475,7 @@ public class PostInsertTest extends JTATransactionTest
         Set<String> expectedClassNames = new HashSet<String>();
         expectedClassNames.add(A.class.getName());
         expectedClassNames.add(B.class.getName());
+        expectedClassNames.add(String.class.getName());
 
         try
         {
@@ -460,10 +506,165 @@ public class PostInsertTest extends JTATransactionTest
 
             List rs = HibernateAudit.query("from AuditType");
 
-            assert rs.size() == 2;
+            assert rs.size() == 3;
 
             assert expectedClassNames.remove(((AuditType)rs.get(0)).getClassName());
             assert expectedClassNames.remove(((AuditType)rs.get(1)).getClassName());
+            assert expectedClassNames.remove(((AuditType)rs.get(2)).getClassName());
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditField_TwoEntities_TwoTransactions() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            Set<String> expectedTypeNames = new HashSet<String>();
+            expectedTypeNames.add(String.class.getName());
+            expectedTypeNames.add(Integer.class.getName());
+            expectedTypeNames.add(Date.class.getName());
+            expectedTypeNames.add(A.class.getName());
+            expectedTypeNames.add(B.class.getName());
+
+            A a = new A();
+            a.setName("alice");
+            a.setAge(30);
+
+            s.save(a);
+
+            B b = new B();
+            b.setName("bob");
+            b.setBirthDate((Date)Formats.testDateFormat.parseObject("01/01/1971"));
+
+            s.save(b);
+
+            t.commit();
+            s.close();
+
+            s = sf.openSession();
+            t = s.beginTransaction();
+
+            a = new A();
+            a.setName("anna");
+            a.setAge(31);
+
+            s.save(a);
+
+            b = new B();
+            b.setName("ben");
+            b.setBirthDate((Date)Formats.testDateFormat.parseObject("02/02/1972"));
+
+            s.save(b);
+
+            t.commit();
+            s.close();
+
+            List types = HibernateAudit.query("from AuditType");
+
+            assert types.size() == 5;
+
+            Set<AuditType> expectedTypes = new HashSet<AuditType>();
+
+            for(Object o: types)
+            {
+                AuditType at = (AuditType)o;
+                assert expectedTypeNames.remove(at.getClassName());
+                expectedTypes.add(at);
+            }
+
+            List fields = HibernateAudit.query("from AuditField");
+
+            assert fields.size() == 3;
+
+            for(Object o: fields)
+            {
+                AuditField field = (AuditField)o;
+                String name = field.getName();
+                AuditType at = field.getType();
+                String className = at.getClassName();
+
+                assert expectedTypes.contains(at);
+
+                if ("name".equals(name))
+                {
+                    assert String.class.getName().equals(className);
+                }
+                else if ("age".equals(name))
+                {
+                    assert Integer.class.getName().equals(className);
+                }
+                else if ("birthDate".equals(name))
+                {
+                    assert Date.class.getName().equals(className);
+                }
+                else
+                {
+                    throw new Error("unexpected field name " + name);
+                }
+            }
+
+            assert HibernateAudit.query("from AuditEvent").size() == 4;
+
+            List pairs = HibernateAudit.query("from AuditPair");
+
+            assert pairs.size() == 8;
+
+            List<String> expectedNames = new ArrayList<String>();
+            expectedNames.add("name");
+            expectedNames.add("age");
+            expectedNames.add("name");
+            expectedNames.add("birthDate");
+            expectedNames.add("name");
+            expectedNames.add("age");
+            expectedNames.add("name");
+            expectedNames.add("birthDate");
+
+            List<Object> expectedValues = new ArrayList<Object>();
+            expectedValues.add("alice");
+            expectedValues.add(30);
+            expectedValues.add("bob");
+            expectedValues.add(Formats.testDateFormat.parseObject("01/01/1971"));
+            expectedValues.add("anna");
+            expectedValues.add(31);
+            expectedValues.add("ben");
+            expectedValues.add(Formats.testDateFormat.parseObject("02/02/1972"));
+
+            for(Object o: pairs)
+            {
+                AuditPair p = (AuditPair)o;
+
+                String name = p.getField().getName();
+                Object value = p.getValue();
+
+                assert expectedNames.remove(name);
+                assert expectedValues.remove(value);
+            }
 
             HibernateAudit.disable();
         }

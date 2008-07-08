@@ -197,14 +197,14 @@ public class AuditTransaction implements Synchronization
         // because we're using a stateless session, we cannot rely on persistence by reachability
         // so if the AuditType instance is not persisted, explicitely persist it
 
-        AuditType aent = ae.getTargetType();
+        AuditType at = ae.getTargetType();
 
         // TODO remove this if using a non-stateless session, it will be persisted by reachability
-        if (aent != null && aent.getId() == null)
+        if (at != null && at.getId() == null)
         {
             // look it up in the database first
             Query q = session.createQuery("from AuditType as a where a.className = :className");
-            q.setString("className", aent.getClassName());
+            q.setString("className", at.getClassName());
             AuditType persisted = (AuditType)q.uniqueResult();
 
             if (persisted != null)
@@ -213,7 +213,7 @@ public class AuditTransaction implements Synchronization
             }
             else
             {
-                session.insert(aent);
+                session.insert(at);
             }
         }
 
@@ -223,15 +223,63 @@ public class AuditTransaction implements Synchronization
     /**
      * Write a name/value pair on persistent storage, in the context of this transaction.
      */
-    public void logNameValuePair(AuditPair nvp)
+    public void logPair(AuditPair pair)
     {
-        log.debug(this + " logging " + nvp);
-        if (nvp.getEvent() == null)
+        log.debug(this + " logging " + pair);
+
+        if (pair.getEvent() == null)
         {
-            throw new IllegalArgumentException("orphan name/value pair " + nvp);
+            throw new IllegalArgumentException("orphan name/value pair " + pair);
         }
 
-        session.insert(nvp);
+        // because we're using a stateless session, we cannot rely on persistence by reachability
+        // so if the related AuditField and AuditType instances are not persisted, we explicitly
+        // persist them here
+
+        AuditField field = pair.getField();
+
+        AuditType at = field.getType();
+
+        // TODO remove this if using a non-stateless session, it will be persisted by reachability
+        if (at.getId() == null)
+        {
+            // look it up in the database first
+            Query q = session.createQuery("from AuditType as a where a.className = :className");
+            q.setString("className", at.getClassName());
+            AuditType persistedType = (AuditType)q.uniqueResult();
+
+            if (persistedType != null)
+            {
+                field.setType(persistedType);
+            }
+            else
+            {
+                session.insert(at);
+            }
+        }
+
+        // TODO remove this if using a non-stateless session, it will be persisted by reachability
+        if (field.getId() == null)
+        {
+            // look it up in the database first
+            Query q = session.
+                createQuery("from AuditField as f where f.name = :name and f.type = :type");
+            q.setString("name", field.getName());
+            q.setParameter("type", field.getType());
+
+            AuditField persistedField = (AuditField)q.uniqueResult();
+
+            if (persistedField != null)
+            {
+                pair.setField(persistedField);
+            }
+            else
+            {
+                session.insert(field);
+            }
+        }
+
+        session.insert(pair);
     }
 
     /**
