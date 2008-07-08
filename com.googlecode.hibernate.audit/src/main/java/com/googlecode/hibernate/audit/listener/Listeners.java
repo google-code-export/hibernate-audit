@@ -287,7 +287,16 @@ public class Listeners
 
         }
 
-        return sb.toString();
+        // special cases
+
+        String result = sb.toString();
+
+        if ("save-or-update".equals(result))
+        {
+            result = "save-update";
+        }
+
+        return result;
     }
 
     private static String getEventListenersAccessorName(String eventType, boolean setter)

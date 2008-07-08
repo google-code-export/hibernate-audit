@@ -48,6 +48,12 @@ public class JTATransactionTest extends ConfigurableEnvironmentSupport
         return "/hibernate-jta.cfg.xml";
     }
 
+    @Override
+    protected TransactionType getTransactionType()
+    {
+        return TransactionType.JTA;
+    }
+
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------

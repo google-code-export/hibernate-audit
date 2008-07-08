@@ -32,7 +32,12 @@
 		</resources>
 		<testResources>
 			<testResource>
-				<filtering>true</filtering>
+                <!--
+                     We don't want filtering, because whaterver system properties are
+                     used throughout configuration files must be replaced at run time. This is
+                     a requirement for testing.
+                -->
+                <filtering>false</filtering>
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>**/*.xml</include>
