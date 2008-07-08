@@ -6,7 +6,6 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.test.post_insert.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 import javax.naming.InitialContext;
@@ -38,7 +37,7 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -117,13 +116,19 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
 
             A a = new A();
             a.setName("alice");
+            log.debug("saving " + a);
             s.save(a);
 
             a = new A();
             a.setName("alex");
+            log.debug("saving " + a);
             s.save(a);
 
+            log.debug("commit");
+
             ut.commit();
+
+            log.debug("commit successful");
 
             // start JTA transaction 2
             ut.begin();
@@ -138,7 +143,11 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
             a.setName("ana");
             s.save(a);
 
+            log.debug("commit 2");
+
             ut.commit();
+
+            log.debug("commit 2 successful");
 
             List ts = HibernateAudit.query("from AuditTransaction");
             assert ts.size() == 2;

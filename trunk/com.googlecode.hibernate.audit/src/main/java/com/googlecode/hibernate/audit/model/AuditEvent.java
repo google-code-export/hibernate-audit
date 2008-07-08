@@ -112,6 +112,14 @@ public class AuditEvent
         this.entityClassName = entityClassName;
     }
 
+    @Override
+    public String toString()
+    {
+        return "AuditEvent[" + (id == null ? "TRANSIENT" : id) + ", " + type + ", " + entityId +
+               ", " + entityClassName + "]";
+
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------

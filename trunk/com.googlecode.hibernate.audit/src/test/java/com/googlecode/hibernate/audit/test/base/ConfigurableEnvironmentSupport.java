@@ -36,13 +36,18 @@ abstract class ConfigurableEnvironmentSupport
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String connectionDriverClassName;
+    private String connectionUrl;
+    private String connectionUsername;
+    private String connectionPassword;
     private String mockDataSourceJNDIName;
 
     // Constructors --------------------------------------------------------------------------------
 
     ConfigurableEnvironmentSupport()
     {
-        mockDataSourceJNDIName = "local:MockMySqlDS";
+        extractConnectionConfiguration();
+        setDataSourceJNDIName();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -55,6 +60,7 @@ abstract class ConfigurableEnvironmentSupport
     // Protected -----------------------------------------------------------------------------------
 
     protected abstract String getHibernateConfigurationFileName();
+    protected abstract TransactionType getTransactionType();
 
     protected String getTransactionManagerJNDIName()
     {
@@ -71,10 +77,10 @@ abstract class ConfigurableEnvironmentSupport
         log.info("starting JTA environment");
 
         // configure "JCA"
-        MockJTAAwareDataSource ds = new MockJTAAwareDataSource("com.mysql.jdbc.Driver",
-                                                               "jdbc:mysql://localhost/playground",
-                                                               "playground",
-                                                               "playground");
+        MockJTAAwareDataSource ds = new MockJTAAwareDataSource(connectionDriverClassName,
+                                                               connectionUrl,
+                                                               connectionUsername,
+                                                               connectionPassword);
         ds.start();
 
         // configure "JTA"
@@ -116,6 +122,83 @@ abstract class ConfigurableEnvironmentSupport
 
         // unfortunately, can't clean JNDI NamingManager's initialContextFactoryBuilder, API
         // won't allow it
+    }
+
+    /**
+     * Extracts Data Source configuration (connection URL, username, password, driver) from the
+     * environment.
+     */
+    private void extractConnectionConfiguration()
+    {
+        connectionDriverClassName = System.getProperty("hibernate.connection.driver_class");
+
+        if (connectionDriverClassName == null)
+        {
+            connectionDriverClassName = System.getProperty("connection.driver_class");
+        }
+
+        if (connectionDriverClassName == null)
+        {
+            throw new IllegalStateException("cannot figure out connection's driver class name");
+        }
+
+        connectionUrl = System.getProperty("hibernate.connection.url");
+
+        if (connectionUrl == null)
+        {
+            connectionUrl = System.getProperty("connection.url");
+        }
+
+        if (connectionUrl == null)
+        {
+            throw new IllegalStateException("cannot figure out connection's URL");
+        }
+
+        connectionUsername = System.getProperty("hibernate.connection.username");
+
+        if (connectionUsername == null)
+        {
+            connectionUsername = System.getProperty("connection.username");
+        }
+
+        if (connectionUsername == null)
+        {
+            throw new IllegalStateException("cannot figure out connection's username");
+        }
+
+        if (TransactionType.JTA.equals(getTransactionType()))
+        {
+            // remove username from the environment to keep hibernate from calling
+            // getConnection(username, password), and pass it via the datasource
+            System.clearProperty("hibernate.connection.username");
+            System.clearProperty("connection.username");
+        }
+
+        connectionPassword = System.getProperty("hibernate.connection.password");
+
+        if (connectionPassword == null)
+        {
+            connectionUrl = System.getProperty("connection.password");
+        }
+
+        if (connectionPassword == null)
+        {
+            throw new IllegalStateException("cannot figure out connection's password");
+        }
+
+        if (TransactionType.JTA.equals(getTransactionType()))
+        {
+            // remove password from the environment to keep hibernate from calling
+            // getConnection(username, password), and pass it via the datasource
+            System.clearProperty("hibernate.connection.password");
+            System.clearProperty("connection.password");
+        }
+    }
+
+    private void setDataSourceJNDIName()
+    {
+        mockDataSourceJNDIName = "local:MockDS";
+        System.setProperty("local.test.datasource", mockDataSourceJNDIName);
     }
 
     /**

@@ -7,22 +7,8 @@
 
 	<session-factory>
 
-        <!--
-        <property name="hibernate.connection.driver_class">${hibernate.connection.driver_class}</property>
-		<property name="hibernate.connection.url">${hibernate.connection.url}</property>
-		<property name="hibernate.connection.username">${hibernate.connection.username}</property>
-		<property name="hibernate.connection.password">${hibernate.connection.password}</property>
-		<property name="hibernate.dialect">${hibernate.dialect}</property>
-		-->
-
-        <!--
-        <property name="connection.url">jdbc:mysql://localhost/playground</property>
-        <property name="connection.username">playground</property>
-        <property name="connection.password">playground</property>
-        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        -->
-        <property name="connection.datasource">local:MockMySqlDS</property>
-        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="connection.datasource">${local.test.datasource}</property>
+        <property name="hibernate.dialect">${hibernate.dialect}</property>
 
         <property name="hibernate.transaction.factory_class">org.hibernate.transaction.JTATransactionFactory</property>
         <property name="hibernate.current_session_context_class">jta</property>
@@ -31,7 +17,7 @@
         <property name="hibernate.cache.provider_class">${hibernate.cache.provider_class}</property>
         <property name="hibernate.cache.use_second_level_cache">false</property>
         <property name="hibernate.cache.use_query_cache">false</property>
-        <property name="hibernate.show_sql">${hibernate.show_sql}</property>
+        <property name="hibernate.show_sql">true</property>
         <property name="hibernate.hbm2ddl.auto">create-drop</property>
         <property name="hibernate.jdbc.batch_size">10</property>
 

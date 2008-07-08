@@ -97,6 +97,7 @@ public class AuditTransaction implements Synchronization
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
 
+        log.debug(this + " registering itself as synchronization on " + this.transaction);
         this.transaction.registerSynchronization(this);
     }
 
@@ -104,10 +105,14 @@ public class AuditTransaction implements Synchronization
 
     public void beforeCompletion()
     {
+        // most likely, this won't be called for a JTA transaction, because AuditTransaction
+        // synchronization is registered during the JTA transaction "beforeCompletion()" call.
+        // see https://jira.novaordis.org/browse/HBA-37
         try
         {
             session.getTransaction().commit();
-            log.debug("audit transaction committed");
+            log.debug(this + " committed");
+
             session.close();
             session = null;
         }
@@ -176,6 +181,7 @@ public class AuditTransaction implements Synchronization
      */
     public void log()
     {
+        log.debug(this + ".log()");
         session.insert(this);
     }
 
@@ -184,6 +190,7 @@ public class AuditTransaction implements Synchronization
      */
     public void logEvent(AuditEvent ae)
     {
+        log.debug(this + " logging " + ae);
         ae.setTransaction(this);
         session.insert(ae);
     }
@@ -193,6 +200,7 @@ public class AuditTransaction implements Synchronization
      */
     public void logNameValuePair(AuditPair nvp)
     {
+        log.debug(this + " logging " + nvp);
         if (nvp.getEvent() == null)
         {
             throw new IllegalArgumentException("orphan name/value pair " + nvp);
@@ -231,6 +239,12 @@ public class AuditTransaction implements Synchronization
         }
 
         return id.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "AuditTransaction[" + (id == null ? "TRANSIENT" : id) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

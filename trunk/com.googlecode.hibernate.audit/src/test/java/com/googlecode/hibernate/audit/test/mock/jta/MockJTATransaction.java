@@ -82,17 +82,23 @@ public class MockJTATransaction implements Transaction
         throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
                SecurityException, IllegalStateException, SystemException
     {
+        log.debug(this + " committing");
+
         if (status != Status.STATUS_ACTIVE)
         {
             throw new RuntimeException("NOT YET IMPLEMENTED");
         }
 
         // call beforeCompletion() on all synchronizations
+        // see https://jira.novaordis.org/browse/HBA-37
+//        List<Synchronization> synchronizationsCopy =
+//            new ArrayList<Synchronization>(synchronizations);
 
         for(Synchronization s: synchronizations)
         {
             try
             {
+                log.debug(this + " calling beforeCompletion() on " + s);
                 s.beforeCompletion();
             }
             catch (Throwable t)
@@ -189,6 +195,7 @@ public class MockJTATransaction implements Transaction
         {
             try
             {
+                log.debug(this + " calling afterCompletion(" + status + ") on " + s);
                 s.afterCompletion(status);
             }
             catch (Throwable t)
@@ -330,6 +337,8 @@ public class MockJTATransaction implements Transaction
     public synchronized void registerSynchronization(Synchronization synchronization)
         throws RollbackException, IllegalStateException, SystemException
     {
+        log.debug(this + " registering synchronization " + synchronization);
+
         if (status == Status.STATUS_MARKED_ROLLBACK)
         {
             throw new RollbackException("transaction marked for rollback");

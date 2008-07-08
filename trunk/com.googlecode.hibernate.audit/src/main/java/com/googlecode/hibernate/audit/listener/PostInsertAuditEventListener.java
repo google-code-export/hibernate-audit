@@ -39,11 +39,10 @@ public class PostInsertAuditEventListener
 
     public void onPostInsert(PostInsertEvent event)
     {
-        log.debug("onPostInsert(" + event + ")");
+        log.debug(this + ".onPostInsert(...)");
 
         String user = null; // TODO properly determine the user
         AuditTransaction auditTransaction = logTransaction(event.getSession(), user);
-
 
         Serializable id = event.getId();
         Object entity = event.getEntity();
@@ -107,6 +106,13 @@ public class PostInsertAuditEventListener
     }
 
     // Public --------------------------------------------------------------------------------------
+
+    @Override
+    public String toString()
+    {
+        return "PostInsertAuditEventListener[" +
+               Integer.toHexString(System.identityHashCode(this)) + "]";
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

@@ -16,6 +16,7 @@
     <orderEntry type="library" name="persistence-api-1.0" level="project" />
     <orderEntry type="library" name="hibernate-annotations-3.3.0.ga" level="project" />
     <orderEntry type="library" name="jboss-jca" level="project" />
+    <orderEntry type="library" name="dom4j" level="project" />
     <orderEntryProperties />
   </component>
   <component name="VcsManagerConfiguration">

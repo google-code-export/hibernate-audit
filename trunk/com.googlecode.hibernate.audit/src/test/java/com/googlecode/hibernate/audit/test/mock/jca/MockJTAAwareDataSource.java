@@ -171,8 +171,7 @@ public class MockJTAAwareDataSource implements DataSource
     public synchronized void start() throws Exception
     {
         // load the driver
-        Class c = Class.forName(getDriverClassName());
-        log.info(this + " using " + c);
+        Class.forName(getConnectionDriverClassName());
 
         if (connections != null)
         {
@@ -182,6 +181,9 @@ public class MockJTAAwareDataSource implements DataSource
 
         connections =
             Collections.synchronizedMap(new HashMap<Transaction, InterceptedConnection>());
+
+        log.info(this + " url=" + getConnectionUrl()+ ", username=" + getConnectionUsername() +
+                 ", password=***, driver=" + getConnectionDriverClassName() + " started");
     }
 
     public synchronized void stop() throws Exception
@@ -201,7 +203,7 @@ public class MockJTAAwareDataSource implements DataSource
         connections = null;
     }
 
-    public String getDriverClassName()
+    public String getConnectionDriverClassName()
     {
         return driverClassName;
     }
@@ -268,6 +270,13 @@ public class MockJTAAwareDataSource implements DataSource
             {
                 log.error("failed to close " + delegate);
             }
+        }
+
+        @Override
+        public String toString()
+        {
+            return "InterceptedConnectionCleaner[" +
+                   Integer.toHexString(System.identityHashCode(this)) + "]";
         }
     }
 

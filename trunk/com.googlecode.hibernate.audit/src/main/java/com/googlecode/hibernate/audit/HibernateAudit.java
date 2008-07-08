@@ -130,6 +130,9 @@ public class HibernateAudit
 
     public static void setCurrentAuditTransaction(AuditTransaction at)
     {
+        log.debug(at == null ?
+                  "dissasociating audit transaction from the current thread":
+                  "associating " + at + " with the current thread");
         auditTransaction.set(at);
     }
 
@@ -289,7 +292,7 @@ public class HibernateAudit
             setter.invoke(els, ((Object)newListeners));
         }
 
-        log.debug(this + " installed audit listeners");
+        log.debug(this + " installed audit listeners: " + eventTypes);
     }
 
     private void uninstallAuditListeners(SessionFactoryImpl sf) throws Exception

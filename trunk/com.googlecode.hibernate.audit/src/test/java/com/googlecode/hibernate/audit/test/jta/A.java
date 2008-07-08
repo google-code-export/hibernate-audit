@@ -14,7 +14,8 @@ import javax.persistence.GeneratedValue;
  */
 @Entity
 @Table(name = "A")
-public class A {
+public class A
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
@@ -49,6 +50,12 @@ public class A {
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "A[id=" + id + ", name=" + name + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

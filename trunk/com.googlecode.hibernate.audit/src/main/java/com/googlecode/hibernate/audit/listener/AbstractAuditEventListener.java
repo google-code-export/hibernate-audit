@@ -58,7 +58,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         HibernateAudit.setCurrentAuditTransaction(at);
 
-        log.debug("logged transaction " + ht);
+        log.debug(this + " logged transaction " + ht);
 
         return at;
     }

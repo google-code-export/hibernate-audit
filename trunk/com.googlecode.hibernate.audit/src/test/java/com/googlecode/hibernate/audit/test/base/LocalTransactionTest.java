@@ -46,6 +46,11 @@ public class LocalTransactionTest extends ConfigurableEnvironmentSupport
     {
         return "/hibernate-thread.cfg.xml";
     }
+    @Override
+    protected TransactionType getTransactionType()
+    {
+        return TransactionType.LOCAL;
+    }
 
     // Private -------------------------------------------------------------------------------------
 
