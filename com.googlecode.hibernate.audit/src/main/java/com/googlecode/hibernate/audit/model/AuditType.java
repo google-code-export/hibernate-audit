@@ -20,7 +20,7 @@ import javax.persistence.GenerationType;
 @Entity
 @Table(name = "AUDIT_ENTITY")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_ENTITY_ID_SEQUENCE")
-public class AuditEntity 
+public class AuditType 
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ public class AuditEntity
 
     // Constructors --------------------------------------------------------------------------------
 
-    public AuditEntity()
+    public AuditType()
     {
     }
 
@@ -75,12 +75,12 @@ public class AuditEntity
             return true;
         }
 
-        if (!(o instanceof AuditEntity))
+        if (!(o instanceof AuditType))
         {
             return false;
         }
 
-        AuditEntity that = (AuditEntity)o;
+        AuditType that = (AuditType)o;
 
         return id != null && id.equals(that.id);
     }
@@ -102,7 +102,7 @@ public class AuditEntity
     @Override
     public String toString()
     {
-        return "AuditEntity[" + (id == null ? "TRANSIENT" : id) + ", " + className + "]";
+        return "AuditType[" + (id == null ? "TRANSIENT" : id) + ", " + className + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

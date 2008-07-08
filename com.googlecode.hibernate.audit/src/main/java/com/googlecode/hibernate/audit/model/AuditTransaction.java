@@ -195,21 +195,21 @@ public class AuditTransaction implements Synchronization
         ae.setTransaction(this);
 
         // because we're using a stateless session, we cannot rely on persistence by reachability
-        // so if the AuditEntity instance is not persisted, explicitely persist it
+        // so if the AuditType instance is not persisted, explicitely persist it
 
-        AuditEntity aent = ae.getEntity();
+        AuditType aent = ae.getTargetType();
 
         // TODO remove this if using a non-stateless session, it will be persisted by reachability
         if (aent != null && aent.getId() == null)
         {
             // look it up in the database first
-            Query q = session.createQuery("from AuditEntity as a where a.className = :className");
+            Query q = session.createQuery("from AuditType as a where a.className = :className");
             q.setString("className", aent.getClassName());
-            AuditEntity persisted = (AuditEntity)q.uniqueResult();
+            AuditType persisted = (AuditType)q.uniqueResult();
 
             if (persisted != null)
             {
-                ae.setEntity(persisted);
+                ae.setTargetType(persisted);
             }
             else
             {

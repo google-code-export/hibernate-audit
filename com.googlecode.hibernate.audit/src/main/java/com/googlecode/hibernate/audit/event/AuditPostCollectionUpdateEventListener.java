@@ -168,7 +168,7 @@ public class AuditPostCollectionUpdateEventListener extends
 	 * protected void doAuditEntityProperties(StatelessSession session, Object
 	 * transaction, AuditTransaction auditTransaction, AuditObject auditEntity) {
 	 * PostCollectionRecreateEvent event = (PostCollectionRecreateEvent) transaction;
-	 * Object entity = getEntity(transaction); String entityName =
+	 * Object entity = getTargetType(transaction); String entityName =
 	 * entity.getClass().getName().toString(); EntityPersister persister =
 	 * getEntityPersister(transaction); EntityMode entityMode =
 	 * persister.guessEntityMode(entity);

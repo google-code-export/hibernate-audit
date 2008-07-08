@@ -12,7 +12,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditPair;
-import com.googlecode.hibernate.audit.model.AuditEntity;
+import com.googlecode.hibernate.audit.model.AuditType;
 
 import java.util.List;
 import java.util.Date;
@@ -91,7 +91,7 @@ public class PostInsertTest extends JTATransactionTest
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
 
-            AuditEntity aent = ae.getEntity();
+            AuditType aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
             assert a.getId().equals(ae.getEntityId());
 
@@ -187,7 +187,7 @@ public class PostInsertTest extends JTATransactionTest
             AuditEvent ae = (AuditEvent)es.get(0);
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
-            AuditEntity aent = ae.getEntity();
+            AuditType aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
@@ -202,7 +202,7 @@ public class PostInsertTest extends JTATransactionTest
             ae = (AuditEvent)es.get(1);
             assert AuditEventType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
-            aent = ae.getEntity();
+            aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
             assert expectedEntityIds.remove(ae.getEntityId());
 
@@ -226,7 +226,7 @@ public class PostInsertTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testAuditEntity() throws Exception
+    public void testAuditType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -247,11 +247,11 @@ public class PostInsertTest extends JTATransactionTest
             s.save(a);
             t.commit();
 
-            List rs = HibernateAudit.query("from AuditEntity");
+            List rs = HibernateAudit.query("from AuditType");
 
             assert rs.size() == 1;
 
-            AuditEntity aent = (AuditEntity)rs.get(0);
+            AuditType aent = (AuditType)rs.get(0);
             assert A.class.getName().equals(aent.getClassName());
 
             rs = HibernateAudit.query("from AuditEvent");
@@ -259,7 +259,7 @@ public class PostInsertTest extends JTATransactionTest
             assert rs.size() == 1;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditEntity aent2 = ae.getEntity();
+            AuditType aent2 = ae.getTargetType();
             assert A.class.getName().equals(aent2.getClassName());
 
             assert aent.getId().equals(aent2.getId());
@@ -282,7 +282,7 @@ public class PostInsertTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testAuditEntity_TwoInsertsSameEntity_OneTransaction() throws Exception
+    public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -307,11 +307,11 @@ public class PostInsertTest extends JTATransactionTest
 
             t.commit();
 
-            List rs = HibernateAudit.query("from AuditEntity");
+            List rs = HibernateAudit.query("from AuditType");
 
             assert rs.size() == 1;
 
-            AuditEntity aent = (AuditEntity)rs.get(0);
+            AuditType aent = (AuditType)rs.get(0);
             assert A.class.getName().equals(aent.getClassName());
 
             rs = HibernateAudit.query("from AuditEvent");
@@ -319,13 +319,13 @@ public class PostInsertTest extends JTATransactionTest
             assert rs.size() == 2;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditEntity aent2 = ae.getEntity();
+            AuditType aent2 = ae.getTargetType();
             assert A.class.getName().equals(aent2.getClassName());
             assert aent.getId().equals(aent2.getId());
             assert aent.equals(aent2);
 
             ae = (AuditEvent)rs.get(1);
-            AuditEntity aent3 = ae.getEntity();
+            AuditType aent3 = ae.getTargetType();
             assert A.class.getName().equals(aent3.getClassName());
             assert aent.getId().equals(aent3.getId());
             assert aent.equals(aent3);
@@ -347,7 +347,7 @@ public class PostInsertTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testAuditEntity_TwoInsertsSameEntity_TwoTransactions() throws Exception
+    public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -379,11 +379,11 @@ public class PostInsertTest extends JTATransactionTest
             t.commit();
             s.close();
 
-            List rs = HibernateAudit.query("from AuditEntity");
+            List rs = HibernateAudit.query("from AuditType");
 
             assert rs.size() == 1;
 
-            AuditEntity aent = (AuditEntity)rs.get(0);
+            AuditType aent = (AuditType)rs.get(0);
             assert A.class.getName().equals(aent.getClassName());
 
             rs = HibernateAudit.query("from AuditEvent");
@@ -391,13 +391,13 @@ public class PostInsertTest extends JTATransactionTest
             assert rs.size() == 2;
 
             AuditEvent ae = (AuditEvent)rs.get(0);
-            AuditEntity aent2 = ae.getEntity();
+            AuditType aent2 = ae.getTargetType();
             assert A.class.getName().equals(aent2.getClassName());
             assert aent.getId().equals(aent2.getId());
             assert aent.equals(aent2);
 
             ae = (AuditEvent)rs.get(1);
-            AuditEntity aent3 = ae.getEntity();
+            AuditType aent3 = ae.getTargetType();
             assert A.class.getName().equals(aent3.getClassName());
             assert aent.getId().equals(aent3.getId());
             assert aent.equals(aent3);
@@ -419,7 +419,7 @@ public class PostInsertTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testAuditEntity_TwoEntities() throws Exception
+    public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -458,12 +458,12 @@ public class PostInsertTest extends JTATransactionTest
             t.commit();
             s.close();
 
-            List rs = HibernateAudit.query("from AuditEntity");
+            List rs = HibernateAudit.query("from AuditType");
 
             assert rs.size() == 2;
 
-            assert expectedClassNames.remove(((AuditEntity)rs.get(0)).getClassName());
-            assert expectedClassNames.remove(((AuditEntity)rs.get(1)).getClassName());
+            assert expectedClassNames.remove(((AuditType)rs.get(0)).getClassName());
+            assert expectedClassNames.remove(((AuditType)rs.get(1)).getClassName());
 
             HibernateAudit.disable();
         }

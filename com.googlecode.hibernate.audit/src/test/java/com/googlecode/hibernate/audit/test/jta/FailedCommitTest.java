@@ -82,7 +82,7 @@ public class FailedCommitTest extends JTATransactionTest
             assert rs.size() == 0;
             rs = HibernateAudit.query("from AuditEvent");
             assert rs.size() == 0;
-            rs = HibernateAudit.query("from AuditEntity");
+            rs = HibernateAudit.query("from AuditType");
             assert rs.size() == 0;
             rs = HibernateAudit.query("from AuditPair");
             assert rs.size() == 0;

@@ -24,7 +24,8 @@ import javax.persistence.JoinColumn;
 @Entity
 @Table(name = "AUDIT_PAIR")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_ID_SEQUENCE")
-public class AuditPair {
+public class AuditPair 
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
