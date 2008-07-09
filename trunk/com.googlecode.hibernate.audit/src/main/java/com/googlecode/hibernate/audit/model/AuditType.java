@@ -49,12 +49,20 @@ public class AuditType
     private String label;
 
     @Transient
-    private Class c;
+    protected Class c;
 
     // Constructors --------------------------------------------------------------------------------
 
     public AuditType()
     {
+    }
+
+    /**
+     * Only for use by classes of this package, do not expose publicly.
+     */
+    AuditType(Class c)
+    {
+        this.c = c;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -75,7 +83,6 @@ public class AuditType
     }
 
     /**
-     *
      * @exception IllegalArgumentException if the class name cannot be converted to a type known
      *            to the VM.
      */
@@ -96,27 +103,43 @@ public class AuditType
 
     public Class getClassInstance()
     {
+        if (c != null)
+        {
+            return c;
+        }
+
         if (className == null)
         {
             return null;
         }
-
-        if (c == null)
+        try
         {
-            try
-            {
-                c = Class.forName(this.className);
-            }
-            catch(ClassNotFoundException e)
-            {
-                throw new IllegalArgumentException("cannot resolve type " + className, e);
-            }
+            c = Class.forName(this.className);
+        }
+        catch(ClassNotFoundException e)
+        {
+            throw new IllegalArgumentException("cannot resolve type " + className, e);
         }
 
         return c;
     }
 
     /**
+     * Runtime information that helps with the conversion of a "value" to its string representation;
+     * for entities, the string representation is the string representation of their ids. This
+     * information is useful at runtime, but it is not persisted explicitly, because we already
+     * have the fully qualified Java class name in the table, and that is enough to figure out
+     * that this type is an entity.
+     */
+    public boolean isEntityType()
+    {
+        return false;
+    }
+
+    /**
+     * If this AuditType represents an Hibernate entity, then the entity ID is accepted as "value".
+     * See the subclass implementation.
+     *
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
     public String valueToString(Object o)

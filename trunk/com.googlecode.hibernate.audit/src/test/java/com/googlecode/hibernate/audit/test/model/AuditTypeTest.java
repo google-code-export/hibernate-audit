@@ -3,9 +3,11 @@ package com.googlecode.hibernate.audit.test.model;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.test.util.Formats;
 
 import java.util.Date;
+import java.lang.reflect.Method;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -31,7 +33,7 @@ public class AuditTypeTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_UnsupportedType() throws Exception
     {
         AuditType type = new AuditType();
@@ -48,7 +50,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_String() throws Exception
     {
         AuditType type = new AuditType();
@@ -58,7 +60,7 @@ public class AuditTypeTest
         assert "abc".equals(type.stringToValue("abc"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_Integer() throws Exception
     {
         AuditType type = new AuditType();
@@ -68,7 +70,7 @@ public class AuditTypeTest
         assert new Integer(77).equals(type.stringToValue("77"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_Date() throws Exception
     {
         AuditType type = new AuditType();
@@ -80,6 +82,50 @@ public class AuditTypeTest
         assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 PDT 2008"));
     }
 
+    @Test(enabled = true)
+    public void testValueToString_Entity_InvalidState() throws Exception
+    {
+        AuditEntityType type = new AuditEntityType(null);
+
+        try
+        {
+            type.valueToString("doesn't matter");
+            throw new Error("should've failed");
+        }
+        catch(IllegalStateException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testValueToString_Entity_InvalidId() throws Exception
+    {
+        Method m = A.class.getMethod("getId");
+        AuditEntityType type = new AuditEntityType(m.getReturnType());
+        type.setClassName(A.class.getName());
+
+        try
+        {
+            type.valueToString(new RandomType());
+            throw new Error("should've failed");
+        }
+        catch(IllegalArgumentException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testValueToString_Entity() throws Exception
+    {
+        Method m = A.class.getMethod("getId");
+        AuditEntityType type = new AuditEntityType(m.getReturnType());
+        type.setClassName(A.class.getName());
+
+        assert "7777".equals(type.valueToString(new Long(7777)));
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
@@ -87,4 +133,8 @@ public class AuditTypeTest
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private class RandomType
+    {
+    }
 }

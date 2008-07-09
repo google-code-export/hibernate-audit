@@ -4,12 +4,15 @@ import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
 
 import java.util.Set;
 import java.util.List;
@@ -373,7 +376,7 @@ public class HibernateAudit
 
             Query q = s.createQuery(query);
             QueryParameters.fill(q, args);
-            return q.list();
+            return postProcess(q.list());
         }
         finally
         {
@@ -391,6 +394,37 @@ public class HibernateAudit
                 s.close();
             }
         }
+    }
+
+    /**
+     * The list with results from database may need "postprocessing", in that some instances may
+     * need semantic enhancing. For example, we may realize that AuditType instances are actually
+     * AuditEntityType instances, so we do the switch here.
+     *
+     */
+    private List postProcess(List queryResult)
+    {
+        List<Object> result = new ArrayList<Object>();
+
+        for(Object o: queryResult)
+        {
+            if (o instanceof AuditType)
+            {
+                AuditType at = (AuditType)o;
+                Class c = at.getClassInstance();
+                ClassMetadata cm = auditedSessionFactory.getClassMetadata(c);
+                if (cm != null)
+                {
+                    // it's an entity
+                    Class idClass = cm.getIdentifierType().getReturnedClass();
+                    o = new AuditEntityType(idClass, at);
+                }
+            }
+
+            result.add(o);
+        }
+
+        return result;
     }
 
     // Inner classes -------------------------------------------------------------------------------

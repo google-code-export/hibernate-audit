@@ -11,7 +11,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
-import javax.persistence.CascadeType;
 
 /**
  * An atomic audit event as captured by Hibernate listeners.
@@ -40,16 +39,16 @@ public class AuditEvent
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "EVENT_TYPE")
-    @Enumerated(EnumType.STRING)
-    private AuditEventType type;
-
     @ManyToOne
     @JoinColumn(name = "AUDIT_TRANSACTION_ID")
     private AuditTransaction transaction;
 
-    @Column(name = "ENTITY_ID")
-    private Long entityId; // TODO current implementation supports only Longs as ids, this needs
+    @Column(name = "EVENT_TYPE")
+    @Enumerated(EnumType.STRING)
+    private AuditEventType type;
+
+    @Column(name = "TARGET_ENTITY_ID")
+    private Long targetId; // TODO current implementation supports only Longs as ids, this needs
                            // to be generalized if audited model uses other types as ids.
     @ManyToOne
     @JoinColumn(name = "AUDIT_TYPE_ID")
@@ -93,14 +92,14 @@ public class AuditEvent
         this.transaction = transaction;
     }
 
-    public Long getEntityId()
+    public Long getTargetId()
     {
-        return entityId;
+        return targetId;
     }
 
-    public void setEntityId(Long entityId)
+    public void setTargetId(Long targetId)
     {
-        this.entityId = entityId;
+        this.targetId = targetId;
     }
 
     public AuditType getTargetType()
@@ -117,7 +116,7 @@ public class AuditEvent
     public String toString()
     {
         return "AuditEvent[" + (id == null ? "TRANSIENT" : id) + ", " +
-               targetType + ", " + entityId + "]";
+               targetType + ", " + targetId + "]";
 
     }
 
