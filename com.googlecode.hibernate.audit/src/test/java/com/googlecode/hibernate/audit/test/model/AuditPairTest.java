@@ -2,8 +2,8 @@ package com.googlecode.hibernate.audit.test.model;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
-import com.googlecode.hibernate.audit.model.AuditPair;
-import com.googlecode.hibernate.audit.model.AuditField;
+import com.googlecode.hibernate.audit.model.AuditEventPair;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
 
 /**
@@ -33,7 +33,7 @@ public class AuditPairTest
     @Test(enabled = true)
     public void testNoField() throws Exception
     {
-        AuditPair p = new AuditPair();
+        AuditEventPair p = new AuditEventPair();
 
         try
         {
@@ -52,10 +52,10 @@ public class AuditPairTest
         AuditType type = new AuditType();
         type.setClassName(String.class.getName());
 
-        AuditField field = new AuditField();
+        AuditTypeField field = new AuditTypeField();
         field.setType(type);
 
-        AuditPair p = new AuditPair();
+        AuditEventPair p = new AuditEventPair();
         p.setField(field);
 
         try
@@ -75,10 +75,10 @@ public class AuditPairTest
         AuditType type = new AuditType();
         type.setClassName(String.class.getName());
 
-        AuditField field = new AuditField();
+        AuditTypeField field = new AuditTypeField();
         field.setType(type);
 
-        AuditPair p = new AuditPair();
+        AuditEventPair p = new AuditEventPair();
         p.setField(field);
         p.setValue("abc");
 

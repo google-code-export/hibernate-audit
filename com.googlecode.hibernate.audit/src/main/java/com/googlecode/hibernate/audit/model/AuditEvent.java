@@ -36,7 +36,7 @@ public class AuditEvent
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "ID")
+    @Column(name = "AUDIT_EVENT_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
@@ -45,15 +45,14 @@ public class AuditEvent
     private AuditEventType type;
 
     @ManyToOne
-    @JoinColumn(name = "TRANSACTION_ID")
+    @JoinColumn(name = "AUDIT_TRANSACTION_ID")
     private AuditTransaction transaction;
 
     @Column(name = "ENTITY_ID")
     private Long entityId; // TODO current implementation supports only Longs as ids, this needs
-                           // to be generalized if audited model uses other stuff as ids.
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "TARGET_TYPE_ID")
+                           // to be generalized if audited model uses other types as ids.
+    @ManyToOne
+    @JoinColumn(name = "AUDIT_TYPE_ID")
     private AuditType targetType;
 
     // Constructors --------------------------------------------------------------------------------

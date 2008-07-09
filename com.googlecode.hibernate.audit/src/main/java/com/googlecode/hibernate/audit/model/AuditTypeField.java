@@ -20,9 +20,9 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_FIELD")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_FIELD_ID_SEQUENCE")
-public class AuditField
+@Table(name = "AUDIT_TYPE_FIELD")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TYPE_FIELD_ID_SEQUENCE")
+public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -31,20 +31,23 @@ public class AuditField
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "ID")
+    @Column(name = "AUDIT_TYPE_FIELD_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "TYPE_ID")
+    @JoinColumn(name = "AUDIT_TYPE_ID")
     private AuditType type;
 
     @Column(name = "NAME")
     private String name;
 
+    @Column(name = "LABEL")
+    private String label;
+
     // Constructors --------------------------------------------------------------------------------
 
-    public AuditField()
+    public AuditTypeField()
     {
     }
 
@@ -80,6 +83,16 @@ public class AuditField
         this.name = name;
     }
 
+    public String getLabel()
+    {
+        return label;
+    }
+
+    public void setLabel(String label)
+    {
+        this.label = label;
+    }
+
     /**
      * Convertor from string to native type.
      */
@@ -108,12 +121,12 @@ public class AuditField
             return true;
         }
 
-        if (!(o instanceof AuditField))
+        if (!(o instanceof AuditTypeField))
         {
             return false;
         }
 
-        AuditField that = (AuditField)o;
+        AuditTypeField that = (AuditTypeField)o;
 
         return id != null && id.equals(that.id);
     }

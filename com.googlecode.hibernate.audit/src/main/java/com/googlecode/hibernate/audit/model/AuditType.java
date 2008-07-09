@@ -38,12 +38,15 @@ public class AuditType
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "ID")
+    @Column(name = "AUDIT_TYPE_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(name = "CLASS_NAME", unique=true)
     private String className;
+
+    @Column(name = "LABEL")
+    private String label;
 
     @Transient
     private Class c;
@@ -79,6 +82,16 @@ public class AuditType
     public void setClassName(String className)
     {
         this.className = className;
+    }
+
+    public String getLabel()
+    {
+        return label;
+    }
+
+    public void setLabel(String label)
+    {
+        this.label = label;
     }
 
     public Class getClassInstance()

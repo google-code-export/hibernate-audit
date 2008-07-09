@@ -235,6 +235,7 @@ public class HibernateAudit
         }
 
         installAuditListeners(auditedSessionFactory);
+//        installMappings(auditedSessionFactory);
 
         log.debug(this + " started");
     }
@@ -244,6 +245,7 @@ public class HibernateAudit
         log.debug(this + " stopping ...");
 
         uninstallAuditListeners(auditedSessionFactory);
+//        uninstallMappings(auditedSessionFactory);
 
         //TODO if using a different persistence unit, clean-up that
 
@@ -345,6 +347,15 @@ public class HibernateAudit
 
         log.debug(this + " uninstalled audit listeners");
     }
+
+//    private void installMappings(SessionFactoryImpl sf) throws Exception
+//    {
+//    }
+
+//    private void uninstallMappings(SessionFactoryImpl sf) throws Exception
+//    {
+//        throw new Exception("NOT YET IMPLEMENTED");
+//    }
 
     private List doQuery(String query, Object... args) throws Exception
     {

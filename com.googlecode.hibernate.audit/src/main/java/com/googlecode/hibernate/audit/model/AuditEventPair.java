@@ -22,9 +22,9 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_PAIR")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_ID_SEQUENCE")
-public class AuditPair 
+@Table(name = "AUDIT_EVENT_PAIR")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_PAIR_ID_SEQUENCE")
+public class AuditEventPair
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -34,35 +34,35 @@ public class AuditPair
 
     // TODO Do we really need to have ids for each of them? I don't see gain ...
     @Id
-    @Column(name = "ID")
+    @Column(name = "AUDIT_EVENT_PAIR_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "EVENT_ID")
+    @JoinColumn(name = "AUDIT_EVENT_ID")
     private AuditEvent event;
 
     @ManyToOne
-    @JoinColumn(name = "FIELD_ID")
-    private AuditField field;
+    @JoinColumn(name = "AUDIT_TYPE_FIELD_ID")
+    private AuditTypeField field;
 
     @Column(name = "VALUE")
     private String stringValue;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public AuditPair()
+    public AuditEventPair()
     {
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public AuditField getField()
+    public AuditTypeField getField()
     {
         return field;
     }
 
-    public void setField(AuditField field)
+    public void setField(AuditTypeField field)
     {
         this.field = field;
     }
