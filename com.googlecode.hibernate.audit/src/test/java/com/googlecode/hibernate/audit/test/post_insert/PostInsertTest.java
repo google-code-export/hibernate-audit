@@ -96,7 +96,7 @@ public class PostInsertTest extends JTATransactionTest
 
             AuditType aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
-            assert a.getId().equals(ae.getEntityId());
+            assert a.getId().equals(ae.getTargetId());
 
             List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
 
@@ -196,7 +196,7 @@ public class PostInsertTest extends JTATransactionTest
             assert ts.remove(ae.getTransaction());
             AuditType aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
-            assert expectedEntityIds.remove(ae.getEntityId());
+            assert expectedEntityIds.remove(ae.getTargetId());
 
             List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
 
@@ -211,7 +211,7 @@ public class PostInsertTest extends JTATransactionTest
             assert ts.remove(ae.getTransaction());
             aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
-            assert expectedEntityIds.remove(ae.getEntityId());
+            assert expectedEntityIds.remove(ae.getTargetId());
 
             pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
 

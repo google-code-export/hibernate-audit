@@ -46,7 +46,7 @@ public class AuditEventPair
     @JoinColumn(name = "AUDIT_TYPE_FIELD_ID")
     private AuditTypeField field;
 
-    @Column(name = "VALUE")
+    @Column(name = "STRING_VALUE")
     private String stringValue;
 
     // Constructors --------------------------------------------------------------------------------
