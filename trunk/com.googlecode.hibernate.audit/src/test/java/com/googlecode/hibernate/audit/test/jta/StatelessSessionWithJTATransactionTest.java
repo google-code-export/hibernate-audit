@@ -152,7 +152,7 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
             List ts = HibernateAudit.query("from AuditTransaction");
             assert ts.size() == 2;
 
-            ts = HibernateAudit.query("from AuditPair");
+            ts = HibernateAudit.query("from AuditEventPair");
             assert ts.size() == 4;
 
             HibernateAudit.disable();

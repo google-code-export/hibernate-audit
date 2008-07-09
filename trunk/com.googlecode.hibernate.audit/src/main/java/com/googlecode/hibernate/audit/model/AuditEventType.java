@@ -11,5 +11,7 @@ package com.googlecode.hibernate.audit.model;
  */
 public enum AuditEventType
 {
-    INSERT
+    INSERT,
+    UPDATE,
+    DELETE
 }

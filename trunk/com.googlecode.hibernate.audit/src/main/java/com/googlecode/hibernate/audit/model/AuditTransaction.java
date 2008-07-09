@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit.model;
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
 import org.hibernate.Query;
+import org.hibernate.SessionFactory;
 import org.hibernate.event.EventSource;
 import org.apache.log4j.Logger;
 
@@ -47,7 +48,7 @@ public class AuditTransaction implements Synchronization
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "ID")
+    @Column(name = "AUDIT_TRANSACTION_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
@@ -73,6 +74,9 @@ public class AuditTransaction implements Synchronization
     @Transient
     private StatelessSession session;
 
+    @Transient
+    private SessionFactory sessionFactory;
+
     // Constructors --------------------------------------------------------------------------------
 
     AuditTransaction()
@@ -93,7 +97,9 @@ public class AuditTransaction implements Synchronization
         // in the context of the dedicated session, if available. TODO: for the time being we
         // operate under the assumption that no dedicated session is available
 
-        session = auditedSession.getFactory().openStatelessSession();
+        sessionFactory = auditedSession.getFactory();
+
+        session = sessionFactory.openStatelessSession();
 
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
@@ -223,7 +229,7 @@ public class AuditTransaction implements Synchronization
     /**
      * Write a name/value pair on persistent storage, in the context of this transaction.
      */
-    public void logPair(AuditPair pair)
+    public void logPair(AuditEventPair pair)
     {
         log.debug(this + " logging " + pair);
 
@@ -233,10 +239,10 @@ public class AuditTransaction implements Synchronization
         }
 
         // because we're using a stateless session, we cannot rely on persistence by reachability
-        // so if the related AuditField and AuditType instances are not persisted, we explicitly
+        // so if the related AuditTypeField and AuditType instances are not persisted, we explicitly
         // persist them here
 
-        AuditField field = pair.getField();
+        AuditTypeField field = pair.getField();
 
         AuditType at = field.getType();
 
@@ -263,11 +269,11 @@ public class AuditTransaction implements Synchronization
         {
             // look it up in the database first
             Query q = session.
-                createQuery("from AuditField as f where f.name = :name and f.type = :type");
+                createQuery("from AuditTypeField as f where f.name = :name and f.type = :type");
             q.setString("name", field.getName());
             q.setParameter("type", field.getType());
 
-            AuditField persistedField = (AuditField)q.uniqueResult();
+            AuditTypeField persistedField = (AuditTypeField)q.uniqueResult();
 
             if (persistedField != null)
             {

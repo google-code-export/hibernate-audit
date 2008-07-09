@@ -9,9 +9,9 @@ import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditPair;
+import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.model.AuditField;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
 
 import java.io.Serializable;
 
@@ -102,11 +102,11 @@ public class PostInsertAuditEventListener
                     AuditType fieldType = new AuditType();
                     fieldType.setClassName(type.getReturnedClass().getName());
                     
-                    AuditField field = new AuditField();
+                    AuditTypeField field = new AuditTypeField();
                     field.setType(fieldType);
                     field.setName(name);
 
-                    AuditPair pair = new AuditPair();
+                    AuditEventPair pair = new AuditEventPair();
 
                     pair.setField(field);
                     pair.setValue(value);
