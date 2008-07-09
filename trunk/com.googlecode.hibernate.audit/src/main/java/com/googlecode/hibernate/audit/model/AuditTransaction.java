@@ -59,9 +59,6 @@ public class AuditTransaction implements Synchronization
     @Column(name = "TRANSACTION_USER")
     private String user;
 
-    @Column(name = "DESCRIPTION", length = 4000)
-    private String description;
-
     /**
      * The originating Hibernate transaction. Can be a JDBCTransaction or a JTATransaction.
      */
@@ -165,16 +162,6 @@ public class AuditTransaction implements Synchronization
     public void setUser(String user)
     {
         this.user = user;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription(String description)
-    {
-        this.description = description;
     }
 
     public Transaction getTransaction()
