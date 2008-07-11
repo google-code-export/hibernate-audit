@@ -1,10 +1,14 @@
 package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Transient;
+import javax.persistence.Entity;
 
 /**
  * This subclass only adds behavior, not state, so we don't need to employ any inheritance mapping
  * strategies, this class doesn not exist from the persistence point of view.
+ *
+ * @see AuditType
+ * @see AuditCollectionType
  *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -14,6 +18,7 @@ import javax.persistence.Transient;
  *
  * $Id$
  */
+@Entity
 public class AuditEntityType extends AuditType
 {
     // Constants -----------------------------------------------------------------------------------

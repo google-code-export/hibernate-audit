@@ -52,7 +52,7 @@ public class AuditTransaction implements Synchronization
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "TRANSACTION_TIMESTAMP")
+    @Column(name = "TRANSACTION_TMSTP")
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
 

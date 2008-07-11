@@ -20,4 +20,5 @@ TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=AuditPairTest
 #TARGET_CLASS=AuditTypeTest
 #TARGET_CLASS=DDLTest
-TARGET_CLASS=PostInsertEntityTest
+#TARGET_CLASS=PostInsertEntityTest
+TARGET_CLASS=PostInsertCollectionTest

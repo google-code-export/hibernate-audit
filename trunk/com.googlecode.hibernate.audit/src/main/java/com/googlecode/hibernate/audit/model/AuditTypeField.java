@@ -20,8 +20,8 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_TYPE_FIELD")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TYPE_FIELD_ID_SEQUENCE")
+@Table(name = "AUDIT_CLASS_FIELD")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_FIELD_ID_SEQUENCE")
 public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------
@@ -31,15 +31,15 @@ public class AuditTypeField
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "AUDIT_TYPE_FIELD_ID", columnDefinition="NUMBER(30, 0)")
+    @Column(name = "AUDIT_CLASS_FIELD_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "AUDIT_TYPE_ID")
+    @JoinColumn(name = "AUDIT_CLASS_ID")
     private AuditType type;
 
-    @Column(name = "NAME")
+    @Column(name = "FIELD_NAME")
     private String name;
 
     @Column(name = "LABEL")

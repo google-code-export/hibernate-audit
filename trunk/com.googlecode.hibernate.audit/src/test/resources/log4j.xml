@@ -19,6 +19,11 @@
         <level value="INFO"/>
     </logger>
 
+    <logger name="com.googlecode.hibernate.audit.test.mock">
+        <level value="INFO"/>
+    </logger>
+
+
     <root>
 		<priority value="error" />
 		<appender-ref ref="console" />

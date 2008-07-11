@@ -411,7 +411,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://C:/work/hibernate-3.2.6.GA.src/src" />
+        <root url="file://$HIBERNATE_HOME$/src" />
       </SOURCES>
     </library>
     <library name="log4j-1.2.14">
@@ -466,6 +466,8 @@
     <option name="COPY_FORMS_RUNTIME_TO_OUTPUT" value="true" />
     <option name="DEFAULT_LAYOUT_MANAGER" value="GridLayoutManager" />
   </component>
-  <UsedPathMacros />
+  <UsedPathMacros>
+    <macro name="HIBERNATE_HOME" />
+  </UsedPathMacros>
 </project>
 

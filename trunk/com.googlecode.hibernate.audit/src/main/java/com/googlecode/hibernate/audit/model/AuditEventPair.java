@@ -43,11 +43,17 @@ public class AuditEventPair
     private AuditEvent event;
 
     @ManyToOne
-    @JoinColumn(name = "AUDIT_TYPE_FIELD_ID")
+    @JoinColumn(name = "AUDIT_CLASS_FIELD_ID")
     private AuditTypeField field;
 
     @Column(name = "STRING_VALUE")
     private String stringValue;
+
+    /**
+     * Reserved for future use (lists)
+     */
+    @Column(name = "LIST_INDEX")
+    private String index;    
 
     // Constructors --------------------------------------------------------------------------------
 

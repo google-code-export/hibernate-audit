@@ -8,8 +8,11 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Transient;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.Collection;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -24,8 +27,9 @@ import java.text.ParseException;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_TYPE")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TYPE_ID_SEQUENCE")
+@Table(name = "AUDIT_CLASS")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_ID_SEQUENCE")
 public class AuditType 
 {
     // Constants -----------------------------------------------------------------------------------
@@ -38,7 +42,7 @@ public class AuditType
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "AUDIT_TYPE_ID", columnDefinition="NUMBER(30, 0)")
+    @Column(name = "AUDIT_CLASS_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
@@ -136,6 +140,11 @@ public class AuditType
         return false;
     }
 
+    public boolean isCollectionType()
+    {
+        return false;
+    }
+
     /**
      * If this AuditType represents an Hibernate entity, then the entity ID is accepted as "value".
      * See the subclass implementation.
@@ -149,6 +158,11 @@ public class AuditType
         {
             throw new IllegalArgumentException(
                 "the argument is not a " + c.getName() + " instance");
+        }
+
+        if (o instanceof Collection)
+        {
+            return "COLLECTION";
         }
 
         try
