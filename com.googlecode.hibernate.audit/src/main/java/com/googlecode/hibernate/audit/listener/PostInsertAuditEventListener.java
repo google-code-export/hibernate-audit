@@ -15,6 +15,7 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
 
 import java.io.Serializable;
 
@@ -90,7 +91,6 @@ public class PostInsertAuditEventListener
 
             Type hibernateType = persister.getPropertyType(name);
             Class javaType = hibernateType.getReturnedClass();
-
             AuditType auditType = null;
 
             if (hibernateType.isEntityType())
@@ -101,15 +101,39 @@ public class PostInsertAuditEventListener
                 }
 
                 SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
-                String entityName = session.getEntityName(value);
-                EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
-                Class idClass = associatedEntityPersister.getIdentifierType().getReturnedClass();
+                Class idClass = sf.getIdentifierType(javaType.getName()).getReturnedClass();
+
+//                String entityName = session.getEntityName(value);
+//                EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
+//                Class idClass = associatedEntityPersister.getIdentifierType().getReturnedClass();
 
                 auditType = new AuditEntityType(idClass);
 
                 // the entity mode is a session characteristic, so using the previously determined
                 // entity mode (TODO: verify this is really true)
-                value = associatedEntityPersister.getIdentifier(value, mode);
+                if (value != null)
+                {
+                    // TODO GET RID OF THIS
+                    String entityName = session.getEntityName(value);
+                    EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
+                    value = associatedEntityPersister.getIdentifier(value, mode);
+                }
+                else
+                {
+                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                }
+            }
+            else if (hibernateType.isCollectionType())
+            {
+                // See https://jira.novaordis.org/browse/HBA-30
+
+                // TODO review this:
+                // this is the "one" side of a one-to-many relationship, and the collection
+                // contains the associated elements. Currently, we only handle the case when the
+                // relationship is implemented as a foreign key in the "many"-side of the
+                // relationship table, so recording this even doesn't give us much. Will record
+                // though, and we'll remove later if needed
+                auditType = new AuditCollectionType();
             }
             else
             {
@@ -127,13 +151,7 @@ public class PostInsertAuditEventListener
             pair.setValue(value);
             pair.setEvent(ae);
 
-            if (hibernateType.isCollectionType())
-            {
-                // collection event listener will be triggered by and process this.
-                // See https://jira.novaordis.org/browse/HBA-30
-                throw new RuntimeException("NOT YET IMPLEMENTED");
-            }
-            else if (hibernateType.isComponentType())
+            if (hibernateType.isComponentType())
             {
                 // createComponent(...);
                 // https://jira.novaordis.org/browse/HBA-32
