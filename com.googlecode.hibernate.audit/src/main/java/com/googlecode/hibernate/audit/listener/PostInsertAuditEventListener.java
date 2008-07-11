@@ -109,19 +109,18 @@ public class PostInsertAuditEventListener
 
                 auditType = new AuditEntityType(idClass);
 
-                // the entity mode is a session characteristic, so using the previously determined
-                // entity mode (TODO: verify this is really true)
-                if (value != null)
-                {
-                    // TODO GET RID OF THIS
-                    String entityName = session.getEntityName(value);
-                    EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
-                    value = associatedEntityPersister.getIdentifier(value, mode);
-                }
-                else
+                if (value == null)
                 {
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
+
+                // TODO Refactor this into something more palatable
+                String entityName = session.getEntityName(value);
+                EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
+
+                // the entity mode is a session characteristic, so using the previously determined
+                // entity mode (TODO: verify this is really true)
+                value = associatedEntityPersister.getIdentifier(value, mode);
             }
             else if (hibernateType.isCollectionType())
             {
