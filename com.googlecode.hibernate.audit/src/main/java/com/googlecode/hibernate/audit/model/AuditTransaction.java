@@ -176,12 +176,7 @@ public class AuditTransaction implements Synchronization
     public void log()
     {
         log.debug(this + ".log()");
-
-        // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-        // close the session, otherwise the JTA transaction will get in trouble.
-        // TODO fix it correctly!
-        StatelessSession tempSs = sessionFactory.openStatelessSession();
-        tempSs.insert(this);
+        session.insert(this);
     }
 
     /**
@@ -202,12 +197,7 @@ public class AuditTransaction implements Synchronization
         {
             // look it up in the database first
 
-            // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-            // close the session, otherwise the JTA transaction will get in trouble.
-            // TODO fix it correctly!
-            StatelessSession tempSs = sessionFactory.openStatelessSession();
-            //Query q = session.createQuery("from AuditType as a where a.className = :className");
-            Query q = tempSs.createQuery("from AuditType as a where a.className = :className");
+            Query q = session.createQuery("from AuditType as a where a.className = :className");
             q.setString("className", at.getClassName());
             AuditType persisted = (AuditType)q.uniqueResult();
 
@@ -217,21 +207,11 @@ public class AuditTransaction implements Synchronization
             }
             else
             {
-                // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-                // close the session, otherwise the JTA transaction will get in trouble.
-                // TODO fix it correctly!
-                tempSs = sessionFactory.openStatelessSession();
-                //session.insert(at);
-                tempSs.insert(at);
+                session.insert(at);
             }
         }
 
-        // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-        // close the session, otherwise the JTA transaction will get in trouble.
-        // TODO fix it correctly!
-        StatelessSession tempSs = sessionFactory.openStatelessSession();
-        //session.insert(ae);
-        tempSs.insert(ae);
+        session.insert(ae);
     }
 
     /**
@@ -259,12 +239,7 @@ public class AuditTransaction implements Synchronization
         {
             // look it up in the database first
 
-            // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-            // close the session, otherwise the JTA transaction will get in trouble.
-            // TODO fix it correctly!
-            StatelessSession tempSs = sessionFactory.openStatelessSession();
-            //Query q = session.createQuery("from AuditType as a where a.className = :className");
-            Query q = tempSs.createQuery("from AuditType as a where a.className = :className");
+            Query q = session.createQuery("from AuditType as a where a.className = :className");
             q.setString("className", at.getClassName());
             AuditType persistedType = (AuditType)q.uniqueResult();
 
@@ -274,12 +249,7 @@ public class AuditTransaction implements Synchronization
             }
             else
             {
-                // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-                // close the session, otherwise the JTA transaction will get in trouble.
-                // TODO fix it correctly!
-                tempSs = sessionFactory.openStatelessSession();
-                //session.insert(at);
-                tempSs.insert(at);
+                session.insert(at);
             }
         }
 
@@ -287,14 +257,7 @@ public class AuditTransaction implements Synchronization
         if (field.getId() == null)
         {
             // look it up in the database first
-
-            // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-            // close the session, otherwise the JTA transaction will get in trouble.
-            // TODO fix it correctly!
-            StatelessSession tempSs = sessionFactory.openStatelessSession();
-            //Query q = session.
-            //    createQuery("from AuditTypeField as f where f.name = :name and f.type = :type");
-            Query q = tempSs.
+            Query q = session.
                 createQuery("from AuditTypeField as f where f.name = :name and f.type = :type");
 
             q.setString("name", field.getName());
@@ -308,21 +271,11 @@ public class AuditTransaction implements Synchronization
             }
             else
             {
-                // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-                // close the session, otherwise the JTA transaction will get in trouble.
-                // TODO fix it correctly!
-                tempSs = sessionFactory.openStatelessSession();
-                //session.insert(field);
-                tempSs.insert(field);
+                session.insert(field);
             }
         }
 
-        // poor man's fix for HBA-42, create a new StatelessSession instance per operation. We don't
-        // close the session, otherwise the JTA transaction will get in trouble.
-        // TODO fix it correctly!
-        StatelessSession tempSs = sessionFactory.openStatelessSession();
-        //session.insert(pair);
-        tempSs.insert(pair);
+        session.insert(pair);
     }
 
     /**

@@ -1,5 +1,0 @@
-* Go back to the simple example where two successive stateless inserts fail and understand why.
-* Replace the temporary solution for HBA-42 with the definitive one.
-* Make sure all tests pass.
-* Deploy in TW and make sure that a deal is correctly audited.
-* Continue with the UI.
