@@ -47,6 +47,79 @@ public class PostInsertTest extends JTATransactionTest
     // Public --------------------------------------------------------------------------------------
 
     @Test(enabled = true)
+    public void testInsert_NullProperty() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            A a = new A();
+            a.setName("alice");
+
+            // 'age' is null
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            s.save(a);
+
+            t.commit();
+
+            // make sure information was logged
+
+            List transactions = HibernateAudit.query("from AuditTransaction");
+
+            assert transactions.size() == 1;
+
+            List events = HibernateAudit.query("from AuditEvent");
+
+            assert transactions.size() == 1;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+
+            assert AuditEventType.INSERT.equals(ae.getType());
+            assert transactions.remove(ae.getTransaction());
+
+            AuditType type = ae.getTargetType();
+            assert A.class.getName().equals(type.getClassName());
+            assert a.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventPair pair = (AuditEventPair)pairs.get(0);
+            assert "alice".equals(pair.getValue());
+
+            AuditTypeField field = pair.getField();
+            assert "name".equals(field.getName());
+
+            type = field.getType();
+            assert String.class.getName().equals(type.getClassName());
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false)
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
