@@ -56,6 +56,8 @@ public class PostInsertAuditEventListener
         Object entity = event.getEntity();
         String entityClassName = entity.getClass().getName();
 
+        log.debug(this + " handles " + entityClassName + "[" + id + "]");
+
         AuditType at = new AuditType();
         at.setClassName(entityClassName);
 
@@ -69,7 +71,7 @@ public class PostInsertAuditEventListener
 
         AuditEvent ae = new AuditEvent();
 
-        ae.setTargetType(AuditEventType.INSERT);
+        ae.setType(AuditEventType.INSERT);
         ae.setTargetId((Long)id);
         ae.setTargetType(at);
 
@@ -84,9 +86,13 @@ public class PostInsertAuditEventListener
         {
             Object value = persister.getPropertyValue(entity, name, mode);
 
+            log.debug(this + " handles " + name + "=" + value);
+
             if (value == null)
             {
-                throw new RuntimeException("NOT YET IMPLEMENTED");
+                // TODO it is possible that the previous value was not null, and this insert
+                // nullifies? Add a test for this
+                continue;
             }
 
             Type hibernateType = persister.getPropertyType(name);
@@ -154,7 +160,8 @@ public class PostInsertAuditEventListener
             {
                 // createComponent(...);
                 // https://jira.novaordis.org/browse/HBA-32
-                throw new RuntimeException("NOT YET IMPLEMENTED");
+
+                //throw new RuntimeException("NOT YET IMPLEMENTED");
             }
 
             auditTransaction.logPair(pair);
