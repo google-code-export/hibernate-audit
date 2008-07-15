@@ -28,6 +28,13 @@ public class AuditCollectionType extends AuditType
 
     // Constructors --------------------------------------------------------------------------------
 
+    /**
+     * Required by Hibernate.
+     */
+    public AuditCollectionType()
+    {
+    }
+
     // Public --------------------------------------------------------------------------------------
 
     @Override

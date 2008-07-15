@@ -33,6 +33,13 @@ public class AuditEntityType extends AuditType
     // Constructors --------------------------------------------------------------------------------
 
     /**
+     * Required by Hibernate.
+     */
+    AuditEntityType()
+    {
+    }
+
+    /**
      * The only way to publicly creating an instance of this class should be via a constructor
      * whose signature requires the entity id type. This is required for consistency checks, and
      * failure to provide it could lead to corrupted state.
