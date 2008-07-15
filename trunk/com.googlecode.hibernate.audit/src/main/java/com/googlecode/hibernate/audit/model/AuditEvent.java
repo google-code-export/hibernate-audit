@@ -77,7 +77,7 @@ public class AuditEvent
         return type;
     }
 
-    public void setTargetType(AuditEventType type)
+    public void setType(AuditEventType type)
     {
         this.type = type;
     }
