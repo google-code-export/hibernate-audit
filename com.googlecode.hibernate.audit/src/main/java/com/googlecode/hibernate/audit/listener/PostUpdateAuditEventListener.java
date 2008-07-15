@@ -30,7 +30,9 @@ public class PostUpdateAuditEventListener
 
     public void onPostUpdate(PostUpdateEvent event)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        // TODO https://jira.novaordis.org/browse/HBA-45
+
+        log.debug(this + ".onPostUpdate(...)");
     }
     // Public --------------------------------------------------------------------------------------
 
