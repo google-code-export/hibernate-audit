@@ -38,6 +38,12 @@ public class AuditCollectionType extends AuditType
     // Public --------------------------------------------------------------------------------------
 
     @Override
+    public boolean isPrimitiveType()
+    {
+        return false;
+    }
+
+    @Override
     public boolean isCollectionType()
     {
         return true;
