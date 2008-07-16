@@ -128,6 +128,11 @@ public class AuditType
         return c;
     }
 
+    public boolean isPrimitiveType()
+    {
+        return true;
+    }
+
     /**
      * Runtime information that helps with the conversion of a "value" to its string representation;
      * for entities, the string representation is the string representation of their ids. This

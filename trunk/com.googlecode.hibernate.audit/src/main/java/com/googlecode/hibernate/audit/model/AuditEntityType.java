@@ -70,6 +70,12 @@ public class AuditEntityType extends AuditType
     }
 
     @Override
+    public boolean isPrimitiveType()
+    {
+        return false;
+    }
+
+    @Override
     public boolean isEntityType()
     {
         return true;
