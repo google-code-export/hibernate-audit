@@ -6,6 +6,8 @@ import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
+import java.security.Principal;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -39,7 +41,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
      * Make sure we log the transaction the current event occured in scope of and return a reference
      * to it.
      */
-    protected AuditTransaction logTransaction(EventSource auditedSession, String user)
+    protected AuditTransaction logTransaction(EventSource auditedSession)
     {
         Transaction ht = auditedSession.getTransaction();
         AuditTransaction at = HibernateAudit.getCurrentAuditTransaction();
@@ -52,7 +54,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             return at;
         }
 
-        at = new AuditTransaction(auditedSession, user);
+        Principal p = HibernateAudit.getPrincipal();
+        at = new AuditTransaction(auditedSession, p);
 
         at.log();
 

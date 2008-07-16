@@ -14,6 +14,7 @@ import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import java.util.Set;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.security.Principal;
 
 /**
  * Tests the runtime API
@@ -163,6 +164,34 @@ public class HibernateAuditTest extends JTATransactionTest
             {
                 assert HibernateAudit.disable();
             }
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetNullSecurityInformationProvider() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Principal p = HibernateAudit.getPrincipal();
+
+            assert p == null;
+
+            assert HibernateAudit.disable();
         }
         finally
         {

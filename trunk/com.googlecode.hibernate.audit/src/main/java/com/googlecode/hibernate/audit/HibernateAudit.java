@@ -13,12 +13,15 @@ import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
+import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
 
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
+import java.security.Principal;
 
 /**
  * The main programmatic entry point. This class allows turning audit on/off at runtime, and various
@@ -139,10 +142,32 @@ public class HibernateAudit
         auditTransaction.set(at);
     }
 
+    /**
+     * @return the principal associated with the current security context, if any, or null
+     *         otherwise.
+     */
+    public static Principal getPrincipal()
+    {
+        if (singleton == null)
+        {
+            return null;
+        }
+
+        SecurityInformationProvider sip = singleton.getSecurityInformationProvider();
+
+        if (sip == null)
+        {
+            return null;
+        }
+
+        return sip.getPrincipal();
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     private SessionFactoryImpl auditedSessionFactory;
     private String secondaryConfigurationResource;
+    private SecurityInformationProvider securityInformationProvider;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -160,6 +185,14 @@ public class HibernateAudit
     }
 
     // Public --------------------------------------------------------------------------------------
+
+    /**
+     * May return null if no security information provider has been installed.
+     */
+    SecurityInformationProvider getSecurityInformationProvider()
+    {
+        return securityInformationProvider;
+    }
 
     @Override
     public String toString()
@@ -239,6 +272,19 @@ public class HibernateAudit
 
         installAuditListeners(auditedSessionFactory);
 //        installMappings(auditedSessionFactory);
+
+        try
+        {
+            securityInformationProvider =
+                SecurityInformationProviderFactory.getSecurityInformationProvider();
+        }
+        catch(Exception e)
+        {
+            // something went wrong and we cannot get our provider, shoot a short warning and give
+            // more info in the debug log
+            log.warn("Cannot instantiate a security information provider: " + e.getMessage());
+            log.debug("Cannot instantiate a security information provider", e);
+        }
 
         log.debug(this + " started");
     }

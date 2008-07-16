@@ -33,10 +33,8 @@ public class SaveOrUpdateAuditEventListener
     {
         log.debug(this + ".onSaveOrUpdate(...)");
 
-        String user = null; // TODO properly determine the user
-
         // this will create an audit transaction and properly register the synchronizations
-        logTransaction(event.getSession(), user);
+        logTransaction(event.getSession());
     }
 
     // Public --------------------------------------------------------------------------------------

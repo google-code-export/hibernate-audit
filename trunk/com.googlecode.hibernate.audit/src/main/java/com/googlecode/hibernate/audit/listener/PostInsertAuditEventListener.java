@@ -49,8 +49,7 @@ public class PostInsertAuditEventListener
 
         EventSource session = event.getSession();
 
-        String user = null; // TODO properly determine the user
-        AuditTransaction auditTransaction = logTransaction(session, user);
+        AuditTransaction auditTransaction = logTransaction(session);
 
         Serializable id = event.getId();
         Object entity = event.getEntity();

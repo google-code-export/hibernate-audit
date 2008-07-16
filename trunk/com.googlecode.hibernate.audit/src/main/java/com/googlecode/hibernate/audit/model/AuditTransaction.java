@@ -19,6 +19,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.transaction.Synchronization;
 import java.util.Date;
+import java.security.Principal;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 
@@ -79,13 +80,18 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
+     * @param principal - could be null if it couldn't be determined by the upper layers.
      * @param auditedSession - the Hibernate session the audited event belongs to.
      */
-    public AuditTransaction(EventSource auditedSession, String user)
+    public AuditTransaction(EventSource auditedSession, Principal principal)
     {
         this();
         this.transaction = auditedSession.getTransaction();
-        this.user = user;
+
+        if (principal != null)
+        {
+            this.user = principal.getName();
+        }
 
         // persist in the context of the audited session, if no dedicated session is available, or
         // in the context of the dedicated session, if available. TODO: for the time being we
