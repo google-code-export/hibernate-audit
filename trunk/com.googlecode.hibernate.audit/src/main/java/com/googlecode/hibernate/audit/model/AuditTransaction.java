@@ -71,9 +71,6 @@ public class AuditTransaction implements Synchronization
     @Transient
     private StatelessSession session;
 
-    @Transient
-    private SessionFactory sessionFactory;
-
     // Constructors --------------------------------------------------------------------------------
 
     AuditTransaction()
@@ -94,7 +91,7 @@ public class AuditTransaction implements Synchronization
         // in the context of the dedicated session, if available. TODO: for the time being we
         // operate under the assumption that no dedicated session is available
 
-        sessionFactory = auditedSession.getFactory();
+        SessionFactory sessionFactory = auditedSession.getFactory();
 
         session = sessionFactory.openStatelessSession();
 
