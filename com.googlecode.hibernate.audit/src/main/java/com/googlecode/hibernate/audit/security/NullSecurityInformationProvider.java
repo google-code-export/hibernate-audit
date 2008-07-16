@@ -1,9 +1,6 @@
-package com.googlecode.hibernate.audit.listener;
+package com.googlecode.hibernate.audit.security;
 
-import org.hibernate.event.SaveOrUpdateEventListener;
-import org.hibernate.event.SaveOrUpdateEvent;
-import org.hibernate.HibernateException;
-import org.apache.log4j.Logger;
+import java.security.Principal;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -14,12 +11,9 @@ import org.apache.log4j.Logger;
  *
  * $Id$
  */
-public class SaveAuditEventListener
-    extends AbstractAuditEventListener implements SaveOrUpdateEventListener
+final class NullSecurityInformationProvider implements SecurityInformationProvider
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(SaveAuditEventListener.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -27,23 +21,14 @@ public class SaveAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
-    // SaveOrUpdateEventListener implementation ----------------------------------------------------
+    // SecurityInformationProvider implemenation ---------------------------------------------------
 
-    public void onSaveOrUpdate(SaveOrUpdateEvent event) throws HibernateException
+    public Principal getPrincipal()
     {
-        log.debug(this + ".onSaveOrUpdate(...)");
-
-        // this will create an audit transaction and properly register the synchronizations
-        logTransaction(event.getSession());
+        return null;
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return "SaveAuditEventListener[" + Integer.toHexString(System.identityHashCode(this)) + "]";
-    }
 
     // Package protected ---------------------------------------------------------------------------
 
