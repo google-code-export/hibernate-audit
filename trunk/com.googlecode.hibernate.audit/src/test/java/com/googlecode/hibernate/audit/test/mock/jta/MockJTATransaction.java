@@ -355,7 +355,58 @@ public class MockJTATransaction implements Transaction
 
     public void rollback() throws IllegalStateException, SystemException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        log.debug(this + " rolling back");
+
+        if (status == Status.STATUS_ACTIVE)
+        {
+            status = Status.STATUS_MARKED_ROLLBACK;
+        }
+
+        if (status == Status.STATUS_PREPARING)
+        {
+            status = Status.STATUS_MARKED_ROLLBACK;
+            return; // commit() will do rollback.
+        }
+
+        if (status != Status.STATUS_MARKED_ROLLBACK)
+        {
+            throw new IllegalStateException("cannot rollback, status = " + status);
+        }
+
+        // end transaction association for all resources
+
+        for(MockResource r: resources)
+        {
+            try
+            {
+                r.end();
+            }
+            catch(XAException e)
+            {
+                log.error("end() failed on " + r, e);
+
+                status = Status.STATUS_MARKED_ROLLBACK;
+            }
+        }
+
+        resourcesEnded = true;
+
+        // call afterCompletion() on all synchronizations
+
+        for(Synchronization s: synchronizations)
+        {
+            try
+            {
+                log.debug(this + " calling afterCompletion(" + status + ") on " + s);
+                s.afterCompletion(status);
+            }
+            catch (Throwable t)
+            {
+                log.warn("afterCompletion() failed on " + s, t);
+            }
+        }
+
+        //heuristicCode = HEUR_NONE;
     }
 
     public void setRollbackOnly() throws IllegalStateException, SystemException
