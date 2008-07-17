@@ -7,8 +7,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import java.util.List;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.ArrayList;
 
 /**

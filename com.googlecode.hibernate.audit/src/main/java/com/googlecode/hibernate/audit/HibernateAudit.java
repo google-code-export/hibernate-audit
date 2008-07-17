@@ -163,6 +163,21 @@ public class HibernateAudit
         return sip.getPrincipal();
     }
 
+    /**
+     * TODO I don't necessarily need an active HibernateAudit runtime for this, I can create
+     * a session factory from scratch and use it, but for the time being, I am using an active
+     * runtime, just to prove the idea is valid.
+     */
+    public static Object applyDelta(Object initialState, Long transactionId) throws Exception
+    {
+        if (singleton == null)
+        {
+            throw new IllegalStateException("Hibernate Audit runtime disabled");
+        }
+
+        return DeltaEngine.applyDelta(singleton.auditedSessionFactory, initialState, transactionId);
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     private SessionFactoryImpl auditedSessionFactory;

@@ -42,7 +42,7 @@ public class PostInsertEntityTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSimpleCascade() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -133,6 +133,68 @@ public class PostInsertEntityTest extends JTATransactionTest
                 // TODO we're not testing pair.getValue() because at this time is not implemented
                 assert expectedStringValues.remove(pair.getStringValue());
             }
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testSimpleCascade_ApplyDelt() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(C.class);
+        config.addAnnotatedClass(D.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            C c = new C();
+            c.setName("charlie");
+
+            D d = new D();
+            d.setName("diane");
+
+            c.setD(d);
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            s.save(c);
+
+            t.commit();
+
+            Long cId = c.getId();
+            Long dId = d.getId();
+
+            List transactions = HibernateAudit.query("from AuditTransaction");
+            assert transactions.size() == 1;
+            AuditTransaction at = (AuditTransaction)transactions.get(0);
+
+            C initial = new C();
+            C recreatedC = (C)HibernateAudit.applyDelta(initial, at.getId());
+
+            assert cId.equals(recreatedC.getId());
+            assert "charlie".equals(recreatedC.getName());
+
+            D recreatedD = recreatedC.getD();
+            assert dId.equals(recreatedD.getId());
+            assert "diane".equals(recreatedD.getName());
 
             HibernateAudit.disable();
         }
