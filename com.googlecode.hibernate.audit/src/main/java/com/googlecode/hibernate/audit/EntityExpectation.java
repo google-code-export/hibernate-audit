@@ -111,12 +111,9 @@ class EntityExpectation
 
     void initializeDetachedInstance(SessionFactoryImplementor sf) throws Exception
     {
-        detachedInstance = c.newInstance();
-
         String name = c.getName();
         EntityPersister p = sf.getEntityPersister(name);
-
-        p.setIdentifier(detachedInstance, id, mode);
+        detachedInstance = p.instantiate(id, mode);
     }
 
     // Protected -----------------------------------------------------------------------------------
