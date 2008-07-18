@@ -37,17 +37,30 @@ public class DeltaEngine
 
     // Static --------------------------------------------------------------------------------------
 
+    public static Object delta(SessionFactoryImplementor sf, Object preTransactionState, Long tid)
+        throws Exception
+    {
+        return delta(sf, preTransactionState, null, tid);
+    }
+
     /**
-     * @param initialEntityState - an entity instance to which we want to apply the forward delta.
-     *        It must contain a valid id.
+     * @param preTransactionState - a detached entity instance initialized with the pre-transaction
+     *        state. We will use as a base to to apply the forward transaction delta. If id not
+     *        specified, it must contain a valid id.
+     *
+     * @param id - the entity id. If null, then preTransactionState must contain a valid id.
+     *
+     * @param tid - the id of the transaction we want to apply to 'preTransactionState'.
      *
      * @throws MappingException - if the object passed as initial state is not a known entity.
      * @throws IllegalArgumentException - if such a transaction does not exist, doesn't have a valid
      *         id, etc.
+     *
+     * @return a detached instance reflecting the post-transaction state of the object
      */
-    public static void applyDelta(SessionFactoryImplementor sf,
-                                  Object initialEntityState,
-                                  Long transactionId)
+    public static Object delta(SessionFactoryImplementor sf,
+                               Object preTransactionState,
+                               Serializable id, Long tid)
         throws Exception
     {
         Session s = null;
@@ -59,13 +72,17 @@ public class DeltaEngine
             // "touched" the object whose initial state is given
 
             // for that, first determine the entity's id
-            Class c = initialEntityState.getClass();
+            Class c = preTransactionState.getClass();
             String className = c.getName();
 
             EntityPersister persister = sf.getEntityPersister(className);
 
-            // TODO. For the time being we only suport pojos
-            Object id = persister.getIdentifier(initialEntityState, EntityMode.POJO);
+            if (id == null)
+            {
+                // we try to get it from the instance
+                // TODO. For the time being we only suport pojos
+                id = (Serializable)persister.getIdentifier(preTransactionState, EntityMode.POJO);
+            }
 
             if (id == null)
             {
@@ -75,12 +92,12 @@ public class DeltaEngine
             s = sf.openSession();
             t = s.beginTransaction();
 
-            AuditTransaction at = (AuditTransaction)s.get(AuditTransaction.class, transactionId);
+            AuditTransaction at = (AuditTransaction)s.get(AuditTransaction.class, tid);
 
             if (at == null)
             {
                 throw new IllegalArgumentException("No audit transaction with id " +
-                                                   transactionId + " exists");
+                                                   tid + " exists");
             }
 
             // first query the type
@@ -106,8 +123,8 @@ public class DeltaEngine
             if (events.isEmpty())
             {
                 throw new IllegalArgumentException(
-                    "no audit events found for " + initialEntityState +
-                    " in transaction " + transactionId);
+                    "no audit events found for " + preTransactionState +
+                    " in transaction " + tid);
             }
 
             // "apply" events
@@ -211,8 +228,9 @@ public class DeltaEngine
                     "no audit trace for " + c.getName() + "[" + id + "]" );
             }
 
-            Reflections.applyDelta(initialEntityState, transactionDelta);
             entityLoadingRow.clear();
+
+            return Reflections.applyDelta(preTransactionState, transactionDelta);
         }
         catch(Exception e)
         {

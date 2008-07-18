@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.security.Principal;
+import java.io.Serializable;
 
 /**
  * The main programmatic entry point. This class allows turning audit on/off at runtime, and various
@@ -163,19 +164,26 @@ public class HibernateAudit
         return sip.getPrincipal();
     }
 
+    public static Object delta(Object preTransactionState, Long transactionId) throws Exception
+    {
+        return delta(preTransactionState, null, transactionId);
+    }
+
     /**
      * TODO I don't necessarily need an active HibernateAudit runtime for this, I can create
      * a session factory from scratch and use it, but for the time being, I am using an active
      * runtime, just to prove the idea is valid.
      */
-    public static void forwardDelta(Object initialState, Long transactionId) throws Exception
+    public static Object delta(Object preTransactionState, Serializable id, Long transactionId)
+        throws Exception
     {
         if (singleton == null)
         {
             throw new IllegalStateException("Hibernate Audit runtime disabled");
         }
 
-        DeltaEngine.applyDelta(singleton.auditedSessionFactory, initialState, transactionId);
+        return DeltaEngine.
+            delta(singleton.auditedSessionFactory, preTransactionState, id, transactionId);
     }
 
     /**

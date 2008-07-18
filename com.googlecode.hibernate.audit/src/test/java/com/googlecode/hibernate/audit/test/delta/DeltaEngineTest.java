@@ -56,7 +56,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.applyDelta((SessionFactoryImplementor)sf, o, null);
+                DeltaEngine.delta((SessionFactoryImplementor)sf, o, null, null);
                 throw new Error("should've failed");
             }
             catch(MappingException e)
@@ -89,7 +89,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.applyDelta((SessionFactoryImplementor)sf, a, null);
+                DeltaEngine.delta((SessionFactoryImplementor)sf, a, null, null);
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -123,7 +123,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.applyDelta((SessionFactoryImplementor)sf, a, new Long(23843431223l));
+                DeltaEngine.delta((SessionFactoryImplementor)sf, a, null, new Long(23843431223l));
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -177,7 +177,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.applyDelta((SessionFactoryImplementor)sf, toFillUp, at.getId());
+                DeltaEngine.delta((SessionFactoryImplementor)sf, toFillUp, null, at.getId());
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -232,7 +232,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.applyDelta((SessionFactoryImplementor)sf, toFillUp, at.getId());
+                DeltaEngine.delta((SessionFactoryImplementor)sf, toFillUp, at.getId());
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -277,21 +277,29 @@ public class DeltaEngineTest extends JTATransactionTest
             s.getTransaction().commit();
             s.close();
 
+            Long id = a.getId();
+
             // entity is in the database and it's 'audited' as well
 
             List transactions = HibernateAudit.query("from AuditTransaction");
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            Long id = a.getId();
-            A toFillUp = new A();
-            toFillUp.setId(id);
+            A preTransaction = new A();
 
-            DeltaEngine.applyDelta((SessionFactoryImplementor)sf, toFillUp, at.getId());
+            A postTransaction = (A)DeltaEngine.
+                delta((SessionFactoryImplementor)sf, preTransaction, id, at.getId());
 
-            assert id.equals(toFillUp.getId());
-            assert "alice".equals(toFillUp.getName());
-            assert 33 == toFillUp.getAge();
+            assert preTransaction != postTransaction;
+
+            assert preTransaction.getId() == null;
+            assert id.equals(postTransaction.getId());
+
+            assert preTransaction.getName() == null;
+            assert "alice".equals(postTransaction.getName());
+
+            assert preTransaction.getAge() == null;
+            assert 33 == postTransaction.getAge();
 
             HibernateAudit.disable();
         }
