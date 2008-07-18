@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Entity;
+import java.io.Serializable;
 
 /**
  * This subclass only adds behavior, not state, so we don't need to employ any inheritance mapping
@@ -62,7 +63,7 @@ public class AuditCollectionType extends AuditType
     /**
      */
     @Override
-    public Object stringToValue(String s)
+    public Serializable stringToValue(String s)
     {
         throw new RuntimeException("NOT YET IMPLEMENTED");
     }

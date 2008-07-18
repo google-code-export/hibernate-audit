@@ -47,7 +47,7 @@ public class ListenersTest
     @Test(enabled = true)
     public void testGetEventListenersGetterName()
     {
-        assert "getMergeEventListeners".equals(Listeners.getEventListenersGetterName("merge"));
+        assert "getMergeEventListeners".equals(Listeners.getEventListenersGetterName("applyDelta"));
         assert "getPostInsertEventListeners".
             equals(Listeners.getEventListenersGetterName("post-insert"));
         assert "getPreCollectionRecreateEventListeners".
@@ -65,7 +65,7 @@ public class ListenersTest
     @Test(enabled = true)
     public void testSetEventListenersGetterName()
     {
-        assert "setMergeEventListeners".equals(Listeners.getEventListenersSetterName("merge"));
+        assert "setMergeEventListeners".equals(Listeners.getEventListenersSetterName("applyDelta"));
         assert "setPostInsertEventListeners".
             equals(Listeners.getEventListenersSetterName("post-insert"));
         assert "setPreCollectionRecreateEventListeners".

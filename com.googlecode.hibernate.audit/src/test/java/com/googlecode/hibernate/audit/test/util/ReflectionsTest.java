@@ -1,16 +1,10 @@
-package com.googlecode.hibernate.audit.test;
+package com.googlecode.hibernate.audit.test.util;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
-import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.DeltaEngine;
+import com.googlecode.hibernate.audit.util.Reflections;
 
 /**
- * Tests the runtime API
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -20,11 +14,11 @@ import com.googlecode.hibernate.audit.DeltaEngine;
  * $Id$
  */
 @Test(sequential = true)
-public class DeltaEngineTest extends JTATransactionTest
+public class ReflectionsTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(DeltaEngineTest.class);
+    private static final Logger log = Logger.getLogger(ReflectionsTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -35,32 +29,17 @@ public class DeltaEngineTest extends JTATransactionTest
     // Public --------------------------------------------------------------------------------------
 
     @Test(enabled = true)
-    public void testNoSuchAuditTransaction() throws Exception
+    public void testMutate() throws Exception
     {
-        Configuration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        A a = new A();
 
-        try
-        {
-            sf = config.buildSessionFactory();
+        Reflections.mutate(a, "s", "blah");
+        Reflections.mutate(a, "i", new Integer(77));
 
-            try
-            {
-                DeltaEngine.applyDelta(sf, null, new Long(23843431223l));
-            }
-            catch(IllegalArgumentException e)
-            {
-                log.info(e.getMessage());
-            }
-        }
-        finally
-        {
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
+        log.debug(a);
+
+        assert "blah".equals(a.getS());
+        assert new Integer(77).equals(a.getI());
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -70,4 +49,30 @@ public class DeltaEngineTest extends JTATransactionTest
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    public class A
+    {
+        private String s;
+        private Integer i;
+
+        public void setS(String s)
+        {
+            this.s = s;
+        }
+
+        public String getS()
+        {
+            return s;
+        }
+
+        public void setI(Integer i)
+        {
+            this.i = i;
+        }
+
+        public Integer getI()
+        {
+            return i;
+        }
+    }
 }

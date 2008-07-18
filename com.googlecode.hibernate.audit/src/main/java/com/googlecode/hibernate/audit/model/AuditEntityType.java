@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
+import java.io.Serializable;
 
 /**
  * This subclass only adds behavior, not state, so we don't need to employ any inheritance mapping
@@ -110,12 +111,20 @@ public class AuditEntityType extends AuditType
     /**
      * Based on the entity id, we need to recreate the complete state of the entity.
      *
-     * @exception IllegalArgumentException if the conversion fails for some reason.
+     * @exception NumberFormatException if the conversion to number failed.
+     * @exception IllegalArgumentException if the conversion fails for some other reason.
      */
     @Override
-    public Object stringToValue(String s)
+    public Serializable stringToValue(String s)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        if (Long.class.equals(idClass))
+        {
+            return Long.parseLong(s);
+        }
+        else
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------
