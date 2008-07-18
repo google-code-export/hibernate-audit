@@ -168,14 +168,33 @@ public class HibernateAudit
      * a session factory from scratch and use it, but for the time being, I am using an active
      * runtime, just to prove the idea is valid.
      */
-    public static Object applyDelta(Object initialState, Long transactionId) throws Exception
+    public static void forwardDelta(Object initialState, Long transactionId) throws Exception
     {
         if (singleton == null)
         {
             throw new IllegalStateException("Hibernate Audit runtime disabled");
         }
 
-        return DeltaEngine.applyDelta(singleton.auditedSessionFactory, initialState, transactionId);
+        DeltaEngine.applyDelta(singleton.auditedSessionFactory, initialState, transactionId);
+    }
+
+    /**
+     * An AuditType instance obtained as a result of a query from the database may need
+     * "postprocessing", in that some instances may need semantic enhancing. For example, we may
+     * realize that AuditType instances are actually AuditEntityType instances, so we do the switch
+     * here.
+     */
+    static AuditType enhance(SessionFactory auditedSf, AuditType at)
+    {
+        Class c = at.getClassInstance();
+        ClassMetadata cm = auditedSf.getClassMetadata(c);
+        if (cm != null)
+        {
+            // it's an entity
+            Class idClass = cm.getIdentifierType().getReturnedClass();
+            at = new AuditEntityType(idClass, at);
+        }
+        return at;
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -461,7 +480,6 @@ public class HibernateAudit
      * The list with results from database may need "postprocessing", in that some instances may
      * need semantic enhancing. For example, we may realize that AuditType instances are actually
      * AuditEntityType instances, so we do the switch here.
-     *
      */
     private List postProcess(List queryResult)
     {
@@ -471,15 +489,7 @@ public class HibernateAudit
         {
             if (o instanceof AuditType)
             {
-                AuditType at = (AuditType)o;
-                Class c = at.getClassInstance();
-                ClassMetadata cm = auditedSessionFactory.getClassMetadata(c);
-                if (cm != null)
-                {
-                    // it's an entity
-                    Class idClass = cm.getIdentifierType().getReturnedClass();
-                    o = new AuditEntityType(idClass, at);
-                }
+                o = enhance(auditedSessionFactory, (AuditType)o);
             }
 
             result.add(o);

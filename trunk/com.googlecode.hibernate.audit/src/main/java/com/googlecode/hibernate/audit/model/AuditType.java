@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -185,7 +186,7 @@ public class AuditType
     /**
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
-    public Object stringToValue(String s)
+    public Serializable stringToValue(String s)
     {
         getClassInstance();
         if (String.class == c)

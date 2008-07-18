@@ -151,7 +151,7 @@ public class PostInsertEntityTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testSimpleCascade_ApplyDelt() throws Exception
+    public void testSimpleCascade_ForwardDelta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -186,8 +186,9 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            C initial = new C();
-            C recreatedC = (C)HibernateAudit.applyDelta(initial, at.getId());
+            C recreatedC = new C();
+            recreatedC.setId(cId);
+            HibernateAudit.forwardDelta(recreatedC, at.getId());
 
             assert cId.equals(recreatedC.getId());
             assert "charlie".equals(recreatedC.getName());
