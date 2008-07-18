@@ -41,7 +41,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testNoSuchEntity() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -73,7 +73,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInvalidId() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -106,7 +106,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testNoSuchAuditTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -140,7 +140,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testNoSuchTypeAudited() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -196,7 +196,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testNoSuchEntityIdInDatabase() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -251,7 +251,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testForwardDelta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -311,6 +311,63 @@ public class DeltaEngineTest extends JTATransactionTest
             }
         }
     }
+
+
+    @Test(enabled = true)
+    public void testDelta_ProtectedConstructor() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(ProtectedConstructorC.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            ProtectedConstructorC c = ProtectedConstructorC.getInstance();
+            c.setName("cami");
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(c);
+
+            s.getTransaction().commit();
+            s.close();
+
+            Long id = c.getId();
+
+            List transactions = HibernateAudit.query("from AuditTransaction");
+            assert transactions.size() == 1;
+            AuditTransaction at = (AuditTransaction)transactions.get(0);
+
+            ProtectedConstructorC preTransaction = ProtectedConstructorC.getInstance();
+
+            ProtectedConstructorC postTransaction = (ProtectedConstructorC)DeltaEngine.
+                delta((SessionFactoryImplementor)sf, preTransaction, id, at.getId());
+
+            assert preTransaction != postTransaction;
+
+            assert preTransaction.getId() == null;
+            assert id.equals(postTransaction.getId());
+
+            assert preTransaction.getName() == null;
+            assert "cami".equals(postTransaction.getName());
+
+            HibernateAudit.disable();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
 
     // Package protected ---------------------------------------------------------------------------
 
