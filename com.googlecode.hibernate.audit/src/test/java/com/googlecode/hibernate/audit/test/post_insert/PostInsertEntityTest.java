@@ -186,14 +186,20 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            C recreatedC = new C();
-            recreatedC.setId(cId);
-            HibernateAudit.delta(recreatedC, at.getId());
+            C preTransactionC = new C();
+            C postTransactionC = (C)HibernateAudit.delta(preTransactionC, cId, at.getId());
 
-            assert cId.equals(recreatedC.getId());
-            assert "charlie".equals(recreatedC.getName());
+            assert preTransactionC != postTransactionC;
 
-            D recreatedD = recreatedC.getD();
+            assert preTransactionC.getId() == null;
+            assert cId.equals(postTransactionC.getId());
+
+            assert preTransactionC.getName() == null;
+            assert "charlie".equals(postTransactionC.getName());
+
+            assert preTransactionC.getD() == null;
+            D recreatedD = postTransactionC.getD();
+            assert recreatedD != d;
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
