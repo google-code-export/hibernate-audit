@@ -42,7 +42,7 @@ public class PostInsertEntityTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSimpleCascade() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
