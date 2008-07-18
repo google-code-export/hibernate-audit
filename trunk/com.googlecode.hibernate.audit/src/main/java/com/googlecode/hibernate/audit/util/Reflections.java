@@ -19,7 +19,7 @@ public class Reflections
     // Static --------------------------------------------------------------------------------------
 
     /**
-     * TODO: inefficient, can be optimized.
+     * TODO: inefficient and incomplete, needs tests
      */
     public static void mutate(Object o, String memberName, Object value)
         throws NoSuchMethodException,
@@ -35,15 +35,17 @@ public class Reflections
     }
 
     /**
-     * TODO: inefficient, can be optimized
+     * TODO: inefficient and incomplete, needs tests
      */
-    public static void applyDelta(Object base, Object delta) throws Exception
+    public static Object applyDelta(Object base, Object delta) throws Exception
     {
         Class c = base.getClass();
         if (!c.isInstance(delta))
         {
             throw new IllegalArgumentException(base + " and " + delta + " have different types");
         }
+
+        Object baseCopy = deepCopy(base);
 
         for(Method m: c.getMethods())
         {
@@ -57,9 +59,19 @@ public class Reflections
             String getterName = "get" + name.substring(3);
             Method getter = c.getMethod(getterName);
 
-            Object partialDelta = getter.invoke(delta);
-            m.invoke(base, partialDelta);
+            Object d = getter.invoke(delta);
+            m.invoke(baseCopy, d);
         }
+
+        return baseCopy;
+    }
+
+    /**
+     * TODO totally incomplete, needs proper implementation and tests
+     */
+    public static Object deepCopy(Object o) throws Exception
+    {
+        return o.getClass().newInstance();
     }
 
     // Attributes ----------------------------------------------------------------------------------

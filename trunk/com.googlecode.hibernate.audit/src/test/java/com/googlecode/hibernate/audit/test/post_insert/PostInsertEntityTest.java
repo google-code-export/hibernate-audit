@@ -188,7 +188,7 @@ public class PostInsertEntityTest extends JTATransactionTest
 
             C recreatedC = new C();
             recreatedC.setId(cId);
-            HibernateAudit.forwardDelta(recreatedC, at.getId());
+            HibernateAudit.delta(recreatedC, at.getId());
 
             assert cId.equals(recreatedC.getId());
             assert "charlie".equals(recreatedC.getName());
