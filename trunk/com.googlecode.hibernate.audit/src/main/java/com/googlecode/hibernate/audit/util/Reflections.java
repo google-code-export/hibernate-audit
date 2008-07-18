@@ -2,6 +2,8 @@ package com.googlecode.hibernate.audit.util;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -71,7 +73,22 @@ public class Reflections
      */
     public static Object deepCopy(Object o) throws Exception
     {
-        return o.getClass().newInstance();
+        Class c = o.getClass();
+
+        return instantiateOverridingAccessibility(c);
+    }
+
+    public static Object instantiateOverridingAccessibility(Class c) throws Exception
+    {
+        Constructor constructor = c.getDeclaredConstructor();
+
+        if (!Modifier.isPublic(constructor.getModifiers()) ||
+            !Modifier.isPublic(c.getModifiers()))
+        {
+            constructor.setAccessible(true);
+        }
+
+        return constructor.newInstance();
     }
 
     // Attributes ----------------------------------------------------------------------------------
