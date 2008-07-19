@@ -53,6 +53,23 @@ public class ReflectionsTest
         assert subB == a.getB();
     }
 
+    @Test(enabled = true)
+    public void testMutate_NoSuchMethodException() throws Exception
+    {
+        A a = new A();
+        SubB subB = new SubB();
+
+        try
+        {
+            Reflections.mutate(a, "blah", subB);
+            throw new Error("should've failed");
+        }
+        catch(NoSuchMethodException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------

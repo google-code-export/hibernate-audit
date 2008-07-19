@@ -32,7 +32,36 @@ public class Reflections
         String methodName =
             "set" + Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
-        Method mutator = o.getClass().getMethod(methodName, value.getClass());
+        Class argumentType = value.getClass();
+
+        Method mutator = null;
+
+        while(argumentType != Object.class)
+        {
+            try
+            {
+                mutator = o.getClass().getMethod(methodName, argumentType);
+
+                if (mutator != null)
+                {
+                    break;
+                }
+            }
+            catch(Exception e)
+            {
+                // ok, it's part of the logic
+            }
+
+            argumentType = argumentType.getSuperclass();
+        }
+
+        if (mutator == null)
+        {
+            throw new NoSuchMethodException(
+                "cannot find mutator " + methodName + "(...) for " + value.getClass().getName() +
+                " or any of its superclasses");
+        }
+
         mutator.invoke(o, value);
     }
 
