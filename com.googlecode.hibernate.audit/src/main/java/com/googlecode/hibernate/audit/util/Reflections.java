@@ -29,8 +29,8 @@ public class Reflections
                IllegalArgumentException,
                InvocationTargetException
     {
-        String methodName = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
-        methodName = "set" + methodName;
+        String methodName =
+            "set" + Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
         Method mutator = o.getClass().getMethod(methodName, value.getClass());
         mutator.invoke(o, value);
