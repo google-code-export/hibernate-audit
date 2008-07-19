@@ -42,6 +42,17 @@ public class ReflectionsTest
         assert new Integer(77).equals(a.getI());
     }
 
+    @Test(enabled = true)
+    public void testMutateWithSubclass() throws Exception
+    {
+        A a = new A();
+        SubB subB = new SubB();
+
+        Reflections.mutate(a, "b", subB);
+
+        assert subB == a.getB();
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
@@ -54,6 +65,7 @@ public class ReflectionsTest
     {
         private String s;
         private Integer i;
+        private B b;
 
         public void setS(String s)
         {
@@ -74,5 +86,23 @@ public class ReflectionsTest
         {
             return i;
         }
+
+        public void setB(B b)
+        {
+            this.b = b;
+        }
+
+        public B getB()
+        {
+            return b;
+        }
+    }
+
+    public class B
+    {
+    }
+
+    public class SubB extends B
+    {
     }
 }
