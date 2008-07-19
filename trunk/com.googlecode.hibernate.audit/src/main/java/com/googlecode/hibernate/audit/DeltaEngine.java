@@ -154,7 +154,6 @@ public class DeltaEngine
                 entityLoadingRow.add(e);
 
                 // insert all pairs of this event into this entity
-
                 q = s.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
                 q.setParameter("event", ae);
 
@@ -186,28 +185,58 @@ public class DeltaEngine
                             if (seen.equals(ee))
                             {
                                 expectationExists = true;
-                                value = seen.getDetachedInstance();
-                                break;
+                                if (ee.isFulfilled())
+                                {
+                                    value = seen.getDetachedInstance();
+                                    Reflections.mutate(detachedEntity, name, value);
+                                    break;
+                                }
+                                else
+                                {
+                                    // line this up too
+                                    ee.addTargetEntity(detachedEntity, name);
+                                }
                             }
                         }
 
                         if (!expectationExists)
                         {
-                            ee.initializeDetachedInstance(sf);
                             entityLoadingRow.add(ee);
+
+                            // give the expectation info so it can update the entity that refers the
+                            // target of the expectation, when the expectation is eventually
+                            // fulfilled.
+                            ee.addTargetEntity(detachedEntity, name);
                         }
                     }
                     else if (type.isCollectionType())
                     {
-                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        log.warn(">>>>>>>>>>>>>>>>>> Collection Handling NOT YET IMPLEMENTED");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        log.warn(">>>>>>>>>>>>>>>>>>");
                     }
                     else
                     {
                         // primitive
                         value = type.stringToValue(p.getStringValue());
+                        Reflections.mutate(detachedEntity, name, value);
                     }
+                }
+            }
 
-                    Reflections.mutate(detachedEntity, name, value);
+            // loop over expectations and make sure that all of them have been fulfilled
+            for(EntityExpectation e: entityLoadingRow)
+            {
+                if (!e.isFulfilled())
+                {
+                    // the state of this entity did not change in this transaction, so the
+                    // state is whatever the state was previously of this transaction
+                    Object o = DeltaEngine.retrieve(e.getClassInstance(), e.getId(), tid, sf);
+                    e.fulfill(o);
                 }
             }
 
@@ -231,6 +260,61 @@ public class DeltaEngine
             entityLoadingRow.clear();
 
             return Reflections.applyDelta(preTransactionState, transactionDelta);
+        }
+        catch(Exception e)
+        {
+            if (t != null)
+            {
+                try
+                {
+                    t.rollback();
+                }
+                catch(Exception e2)
+                {
+                    log.error("failed to rollback Hibernate transaction", e2);
+                }
+            }
+
+            if (s != null)
+            {
+                try
+                {
+                    s.close();
+                }
+                catch(Exception e2)
+                {
+                    log.error("failed to close Hibernate session", e2);
+                }
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Returns a (c, id) detached instance, as stored in the database at the <b>beginning</b> of
+     * the transaction tid.
+     */
+    public static Object retrieve(Class c, Serializable id, Long tid, SessionFactoryImplementor sf)
+        throws Exception
+    {
+
+        Session s = sf.getCurrentSession();
+        Transaction t = null;
+
+        try
+        {
+            t = s.beginTransaction();
+
+            // we currently cheat and return the current instance. In reality, this is a lot
+            // more expensive operation
+            // TODO https://jira.novaordis.org/browse/HBA-52
+            log.warn("disregarding transaction id " + tid);
+            Object o = s.get(c, id);
+
+            t.commit();
+
+            return o;
         }
         catch(Exception e)
         {

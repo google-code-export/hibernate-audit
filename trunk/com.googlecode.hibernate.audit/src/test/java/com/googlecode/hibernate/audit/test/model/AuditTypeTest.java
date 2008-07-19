@@ -82,7 +82,7 @@ public class AuditTypeTest
         assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 PDT 2008"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testValueToString_Entity_InvalidState() throws Exception
     {
         AuditEntityType type = new AuditEntityType(null);
@@ -98,7 +98,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testValueToString_Entity_InvalidId() throws Exception
     {
         Method m = A.class.getMethod("getId");
@@ -116,7 +116,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testValueToString_Entity() throws Exception
     {
         Method m = A.class.getMethod("getId");
@@ -124,6 +124,34 @@ public class AuditTypeTest
         type.setClassName(A.class.getName());
 
         assert "7777".equals(type.valueToString(new Long(7777)));
+    }
+
+    @Test(enabled = true)
+    public void testStringToValue_CustomType() throws Exception
+    {
+        AuditType t = new AuditType();
+        t.setClassName(CustomType.class.getName());
+
+        CustomType ct = (CustomType)t.stringToValue("123");
+
+        assert new CustomType(123).equals(ct);
+    }
+
+    @Test(enabled = true)
+    public void testStringToValue_NonConvertibleCustomType() throws Exception
+    {
+        AuditType t = new AuditType();
+        t.setClassName(CustomType.class.getName());
+
+        try
+        {
+            t.stringToValue("this won't convert into an int");
+            throw new Error("should've failed");
+        }
+        catch(RuntimeException e)
+        {
+            log.debug(e.getMessage());
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------

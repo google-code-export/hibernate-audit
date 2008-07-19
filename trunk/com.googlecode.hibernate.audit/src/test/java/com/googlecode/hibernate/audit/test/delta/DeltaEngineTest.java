@@ -140,7 +140,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoSuchTypeAudited() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -312,8 +312,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDelta_ProtectedConstructor() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
