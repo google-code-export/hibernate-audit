@@ -140,7 +140,7 @@ public class DeltaEngine
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-                Long tId = ae.getTargetId();
+                Long targetId = ae.getTargetId();
                 AuditType tt = HibernateAudit.enhance(sf, ae.getTargetType());
 
                 if (!tt.isEntityType())
@@ -149,7 +149,7 @@ public class DeltaEngine
                 }
 
                 // we're sure it's an entity, so add it to the loading row
-                EntityExpectation e = new EntityExpectation(sf, tt.getClassInstance(), tId);
+                EntityExpectation e = new EntityExpectation(sf, tt.getClassInstance(), targetId);
                 Object detachedEntity = e.getDetachedInstance();
                 entityLoadingRow.add(e);
 
@@ -185,7 +185,7 @@ public class DeltaEngine
                             if (seen.equals(ee))
                             {
                                 expectationExists = true;
-                                if (ee.isFulfilled())
+                                if (seen.isFulfilled())
                                 {
                                     value = seen.getDetachedInstance();
                                     Reflections.mutate(detachedEntity, name, value);
@@ -194,7 +194,7 @@ public class DeltaEngine
                                 else
                                 {
                                     // line this up too
-                                    ee.addTargetEntity(detachedEntity, name);
+                                    seen.addTargetEntity(detachedEntity, name);
                                 }
                             }
                         }
