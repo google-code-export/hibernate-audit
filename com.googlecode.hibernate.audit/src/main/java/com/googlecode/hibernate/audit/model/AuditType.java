@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
+import org.apache.log4j.Logger;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.SequenceGenerator;
@@ -34,6 +36,8 @@ import java.io.Serializable;
 public class AuditType 
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(AuditType.class);
 
     public static final Format oracleDateFormat =
         new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
@@ -189,6 +193,9 @@ public class AuditType
     public Serializable stringToValue(String s)
     {
         getClassInstance();
+
+        // avoid reflection for often-used types
+
         if (String.class == c)
         {
             return s;
@@ -196,6 +203,14 @@ public class AuditType
         else if (Integer.class == c)
         {
             return Integer.parseInt(s);
+        }
+        else if (Long.class == c)
+        {
+            return Long.parseLong(s);
+        }
+        else if (Boolean.class == c)
+        {
+            return Boolean.parseBoolean(s);
         }
         else if (Date.class == c)
         {
@@ -208,6 +223,20 @@ public class AuditType
                 throw new IllegalArgumentException(
                     "conversion of '" + s + "' to a Date value failed", e);
             }
+        }
+
+        String parseMethodName = c.getName();
+        parseMethodName = parseMethodName.substring(parseMethodName.lastIndexOf('.') + 1);
+        parseMethodName = "parse" + parseMethodName;
+
+        try
+        {
+            Method m = c.getMethod(parseMethodName, String.class);
+            return (Serializable)m.invoke(null, s);
+        }
+        catch(Exception e)
+        {
+            log.debug("failed to obtain value from string via reflection", e);
         }
 
         throw new RuntimeException("don't know to convert string to " + c.getName());

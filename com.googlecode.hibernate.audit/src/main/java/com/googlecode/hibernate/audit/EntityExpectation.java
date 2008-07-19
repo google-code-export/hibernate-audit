@@ -5,6 +5,10 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.ArrayList;
+
+import com.googlecode.hibernate.audit.util.Reflections;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -30,6 +34,8 @@ class EntityExpectation
 
     // TODO we're only handling pojos now
     private EntityMode mode = EntityMode.POJO;
+
+    private List<Target> targetEntities;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -109,16 +115,72 @@ class EntityExpectation
         return detachedInstance;
     }
 
-    void initializeDetachedInstance(SessionFactoryImplementor sf) throws Exception
+    /**
+     * Fulfills the expectation, by passing a fully functional entity instance, ready to be
+     * forwarded to whoever is waiting for it.
+     */
+    void fulfill(Object o) throws Exception
     {
-        String name = c.getName();
-        EntityPersister p = sf.getEntityPersister(name);
-        detachedInstance = p.instantiate(id, mode);
+        if (!c.isInstance(o))
+        {
+            throw new IllegalArgumentException(o + "is not a " + c.getName() + " instance");
+        }
+
+        // TODO we could also check the id, implement this at some time
+
+        detachedInstance = o;
+
+        if (targetEntities == null)
+        {
+            // fine, noone wants it
+            return;
+        }
+
+        // mutate all target entities
+        for(Target t: targetEntities)
+        {
+            Reflections.mutate(t.targetEntity, t.targetMemberName, detachedInstance);
+        }
+    }
+
+    void addTargetEntity(Object targetEntity, String targetMemberName)
+    {
+        if (targetEntities == null)
+        {
+            targetEntities = new ArrayList<Target>();
+        }
+
+        targetEntities.add(new Target(targetEntity, targetMemberName));
+    }
+
+    boolean isFulfilled()
+    {
+        return detachedInstance != null;
     }
 
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
 
+    private void initializeDetachedInstance(SessionFactoryImplementor sf) throws Exception
+    {
+        String name = c.getName();
+        EntityPersister p = sf.getEntityPersister(name);
+        detachedInstance = p.instantiate(id, mode);
+    }
+
     // Inner classes -------------------------------------------------------------------------------
+
+    private class Target
+    {
+        Object targetEntity;
+        String targetMemberName;
+
+        Target(Object targetEntity, String targetMemberName)
+        {
+            this.targetEntity = targetEntity;
+            this.targetMemberName = targetMemberName;
+        }
+
+    }
 }
