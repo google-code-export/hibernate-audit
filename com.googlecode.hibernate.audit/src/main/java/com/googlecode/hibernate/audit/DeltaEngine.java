@@ -138,7 +138,7 @@ public class DeltaEngine
 
                 if (!AuditEventType.INSERT.equals(ae.getType()))
                 {
-                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                    throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
                 }
 
                 Long targetId = ae.getTargetId();
@@ -255,7 +255,7 @@ public class DeltaEngine
             // transferred to the rightful owners
             for(CollectionExpectation e: collectionExpectations)
             {
-                e.fulfill();
+                e.transferToOwner();
             }
 
             t.commit();

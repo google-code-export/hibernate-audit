@@ -1,9 +1,12 @@
 package com.googlecode.hibernate.audit.util;
 
+import org.apache.log4j.Logger;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -17,6 +20,8 @@ import java.lang.reflect.Modifier;
 public class Reflections
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(Reflections.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -64,6 +69,49 @@ public class Reflections
 
         mutator.invoke(o, value);
     }
+
+    /**
+     * TODO: inefficient and incomplete, needs tests
+     */
+    public static void mutateCollection(Object o, String memberName, Collection value)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               IllegalArgumentException,
+               InvocationTargetException
+    {
+        String methodName =
+            "set" + Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
+
+        boolean sucessful = false;
+
+        Method[] methods = o.getClass().getMethods();
+
+        for(Method m: methods)
+        {
+            if (m.getName().equals(methodName))
+            {
+                // try to invoke
+
+                try
+                {
+                    m.invoke(o, value);
+                    sucessful = true;
+                    break;
+                }
+                catch(Exception e)
+                {
+                    log.debug("failed to invoke", e);
+                }
+            }
+        }
+
+        if (!sucessful)
+        {
+            throw new NoSuchMethodException(
+                "cannot find mutator " + methodName + "(...) for " + value.getClass().getName());
+        }
+    }
+
 
     /**
      * TODO: inefficient and incomplete, needs tests

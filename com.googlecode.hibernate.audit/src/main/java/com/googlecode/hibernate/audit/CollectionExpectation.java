@@ -98,7 +98,7 @@ class CollectionExpectation
      *
      * @exception Exception if we find unfulfilled entity expectations.
      */
-    void fulfill() throws Exception
+    void transferToOwner() throws Exception
     {
         if (!ownerExpectation.isFulfilled())
         {
@@ -116,7 +116,7 @@ class CollectionExpectation
             c.add(e.getDetachedInstance());
         }
 
-        Reflections.mutate(ownerExpectation.getDetachedInstance(), memberName, c);
+        Reflections.mutateCollection(ownerExpectation.getDetachedInstance(), memberName, c);
     }
 
     // Protected -----------------------------------------------------------------------------------

@@ -1,13 +1,14 @@
 package com.googlecode.hibernate.audit.test.util;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class A 
+public class C
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -16,80 +17,42 @@ public class A
     // Attributes ----------------------------------------------------------------------------------
 
     private String s;
-    private Integer i;
-    private B b;
-    private Boolean bo;
 
-    private List<B> bs;
-
-    private C c;
+    private List<A> as;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
+    public C()
     {
+        as = new ArrayList<A>();
+    }
+
+    C(String s)
+    {
+        this();
+        this.s = s;
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    public void setS(String s)
-    {
-        this.s = s;
-    }
 
     public String getS()
     {
         return s;
     }
 
-    public void setI(Integer i)
+    public void setS(String s)
     {
-        this.i = i;
+        this.s = s;
     }
 
-    public Integer getI()
+    public List<A> getAs()
     {
-        return i;
+        return as;
     }
 
-    public void setB(B b)
+    public void setAs(List<A> as)
     {
-        this.b = b;
-    }
-
-    public B getB()
-    {
-        return b;
-    }
-
-    public void setBo(Boolean b)
-    {
-        this.bo = b;
-    }
-
-    public Boolean isBo()
-    {
-        return bo;
-    }
-
-    public List<B> getBs()
-    {
-        return bs;
-    }
-
-    public void setBs(List<B> bs)
-    {
-        this.bs = bs;
-    }
-
-    public C getC()
-    {
-        return c;
-    }
-
-    public void setC(C c)
-    {
-        this.c = c;
+        this.as = as;
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -15,6 +15,8 @@ public class B
 
     private String s;
 
+    private A a;
+
     // Constructors --------------------------------------------------------------------------------
 
     public B()
@@ -37,6 +39,50 @@ public class B
     {
         this.s = s;
     }
+
+    public A getA()
+    {
+        return a;
+    }
+
+    public void setA(A a)
+    {
+        this.a = a;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (s == null)
+        {
+            return false;
+        }
+
+        if (!(o instanceof B))
+        {
+            return false;
+        }
+
+        B that = (B)o;
+
+        return this.s.equals(that.s);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = 17;
+
+        result = result * 37 + (s == null ? 0 : s.hashCode());
+
+        return result;
+    }
+
 
     // Package protected ---------------------------------------------------------------------------
 
