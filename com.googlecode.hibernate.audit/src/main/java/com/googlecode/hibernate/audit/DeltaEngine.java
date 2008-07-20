@@ -129,7 +129,8 @@ public class DeltaEngine
 
             // "apply" events
 
-            Set<EntityExpectation> entityLoadingRow = new HashSet<EntityExpectation>();
+            Set<EntityExpectation> entityExpectations = new HashSet<EntityExpectation>();
+            Set<CollectionExpectation> collectionExpectations = new HashSet<CollectionExpectation>();
 
             for(Object o: events)
             {
@@ -141,17 +142,18 @@ public class DeltaEngine
                 }
 
                 Long targetId = ae.getTargetId();
-                AuditType tt = HibernateAudit.enhance(sf, ae.getTargetType());
+                AuditType targetType = HibernateAudit.enhance(sf, ae.getTargetType());
 
-                if (!tt.isEntityType())
+                if (!targetType.isEntityType())
                 {
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
                 // we're sure it's an entity, so add it to the loading row
-                EntityExpectation e = new EntityExpectation(sf, tt.getClassInstance(), targetId);
+                EntityExpectation e =
+                    new EntityExpectation(sf, targetType.getClassInstance(), targetId);
                 Object detachedEntity = e.getDetachedInstance();
-                entityLoadingRow.add(e);
+                entityExpectations.add(e);
 
                 // insert all pairs of this event into this entity
                 q = s.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
@@ -180,7 +182,7 @@ public class DeltaEngine
                         EntityExpectation ee = new EntityExpectation(entityClass, entityId);
 
                         boolean expectationExists = false;
-                        for(EntityExpectation seen : entityLoadingRow)
+                        for(EntityExpectation seen : entityExpectations)
                         {
                             if (seen.equals(ee))
                             {
@@ -201,23 +203,32 @@ public class DeltaEngine
 
                         if (!expectationExists)
                         {
-                            entityLoadingRow.add(ee);
+                            entityExpectations.add(ee);
 
                             // give the expectation info so it can update the entity that refers the
                             // target of the expectation, when the expectation is eventually
                             // fulfilled.
                             ee.addTargetEntity(detachedEntity, name);
                         }
+
+                        // also, we may have a bidirectionality situation, so update the
+                        // collection's side if so
+                        for(CollectionExpectation ce: collectionExpectations)
+                        {
+                            if (ce.getOwnerId().equals(entityId) &&
+                                ce.getOwnerType().equals(entityClass))
+                                // && ce.getMemberType().equals(targetType.getClassInstance()))
+                            {
+                                ce.add(e);
+                            }
+                        }
                     }
                     else if (type.isCollectionType())
                     {
-                        log.warn(">>>>>>>>>>>>>>>>>>");
-                        log.warn(">>>>>>>>>>>>>>>>>>");
-                        log.warn(">>>>>>>>>>>>>>>>>>");
-                        log.warn(">>>>>>>>>>>>>>>>>> Collection Handling NOT YET IMPLEMENTED");
-                        log.warn(">>>>>>>>>>>>>>>>>>");
-                        log.warn(">>>>>>>>>>>>>>>>>>");
-                        log.warn(">>>>>>>>>>>>>>>>>>");
+                        Class memberType = null; // TODO extract member type info from the value
+                        CollectionExpectation ce = new CollectionExpectation(e, name, memberType);
+
+                        collectionExpectations.add(ce);
                     }
                     else
                     {
@@ -228,8 +239,8 @@ public class DeltaEngine
                 }
             }
 
-            // loop over expectations and make sure that all of them have been fulfilled
-            for(EntityExpectation e: entityLoadingRow)
+            // loop over entity expectations and make sure that all of them have been fulfilled
+            for(EntityExpectation e: entityExpectations)
             {
                 if (!e.isFulfilled())
                 {
@@ -240,10 +251,17 @@ public class DeltaEngine
                 }
             }
 
+            // also loop over collections and make sure that the content from all of them are
+            // transferred to the rightful owners
+            for(CollectionExpectation e: collectionExpectations)
+            {
+                e.fulfill();
+            }
+
             t.commit();
 
             Object transactionDelta = null;
-            for(EntityExpectation e: entityLoadingRow)
+            for(EntityExpectation e: entityExpectations)
             {
                 if (e.getId().equals(id) && e.getClassInstance().equals(c))
                 {
@@ -257,7 +275,7 @@ public class DeltaEngine
                     "no audit trace for " + c.getName() + "[" + id + "]" );
             }
 
-            entityLoadingRow.clear();
+            entityExpectations.clear();
 
             return Reflections.applyDelta(preTransactionState, transactionDelta);
         }
