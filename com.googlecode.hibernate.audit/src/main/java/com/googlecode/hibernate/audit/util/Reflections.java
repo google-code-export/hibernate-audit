@@ -87,8 +87,40 @@ public class Reflections
                 continue;
             }
 
-            String getterName = "get" + name.substring(3);
-            Method getter = c.getMethod(getterName);
+            name = name.substring(3);
+
+            String getterName = "get" + name;
+
+            Method getter = null;
+
+            try
+            {
+                getter = c.getMethod(getterName);
+            }
+            catch(Exception e)
+            {
+                // ok, keep trying
+            }
+
+            if (getter == null)
+            {
+                getterName = "is" + name;
+
+                try
+                {
+                    getter = c.getMethod(getterName);
+                }
+                catch(Exception e)
+                {
+                    // ok, keep trying
+                }
+            }
+
+            if (getter == null)
+            {
+                throw new NoSuchMethodException(
+                    "cannot find set...() or is...() accessor for " + name);
+            }
 
             Object d = getter.invoke(delta);
             m.invoke(baseCopy, d);
