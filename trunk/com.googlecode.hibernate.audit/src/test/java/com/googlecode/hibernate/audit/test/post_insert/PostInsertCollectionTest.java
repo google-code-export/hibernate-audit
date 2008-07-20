@@ -45,7 +45,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -140,6 +140,78 @@ public class PostInsertCollectionTest extends JTATransactionTest
                 // TODO we're not testing pair.getValue() because at this time is not implemented
                 assert expectedStringValues.remove(pair.getStringValue());
             }
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAddOneInCollection_Delta() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            WA wa = new WA();
+            wa.setName("alana");
+
+            WB wb = new WB();
+            wb.setName("baja");
+
+            wa.getWbs().add(wb);
+            wb.setWa(wa);
+
+            s.save(wa);
+            t.commit();
+
+            List transactions = HibernateAudit.query("from AuditTransaction");
+            assert transactions.size() == 1;
+            AuditTransaction at = (AuditTransaction)transactions.get(0);
+
+            Long waId = wa.getId();
+            Long wbId = wb.getId();
+
+            WA preT = new WA();
+            WA postT = (WA)HibernateAudit.delta(preT, waId, at.getId());
+
+            assert preT != postT;
+
+            assert waId.equals(postT.getId());
+            assert "alana".equals(wa.getName());
+
+            List<WB> wbs = postT.getWbs();
+            assert !wa.getWbs().equals(wbs);
+
+            assert wbs.size() == 1;
+
+            WB postTWb = wbs.get(0);
+            assert postTWb != wb;
+
+            assert postTWb.getId().equals(wbId);
+            assert "baja".equals(postTWb.getName());
+
+            assert postT == postTWb.getWa();
 
             HibernateAudit.disable();
         }
