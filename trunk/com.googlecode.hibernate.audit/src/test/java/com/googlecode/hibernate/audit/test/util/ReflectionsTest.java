@@ -70,6 +70,23 @@ public class ReflectionsTest
         }
     }
 
+    @Test(enabled = true)
+    public void testApplyDelta() throws Exception
+    {
+        A base = new A();
+
+        A delta = new A();
+        delta.setS("delta");
+        delta.setI(7);
+        delta.setB(new B("ben"));
+        delta.setBo(true);
+
+        A result = (A)Reflections.applyDelta(base, delta);
+
+        assert result != base;
+        assert result != delta;
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
@@ -78,48 +95,4 @@ public class ReflectionsTest
 
     // Inner classes -------------------------------------------------------------------------------
 
-    public class A
-    {
-        private String s;
-        private Integer i;
-        private B b;
-
-        public void setS(String s)
-        {
-            this.s = s;
-        }
-
-        public String getS()
-        {
-            return s;
-        }
-
-        public void setI(Integer i)
-        {
-            this.i = i;
-        }
-
-        public Integer getI()
-        {
-            return i;
-        }
-
-        public void setB(B b)
-        {
-            this.b = b;
-        }
-
-        public B getB()
-        {
-            return b;
-        }
-    }
-
-    public class B
-    {
-    }
-
-    public class SubB extends B
-    {
-    }
 }
