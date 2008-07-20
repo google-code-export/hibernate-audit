@@ -192,15 +192,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long waId = wa.getId();
             Long wbId = wb.getId();
 
-            WA preT = new WA();
-            WA postT = (WA)HibernateAudit.delta(preT, waId, at.getId());
+            WA preTWa = new WA();
+            WA postTWa = (WA)HibernateAudit.delta(preTWa, waId, at.getId());
 
-            assert preT != postT;
+            assert preTWa != postTWa;
 
-            assert waId.equals(postT.getId());
+            assert waId.equals(postTWa.getId());
             assert "alana".equals(wa.getName());
 
-            List<WB> wbs = postT.getWbs();
+            List<WB> wbs = postTWa.getWbs();
             assert !wa.getWbs().equals(wbs);
 
             assert wbs.size() == 1;
@@ -211,7 +211,8 @@ public class PostInsertCollectionTest extends JTATransactionTest
             assert postTWb.getId().equals(wbId);
             assert "baja".equals(postTWb.getName());
 
-            assert postT == postTWb.getWa();
+            // TODO https://jira.novaordis.org/browse/HBA-55
+            assert postTWa == postTWb.getWa();
 
             HibernateAudit.disable();
         }

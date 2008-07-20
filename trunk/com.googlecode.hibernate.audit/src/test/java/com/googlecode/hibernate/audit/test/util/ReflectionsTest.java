@@ -4,6 +4,10 @@ import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.util.Reflections;
 
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -71,6 +75,27 @@ public class ReflectionsTest
     }
 
     @Test(enabled = true)
+    public void testMutate_Collection() throws Exception
+    {
+        A a = new A();
+
+        Collection<Object> c = new ArrayList<Object>();
+        c.add(new B("ben"));
+        c.add(new B("bill"));
+        c.add(new B("becky"));
+
+        Reflections.mutateCollection(a, "bs", c);
+
+        List<B> bs = a.getBs();
+
+        assert bs.size() == 3;
+
+        assert bs.remove(new B("ben"));
+        assert bs.remove(new B("bill"));
+        assert bs.remove(new B("becky"));
+    }
+
+    @Test(enabled = true)
     public void testApplyDelta() throws Exception
     {
         A base = new A();
@@ -85,6 +110,54 @@ public class ReflectionsTest
 
         assert result != base;
         assert result != delta;
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_DeltaContainsReferenceToItself() throws Exception
+    {
+        A delta = new A();
+        delta.setS("anna");
+
+        B b = new B("ben");
+        b.setA(delta);
+        delta.setB(b);
+
+        A base = new A();
+        A result = (A)Reflections.applyDelta(base, delta);
+
+        assert result != base;
+        assert result != delta;
+
+        // TODO https://jira.novaordis.org/browse/HBA-55
+        assert result.getB().getA() == result;
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_DeltaContainsReferenceToItselfInACollection() throws Exception
+    {
+        A delta = new A();
+        delta.setS("anna");
+
+        C c = new C("cami");
+        c.getAs().add(delta);
+        delta.setC(c);
+
+        A base = new A();
+        A result = (A)Reflections.applyDelta(base, delta);
+
+        assert result != base;
+        assert result != delta;
+
+        assert "anna".equals(result.getS());
+
+        C cResult = result.getC();
+        assert "cami".equals(cResult.getS());
+
+        List<A> as = cResult.getAs();
+        assert as.size() == 1;
+
+        // TODO https://jira.novaordis.org/browse/HBA-55
+        assert result == as.get(0);
     }
 
     // Package protected ---------------------------------------------------------------------------
