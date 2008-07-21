@@ -93,6 +93,12 @@ class CollectionExpectation
         members.add(e);
     }
 
+    boolean isSameTypeAsMembers(Class prospectiveMemberType)
+    {
+        // TODO probably there's more to this implementation than this
+        return memberType.equals(prospectiveMemberType);
+    }
+
     /**
      * Fulfills the expectation, transfering collection members to the rightful owner.
      *

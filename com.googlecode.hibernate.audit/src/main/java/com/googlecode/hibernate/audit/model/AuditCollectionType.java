@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 import java.io.Serializable;
 
 /**
@@ -27,6 +28,9 @@ public class AuditCollectionType extends AuditType
 
     // Attributes ----------------------------------------------------------------------------------
 
+    @Transient
+    private AuditType memberType;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -34,6 +38,14 @@ public class AuditCollectionType extends AuditType
      */
     public AuditCollectionType()
     {
+    }
+
+    /**
+     * Required by Hibernate.
+     */
+    public AuditCollectionType(AuditType memberType)
+    {
+        this.memberType = memberType;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -51,13 +63,16 @@ public class AuditCollectionType extends AuditType
     }
 
     /**
+     * Returns the id (as Long converted to String) of the corresponding AuditType.
+     * 
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
     @Override
     public String valueToString(Object o)
     {
-        // TODO: obviously, this can't stay like that
-        return "COLLECTION - NOT YET IMPLEMENTED";
+        // TODO: shaky, implemented in a hurry, review this
+        // TODO: we're ignoring o and that's not alright, shows there's some problem with the logic
+        return Long.toString(memberType.getId());
     }
 
     /**

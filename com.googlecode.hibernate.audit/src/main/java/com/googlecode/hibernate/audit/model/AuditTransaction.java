@@ -199,19 +199,8 @@ public class AuditTransaction implements Synchronization
         if (at != null && at.getId() == null)
         {
             // look it up in the database first
-
-            Query q = session.createQuery("from AuditType as a where a.className = :className");
-            q.setString("className", at.getClassName());
-            AuditType persisted = (AuditType)q.uniqueResult();
-
-            if (persisted != null)
-            {
-                ae.setTargetType(persisted);
-            }
-            else
-            {
-                session.insert(at);
-            }
+            AuditType persisted = getAuditType(at.getClassInstance());
+            ae.setTargetType(persisted);
         }
 
         session.insert(ae);
@@ -234,26 +223,14 @@ public class AuditTransaction implements Synchronization
         // persist them here
 
         AuditTypeField field = pair.getField();
-
         AuditType at = field.getType();
 
         // TODO remove this if using a non-stateless session, it will be persisted by reachability
         if (at.getId() == null)
         {
             // look it up in the database first
-
-            Query q = session.createQuery("from AuditType as a where a.className = :className");
-            q.setString("className", at.getClassName());
-            AuditType persistedType = (AuditType)q.uniqueResult();
-
-            if (persistedType != null)
-            {
-                field.setType(persistedType);
-            }
-            else
-            {
-                session.insert(at);
-            }
+            AuditType persistedType = getAuditType(at.getClassInstance());
+            field.setType(persistedType);
         }
 
         // TODO remove this if using a non-stateless session, it will be persisted by reachability
@@ -279,6 +256,26 @@ public class AuditTransaction implements Synchronization
         }
 
         session.insert(pair);
+    }
+
+    /**
+     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     *
+     * Returns the corresponding AuditType, making a database insert if necessary.
+     */
+    public AuditType getAuditType(Class c)
+    {
+        Query q = session.createQuery("from AuditType as a where a.className = :className");
+        q.setString("className", c.getName());
+        AuditType persistedType = (AuditType)q.uniqueResult();
+
+        if (persistedType == null)
+        {
+            persistedType = new AuditType(c);
+            session.insert(persistedType);
+        }
+
+        return persistedType;
     }
 
     /**

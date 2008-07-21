@@ -5,6 +5,7 @@ import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
+import org.hibernate.collection.PersistentCollection;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
 import org.apache.log4j.Logger;
@@ -18,6 +19,7 @@ import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -107,11 +109,6 @@ public class PostInsertAuditEventListener
 
                 SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
                 Class idClass = sf.getIdentifierType(javaType.getName()).getReturnedClass();
-
-//                String entityName = session.getEntityName(value);
-//                EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
-//                Class idClass = associatedEntityPersister.getIdentifierType().getReturnedClass();
-
                 auditType = new AuditEntityType(idClass);
 
                 if (value == null)
@@ -129,15 +126,35 @@ public class PostInsertAuditEventListener
             }
             else if (hibernateType.isCollectionType())
             {
-                // See https://jira.novaordis.org/browse/HBA-30
-
-                // TODO review this:
                 // this is the "one" side of a one-to-many relationship, and the collection
                 // contains the associated elements. Currently, we only handle the case when the
                 // relationship is implemented as a foreign key in the "many"-side of the
-                // relationship table, so recording this even doesn't give us much. Will record
-                // though, and we'll remove later if needed
-                auditType = new AuditCollectionType();
+                // relationship table
+
+                // figure out the member type, and store its id as "value" of the event
+                PersistentCollection pc = (PersistentCollection)value;
+                Collection userVisibleCollection = (Collection)pc.getValue();
+
+                // we figure out the type by looking at the first member of the collection
+                // this is not OK TODO: implement this correctly
+                // TODO: https://jira.novaordis.org/browse/HBA-57
+
+                Class memberClass = null;
+
+                if (userVisibleCollection.isEmpty())
+                {
+                    // throw new IllegalStateException("empty collection " + pc);
+                    // TODO: https://jira.novaordis.org/browse/HBA-57
+                    memberClass = Object.class;
+                }
+                else
+                {
+                    Object firstMember = userVisibleCollection.iterator().next();
+                    memberClass = firstMember.getClass();
+                }
+
+                AuditType memberAuditType = auditTransaction.getAuditType(memberClass);
+                auditType = new AuditCollectionType(memberAuditType);
             }
             else
             {

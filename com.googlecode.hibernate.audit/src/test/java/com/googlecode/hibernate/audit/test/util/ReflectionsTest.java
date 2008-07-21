@@ -96,6 +96,48 @@ public class ReflectionsTest
     }
 
     @Test(enabled = true)
+    public void testMutate_Collection_NoSetMethod() throws Exception
+    {
+        D d = new D();
+
+        Collection<Object> c = new ArrayList<Object>();
+        c.add(new E("erica"));
+        c.add(new E("ella"));
+        c.add(new E("ethan"));
+
+        Reflections.mutateCollection(d, "es", c);
+
+        List<E> es = d.getEs();
+
+        assert es.size() == 3;
+
+        assert es.remove(new E("erica"));
+        assert es.remove(new E("ella"));
+        assert es.remove(new E("ethan"));
+    }
+
+    @Test(enabled = true)
+    public void testMutate_Collection_NoSetMethod_FParties() throws Exception
+    {
+        D d = new D();
+
+        Collection<Object> c = new ArrayList<Object>();
+        c.add(new FParty("fenwick"));
+        c.add(new FParty("fester"));
+        c.add(new FParty("falwell"));
+
+        Reflections.mutateCollection(d, "fParties", c);
+
+        List<FParty> fParties = d.getFParties();
+
+        assert fParties.size() == 3;
+
+        assert fParties.remove(new FParty("fenwick"));
+        assert fParties.remove(new FParty("fester"));
+        assert fParties.remove(new FParty("falwell"));
+    }
+
+    @Test(enabled = true)
     public void testApplyDelta() throws Exception
     {
         A base = new A();

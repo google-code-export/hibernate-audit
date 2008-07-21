@@ -5,7 +5,7 @@ package com.googlecode.hibernate.audit.test.util;
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class B 
+public class FParty
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,15 +15,13 @@ public class B
 
     private String s;
 
-    private A a;
-
     // Constructors --------------------------------------------------------------------------------
 
-    public B()
+    public FParty()
     {
     }
 
-    B(String s)
+    FParty(String s)
     {
         this.s = s;
     }
@@ -40,16 +38,6 @@ public class B
         this.s = s;
     }
 
-    public A getA()
-    {
-        return a;
-    }
-
-    public void setA(A a)
-    {
-        this.a = a;
-    }
-
     @Override
     public boolean equals(Object o)
     {
@@ -63,12 +51,12 @@ public class B
             return false;
         }
 
-        if (!(o instanceof B))
+        if (!(o instanceof FParty))
         {
             return false;
         }
 
-        B that = (B)o;
+        FParty that = (FParty)o;
 
         return this.s.equals(that.s);
     }
