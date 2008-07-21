@@ -87,6 +87,8 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             Set<AuditType> expectedTargetTypes = new HashSet<AuditType>();
 
+            Long collectionMemberTypeId = null;
+
             for(Object o: types)
             {
                 AuditType type = (AuditType)o;
@@ -94,6 +96,11 @@ public class PostInsertCollectionTest extends JTATransactionTest
                 if (type.isEntityType())
                 {
                     expectedTargetTypes.add(type);
+
+                    if (type.getClassInstance().equals(WB.class))
+                    {
+                        collectionMemberTypeId = type.getId();
+                    }
                 }
                 else if (String.class.equals(type.getClassInstance()))
                 {
@@ -130,7 +137,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             List<String> expectedStringValues = new ArrayList<String>(Arrays.
                 asList(wa.getName(),
                        wb.getName(),
-                       "COLLECTION - NOT YET IMPLEMENTED",
+                       Long.toString(collectionMemberTypeId),
                        Long.toString(wa.getId()))); // the WA's id as a foreign key in WB's table.
 
             for(Object o: pairs)
@@ -157,7 +164,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -229,6 +236,79 @@ public class PostInsertCollectionTest extends JTATransactionTest
             }
         }
     }
+
+    @Test(enabled = true)
+    public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            WA wa = new WA();
+            wa.setName("alana");
+
+            WB wb = new WB();
+            wb.setName("baja");
+
+            wa.getWbs().add(wb);
+
+            s.save(wa);
+            t.commit();
+
+            List transactions = HibernateAudit.query("from AuditTransaction");
+            assert transactions.size() == 1;
+            AuditTransaction at = (AuditTransaction)transactions.get(0);
+
+            Long waId = wa.getId();
+            Long wbId = wb.getId();
+
+            WA preTWa = new WA();
+            WA postTWa = (WA)HibernateAudit.delta(preTWa, waId, at.getId());
+
+            assert preTWa != postTWa;
+
+            assert waId.equals(postTWa.getId());
+            assert "alana".equals(wa.getName());
+
+            List<WB> wbs = postTWa.getWbs();
+            assert !wa.getWbs().equals(wbs);
+
+            assert wbs.size() == 1;
+
+            WB postTWb = wbs.get(0);
+            assert postTWb != wb;
+
+            assert postTWb.getId().equals(wbId);
+            assert "baja".equals(postTWb.getName());
+
+            // TODO https://jira.novaordis.org/browse/HBA-55
+            //assert postTWa == postTWb.getWa();
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
 
     @Test(enabled = false)
     public void testAddTwoInCollection() throws Exception

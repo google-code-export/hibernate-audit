@@ -216,8 +216,8 @@ public class DeltaEngine
                         for(CollectionExpectation ce: collectionExpectations)
                         {
                             if (ce.getOwnerId().equals(entityId) &&
-                                ce.getOwnerType().equals(entityClass))
-                                // && ce.getMemberType().equals(targetType.getClassInstance()))
+                                ce.getOwnerType().equals(entityClass) &&
+                                ce.isSameTypeAsMembers(targetType.getClassInstance()))
                             {
                                 ce.add(e);
                             }
@@ -225,9 +225,19 @@ public class DeltaEngine
                     }
                     else if (type.isCollectionType())
                     {
-                        Class memberType = null; // TODO extract member type info from the value
-                        CollectionExpectation ce = new CollectionExpectation(e, name, memberType);
+                        // figure out member type
+                        Long auditTypeId = Long.parseLong(p.getStringValue());
+                        AuditType memberType = (AuditType)s.get(AuditType.class, auditTypeId);
 
+                        if (memberType == null)
+                        {
+                            throw new IllegalStateException(
+                                "found new collection whose members are of AuditType[id = " +
+                                auditTypeId + "] but no corresponding type exists in the database");
+                        }
+
+                        CollectionExpectation ce =
+                            new CollectionExpectation(e, name, memberType.getClassInstance());
                         collectionExpectations.add(ce);
                     }
                     else
@@ -235,6 +245,17 @@ public class DeltaEngine
                         // primitive
                         value = type.stringToValue(p.getStringValue());
                         Reflections.mutate(detachedEntity, name, value);
+                    }
+                }
+
+                // force it into a collection, if any
+                // TODO THIS IS COMPLETELY BOGUS, NEED TO FIND ANOTHER WAY
+                // TODO https://jira.novaordis.org/browse/HBA-54
+                for(CollectionExpectation ce: collectionExpectations)
+                {
+                    if (ce.isSameTypeAsMembers(e.getClassInstance()))
+                    {
+                        ce.add(e);
                     }
                 }
             }

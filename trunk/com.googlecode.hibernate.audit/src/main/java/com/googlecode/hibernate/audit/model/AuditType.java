@@ -72,6 +72,7 @@ public class AuditType
     AuditType(Class c)
     {
         this.c = c;
+        this.className = c.getName();
     }
 
     // Public --------------------------------------------------------------------------------------

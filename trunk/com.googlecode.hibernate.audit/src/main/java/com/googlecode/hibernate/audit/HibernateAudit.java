@@ -13,12 +13,14 @@ import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
 
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.security.Principal;
@@ -202,6 +204,13 @@ public class HibernateAudit
             Class idClass = cm.getIdentifierType().getReturnedClass();
             at = new AuditEntityType(idClass, at);
         }
+        else if (Collection.class.equals(c))
+        {
+            // it's a collection
+            // TODO https://jira.novaordis.org/browse/HBA-56
+            at = new AuditCollectionType();
+        }
+
         return at;
     }
 
