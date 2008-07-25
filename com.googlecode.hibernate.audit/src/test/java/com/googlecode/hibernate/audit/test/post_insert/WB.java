@@ -71,6 +71,12 @@ public class WB
         this.wa = wa;
     }
 
+    @Override
+    public String toString()
+    {
+        return "WB[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
