@@ -281,7 +281,7 @@ public class AuditType
     @Override
     public String toString()
     {
-        return className + "[" + (id == null ? "TRANSIENT" : id) + "]";
+        return "Type[" + (id == null ? "TRANSIENT" : id) + "][" + className + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

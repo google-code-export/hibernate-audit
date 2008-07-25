@@ -4,6 +4,7 @@ import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
+import org.hibernate.SQLQuery;
 import org.hibernate.event.EventSource;
 import org.apache.log4j.Logger;
 
@@ -19,6 +20,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.transaction.Synchronization;
 import java.util.Date;
+import java.util.List;
 import java.security.Principal;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -256,6 +258,32 @@ public class AuditTransaction implements Synchronization
         }
 
         session.insert(pair);
+
+        // the stateless session doesn't automatically persist the id collection for
+        // AuditEventCollectionPair so I have to do it by hand. Consider using a regular session,
+        // see https://jira.novaordis.org/browse/HBA-64
+
+        if (pair instanceof AuditEventCollectionPair)
+        {
+            // TODO This is a hack and must be changed! See https://jira.novaordis.org/browse/HBA-65
+            Long pairId = pair.getId();
+            AuditEventCollectionPair cpair = (AuditEventCollectionPair)pair;
+            List<Long> ids = cpair.getIds();
+            for(Long id: ids)
+            {
+                String qs =
+                    "insert into AUDIT_EVENT_PAIR_COLLECTION " +
+                    "(AUDIT_EVENT_PAIR_ID, COLLECTION_ENTITY_ID) " +
+                    "VALUES (" + pairId + ", " + id + ")";
+                SQLQuery sqlQuery = session.createSQLQuery(qs);
+                int updated = sqlQuery.executeUpdate();
+
+                if (updated != 1)
+                {
+                    throw new IllegalStateException(qs + " did not succeed");
+                }
+            }
+        }
     }
 
     /**
