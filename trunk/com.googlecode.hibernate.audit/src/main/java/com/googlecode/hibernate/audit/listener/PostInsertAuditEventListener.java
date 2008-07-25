@@ -17,9 +17,12 @@ import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
+import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -96,9 +99,12 @@ public class PostInsertAuditEventListener
                 continue;
             }
 
+            SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
             Type hibernateType = persister.getPropertyType(name);
             Class javaType = hibernateType.getReturnedClass();
             AuditType auditType = null;
+
+            AuditEventPair pair = null;
 
             if (hibernateType.isEntityType())
             {
@@ -107,7 +113,7 @@ public class PostInsertAuditEventListener
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-                SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
+
                 Class idClass = sf.getIdentifierType(javaType.getName()).getReturnedClass();
                 auditType = new AuditEntityType(idClass);
 
@@ -123,6 +129,9 @@ public class PostInsertAuditEventListener
                 // the entity mode is a session characteristic, so using the previously determined
                 // entity mode (TODO: verify this is really true)
                 value = associatedEntityPersister.getIdentifier(value, mode);
+
+                pair = new AuditEventPair();
+
             }
             else if (hibernateType.isCollectionType())
             {
@@ -140,6 +149,7 @@ public class PostInsertAuditEventListener
                 // TODO: https://jira.novaordis.org/browse/HBA-57
 
                 Class memberClass = null;
+                EntityPersister memberPersister = null;
 
                 if (userVisibleCollection.isEmpty())
                 {
@@ -151,14 +161,33 @@ public class PostInsertAuditEventListener
                 {
                     Object firstMember = userVisibleCollection.iterator().next();
                     memberClass = firstMember.getClass();
+                    // TODO Refactor this into something more palatable
+                    String entityName = session.getEntityName(firstMember);
+                    memberPersister = sf.getEntityPersister(entityName);
                 }
 
                 AuditType memberAuditType = auditTransaction.getAuditType(memberClass);
                 auditType = new AuditCollectionType(memberAuditType);
+
+                List<Long> ids = new ArrayList<Long>();
+                for(Object o: userVisibleCollection)
+                {
+                    // the entity mode is a session characteristic, so using the previously determined
+                    // entity mode (TODO: verify this is really true)
+                    Long mid  = (Long)memberPersister.getIdentifier(o, mode);
+                    ids.add(mid);
+
+                }
+
+                AuditEventCollectionPair cp = new AuditEventCollectionPair();
+                cp.setIds(ids);
+                pair = cp;
+                value = null;
             }
             else
             {
                 auditType = new AuditType();
+                pair = new AuditEventPair();
             }
 
             auditType.setClassName(javaType.getName());
@@ -167,7 +196,6 @@ public class PostInsertAuditEventListener
             f.setType(auditType);
             f.setName(name);
 
-            AuditEventPair pair = new AuditEventPair();
             pair.setField(f);
             pair.setValue(value);
             pair.setEvent(ae);

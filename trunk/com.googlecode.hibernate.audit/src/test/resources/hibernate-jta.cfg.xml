@@ -29,6 +29,7 @@
         <mapping class="com.googlecode.hibernate.audit.model.AuditCollectionType"/>
         <mapping class="com.googlecode.hibernate.audit.model.AuditTypeField"/>
         <mapping class="com.googlecode.hibernate.audit.model.AuditEventPair"/>
+        <mapping class="com.googlecode.hibernate.audit.model.AuditEventCollectionPair"/>
 
     </session-factory>
 

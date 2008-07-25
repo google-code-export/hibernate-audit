@@ -1,26 +1,25 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Simulates real use case.
+ * An atomic audit name/value pair that contains a collection.
  *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
 @Entity
-@Table(name = "WA")
-public class WA
+@DiscriminatorValue("Y")
+public class AuditEventCollectionPair extends AuditEventPair
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -28,58 +27,33 @@ public class WA
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
+//    /**
+//     * Reserved for future use (lists)
+//     */
+//    @Column(name = "LIST_INDEX")
+//    private String index;
+//
 
-    private String name;
-
-    @OneToMany(mappedBy = "wa", cascade = CascadeType.ALL)
-    private List<WB> wbs;
+    //@OneToMany
+    private List<Long> ids;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public WA()
+    public AuditEventCollectionPair()
     {
-        wbs = new ArrayList<WB>();
+        ids = new ArrayList<Long>();
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public Long getId()
+    public List<Long> getIds()
     {
-        return id;
+        return ids;
     }
 
-    public void setId(Long id)
+    public void setIds(List<Long> ids)
     {
-        this.id = id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    public List<WB> getWbs()
-    {
-        return wbs;
-    }
-
-    public void setWbs(List<WB> wbs)
-    {
-        this.wbs = wbs;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "WA[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
+        this.ids = ids;
     }
 
     // Package protected ---------------------------------------------------------------------------

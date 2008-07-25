@@ -248,16 +248,16 @@ public class DeltaEngine
                     }
                 }
 
-                // force it into a collection, if any
-                // TODO THIS IS COMPLETELY BOGUS, NEED TO FIND ANOTHER WAY
-                // TODO https://jira.novaordis.org/browse/HBA-54
-                for(CollectionExpectation ce: collectionExpectations)
-                {
-                    if (ce.isSameTypeAsMembers(e.getClassInstance()))
-                    {
-                        ce.add(e);
-                    }
-                }
+//                // force it into a collection, if any
+//                // TODO THIS IS COMPLETELY BOGUS, NEED TO FIND ANOTHER WAY
+//                // TODO https://jira.novaordis.org/browse/HBA-54
+//                for(CollectionExpectation ce: collectionExpectations)
+//                {
+//                    if (ce.isSameTypeAsMembers(e.getClassInstance()))
+//                    {
+//                        ce.add(e);
+//                    }
+//                }
             }
 
             // loop over entity expectations and make sure that all of them have been fulfilled

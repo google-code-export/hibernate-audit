@@ -9,6 +9,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+import javax.persistence.Inheritance;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.InheritanceType;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.DiscriminatorValue;
 
 /**
  * An atomic audit name/value pair.
@@ -24,6 +29,9 @@ import javax.persistence.JoinColumn;
 @Entity
 @Table(name = "AUDIT_EVENT_PAIR")
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_PAIR_ID_SEQUENCE")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "IS_COLLECTION", discriminatorType = DiscriminatorType.CHAR)
+@DiscriminatorValue("N")
 public class AuditEventPair
 {
     // Constants -----------------------------------------------------------------------------------
@@ -32,7 +40,6 @@ public class AuditEventPair
 
     // Attributes ----------------------------------------------------------------------------------
 
-    // TODO Do we really need to have ids for each of them? I don't see gain ...
     @Id
     @Column(name = "AUDIT_EVENT_PAIR_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
@@ -48,12 +55,6 @@ public class AuditEventPair
 
     @Column(name = "STRING_VALUE")
     private String stringValue;
-
-    /**
-     * Reserved for future use (lists)
-     */
-    @Column(name = "LIST_INDEX")
-    private String index;    
 
     // Constructors --------------------------------------------------------------------------------
 
