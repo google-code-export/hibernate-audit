@@ -13,6 +13,7 @@ import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
+import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.util.Reflections;
 
 import java.util.List;
@@ -149,11 +150,29 @@ public class DeltaEngine
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-                // we're sure it's an entity, so add it to the loading row
+                // we're sure it's an entity, so add it to the loading row, while making sure that
+                // if the expectation is already there, we use that one.
                 EntityExpectation e =
                     new EntityExpectation(sf, targetType.getClassInstance(), targetId);
+
+                boolean found = false;
+                for(EntityExpectation alreadyRegistered: entityExpectations)
+                {
+                    if (alreadyRegistered.equals(e))
+                    {
+                        alreadyRegistered.initializeDetachedInstanceIfNecessary(sf);
+                        e = alreadyRegistered;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    entityExpectations.add(e);
+                }
+
                 Object detachedEntity = e.getDetachedInstance();
-                entityExpectations.add(e);
 
                 // insert all pairs of this event into this entity
                 q = s.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
@@ -236,9 +255,25 @@ public class DeltaEngine
                                 auditTypeId + "] but no corresponding type exists in the database");
                         }
 
+                        AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
+                        List<Long> ids = cp.getIds();
+
+                        if (ids.isEmpty())
+                        {
+                            throw new RuntimeException("NOT YET IMPLEMENTED");
+                        }
+
                         CollectionExpectation ce =
                             new CollectionExpectation(e, name, memberType.getClassInstance());
                         collectionExpectations.add(ce);
+
+                        for(Long cmid: ids)
+                        {
+                            EntityExpectation cmee =
+                                new EntityExpectation(memberType.getClassInstance(), cmid);
+                            entityExpectations.add(cmee); // noop if the expectation is already there
+                            ce.add(cmee);
+                        }
                     }
                     else
                     {
@@ -247,17 +282,6 @@ public class DeltaEngine
                         Reflections.mutate(detachedEntity, name, value);
                     }
                 }
-
-//                // force it into a collection, if any
-//                // TODO THIS IS COMPLETELY BOGUS, NEED TO FIND ANOTHER WAY
-//                // TODO https://jira.novaordis.org/browse/HBA-54
-//                for(CollectionExpectation ce: collectionExpectations)
-//                {
-//                    if (ce.isSameTypeAsMembers(e.getClassInstance()))
-//                    {
-//                        ce.add(e);
-//                    }
-//                }
             }
 
             // loop over entity expectations and make sure that all of them have been fulfilled

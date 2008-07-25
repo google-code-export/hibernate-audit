@@ -48,7 +48,7 @@ class EntityExpectation
     EntityExpectation(SessionFactoryImplementor sf, Class c, Serializable id) throws Exception
     {
         this(c, id);
-        initializeDetachedInstance(sf);
+        initializeDetachedInstanceIfNecessary(sf);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ class EntityExpectation
     @Override
     public String toString()
     {
-        return c.getName() + "[" + id + "]";
+        return c.getName() + "[" + id + "][" + (isFulfilled() ? "" : "NOT ") + "FULFILLED]";
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -158,16 +158,24 @@ class EntityExpectation
         return detachedInstance != null;
     }
 
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
-
-    private void initializeDetachedInstance(SessionFactoryImplementor sf) throws Exception
+    /**
+     * It's a noop if the detached instance was already initialized.
+     */
+    void initializeDetachedInstanceIfNecessary(SessionFactoryImplementor sf) throws Exception
     {
+        if (detachedInstance != null)
+        {
+            return;
+        }
+
         String name = c.getName();
         EntityPersister p = sf.getEntityPersister(name);
         detachedInstance = p.instantiate(id, mode);
     }
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 
