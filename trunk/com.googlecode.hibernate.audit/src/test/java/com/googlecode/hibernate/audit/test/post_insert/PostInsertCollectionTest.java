@@ -45,7 +45,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -164,7 +164,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -310,7 +310,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
     }
 
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddTwoInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -420,7 +420,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -568,13 +568,13 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testRemoveTwoFromCollection() throws Exception
     {
         throw new Exception("NOT YET IMPELEMENTED");
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testModifyOneInCollection() throws Exception
     {
         // we'll see what exactly that means

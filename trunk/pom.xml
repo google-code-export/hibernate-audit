@@ -48,9 +48,15 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.4.2</version>
 					<configuration>
-						<parallel>true</parallel>
+                        <!-- DO NOT run tests in parallel, wreaks havoc on the database as
+                             each test attempts to crate and then drop the schema
+                        -->
+                        <!--
+                        <parallel>true</parallel>
 						<threadCount>10</threadCount>
-					</configuration>
+						-->
+                        <parallel>false</parallel>
+                    </configuration>
 				</plugin>
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>

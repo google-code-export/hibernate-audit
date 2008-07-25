@@ -41,7 +41,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoSuchEntity() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -73,7 +73,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInvalidId() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -106,7 +106,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoSuchAuditTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -196,7 +196,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoSuchEntityIdInDatabase() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -251,7 +251,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testForwardDelta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -312,7 +312,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testDelta_ProtectedConstructor() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
