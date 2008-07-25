@@ -33,7 +33,7 @@ public class AuditTypeTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_UnsupportedType() throws Exception
     {
         AuditType type = new AuditType();
@@ -50,7 +50,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_String() throws Exception
     {
         AuditType type = new AuditType();
@@ -60,7 +60,7 @@ public class AuditTypeTest
         assert "abc".equals(type.stringToValue("abc"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_Integer() throws Exception
     {
         AuditType type = new AuditType();
@@ -70,7 +70,7 @@ public class AuditTypeTest
         assert new Integer(77).equals(type.stringToValue("77"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_Date() throws Exception
     {
         AuditType type = new AuditType();
@@ -82,7 +82,7 @@ public class AuditTypeTest
         assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 PDT 2008"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_Entity_InvalidState() throws Exception
     {
         AuditEntityType type = new AuditEntityType(null);
@@ -98,7 +98,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_Entity_InvalidId() throws Exception
     {
         Method m = A.class.getMethod("getId");
@@ -116,7 +116,7 @@ public class AuditTypeTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_Entity() throws Exception
     {
         Method m = A.class.getMethod("getId");
