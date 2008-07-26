@@ -1,16 +1,11 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.post_insert.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.CascadeType;
-import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
 
 /**
- * Simulates real use case.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * @version <tt>$Revision$</tt>
@@ -18,8 +13,8 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "WB")
-public class WB
+@Table(name = "D")
+public class D 
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -32,10 +27,6 @@ public class WB
     private Long id;
 
     private String name;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "WA_ID")
-    private WA wa;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -59,22 +50,6 @@ public class WB
     public void setName(String name)
     {
         this.name = name;
-    }
-
-    public WA getWa()
-    {
-        return wa;
-    }
-
-    public void setWa(WA wa)
-    {
-        this.wa = wa;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "WB[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

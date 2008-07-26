@@ -1,11 +1,17 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.post_insert.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
+import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
+ * Simulates real use case.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * @version <tt>$Revision$</tt>
@@ -13,8 +19,8 @@ import javax.persistence.GeneratedValue;
  * $Id$
  */
 @Entity
-@Table(name = "D")
-public class D 
+@Table(name = "WA")
+public class WA
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -28,7 +34,15 @@ public class D
 
     private String name;
 
+    @OneToMany(mappedBy = "wa", cascade = CascadeType.ALL)
+    private List<WB> wbs;
+
     // Constructors --------------------------------------------------------------------------------
+
+    public WA()
+    {
+        wbs = new ArrayList<WB>();
+    }
 
     // Public --------------------------------------------------------------------------------------
 
@@ -50,6 +64,22 @@ public class D
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public List<WB> getWbs()
+    {
+        return wbs;
+    }
+
+    public void setWbs(List<WB> wbs)
+    {
+        this.wbs = wbs;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "WA[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

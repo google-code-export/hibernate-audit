@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.post_insert.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;

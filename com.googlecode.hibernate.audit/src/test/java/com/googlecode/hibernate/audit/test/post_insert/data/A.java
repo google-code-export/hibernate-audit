@@ -1,12 +1,9 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.post_insert.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToOne;
-import javax.persistence.CascadeType;
-import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -16,8 +13,8 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "C")
-public class C
+@Table(name = "A")
+public class A
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -31,9 +28,7 @@ public class C
 
     private String name;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "D_ID")
-    private D d;
+    private Integer age;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -59,14 +54,14 @@ public class C
         this.name = name;
     }
 
-    public D getD()
+    public Integer getAge()
     {
-        return d;
+        return age;
     }
 
-    public void setD(D d)
+    public void setAge(Integer age)
     {
-        this.d = d;
+        this.age = age;
     }
 
     // Package protected ---------------------------------------------------------------------------

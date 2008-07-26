@@ -1,13 +1,12 @@
-package com.googlecode.hibernate.audit.test.post_insert;
+package com.googlecode.hibernate.audit.test.post_insert.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
-import java.util.List;
-import java.util.ArrayList;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 
 /**
  * Simulates real use case.
@@ -19,8 +18,8 @@ import java.util.ArrayList;
  * $Id$
  */
 @Entity
-@Table(name = "WA")
-public class WA
+@Table(name = "WB")
+public class WB
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -34,15 +33,11 @@ public class WA
 
     private String name;
 
-    @OneToMany(mappedBy = "wa", cascade = CascadeType.ALL)
-    private List<WB> wbs;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "WA_ID")
+    private WA wa;
 
     // Constructors --------------------------------------------------------------------------------
-
-    public WA()
-    {
-        wbs = new ArrayList<WB>();
-    }
 
     // Public --------------------------------------------------------------------------------------
 
@@ -66,20 +61,20 @@ public class WA
         this.name = name;
     }
 
-    public List<WB> getWbs()
+    public WA getWa()
     {
-        return wbs;
+        return wa;
     }
 
-    public void setWbs(List<WB> wbs)
+    public void setWa(WA wa)
     {
-        this.wbs = wbs;
+        this.wa = wa;
     }
 
     @Override
     public String toString()
     {
-        return "WA[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
+        return "WB[" + (id == null ? "TRANSIENT" : id.toString()) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

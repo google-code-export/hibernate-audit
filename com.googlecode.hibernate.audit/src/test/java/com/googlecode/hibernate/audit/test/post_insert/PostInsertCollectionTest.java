@@ -7,6 +7,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+import com.googlecode.hibernate.audit.test.post_insert.data.WA;
+import com.googlecode.hibernate.audit.test.post_insert.data.WB;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
@@ -164,7 +166,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -237,7 +239,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -310,7 +312,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
     }
 
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddTwoInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -420,7 +422,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -568,13 +570,13 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testRemoveTwoFromCollection() throws Exception
     {
         throw new Exception("NOT YET IMPELEMENTED");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testModifyOneInCollection() throws Exception
     {
         // we'll see what exactly that means
