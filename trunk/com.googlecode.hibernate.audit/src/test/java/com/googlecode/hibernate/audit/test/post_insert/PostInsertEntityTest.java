@@ -7,6 +7,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+import com.googlecode.hibernate.audit.test.post_insert.data.C;
+import com.googlecode.hibernate.audit.test.post_insert.data.D;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
@@ -409,7 +411,6 @@ public class PostInsertEntityTest extends JTATransactionTest
             }
         }
     }
-
 
     // Package protected ---------------------------------------------------------------------------
 

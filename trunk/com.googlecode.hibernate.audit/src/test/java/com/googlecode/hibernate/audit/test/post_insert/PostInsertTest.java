@@ -9,6 +9,8 @@ import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.Formats;
+import com.googlecode.hibernate.audit.test.post_insert.data.A;
+import com.googlecode.hibernate.audit.test.post_insert.data.B;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;

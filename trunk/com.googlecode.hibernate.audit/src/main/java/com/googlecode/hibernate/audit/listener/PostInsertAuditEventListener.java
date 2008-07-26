@@ -8,6 +8,8 @@ import org.hibernate.EntityMode;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
+import org.hibernate.type.CollectionType;
+import org.hibernate.type.ManyToOneType;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEventType;
@@ -102,8 +104,8 @@ public class PostInsertAuditEventListener
             SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
             Type hibernateType = persister.getPropertyType(name);
             Class javaType = hibernateType.getReturnedClass();
-            AuditType auditType = null;
 
+            AuditType auditType = null;
             AuditEventPair pair = null;
 
             if (hibernateType.isEntityType())
@@ -135,42 +137,18 @@ public class PostInsertAuditEventListener
             }
             else if (hibernateType.isCollectionType())
             {
-                // this is the "one" side of a one-to-many relationship, and the collection
-                // contains the associated elements. Currently, we only handle the case when the
-                // relationship is implemented as a foreign key in the "many"-side of the
-                // relationship table
-
-                // figure out the member type, and store its id as "value" of the event
-                PersistentCollection pc = (PersistentCollection)value;
-                Collection userVisibleCollection = (Collection)pc.getValue();
-
-                // we figure out the type by looking at the first member of the collection
-                // this is not OK TODO: implement this correctly
-                // TODO: https://jira.novaordis.org/browse/HBA-57
-
-                Class memberClass = null;
-                EntityPersister memberPersister = null;
-
-                if (userVisibleCollection.isEmpty())
-                {
-                    // throw new IllegalStateException("empty collection " + pc);
-                    // TODO: https://jira.novaordis.org/browse/HBA-57
-                    memberClass = Object.class;
-                }
-                else
-                {
-                    Object firstMember = userVisibleCollection.iterator().next();
-                    memberClass = firstMember.getClass();
-                    // TODO Refactor this into something more palatable
-                    String entityName = session.getEntityName(firstMember);
-                    memberPersister = sf.getEntityPersister(entityName);
-                }
+                // figure out the member type and class
+                Type memberType = ((CollectionType)hibernateType).getElementType(sf);
+                Class memberClass = memberType.getReturnedClass();
+                String entityName = memberClass.getName();
+                EntityPersister memberPersister = sf.getEntityPersister(entityName);
 
                 AuditType memberAuditType = auditTransaction.getAuditType(memberClass);
                 auditType = new AuditCollectionType(memberAuditType);
 
+                Collection collection = (Collection)((PersistentCollection)value).getValue();
                 List<Long> ids = new ArrayList<Long>();
-                for(Object o: userVisibleCollection)
+                for(Object o: collection)
                 {
                     // the entity mode is a session characteristic, so using the previously determined
                     // entity mode (TODO: verify this is really true)
