@@ -85,45 +85,48 @@ public class AuditTypeTest
     @Test(enabled = true)
     public void testValueToString_Entity_InvalidState() throws Exception
     {
-        AuditEntityType type = new AuditEntityType(null);
-
-        try
-        {
-            type.valueToString("doesn't matter");
-            throw new Error("should've failed");
-        }
-        catch(IllegalStateException e)
-        {
-            log.debug(e.getMessage());
-        }
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+//        AuditEntityType type = new AuditEntityType(null);
+//
+//        try
+//        {
+//            type.valueToString("doesn't matter");
+//            throw new Error("should've failed");
+//        }
+//        catch(IllegalStateException e)
+//        {
+//            log.debug(e.getMessage());
+//        }
     }
 
     @Test(enabled = true)
     public void testValueToString_Entity_InvalidId() throws Exception
     {
-        Method m = A.class.getMethod("getId");
-        AuditEntityType type = new AuditEntityType(m.getReturnType());
-        type.setClassName(A.class.getName());
-
-        try
-        {
-            type.valueToString(new RandomType());
-            throw new Error("should've failed");
-        }
-        catch(IllegalArgumentException e)
-        {
-            log.debug(e.getMessage());
-        }
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+//        Method m = A.class.getMethod("getId");
+//        AuditEntityType type = new AuditEntityType(m.getReturnType());
+//        type.setClassName(A.class.getName());
+//
+//        try
+//        {
+//            type.valueToString(new RandomType());
+//            throw new Error("should've failed");
+//        }
+//        catch(IllegalArgumentException e)
+//        {
+//            log.debug(e.getMessage());
+//        }
     }
 
     @Test(enabled = true)
     public void testValueToString_Entity() throws Exception
     {
-        Method m = A.class.getMethod("getId");
-        AuditEntityType type = new AuditEntityType(m.getReturnType());
-        type.setClassName(A.class.getName());
-
-        assert "7777".equals(type.valueToString(new Long(7777)));
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+//        Method m = A.class.getMethod("getId");
+//        AuditEntityType type = new AuditEntityType(m.getReturnType());
+//        type.setClassName(A.class.getName());
+//
+//        assert "7777".equals(type.valueToString(new Long(7777)));
     }
 
     @Test(enabled = true)
