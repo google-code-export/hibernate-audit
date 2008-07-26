@@ -322,7 +322,9 @@ public class DeltaEngine
 
             entityExpectations.clear();
 
-            return Reflections.applyDelta(preTransactionState, transactionDelta);
+            Object copy = Reflections.deepCopy(preTransactionState);
+            Reflections.applyDelta(copy, transactionDelta);
+            return copy;
         }
         catch(Exception e)
         {

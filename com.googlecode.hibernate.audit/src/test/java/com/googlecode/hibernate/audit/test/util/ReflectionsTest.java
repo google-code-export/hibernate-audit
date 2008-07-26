@@ -3,10 +3,25 @@ package com.googlecode.hibernate.audit.test.util;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.util.Reflections;
+import com.googlecode.hibernate.audit.test.util.data.A;
+import com.googlecode.hibernate.audit.test.util.data.B;
+import com.googlecode.hibernate.audit.test.util.data.C;
+import com.googlecode.hibernate.audit.test.util.data.D;
+import com.googlecode.hibernate.audit.test.util.data.E;
+import com.googlecode.hibernate.audit.test.util.data.F1;
+import com.googlecode.hibernate.audit.test.util.data.F2;
+import com.googlecode.hibernate.audit.test.util.data.FParty;
+import com.googlecode.hibernate.audit.test.util.data.G;
+import com.googlecode.hibernate.audit.test.util.data.H;
+import com.googlecode.hibernate.audit.test.util.data.I;
+import com.googlecode.hibernate.audit.test.util.data.J;
+import com.googlecode.hibernate.audit.test.util.data.F3;
 
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -138,20 +153,236 @@ public class ReflectionsTest
     }
 
     @Test(enabled = true)
+    public void testDeepCopy_Null() throws Exception
+    {
+        assert null == Reflections.deepCopy(null);
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_NoState() throws Exception
+    {
+        G g = G.getInstance();
+        G copy = (G)Reflections.deepCopy(g);
+
+        assert copy != null;
+        assert g != copy;
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_ReferenceToImmutable() throws Exception
+    {
+        G g = G.getInstance();
+        String s = "blah";
+        g.setString(s);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        assert g != copy;
+        assert s == copy.getString();
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_ReferenceToMutable() throws Exception
+    {
+        G g = G.getInstance();
+
+        G otherG = G.getInstance();
+        otherG.setString("otherG");
+
+        g.setG(otherG);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        assert g != copy;
+
+        G otherGCopy = copy.getG();
+        assert otherG != otherGCopy;
+        assert "otherG".equals(otherGCopy.getString());
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_UntypedNullSet() throws Exception
+    {
+        G g = G.getInstance();
+        G copy = (G)Reflections.deepCopy(g);
+
+        assert copy.getStrings() == null;
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_UntypedSetOfImmutables() throws Exception
+    {
+        G g = G.getInstance();
+
+        Set strings = new HashSet();
+        strings.add("sone");
+        strings.add("stwo");
+
+        g.setStrings(strings);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        Set stringsCopy = copy.getStrings();
+        assert strings != stringsCopy;
+
+        assert 2 == stringsCopy.size();
+        assert stringsCopy.contains("sone");
+        assert stringsCopy.contains("stwo");
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_UntypedSetOfMutables() throws Exception
+    {
+        G g = G.getInstance();
+
+        Set gs = new HashSet();
+        G gone = G.getInstance();
+        gone.setString("gone");
+        G gtwo = G.getInstance();
+        gtwo.setString("gtwo");
+        gs.add(gone);
+        gs.add(gtwo);
+        g.setGs(gs);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        Set gsCopy = copy.getGs();
+        assert gs != gsCopy;
+
+        assert 2 == gsCopy.size();
+
+        for(Object o: gsCopy)
+        {
+            G gl2 = (G)o;
+
+            if ("gone".equals(gl2.getString()))
+            {
+                assert gl2 != gone;
+            }
+            else if ("gtwo".equals(gl2.getString()))
+            {
+                assert gl2 != gtwo;
+            }
+            else
+            {
+                throw new Error("did not expect " + gl2);
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_TypedSetOfImmutables() throws Exception
+    {
+        G g = G.getInstance();
+
+        Set<String> typedStrings = new HashSet<String>();
+        typedStrings.add("sone");
+        typedStrings.add("stwo");
+
+        g.setTypedStrings(typedStrings);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        Set<String> typedStringsCopy = copy.getTypedStrings();
+        assert typedStrings != typedStringsCopy;
+
+        assert 2 == typedStringsCopy.size();
+        assert typedStringsCopy.contains("sone");
+        assert typedStringsCopy.contains("stwo");
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_TypedSetOfMutables() throws Exception
+    {
+        G g = G.getInstance();
+
+        Set<G> typedGs = new HashSet<G>();
+        G gone = G.getInstance();
+        gone.setString("gone");
+        G gtwo = G.getInstance();
+        gtwo.setString("gtwo");
+        typedGs.add(gone);
+        typedGs.add(gtwo);
+        g.setTypedGs(typedGs);
+
+        G copy = (G)Reflections.deepCopy(g);
+
+        Set<G> typedGsCopy = copy.getTypedGs();
+        assert typedGs != typedGsCopy;
+
+        assert 2 == typedGsCopy.size();
+
+        for(G gl2: typedGsCopy)
+        {
+            if ("gone".equals(gl2.getString()))
+            {
+                assert gl2 != gone;
+            }
+            else if ("gtwo".equals(gl2.getString()))
+            {
+                assert gl2 != gtwo;
+            }
+            else
+            {
+                throw new Error("did not expect " + gl2);
+            }
+        }
+    }
+
+    @Test(enabled = true)
     public void testApplyDelta() throws Exception
     {
         A base = new A();
 
         A delta = new A();
+
         delta.setS("delta");
         delta.setI(7);
-        delta.setB(new B("ben"));
         delta.setBo(true);
 
-        A result = (A)Reflections.applyDelta(base, delta);
+        B b = new B("ben");
+        delta.setB(b);
 
-        assert result != base;
-        assert result != delta;
+        B b1 = new B("bob");
+        B b2 = new B("bill");
+        List<B> bs = new ArrayList<B>();
+        bs.add(b1);
+        bs.add(b2);
+        delta.setBs(bs);
+
+        Reflections.applyDelta(base, delta);
+
+        assert base != delta;
+
+        assert "delta".equals(base.getS());
+        assert new Integer(7).equals(base.getI());
+        assert base.isBo();
+
+        B bCopy = base.getB();
+
+        assert b != bCopy;
+        assert "ben".equals(bCopy.getS());
+
+        List<B> bsresult = base.getBs();
+        assert bsresult != bs;
+
+        assert 2 == bsresult.size();
+
+        for(B bl2: bsresult)
+        {
+            if ("bob".equals(bl2.getS()))
+            {
+                assert b1 != bl2;
+            }
+            else if ("bill".equals(bl2.getS()))
+            {
+                assert b2 != bl2;
+            }
+            else
+            {
+                throw new Error("unexpected " + bl2);
+            }
+        }
     }
 
     @Test(enabled = true)
@@ -165,13 +396,9 @@ public class ReflectionsTest
         delta.setB(b);
 
         A base = new A();
-        A result = (A)Reflections.applyDelta(base, delta);
+        Reflections.applyDelta(base, delta);
 
-        assert result != base;
-        assert result != delta;
-
-        // TODO https://jira.novaordis.org/browse/HBA-55
-        assert result.getB().getA() == result;
+        assert base.getB().getA() == base;
     }
 
     @Test(enabled = true)
@@ -185,21 +412,307 @@ public class ReflectionsTest
         delta.setC(c);
 
         A base = new A();
-        A result = (A)Reflections.applyDelta(base, delta);
+        Reflections.applyDelta(base, delta);
 
-        assert result != base;
-        assert result != delta;
+        assert "anna".equals(base.getS());
 
-        assert "anna".equals(result.getS());
+        C cResult = base.getC();
 
-        C cResult = result.getC();
+        assert c != cResult;
+
         assert "cami".equals(cResult.getS());
 
         List<A> as = cResult.getAs();
         assert as.size() == 1;
 
-        // TODO https://jira.novaordis.org/browse/HBA-55
-        assert result == as.get(0);
+        assert base == as.get(0);
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_DeltaContainsReferenceToItself_MultipleLevels() throws Exception
+    {
+        H h = new H();
+        I i = new I();
+        h.setI(i);
+        J j = new J();
+        i.setJ(j);
+        j.setH(h);
+
+
+        H base = new H();
+        Reflections.applyDelta(base, h);
+
+        I i2 = base.getI();
+        assert i != i2;
+
+        J j2 = i2.getJ();
+        assert j != j2;
+
+        H h2 = j2.getH();
+        assert base == h2;
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedEmptyCollectionWithAddMethod() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F1 delta = new F1();
+
+        Collection ucstrings = delta.getUcstrings();
+
+        try
+        {
+            ucstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F1 base = new F1();
+        base.addUcstring("blah");
+        assert 1 == base.getUcstrings().size();
+
+        Reflections.applyDelta(base, delta);
+
+        Collection c = base.getUcstrings();
+        assert c.isEmpty();
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedCollectionWithAddMethod_OneMember() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F1 delta = new F1();
+
+        Collection ucstrings = delta.getUcstrings();
+
+        try
+        {
+            ucstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F1 base = new F1();
+        assert base.getUcstrings().isEmpty();
+
+        delta.addUcstring("something");
+
+        Reflections.applyDelta(base, delta);
+
+        Collection c = base.getUcstrings();
+        assert 1 == c.size();
+        assert c.contains("something");
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedCollectionWithAddMethod_HeterogeneousCollection()
+        throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F1 delta = new F1();
+
+        Collection ucstrings = delta.getUcstrings();
+
+        try
+        {
+            ucstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F1 base = new F1();
+        assert base.getUcstrings().isEmpty();
+
+        delta.addUcstring("something");
+
+        // we cheat for the sake of the test
+        delta.genericAdd(new Integer(7));
+
+        try
+        {
+            Reflections.applyDelta(base, delta);
+            throw new Error("should've failed");
+        }
+        catch(IllegalArgumentException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedEmptySetWithAddMethod() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F2 delta = new F2();
+
+        Set usstrings = delta.getUsstrings();
+
+        try
+        {
+            usstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F2 base = new F2();
+        base.addUsstring("blah");
+        assert 1 == base.getUsstrings().size();
+        assert delta.getUsstrings().isEmpty();
+
+        Reflections.applyDelta(base, delta);
+
+        Collection c = base.getUsstrings();
+        assert c.isEmpty();
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedSetWithAddMethod_OneMember() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F2 delta = new F2();
+
+        Set usstrings = delta.getUsstrings();
+
+        try
+        {
+            usstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F2 base = new F2();
+        assert base.getUsstrings().isEmpty();
+
+        delta.addUsstring("something");
+
+        Reflections.applyDelta(base, delta);
+
+        Set s = base.getUsstrings();
+        assert 1 == s.size();
+        assert s.contains("something");
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableUntypedSetWithAddMethod_HeterogeneousCollection()
+        throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F2 delta = new F2();
+
+        Set usstrings = delta.getUsstrings();
+
+        try
+        {
+            usstrings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F2 base = new F2();
+        assert base.getUsstrings().isEmpty();
+
+        delta.addUsstring("something");
+
+        // we cheat for the sake of the test
+        delta.genericAdd(new Integer(7));
+
+        try
+        {
+            Reflections.applyDelta(base, delta);
+            throw new Error("should've failed");
+        }
+        catch(IllegalArgumentException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableCollectionWithAddMethod_Empty() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F3 delta = new F3();
+
+        Set<String> strings = delta.getStrings();
+
+        try
+        {
+            strings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        F3 base = new F3();
+        base.addString("blah");
+
+        Reflections.applyDelta(base, delta);
+
+        strings = base.getStrings();
+        assert strings.isEmpty();
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_ImmutableCollectionWithAddMethod() throws Exception
+    {
+        // first make sure the collection is immutable
+
+        F3 delta = new F3();
+
+        Set<String> strings = delta.getStrings();
+
+        try
+        {
+            strings.add("blah");
+            throw new Error("should've failed");
+        }
+        catch(UnsupportedOperationException e)
+        {
+            // ok
+        }
+
+        delta.addString("alice");
+        delta.addString("bob");
+
+        F3 base = new F3();
+
+        Reflections.applyDelta(base, delta);
+
+        Set<String> stringsCopy = base.getStrings();
+
+        assert strings != stringsCopy;
+
+        assert 2 == strings.size();
+
+        assert strings.contains("alice");
+        assert strings.contains("bob");
     }
 
     // Package protected ---------------------------------------------------------------------------
