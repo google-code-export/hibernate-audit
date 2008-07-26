@@ -1,13 +1,11 @@
-package com.googlecode.hibernate.audit.test.util;
-
-import java.util.List;
+package com.googlecode.hibernate.audit.test.util.data;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class A 
+public class FParty
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -16,80 +14,61 @@ public class A
     // Attributes ----------------------------------------------------------------------------------
 
     private String s;
-    private Integer i;
-    private B b;
-    private Boolean bo;
-
-    private List<B> bs;
-
-    private C c;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
+    public FParty()
     {
     }
 
-    // Public --------------------------------------------------------------------------------------
-
-    public void setS(String s)
+    public FParty(String s)
     {
         this.s = s;
     }
+
+    // Public --------------------------------------------------------------------------------------
 
     public String getS()
     {
         return s;
     }
 
-    public void setI(Integer i)
+    public void setS(String s)
     {
-        this.i = i;
+        this.s = s;
     }
 
-    public Integer getI()
+    @Override
+    public boolean equals(Object o)
     {
-        return i;
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (s == null)
+        {
+            return false;
+        }
+
+        if (!(o instanceof FParty))
+        {
+            return false;
+        }
+
+        FParty that = (FParty)o;
+
+        return this.s.equals(that.s);
     }
 
-    public void setB(B b)
+    @Override
+    public int hashCode()
     {
-        this.b = b;
-    }
+        int result = 17;
 
-    public B getB()
-    {
-        return b;
-    }
+        result = result * 37 + (s == null ? 0 : s.hashCode());
 
-    public void setBo(Boolean b)
-    {
-        this.bo = b;
-    }
-
-    public Boolean isBo()
-    {
-        return bo;
-    }
-
-    public List<B> getBs()
-    {
-        return bs;
-    }
-
-    public void setBs(List<B> bs)
-    {
-        this.bs = bs;
-    }
-
-    public C getC()
-    {
-        return c;
-    }
-
-    public void setC(C c)
-    {
-        this.c = c;
+        return result;
     }
 
     // Package protected ---------------------------------------------------------------------------

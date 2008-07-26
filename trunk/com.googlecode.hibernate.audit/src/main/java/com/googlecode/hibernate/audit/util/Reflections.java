@@ -6,8 +6,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -203,9 +207,23 @@ public class Reflections
     }
 
     /**
-     * TODO: inefficient and incomplete, needs tests
+     * Mutates the base, by applying all changes represented by delta.
      */
-    public static Object applyDelta(Object base, Object delta) throws Exception
+    public static void applyDelta(Object base, Object delta) throws Exception
+    {
+        List<Node> seenInstances = new ArrayList<Node>();
+        seenInstances.add(new Node(delta, base));
+        applyDelta(base, delta, seenInstances);
+    }
+
+    /**
+     * @param seenInstances - a list of instances passed along stack frames for recursive calls,
+     *        containing instances which are candidates for circular references, thus needing to be
+     *        copied by reference, even if they're mutable, to maintain referential integrity. May
+     *        be null.
+     */
+    public static void applyDelta(Object base, Object delta, List<Node> seenInstances)
+        throws Exception
     {
         Class c = base.getClass();
         if (!c.isInstance(delta))
@@ -213,74 +231,249 @@ public class Reflections
             throw new IllegalArgumentException(base + " and " + delta + " have different types");
         }
 
-        Object baseCopy = deepCopy(base);
+        outer: for(Method getter: c.getMethods())
+        {
+            if (Modifier.isStatic(getter.getModifiers()))
+            {
+                // ignoring static methods
+                continue;
+            }
+            
+            String name = getter.getName();
 
-        // TODO HBA-58
-        // copying as is implemented here doesn't work for immutable collections that expose
-        // access as add...(...) methods, so commenting out temporarily, but in need to return
-        // here
-        
-        baseCopy = delta;
+            int prefixLength;
 
-//        for(Method m: c.getMethods())
-//        {
-//            String name = m.getName();
-//
-//            if (!name.startsWith("set"))
-//            {
-//                continue;
-//            }
-//
-//            name = name.substring(3);
-//
-//            String getterName = "get" + name;
-//
-//            Method getter = null;
-//
-//            try
-//            {
-//                getter = c.getMethod(getterName);
-//            }
-//            catch(Exception e)
-//            {
-//                // ok, keep trying
-//            }
-//
-//            if (getter == null)
-//            {
-//                getterName = "is" + name;
-//
-//                try
-//                {
-//                    getter = c.getMethod(getterName);
-//                }
-//                catch(Exception e)
-//                {
-//                    // ok, keep trying
-//                }
-//            }
-//
-//            if (getter == null)
-//            {
-//                throw new NoSuchMethodException(
-//                    "cannot find set...() or is...() accessor for " + name);
-//            }
-//
-//            Object d = getter.invoke(delta);
-//            m.invoke(baseCopy, d);
-//        }
+            if (name.startsWith("get") && !"getClass".equals(name))
+            {
+                prefixLength = 3;
+            }
+            else if (name.startsWith("is"))
+            {
+                prefixLength = 2;
+            }
+            else
+            {
+                // not a getter, ignoring
+                continue;
+            }
 
-        return baseCopy;
+            String attributeName = name.substring(prefixLength);
+            Type attributeType = getter.getGenericReturnType();
+
+            Method setter = null;
+            String setterName = "set" + attributeName;
+            for(Method sm: c.getMethods())
+            {
+                if (Modifier.isStatic(sm.getModifiers()))
+                {
+                    continue;
+                }
+
+                Type[] params = sm.getGenericParameterTypes();
+
+                if (sm.getName().equals(setterName) &&
+                    params.length == 1 &&
+                    attributeType.equals(params[0]))
+                {
+                    setter = sm;
+                    break;
+                }
+            }
+
+            if (setter != null)
+            {
+                Object deltaPiece = getter.invoke(delta);
+
+                for(Node seen: seenInstances)
+                {
+                    if (seen.isSameInstance(deltaPiece))
+                    {
+                        // maintaining referential integrity
+                        setter.invoke(base, seen.getValidReference());
+                        continue outer;
+                    }
+                }
+
+                if (isMutable(deltaPiece))
+                {
+                    deltaPiece = deepCopy(deltaPiece, seenInstances);
+                }
+
+                setter.invoke(base, deltaPiece);
+                continue;
+            }
+
+            Method adder = null;
+            Class collectionClass = null;
+            Class memberClass = null;
+
+            if (attributeType instanceof ParameterizedType)
+            {
+                Type rawType = ((ParameterizedType)attributeType).getRawType();
+
+                if (!(rawType instanceof Class))
+                {
+                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                }
+
+                Class rawClass = (Class)rawType;
+
+                if (Collection.class.isAssignableFrom(rawClass))
+                {
+                    collectionClass = rawClass;
+                    Type[] actualTypes = ((ParameterizedType)attributeType).getActualTypeArguments();
+
+                    if (actualTypes.length == 0)
+                    {
+                        throw new IllegalStateException("no actual types");
+                    }
+                    else if (actualTypes.length > 1 || !(actualTypes[0] instanceof Class))
+                    {
+                        log.error("actualTypes: " + actualTypes);
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                    }
+
+                    memberClass = (Class)actualTypes[0];
+                }
+            }
+            else if (attributeType instanceof Class &&
+                     Collection.class.isAssignableFrom((Class)attributeType))
+            {
+                collectionClass = (Class)attributeType;
+            }
+            else
+            {
+                log.error("attributeType: " + attributeType);
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+            }
+
+            if (collectionClass != null && attributeName.endsWith("s"))
+            {
+                // special case for immutable collections that allow "add...(...)"
+
+                Collection members = (Collection)getter.invoke(delta);;
+
+                if (memberClass == null)
+                {
+                    // we need to figure out the member type by just looking at the collection
+
+                    if (members.isEmpty())
+                    {
+                        // the collection is empty, so we need to empty out the corresponding
+                        // collection on base
+                        // TODO we can do that either using remove(), or getting a hold on the
+                        //      modifiable collection, etc.
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                    }
+
+                    // we make sure the collection is homogeneous
+                    for(Object o: members)
+                    {
+                        if (memberClass == null)
+                        {
+                            memberClass = o.getClass();
+                            continue;
+                        }
+
+                        if (!memberClass.equals(o.getClass()))
+                        {
+                            throw new IllegalArgumentException(
+                                "heterogeneous collection: " + memberClass.getName() + ", " +
+                                o.getClass().getName());
+                        }
+                    }
+                }
+
+                String adderName = "add" + attributeName.substring(0, attributeName.length() - 1);
+
+                try
+                {
+                    adder = c.getMethod(adderName, memberClass);
+                }
+                catch(Exception e)
+                {
+                    // ok
+                }
+
+                if (adder != null)
+                {
+                    // loop over the collection and add members one by one
+                    for(Iterator i = members.iterator(); i.hasNext(); )
+                    {
+                        Object member = i.next();
+                        adder.invoke(base, member);
+                    }
+
+                    continue;
+                }
+            }
+
+            // if we reach this point, it means we didn't find an appropriate mutator
+            throw new NoSuchMethodException(
+                "cannot find set...() or add...() mutator corresponding to accessor " + name + "()");
+        }
     }
 
     /**
-     * TODO totally incomplete, needs proper implementation and tests
+     * Performs a deep copy of the object, making copies for mutable instances and just linking to
+     * immutable instances. If in doubt, it makes a copy.
      */
     public static Object deepCopy(Object o) throws Exception
     {
-        Class c = o.getClass();
+        return deepCopy(o, new ArrayList<Node>());
+    }
 
-        return instantiateOverridingAccessibility(c);
+    /**
+     * @param seenInstances - a list of instances passed along stack frames for recursive calls,
+     *        containing instances which are candidates for circular references, thus needing to be
+     *        copied by reference, even if they're mutable, to maintain referential integrity. Never
+     *        null.
+     */
+    private static Object deepCopy(Object o, List<Node> seenInstances) throws Exception
+    {
+        if (o == null)
+        {
+            return null;
+        }
+
+        Object copy = instantiateOverridingAccessibility(o.getClass());
+
+        if (o instanceof Collection)
+        {
+            Collection c = (Collection)copy;
+            for(Object member: (Collection)o)
+            {
+                if(isMutable(member))
+                {
+                    boolean hasBeenSeen = false;
+                    for(Node seen: seenInstances)
+                    {
+                        if (seen.isSameInstance(member))
+                        {
+                            // use the reference, don't make a deep copy of this guy
+                            member = seen.getValidReference();
+                            hasBeenSeen = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasBeenSeen)
+                    {
+                        member = deepCopy(member, seenInstances);
+                    }
+                }
+
+                c.add(member);
+            }
+
+            return c;
+        }
+
+        // TODO deepCopy() for arrays https://jira.novaordis.org/browse/HBA-67
+
+        applyDelta(copy, o, seenInstances);
+
+        return copy;
     }
 
     public static Object instantiateOverridingAccessibility(Class c) throws Exception
@@ -296,6 +489,26 @@ public class Reflections
         return constructor.newInstance();
     }
 
+    public static boolean isMutable(Object o)
+    {
+        if (o == null)
+        {
+            return false;
+        }
+
+        Class c = o.getClass();
+
+        if (String.class.equals(c) ||
+            Integer.class.equals(c) ||
+            Long.class.equals(c) ||
+            Boolean.class.equals(c))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
@@ -309,4 +522,31 @@ public class Reflections
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private static class Node
+    {
+        private Object active;
+        private Object future;
+
+        Node(Object active, Object future)
+        {
+            this.active = active;
+            this.future = future;
+        }
+
+        Object getValidReference()
+        {
+            if (future != null)
+            {
+                return future;
+            }
+
+            return active;
+        }
+
+        boolean isSameInstance(Object instance)
+        {
+            return active == instance;
+        }
+    }
 }

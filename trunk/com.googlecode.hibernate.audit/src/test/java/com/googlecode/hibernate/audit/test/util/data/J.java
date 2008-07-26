@@ -1,23 +1,37 @@
-package com.googlecode.hibernate.audit.test.util;
-
-import com.googlecode.hibernate.audit.test.util.data.B;
+package com.googlecode.hibernate.audit.test.util.data;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
+ * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class SubB extends B {
+public class J
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private H h;
+
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
+
+    public H getH()
+    {
+        return h;
+    }
+
+    public void setH(H h)
+    {
+        this.h = h;
+    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -26,5 +40,4 @@ public class SubB extends B {
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

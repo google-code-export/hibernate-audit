@@ -1,23 +1,59 @@
-package com.googlecode.hibernate.audit.test.util;
+package com.googlecode.hibernate.audit.test.util.data;
 
-import com.googlecode.hibernate.audit.test.util.data.B;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
- *
  */
-public class SubB extends B {
+public class C
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String s;
+
+    private List<A> as;
+
     // Constructors --------------------------------------------------------------------------------
 
+    public C()
+    {
+        as = new ArrayList<A>();
+    }
+
+    public C(String s)
+    {
+        this();
+        this.s = s;
+    }
+
     // Public --------------------------------------------------------------------------------------
+
+    public String getS()
+    {
+        return s;
+    }
+
+    public void setS(String s)
+    {
+        this.s = s;
+    }
+
+    public List<A> getAs()
+    {
+        return as;
+    }
+
+    public void setAs(List<A> as)
+    {
+        this.as = as;
+    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -26,5 +62,4 @@ public class SubB extends B {
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

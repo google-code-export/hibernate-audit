@@ -1,11 +1,14 @@
-package com.googlecode.hibernate.audit.test.util;
+package com.googlecode.hibernate.audit.test.util.data;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class E
+public class D
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,15 +18,15 @@ public class E
 
     private String s;
 
+    private List<E> es;
+    private List<FParty> fParties;
+
     // Constructors --------------------------------------------------------------------------------
 
-    public E()
+    public D()
     {
-    }
-
-    E(String s)
-    {
-        this.s = s;
+        es = new ArrayList<E>();
+        fParties = new ArrayList<FParty>();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -38,38 +41,30 @@ public class E
         this.s = s;
     }
 
-    @Override
-    public boolean equals(Object o)
+    public List<E> getEs()
     {
-        if (this == o)
-        {
-            return true;
-        }
-
-        if (s == null)
-        {
-            return false;
-        }
-
-        if (!(o instanceof E))
-        {
-            return false;
-        }
-
-        E that = (E)o;
-
-        return this.s.equals(that.s);
+        return es;
     }
 
-    @Override
-    public int hashCode()
+    // NO setEs() method
+
+    public void addE(E e)
     {
-        int result = 17;
-
-        result = result * 37 + (s == null ? 0 : s.hashCode());
-
-        return result;
+        getEs().add(e);
     }
+
+    public List<FParty> getFParties()
+    {
+        return fParties;
+    }
+
+    // NO setEs() method
+
+    public void addFParty(FParty f)
+    {
+        getFParties().add(f);
+    }
+
 
     // Package protected ---------------------------------------------------------------------------
 

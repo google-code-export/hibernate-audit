@@ -1,14 +1,15 @@
-package com.googlecode.hibernate.audit.test.util;
+package com.googlecode.hibernate.audit.test.util.data;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Collections;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class D
+public class F1
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -16,55 +17,37 @@ public class D
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private String s;
-
-    private List<E> es;
-    private List<FParty> fParties;
+    private Collection ucstrings;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public D()
+    public F1()
     {
-        es = new ArrayList<E>();
-        fParties = new ArrayList<FParty>();
+        this.ucstrings = new HashSet();
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public String getS()
+    /**
+     * @return an immutable collection.
+     */
+    public Collection getUcstrings()
     {
-        return s;
+        return Collections.unmodifiableCollection(ucstrings);
     }
 
-    public void setS(String s)
+    public void addUcstring(String s)
     {
-        this.s = s;
+        ucstrings.add(s);
     }
 
-    public List<E> getEs()
+    /**
+     * WE cheat for the sake of the test.
+     */
+    public void genericAdd(Object o)
     {
-        return es;
+        ucstrings.add(o);
     }
-
-    // NO setEs() method
-
-    public void addE(E e)
-    {
-        getEs().add(e);
-    }
-
-    public List<FParty> getFParties()
-    {
-        return fParties;
-    }
-
-    // NO setEs() method
-
-    public void addFParty(FParty f)
-    {
-        getFParties().add(f);
-    }
-
 
     // Package protected ---------------------------------------------------------------------------
 

@@ -1,14 +1,15 @@
-package com.googlecode.hibernate.audit.test.util;
+package com.googlecode.hibernate.audit.test.util.data;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-public class C
+public class F2
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -16,43 +17,36 @@ public class C
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private String s;
-
-    private List<A> as;
+    private Set usstrings;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public C()
+    public F2()
     {
-        as = new ArrayList<A>();
-    }
-
-    C(String s)
-    {
-        this();
-        this.s = s;
+        this.usstrings = new HashSet();
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public String getS()
+    /**
+     * @return an immutable collection.
+     */
+    public Set getUsstrings()
     {
-        return s;
+        return Collections.unmodifiableSet(usstrings);
     }
 
-    public void setS(String s)
+    public void addUsstring(String s)
     {
-        this.s = s;
+        usstrings.add(s);
     }
 
-    public List<A> getAs()
+    /**
+     * WE cheat for the sake of the test.
+     */
+    public void genericAdd(Object o)
     {
-        return as;
-    }
-
-    public void setAs(List<A> as)
-    {
-        this.as = as;
+        usstrings.add(o);
     }
 
     // Package protected ---------------------------------------------------------------------------
