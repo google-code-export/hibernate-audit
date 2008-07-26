@@ -288,18 +288,36 @@ public class AuditTransaction implements Synchronization
 
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
-     *
-     * Returns the corresponding AuditType, making a database insert if necessary.
      */
     public AuditType getAuditType(Class c)
     {
-        Query q = session.createQuery("from AuditType as a where a.className = :className");
-        q.setString("className", c.getName());
+        return getAuditType(null, c);
+    }
+
+    /**
+     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     *
+     * Returns the corresponding AuditType (AuditCollectionType, AuditEntityType, etc), making a
+     * database insert if the underlying class (or classes) were not persised in the database yet.
+     */
+    public AuditType getAuditType(Class collectionClass, Class actualClass)
+    {
+        String qs =
+            "from AuditType as a where " + 
+            "a.collectionClassName  = :collectionClassName and " +
+            "a.className = :className";
+
+        Query q = session.createQuery(qs);
+
+        q.setString("collectionClassName",
+                    collectionClass == null ? null : collectionClass.getName());
+        q.setString("className", actualClass.getName());
+
         AuditType persistedType = (AuditType)q.uniqueResult();
 
         if (persistedType == null)
         {
-            persistedType = new AuditType(c);
+            persistedType = AuditType.createInstance(collectionClass, actualClass);
             session.insert(persistedType);
         }
 

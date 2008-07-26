@@ -12,6 +12,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Transient;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.DiscriminatorValue;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Collection;
@@ -33,7 +36,9 @@ import java.io.Serializable;
 @Table(name = "AUDIT_CLASS")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_ID_SEQUENCE")
-public class AuditType 
+@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.CHAR)
+@DiscriminatorValue("P")
+public class AuditType
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -44,6 +49,21 @@ public class AuditType
 
     // Static --------------------------------------------------------------------------------------
 
+    /**
+     * Creates detached instances.
+     *
+     * @param collectionClass may be null.
+     */
+    public static AuditType createInstance(Class collectionClass, Class actualClass)
+    {
+        if (collectionClass != null)
+        {
+            return new AuditCollectionType(collectionClass, actualClass);
+
+        }
+        return null;
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
@@ -51,7 +71,7 @@ public class AuditType
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "CLASS_NAME", unique=true)
+    @Column(name = "CLASS_NAME")
     private String className;
 
     @Column(name = "LABEL")
@@ -92,10 +112,6 @@ public class AuditType
         return className;
     }
 
-    /**
-     * @exception IllegalArgumentException if the class name cannot be converted to a type known
-     *            to the VM.
-     */
     public void setClassName(String className)
     {
         this.className = className;
@@ -128,7 +144,7 @@ public class AuditType
         }
         catch(ClassNotFoundException e)
         {
-            throw new IllegalArgumentException("cannot resolve type " + className, e);
+            throw new IllegalArgumentException("cannot resolve class " + className, e);
         }
 
         return c;
@@ -281,7 +297,7 @@ public class AuditType
     @Override
     public String toString()
     {
-        return "Type[" + (id == null ? "TRANSIENT" : id) + "][" + className + "]";
+        return "PrimitiveType[" + (id == null ? "TRANSIENT" : id) + "][" + className + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

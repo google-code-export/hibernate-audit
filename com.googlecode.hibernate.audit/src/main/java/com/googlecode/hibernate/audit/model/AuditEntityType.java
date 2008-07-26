@@ -2,12 +2,10 @@ package com.googlecode.hibernate.audit.model;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
+import javax.persistence.DiscriminatorValue;
 import java.io.Serializable;
 
 /**
- * This subclass only adds behavior, not state, so we don't need to employ any inheritance mapping
- * strategies, this class doesn not exist from the persistence point of view.
- *
  * @see AuditType
  * @see AuditCollectionType
  *
@@ -20,6 +18,7 @@ import java.io.Serializable;
  * $Id$
  */
 @Entity
+@DiscriminatorValue("E")
 public class AuditEntityType extends AuditType
 {
     // Constants -----------------------------------------------------------------------------------
@@ -47,7 +46,7 @@ public class AuditEntityType extends AuditType
      *
      * @param idClass - the type of the entity id.
      */
-    public AuditEntityType(Class idClass)
+    public AuditEntityType(Class idClass, Class entityClass)
     {
         this.idClass = idClass;
     }
@@ -104,8 +103,9 @@ public class AuditEntityType extends AuditType
         }
 
         // TODO this should be handled statically, I won't have to need to create a new instance
-        AuditType tool = new AuditType(idClass);
-        return tool.valueToString(o);
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+        //AuditType tool = new AuditEntityType(idClass);
+        //return tool.valueToString(o);
     }
 
     /**
@@ -125,6 +125,13 @@ public class AuditEntityType extends AuditType
         {
             throw new RuntimeException("NOT YET IMPLEMENTED");
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "EntityType[" +
+               (getId() == null ? "TRANSIENT" : getId()) + "][" + getClassName() + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

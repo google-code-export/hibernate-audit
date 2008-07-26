@@ -9,7 +9,6 @@ import org.hibernate.collection.PersistentCollection;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
-import org.hibernate.type.ManyToOneType;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEventType;
@@ -18,8 +17,8 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
-import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
+import com.googlecode.hibernate.audit.util.Hibernate;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -64,8 +63,7 @@ public class PostInsertAuditEventListener
 
         log.debug(this + " handles " + entityClassName + "[" + id + "]");
 
-        AuditType at = new AuditType();
-        at.setClassName(entityClassName);
+        AuditType at = new AuditEntityType(id.getClass(), entity.getClass());
 
         // TODO currently we only support Long as ids, we may need to generalize this
         if (!(id instanceof Long))
@@ -117,7 +115,7 @@ public class PostInsertAuditEventListener
 
 
                 Class idClass = sf.getIdentifierType(javaType.getName()).getReturnedClass();
-                auditType = new AuditEntityType(idClass);
+                auditType = new AuditEntityType(idClass, javaType);
 
                 if (value == null)
                 {
@@ -138,28 +136,27 @@ public class PostInsertAuditEventListener
             else if (hibernateType.isCollectionType())
             {
                 // figure out the member type and class
-                Type memberType = ((CollectionType)hibernateType).getElementType(sf);
+                CollectionType collectionType = (CollectionType)hibernateType;
+                Type memberType = collectionType.getElementType(sf);
                 Class memberClass = memberType.getReturnedClass();
+                Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
+
+                auditType = auditTransaction.getAuditType(collectionClass, memberClass);
+
                 String entityName = memberClass.getName();
                 EntityPersister memberPersister = sf.getEntityPersister(entityName);
-
-                AuditType memberAuditType = auditTransaction.getAuditType(memberClass);
-                auditType = new AuditCollectionType(memberAuditType);
-
                 Collection collection = (Collection)((PersistentCollection)value).getValue();
                 List<Long> ids = new ArrayList<Long>();
                 for(Object o: collection)
                 {
-                    // the entity mode is a session characteristic, so using the previously determined
-                    // entity mode (TODO: verify this is really true)
+                    // the entity mode is a session characteristic, so using the previously
+                    // determined entity mode (TODO: verify this is really true)
                     Long mid  = (Long)memberPersister.getIdentifier(o, mode);
                     ids.add(mid);
-
                 }
 
-                AuditEventCollectionPair cp = new AuditEventCollectionPair();
-                cp.setIds(ids);
-                pair = cp;
+                pair = new AuditEventCollectionPair();
+                ((AuditEventCollectionPair)pair).setIds(ids);
                 value = null;
             }
             else
