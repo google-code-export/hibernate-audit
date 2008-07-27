@@ -3,15 +3,18 @@
 # CREATE DDL
 #
 
-#DEBUG_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=mvn2"
+#DEBUG_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=mvn6"
 
 . .testrc
 
 MAVEN_REPOSITORY="C:/Documents and Settings/ofeodoro/.m2/repository";
 
+# this doesn't work because of ${hibernate.dialect} in the original hibernate-jta.cfg.xml
+#../com.googlecode.hibernate.audit/src/test/resources;\
+
 CP="\
 .;\
-../com.googlecode.hibernate.audit/target/hba-1.0.0.Alpha4.jar;\
+../com.googlecode.hibernate.audit/target/hba-1.0.0.Alpha5.jar;\
 $MAVEN_REPOSITORY\log4j\log4j\1.2.14\log4j-1.2.14.jar;\
 $MAVEN_REPOSITORY\org\hibernate\hibernate\3.2.6.ga\hibernate-3.2.6.ga.jar;\
 $MAVEN_REPOSITORY\org\hibernate\hibernate-annotations\3.3.0.ga\hibernate-annotations-3.3.0.ga.jar;\
@@ -26,7 +29,7 @@ $MAVEN_REPOSITORY\..\javax\transaction\jta\1.0.1B\jta-1.0.1B.jar"
 
 JAVA_OPTS="-Dhibernate.dialect=$DIALECT -Dhibernate.connection.driver_class=$DRIVER_CLASS -Dhibernate.connection.url=${CONNECTION_URL} -Dhibernate.connection.username=$CONNECTION_USERNAME -Dhibernate.connection.password=$CONNECTION_PASSWORD"
 
-java -ea $DEBUG_OPTS $JAVA_OPTS -cp "$CP" com.googlecode.hibernate.audit.util.DDL $1
+java -ea $DEBUG_OPTS $JAVA_OPTS -cp "$CP" com.googlecode.hibernate.audit.util.DDL $@
 
 
 
