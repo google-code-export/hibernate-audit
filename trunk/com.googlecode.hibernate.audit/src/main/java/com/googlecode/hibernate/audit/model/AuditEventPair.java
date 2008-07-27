@@ -108,6 +108,11 @@ public class AuditEventPair
         return stringValue;
     }
 
+    public boolean isCollection()
+    {
+        return false;
+    }
+
     @Override
     public String toString()
     {

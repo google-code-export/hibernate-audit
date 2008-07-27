@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.model;
+package com.googlecode.hibernate.audit.test.model.data;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>

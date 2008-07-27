@@ -15,6 +15,8 @@ import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
+import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 
 import java.util.Arrays;
 import java.util.List;
@@ -104,13 +106,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
                         collectionMemberTypeId = type.getId();
                     }
                 }
+                else if (type.isCollectionType())
+                {
+                    AuditCollectionType ct = (AuditCollectionType)type;
+                    assert List.class.equals(ct.getCollectionClassInstance());
+                    assert WB.class.equals(ct.getClassInstance());
+                }
                 else if (String.class.equals(type.getClassInstance()))
                 {
                     // ok
-                }
-                else if (Collection.class.equals(type.getClassInstance()))
-                {
-                    // temporary ok
                 }
                 else
                 {
@@ -139,16 +143,28 @@ public class PostInsertCollectionTest extends JTATransactionTest
             List<String> expectedStringValues = new ArrayList<String>(Arrays.
                 asList(wa.getName(),
                        wb.getName(),
-                       Long.toString(collectionMemberTypeId),
                        Long.toString(wa.getId()))); // the WA's id as a foreign key in WB's table.
 
             for(Object o: pairs)
             {
                 AuditEventPair pair = (AuditEventPair)o;
 
-                // TODO we're not testing pair.getValue() because at this time is not implemented
-                assert expectedStringValues.remove(pair.getStringValue());
+                if (pair.isCollection())
+                {
+                    AuditEventCollectionPair cp = (AuditEventCollectionPair)pair;
+                    List<Long> ids = cp.getIds();
+
+                    assert 1 == ids.size();
+                    assert ids.remove(wb.getId());
+                }
+                else
+                {
+                    // TODO we're not testing pair.getValue() because at this time is not implemented
+                    assert expectedStringValues.remove(pair.getStringValue());
+                }
             }
+
+            assert expectedStringValues.isEmpty();
 
             HibernateAudit.disable();
         }
@@ -238,6 +254,8 @@ public class PostInsertCollectionTest extends JTATransactionTest
             }
         }
     }
+
+
 
     @Test(enabled = false)
     public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
@@ -421,6 +439,13 @@ public class PostInsertCollectionTest extends JTATransactionTest
             }
         }
     }
+
+    @Test(enabled = false)
+    public void testAddTwoInCollection_Delta() throws Exception
+    {
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+    }
+
 
     @Test(enabled = false)
     public void testModifyOneFromCollection() throws Exception
