@@ -4,6 +4,13 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
+import java.io.PrintStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -19,33 +26,110 @@ public class DDL
 
     // Static --------------------------------------------------------------------------------------
 
+    private static Command command;
+    private static String fileName;
+
+    private static final String usageString = "Usage: DDL <create|drop> [-f]";
+
     public static void main(String[] args) throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
+        config.configure("/hibernate-jta.cfg.xml");
         SchemaExport se = new SchemaExport(config);
 
-        if (args.length == 0)
+        processCommandLine(args);
+
+        if (command == null)
         {
-            System.out.println("Usage: DDL <create|drop>");
+            System.out.println(usageString);
             return;
         }
 
-        boolean create = "create".equals(args[0]);
+        // redirect System.out for a little bit
+        PrintStream systemOut = System.out;
 
-        if (!create && !"drop".equals(args[0]))
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        System.setOut(ps);
+
+        try
         {
-            System.out.println("Usage: DDL <create|drop>");
-            return;
+            if (Command.CREATE.equals(command))
+            {
+                se.create(true, false);
+            }
+            else
+            {
+                se.drop(true, false);
+            }
+
+            ps.flush();
+        }
+        finally
+        {
+            // restore System.out
+            System.setOut(systemOut);
         }
 
-        if (create)
+
+        byte[] ddl = baos.toByteArray();
+        ps.close();
+        baos.close();
+
+        BufferedReader br =
+            new BufferedReader(new InputStreamReader(new ByteArrayInputStream(ddl)));
+
+        PrintStream outPs = null;
+        FileOutputStream fos = null;
+
+        if (fileName == null)
         {
-            se.create(true, false);
+            outPs = System.out;
         }
         else
         {
-            se.drop(true, false);
+            fos = new FileOutputStream(fileName);
+            outPs = new PrintStream(fos);
+        }
+
+        String line = null;
+        while((line = br.readLine()) != null)
+        {
+            outPs.println(line + ";");
+        }
+
+        br.close();
+        outPs.flush();
+
+        if (fos != null)
+        {
+            outPs.close();
+            fos.close();
+            System.out.println("Output written in " + fileName);
+        }
+    }
+
+    private static void processCommandLine(String[] args) throws Exception
+    {
+        if (args.length == 0)
+        {
+            throw new Exception(usageString);
+        }
+
+        for(String arg: args)
+        {
+            if ("create".equals(arg))
+            {
+                command = Command.CREATE;
+            }
+            else if ("drop".equals(arg))
+            {
+                command = Command.DROP;
+            }
+            else if ("-f".equals(arg))
+            {
+                fileName = "./ddl.sql";
+            }
         }
     }
 
@@ -62,4 +146,10 @@ public class DDL
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private enum Command
+    {
+        CREATE,
+        DROP
+    }
 }
