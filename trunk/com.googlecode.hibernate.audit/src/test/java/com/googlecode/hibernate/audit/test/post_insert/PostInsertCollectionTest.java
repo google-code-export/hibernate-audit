@@ -501,97 +501,93 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
     public void testModifyOneFromCollection() throws Exception
     {
-        throw new Exception("NOT YET IMPELEMENTED");
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(WA.class);
-//        config.addAnnotatedClass(WB.class);
-//        SessionFactory sf = null;
-//
-//        try
-//        {
-//            sf = config.buildSessionFactory();
-//
-//            // create the state in database, without auditing
-//            assert !HibernateAudit.isEnabled();
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            WA wa = new WA();
-//            wa.setName("wasabi");
-//
-//            WB wb = new WB();
-//            wb.setName("wbang");
-//
-//            WB wb2 = new WB();
-//            wb2.setName("wbong");
-//
-////            wa.addWb(wb);
-////            wa.addWb(wb2);
-//
-//            s.save(wa);
-//            t.commit();
-//            s.close();
-//
-//            // load the state from the database
-//
-//            s = sf.openSession();
-//            t = s.beginTransaction();
-//
-//            wa = (WA)s.get(WA.class, wa.getId());
-//
-//            assert "wasabi".equals(wa.getName());
-//            List<String> expected = new ArrayList<String>(Arrays.asList("wbang", "wbong"));
-//
-//            List<WB> wbs = wa.getWbs();
-//            assert wbs.size() == 2;
-//            for(WB i: wbs)
-//            {
-//                assert expected.remove(i.getName());
-//            }
-//
-//            // enable auditing
-//            //HibernateAudit.enable(sf);
-//
-//            WB newWb = new WB();
-//            newWb.setName("wbung");
-//            // replacing "wbang" with "wbung"
-//            wbs.set(0, newWb);
-//
-//            t.commit();
-//            s.close();
-//
-//            HibernateAudit.disable();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            // create the state in database, without auditing
+            assert !HibernateAudit.isEnabled();
+
+            Session s = sf.openSession();
+            Transaction t = s.beginTransaction();
+
+            WA wa = new WA();
+            wa.setName("wasabi");
+
+            WB wb = new WB();
+            wb.setName("wbang");
+
+            WB wb2 = new WB();
+            wb2.setName("wbong");
+
+//            wa.addWb(wb);
+//            wa.addWb(wb2);
+
+            s.save(wa);
+            t.commit();
+            s.close();
+
+            // load the state from the database
+
+            s = sf.openSession();
+            t = s.beginTransaction();
+
+            wa = (WA)s.get(WA.class, wa.getId());
+
+            assert "wasabi".equals(wa.getName());
+            List<String> expected = new ArrayList<String>(Arrays.asList("wbang", "wbong"));
+
+            List<WB> wbs = wa.getWbs();
+            assert wbs.size() == 2;
+            for(WB i: wbs)
+            {
+                assert expected.remove(i.getName());
+            }
+
+            // enable auditing
+            //HibernateAudit.enable(sf);
+
+            WB newWb = new WB();
+            newWb.setName("wbung");
+            // replacing "wbang" with "wbung"
+            wbs.set(0, newWb);
+
+            t.commit();
+            s.close();
+
+            HibernateAudit.disable();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
     public void testRemoveTwoFromCollection() throws Exception
     {
-        throw new Exception("NOT YET IMPELEMENTED");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
     public void testModifyOneInCollection() throws Exception
     {
-        // we'll see what exactly that means
-        throw new Exception("NOT YET IMPELEMENTED");
     }
 
     // Package protected ---------------------------------------------------------------------------
