@@ -56,7 +56,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta((SessionFactoryImplementor)sf, o, null, null);
+                DeltaEngine.delta(o, null, null, (SessionFactoryImplementor)sf);
                 throw new Error("should've failed");
             }
             catch(MappingException e)
@@ -89,7 +89,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta((SessionFactoryImplementor)sf, a, null, null);
+                DeltaEngine.delta(a, null, null, (SessionFactoryImplementor)sf);
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -123,7 +123,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta((SessionFactoryImplementor)sf, a, null, new Long(23843431223l));
+                DeltaEngine.delta(a, null, new Long(23843431223l), (SessionFactoryImplementor)sf);
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -177,7 +177,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta((SessionFactoryImplementor)sf, toFillUp, null, at.getId());
+                DeltaEngine.delta(toFillUp, null, at.getId(), (SessionFactoryImplementor)sf);
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -232,7 +232,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta((SessionFactoryImplementor)sf, toFillUp, at.getId());
+                DeltaEngine.delta(toFillUp, at.getId(), (SessionFactoryImplementor)sf);
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -285,21 +285,15 @@ public class DeltaEngineTest extends JTATransactionTest
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            A preTransaction = new A();
+            A base = new A();
 
-            A postTransaction = (A)DeltaEngine.
-                delta((SessionFactoryImplementor)sf, preTransaction, id, at.getId());
+            DeltaEngine.delta(base, id, at.getId(),(SessionFactoryImplementor)sf);
 
-            assert preTransaction != postTransaction;
+            assert id.equals(base.getId());
 
-            assert preTransaction.getId() == null;
-            assert id.equals(postTransaction.getId());
+            assert "alice".equals(base.getName());
 
-            assert preTransaction.getName() == null;
-            assert "alice".equals(postTransaction.getName());
-
-            assert preTransaction.getAge() == null;
-            assert 33 == postTransaction.getAge();
+            assert 33 == base.getAge();
 
             HibernateAudit.disable();
         }
@@ -343,18 +337,13 @@ public class DeltaEngineTest extends JTATransactionTest
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            ProtectedConstructorC preTransaction = ProtectedConstructorC.getInstance();
+            ProtectedConstructorC base = ProtectedConstructorC.getInstance();
 
-            ProtectedConstructorC postTransaction = (ProtectedConstructorC)DeltaEngine.
-                delta((SessionFactoryImplementor)sf, preTransaction, id, at.getId());
+            DeltaEngine.delta(base, id, at.getId(), (SessionFactoryImplementor)sf);
 
-            assert preTransaction != postTransaction;
+            assert id.equals(base.getId());
 
-            assert preTransaction.getId() == null;
-            assert id.equals(postTransaction.getId());
-
-            assert preTransaction.getName() == null;
-            assert "cami".equals(postTransaction.getName());
+            assert "cami".equals(base.getName());
 
             HibernateAudit.disable();
         }

@@ -14,6 +14,7 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.util.Reflections;
 
 import java.util.List;
@@ -38,13 +39,15 @@ public class DeltaEngine
 
     // Static --------------------------------------------------------------------------------------
 
-    public static Object delta(SessionFactoryImplementor sf, Object preTransactionState, Long tid)
+    public static void delta(Object preTransactionState, Long tid, SessionFactoryImplementor sf)
         throws Exception
     {
-        return delta(sf, preTransactionState, null, tid);
+        delta(preTransactionState, null, tid, sf);
     }
 
     /**
+     * Applies the transactional delta to the base (preTransactionState).
+     *
      * @param preTransactionState - a detached entity instance initialized with the pre-transaction
      *        state. We will use as a base to to apply the forward transaction delta. If id not
      *        specified, it must contain a valid id.
@@ -56,13 +59,9 @@ public class DeltaEngine
      * @throws MappingException - if the object passed as initial state is not a known entity.
      * @throws IllegalArgumentException - if such a transaction does not exist, doesn't have a valid
      *         id, etc.
-     *
-     * @return a detached instance reflecting the post-transaction state of the object
      */
-    public static Object delta(SessionFactoryImplementor sf,
-                               Object preTransactionState,
-                               Serializable id, Long tid)
-        throws Exception
+    public static void delta(Object preTransactionState, Serializable id, Long tid,
+                             SessionFactoryImplementor sf) throws Exception
     {
         Session s = null;
         Transaction t = null;
@@ -143,7 +142,7 @@ public class DeltaEngine
                 }
 
                 Long targetId = ae.getTargetId();
-                AuditType targetType = HibernateAudit.enhance(sf, ae.getTargetType());
+                AuditType targetType = ae.getTargetType();
 
                 if (!targetType.isEntityType())
                 {
@@ -184,7 +183,7 @@ public class DeltaEngine
                 {
                     AuditEventPair p = (AuditEventPair)o2;
                     String name = p.getField().getName();
-                    AuditType type = HibernateAudit.enhance(sf, p.getField().getType());
+                    AuditType type = p.getField().getType();
 
                     Object value = null;
 
@@ -229,33 +228,13 @@ public class DeltaEngine
                             // fulfilled.
                             ee.addTargetEntity(detachedEntity, name);
                         }
-
-                        // also, we may have a bidirectionality situation, so update the
-                        // collection's side if so
-                        for(CollectionExpectation ce: collectionExpectations)
-                        {
-                            if (ce.getOwnerId().equals(entityId) &&
-                                ce.getOwnerType().equals(entityClass) &&
-                                ce.isSameTypeAsMembers(targetType.getClassInstance()))
-                            {
-                                ce.add(e);
-                            }
-                        }
                     }
                     else if (type.isCollectionType())
                     {
-                        // figure out member type
-                        Long auditTypeId = Long.parseLong(p.getStringValue());
-                        AuditType memberType = (AuditType)s.get(AuditType.class, auditTypeId);
-
-                        if (memberType == null)
-                        {
-                            throw new IllegalStateException(
-                                "found new collection whose members are of AuditType[id = " +
-                                auditTypeId + "] but no corresponding type exists in the database");
-                        }
-
                         AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
+                        AuditCollectionType ct = (AuditCollectionType)type;
+                        Class memberClass = ct.getClassInstance();
+
                         List<Long> ids = cp.getIds();
 
                         if (ids.isEmpty())
@@ -263,14 +242,12 @@ public class DeltaEngine
                             throw new RuntimeException("NOT YET IMPLEMENTED");
                         }
 
-                        CollectionExpectation ce =
-                            new CollectionExpectation(e, name, memberType.getClassInstance());
+                        CollectionExpectation ce = new CollectionExpectation(e, name, memberClass);
                         collectionExpectations.add(ce);
 
                         for(Long cmid: ids)
                         {
-                            EntityExpectation cmee =
-                                new EntityExpectation(memberType.getClassInstance(), cmid);
+                            EntityExpectation cmee = new EntityExpectation(memberClass, cmid);
                             entityExpectations.add(cmee); // noop if the expectation is already there
                             ce.add(cmee);
                         }
@@ -322,9 +299,7 @@ public class DeltaEngine
 
             entityExpectations.clear();
 
-            Object copy = Reflections.deepCopy(preTransactionState);
-            Reflections.applyDelta(copy, transactionDelta);
-            return copy;
+            Reflections.applyDelta(preTransactionState, transactionDelta);
         }
         catch(Exception e)
         {
