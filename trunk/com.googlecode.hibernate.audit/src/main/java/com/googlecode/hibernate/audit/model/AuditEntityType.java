@@ -201,7 +201,7 @@ public class AuditEntityType extends AuditType
     @Override
     public Serializable stringToValue(String s)
     {
-        if (Long.class.equals(idClassInstance))
+        if (Long.class.equals(getIdClassInstance()))
         {
             return Long.parseLong(s);
         }

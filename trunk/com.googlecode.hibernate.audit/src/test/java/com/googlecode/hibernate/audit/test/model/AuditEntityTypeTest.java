@@ -35,7 +35,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_InvalidState() throws Exception
     {
         AuditEntityType type = new AuditEntityType((Class)null, (Class)null);
@@ -51,7 +51,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_InvalidId() throws Exception
     {
         Method m = A.class.getMethod("getId");
@@ -68,7 +68,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testValueToString_ValidId() throws Exception
     {
         Method m = A.class.getMethod("getId");
@@ -77,7 +77,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
         assert "7777".equals(type.valueToString(new Long(7777)));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -114,7 +114,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_NoTypeInDatabase_DontCreate() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -149,7 +149,7 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_NoTypeInDatabase_Create() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

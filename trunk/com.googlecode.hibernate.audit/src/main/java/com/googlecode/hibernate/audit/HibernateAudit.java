@@ -4,23 +4,18 @@ import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.model.AuditEntityType;
-import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
 
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.security.Principal;
@@ -166,9 +161,9 @@ public class HibernateAudit
         return sip.getPrincipal();
     }
 
-    public static Object delta(Object preTransactionState, Long transactionId) throws Exception
+    public static void delta(Object preTransactionState, Long transactionId) throws Exception
     {
-        return delta(preTransactionState, null, transactionId);
+        delta(preTransactionState, null, transactionId);
     }
 
     /**
@@ -176,7 +171,7 @@ public class HibernateAudit
      * a session factory from scratch and use it, but for the time being, I am using an active
      * runtime, just to prove the idea is valid.
      */
-    public static Object delta(Object preTransactionState, Serializable id, Long transactionId)
+    public static void delta(Object preTransactionState, Serializable id, Long transactionId)
         throws Exception
     {
         if (singleton == null)
@@ -184,34 +179,7 @@ public class HibernateAudit
             throw new IllegalStateException("Hibernate Audit runtime disabled");
         }
 
-        return DeltaEngine.
-            delta(singleton.auditedSessionFactory, preTransactionState, id, transactionId);
-    }
-
-    /**
-     * An AuditType instance obtained as a result of a query from the database may need
-     * "postprocessing", in that some instances may need semantic enhancing. For example, we may
-     * realize that AuditType instances are actually AuditEntityType instances, so we do the switch
-     * here.
-     */
-    static AuditType enhance(SessionFactory auditedSf, AuditType at)
-    {
-        Class c = at.getClassInstance();
-        ClassMetadata cm = auditedSf.getClassMetadata(c);
-        if (cm != null)
-        {
-            // it's an entity
-            Class idClass = cm.getIdentifierType().getReturnedClass();
-            at = new AuditEntityType(idClass, at);
-        }
-        else if (Collection.class.equals(c))
-        {
-            // it's a collection
-            // TODO https://jira.novaordis.org/browse/HBA-56
-            at = new AuditCollectionType();
-        }
-
-        return at;
+        DeltaEngine.delta(preTransactionState, id, transactionId, singleton.auditedSessionFactory);
     }
 
     // Attributes ----------------------------------------------------------------------------------

@@ -188,19 +188,14 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert transactions.size() == 1;
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
-            C preTransactionC = new C();
-            C postTransactionC = (C)HibernateAudit.delta(preTransactionC, cId, at.getId());
+            C cBase = new C();
+            HibernateAudit.delta(cBase, cId, at.getId());
 
-            assert preTransactionC != postTransactionC;
+            assert cId.equals(cBase.getId());
 
-            assert preTransactionC.getId() == null;
-            assert cId.equals(postTransactionC.getId());
+            assert "charlie".equals(cBase.getName());
 
-            assert preTransactionC.getName() == null;
-            assert "charlie".equals(postTransactionC.getName());
-
-            assert preTransactionC.getD() == null;
-            D recreatedD = postTransactionC.getD();
+            D recreatedD = cBase.getD();
             assert recreatedD != d;
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
@@ -272,19 +267,14 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert transactions.size() == 2;
             AuditTransaction at = (AuditTransaction)transactions.get(1);
 
-            C preTransactionC = new C();
-            C postTransactionC = (C)HibernateAudit.delta(preTransactionC, cId, at.getId());
+            C cBase = new C();
+            HibernateAudit.delta(cBase, cId, at.getId());
 
-            assert preTransactionC != postTransactionC;
+            assert cId.equals(cBase.getId());
 
-            assert preTransactionC.getId() == null;
-            assert cId.equals(postTransactionC.getId());
+            assert "charlie".equals(cBase.getName());
 
-            assert preTransactionC.getName() == null;
-            assert "charlie".equals(postTransactionC.getName());
-
-            assert preTransactionC.getD() == null;
-            D recreatedD = postTransactionC.getD();
+            D recreatedD = cBase.getD();
             assert recreatedD != d;
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
@@ -362,36 +352,26 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert transactions.size() == 2;
             AuditTransaction at = (AuditTransaction)transactions.get(1);
 
-            C preTransactionC = new C();
-            C postTransactionC = (C)HibernateAudit.delta(preTransactionC, cId, at.getId());
+            C cBase = new C();
+            HibernateAudit.delta(cBase, cId, at.getId());
 
-            assert preTransactionC != postTransactionC;
+            assert cId.equals(cBase.getId());
 
-            assert preTransactionC.getId() == null;
-            assert cId.equals(postTransactionC.getId());
+            assert "charlie".equals(cBase.getName());
 
-            assert preTransactionC.getName() == null;
-            assert "charlie".equals(postTransactionC.getName());
-
-            assert preTransactionC.getD() == null;
-            D recreatedD = postTransactionC.getD();
+            D recreatedD = cBase.getD();
             assert recreatedD != d;
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            preTransactionC = new C();
-            postTransactionC = (C)HibernateAudit.delta(preTransactionC, cId2, at.getId());
+            cBase = new C();
+            HibernateAudit.delta(cBase, cId2, at.getId());
 
-            assert preTransactionC != postTransactionC;
+            assert cId2.equals(cBase.getId());
 
-            assert preTransactionC.getId() == null;
-            assert cId2.equals(postTransactionC.getId());
+            assert "connie".equals(cBase.getName());
 
-            assert preTransactionC.getName() == null;
-            assert "connie".equals(postTransactionC.getName());
-
-            assert preTransactionC.getD() == null;
-            recreatedD = postTransactionC.getD();
+            recreatedD = cBase.getD();
             assert recreatedD != d;
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
