@@ -1,10 +1,14 @@
 package com.googlecode.hibernate.audit.model;
 
+import org.hibernate.StatelessSession;
+import org.hibernate.Query;
+
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Column;
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * @see AuditType
@@ -26,13 +30,51 @@ public class AuditCollectionType extends AuditType
 
     // Static --------------------------------------------------------------------------------------
 
+    /**
+     * Returns a persistent instance of given type from the database. If "create" is set to false
+     * and the type does not exist in the database, the method returns null. If "create" is set to
+     * true and the type does not exist in the database, it is persisted, and then returned.
+     *
+     * @param session - the hibernate stateless session to be used to interact with the database.
+     *        It is assumed that a transaction is already started, and it will be committed outside
+     *        the scope of this method.
+     *
+     * @return the persisted type (or null)
+     */
+    public static AuditCollectionType getInstanceFromDatabase(Class collectionClass,
+                                                              Class memberClass,
+                                                              boolean create,
+                                                              StatelessSession session)
+    {
+        checkTransaction(session);
+
+        String qs =
+            "from AuditCollectionType as e where " +
+            "e.className  = :memberClass and e.collectionClassName = :collectionClassName";
+
+        Query q = session.createQuery(qs);
+        q.setString("memberClass", memberClass.getName());
+        q.setString("collectionClassName", collectionClass.getName());
+
+        AuditCollectionType persistedType = (AuditCollectionType)q.uniqueResult();
+
+        if (persistedType != null || !create)
+        {
+            return persistedType;
+        }
+
+        persistedType = new AuditCollectionType(collectionClass, memberClass);
+        session.insert(persistedType);
+        return persistedType;
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     @Column(name = "COLLECTION_CLASS_NAME")
     private String collectionClassName;
 
     @Transient
-    private Class collectionClass;
+    private Class collectionClassInstance;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -43,13 +85,16 @@ public class AuditCollectionType extends AuditType
     {
     }
 
-    /**
-     * Only for use by classes of this package, do not expose publicly.
-     */
-    AuditCollectionType(Class collectionClass, Class memberClass)
+    public AuditCollectionType(Class collectionClass, Class memberClass)
     {
         super(memberClass);
-        this.collectionClass = collectionClass;
+
+        if (!Collection.class.isAssignableFrom(collectionClass))
+        {
+            throw new IllegalArgumentException(collectionClass + " is not a Collection type");
+        }
+
+        this.collectionClassInstance = collectionClass;
         this.collectionClassName = collectionClass.getName();
     }
 
@@ -67,9 +112,9 @@ public class AuditCollectionType extends AuditType
 
     public Class getCollectionClassInstance()
     {
-        if (collectionClass != null)
+        if (collectionClassInstance != null)
         {
-            return collectionClass;
+            return collectionClassInstance;
         }
 
         if (collectionClassName == null)
@@ -78,15 +123,14 @@ public class AuditCollectionType extends AuditType
         }
         try
         {
-            collectionClass = Class.forName(collectionClassName);
+            collectionClassInstance = Class.forName(collectionClassName);
         }
         catch(ClassNotFoundException e)
         {
             throw new IllegalArgumentException("cannot resolve class " + collectionClassName, e);
         }
 
-        return collectionClass;
-
+        return collectionClassInstance;
     }
 
     @Override
@@ -102,16 +146,12 @@ public class AuditCollectionType extends AuditType
     }
 
     /**
-     * Returns the id (as Long converted to String) of the corresponding AuditType.
-     * 
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
     @Override
     public String valueToString(Object o)
     {
-        // TODO: shaky, implemented in a hurry, review this
-        // TODO: we're ignoring o and that's not alright, shows there's some problem with the logic
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        return null;
     }
 
     @Override

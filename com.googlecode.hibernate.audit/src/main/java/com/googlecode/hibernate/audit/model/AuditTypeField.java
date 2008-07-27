@@ -148,7 +148,7 @@ public class AuditTypeField
     @Override
     public String toString()
     {
-        return name + "[" + type + "]";
+        return "[" + type + "]." + name;
     }
 
     // Package protected ---------------------------------------------------------------------------

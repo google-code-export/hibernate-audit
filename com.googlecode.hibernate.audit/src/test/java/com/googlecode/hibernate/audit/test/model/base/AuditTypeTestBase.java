@@ -1,9 +1,9 @@
-package com.googlecode.hibernate.audit.util;
+package com.googlecode.hibernate.audit.test.model.base;
 
-import org.hibernate.type.CollectionType;
-import org.hibernate.type.BagType;
-
-import java.util.List;
+import org.apache.log4j.Logger;
+import org.testng.annotations.Test;
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -14,22 +14,13 @@ import java.util.List;
  *
  * $Id$
  */
-public class Hibernate
+public abstract class AuditTypeTestBase extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
+    private static final Logger log = Logger.getLogger(AuditTypeTestBase.class);
+
     // Static --------------------------------------------------------------------------------------
-
-    public static Class collectionTypeToClass(CollectionType ct)
-    {
-        if (ct instanceof BagType)
-        {
-            // this is hibernate's unordered collection that accepts duplicates, we use list
-            return List.class;
-        }
-
-        throw new RuntimeException("we don't know to translate " + ct);
-    }
 
     // Attributes ----------------------------------------------------------------------------------
 
@@ -37,11 +28,28 @@ public class Hibernate
 
     // Public --------------------------------------------------------------------------------------
 
+    @Test(enabled = true)
+    public void testEquals() throws Exception
+    {
+        AuditType at = getAuditTypeToTest();
+        at.setId(new Long(777));
+
+        log.debug(at);
+
+        AuditType at2 = getAuditTypeToTest(new Long(777));
+
+        assert at.equals(at2);
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
 
+    protected abstract AuditType getAuditTypeToTest();
+    protected abstract AuditType getAuditTypeToTest(Long id);
+
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

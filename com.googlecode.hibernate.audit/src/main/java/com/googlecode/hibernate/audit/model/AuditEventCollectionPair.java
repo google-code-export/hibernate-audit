@@ -40,8 +40,8 @@ public class AuditEventCollectionPair extends AuditEventPair
     /**
      * Reserved for future use (lists)
      */
-//    @Column(name = "LIST_INDEX")
-//    private String index;
+    @Column(name = "LIST_INDEX")
+    private Integer index;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -60,6 +60,18 @@ public class AuditEventCollectionPair extends AuditEventPair
     public void setIds(List<Long> ids)
     {
         this.ids = ids;
+    }
+
+    @Override
+    public boolean isCollection()
+    {
+        return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return getField() + "=" + ids;
     }
 
     // Package protected ---------------------------------------------------------------------------

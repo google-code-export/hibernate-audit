@@ -5,11 +5,11 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
-import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.test.model.base.AuditTypeTestBase;
+import com.googlecode.hibernate.audit.test.model.data.A;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
 
-import java.util.Date;
+import java.lang.reflect.Method;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -21,11 +21,11 @@ import java.util.Date;
  * $Id$
  */
 @Test(sequential = true)
-public class AuditTypeTest extends AuditTypeTestBase
+public class AuditEntityTypeTest extends AuditTypeTestBase
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(AuditTypeTest.class);
+    private static final Logger log = Logger.getLogger(AuditEntityTypeTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -35,15 +35,31 @@ public class AuditTypeTest extends AuditTypeTestBase
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
-    public void testTypeConversion_UnsupportedType() throws Exception
+    @Test(enabled = false)
+    public void testValueToString_InvalidState() throws Exception
     {
-        AuditType type = new AuditType();
-        type.setClassName(String.class.getName());
+        AuditEntityType type = new AuditEntityType((Class)null, (Class)null);
 
         try
         {
-            type.valueToString(new Object());
+            type.valueToString("doesn't matter");
+            throw new Error("should've failed");
+        }
+        catch(IllegalStateException e)
+        {
+            log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = false)
+    public void testValueToString_InvalidId() throws Exception
+    {
+        Method m = A.class.getMethod("getId");
+        AuditEntityType type = new AuditEntityType(m.getReturnType(), A.class);
+
+        try
+        {
+            type.valueToString(new RandomType());
             throw new Error("should've failed");
         }
         catch(IllegalArgumentException e)
@@ -52,89 +68,16 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
-    public void testTypeConversion_String() throws Exception
+    @Test(enabled = false)
+    public void testValueToString_ValidId() throws Exception
     {
-        AuditType type = new AuditType();
-        type.setClassName(String.class.getName());
+        Method m = A.class.getMethod("getId");
+        AuditEntityType type = new AuditEntityType(m.getReturnType(), A.class);
 
-        assert "abc".equals(type.valueToString("abc"));
-        assert "abc".equals(type.stringToValue("abc"));
+        assert "7777".equals(type.valueToString(new Long(7777)));
     }
 
-    @Test(enabled = true)
-    public void testTypeConversion_Integer() throws Exception
-    {
-        AuditType type = new AuditType();
-        type.setClassName(Integer.class.getName());
-
-        assert "77".equals(type.valueToString(new Integer(77)));
-        assert new Integer(77).equals(type.stringToValue("77"));
-    }
-
-    @Test(enabled = true)
-    public void testTypeConversion_Date() throws Exception
-    {
-        AuditType type = new AuditType();
-        type.setClassName(Date.class.getName());
-
-        // it only supports "oracle" date format so far, this will be a problem in the future
-        Date d = Formats.testDateFormat.parse("07/07/2008");
-        assert "Mon Jul 07 00:00:00 PDT 2008".equals(type.valueToString(d));
-        assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 PDT 2008"));
-    }
-
-    @Test(enabled = true)
-    public void testTypeConversion_Long() throws Exception
-    {
-        AuditType type = new AuditType();
-        type.setClassName(Long.class.getName());
-
-        assert "77".equals(type.valueToString(new Long(77)));
-        assert new Long(77).equals(type.stringToValue("77"));
-    }
-
-    @Test(enabled = true)
-    public void testTypeConversion_Boolean() throws Exception
-    {
-        AuditType type = new AuditType();
-        type.setClassName(Boolean.class.getName());
-
-        assert "true".equals(type.valueToString(Boolean.TRUE));
-        assert "false".equals(type.valueToString(Boolean.FALSE));
-        assert Boolean.TRUE.equals(type.stringToValue("true"));
-        assert Boolean.FALSE.equals(type.stringToValue("false"));
-    }
-
-    @Test(enabled = true)
-    public void testStringToValue_CustomType() throws Exception
-    {
-        AuditType t = new AuditType();
-        t.setClassName(CustomType.class.getName());
-
-        CustomType ct = (CustomType)t.stringToValue("123");
-
-        assert new CustomType(123).equals(ct);
-    }
-
-    @Test(enabled = true)
-    public void testStringToValue_NonConvertibleCustomType() throws Exception
-    {
-        AuditType t = new AuditType();
-        t.setClassName(CustomType.class.getName());
-
-        try
-        {
-            t.stringToValue("this won't convert into an int");
-            throw new Error("should've failed");
-        }
-        catch(RuntimeException e)
-        {
-            log.debug(e.getMessage());
-        }
-    }
-
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -150,7 +93,7 @@ public class AuditTypeTest extends AuditTypeTestBase
 
             try
             {
-                AuditType.getInstanceFromDatabase(Integer.class, false, s);
+                AuditEntityType.getInstanceFromDatabase(Integer.class, false, s);
             }
             catch(IllegalStateException e)
             {
@@ -171,7 +114,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_NoTypeInDatabase_DontCreate() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -184,7 +127,9 @@ public class AuditTypeTest extends AuditTypeTestBase
             StatelessSession s = sf.openStatelessSession();
             s.beginTransaction();
 
-            AuditType at = AuditType.getInstanceFromDatabase(Integer.class, false, s);
+            AuditEntityType at = AuditEntityType.
+                getInstanceFromDatabase(EntityType.class, null, false, s);
+
             assert at == null;
 
             s.getTransaction().commit();
@@ -204,7 +149,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_NoTypeInDatabase_Create() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -217,17 +162,18 @@ public class AuditTypeTest extends AuditTypeTestBase
             StatelessSession s = sf.openStatelessSession();
             s.beginTransaction();
 
-            AuditType at = AuditType.getInstanceFromDatabase(Integer.class, true, s);
+            AuditEntityType et = AuditEntityType.
+                getInstanceFromDatabase(EntityType.class, Long.class, true, s);
 
-            assert at.isPrimitiveType();
-            assert !at.isEntityType();
-            assert !at.isCollectionType();
+            assert !et.isPrimitiveType();
+            assert et.isEntityType();
+            assert !et.isCollectionType();
 
-            assert at.getId() != null;
-            assert Integer.class.equals(at.getClassInstance());
-            assert "java.lang.Integer".equals(at.getClassName());
+            assert et.getId() != null;
+            assert EntityType.class.equals(et.getClassInstance());
+            assert Long.class.equals(et.getIdClassInstance());
 
-            log.debug(at);
+            log.debug(et);
 
             s.getTransaction().commit();
             s.close();
@@ -259,24 +205,25 @@ public class AuditTypeTest extends AuditTypeTestBase
             StatelessSession s = sf.openStatelessSession();
             s.beginTransaction();
 
-            AuditType at = AuditType.getInstanceFromDatabase(String.class, true, s);
+            AuditEntityType et = AuditEntityType.
+                getInstanceFromDatabase(EntityType.class, Long.class, true, s);
 
-            assert at != null;
+            assert et != null;
 
             s.getTransaction().commit();
             s.beginTransaction();
 
-            at = AuditType.getInstanceFromDatabase(String.class, false, s);
+            et = AuditEntityType.getInstanceFromDatabase(EntityType.class, null, false, s);
 
-            assert at.isPrimitiveType();
-            assert !at.isEntityType();
-            assert !at.isCollectionType();
+            assert !et.isPrimitiveType();
+            assert et.isEntityType();
+            assert !et.isCollectionType();
 
-            assert at.getId() != null;
-            assert String.class.equals(at.getClassInstance());
-            assert "java.lang.String".equals(at.getClassName());
+            assert et.getId() != null;
+            assert EntityType.class.equals(et.getClassInstance());
+            assert Long.class.equals(et.getIdClassInstance());
 
-            log.debug(at);
+            log.debug(et);
 
             s.getTransaction().commit();
             s.close();
@@ -299,14 +246,14 @@ public class AuditTypeTest extends AuditTypeTestBase
 
     // Protected -----------------------------------------------------------------------------------
 
-    protected AuditType getAuditTypeToTest()
+    protected AuditEntityType getAuditTypeToTest()
     {
-        return new AuditType();
+        return new AuditEntityType((Class)null, (Class)null);
     }
 
-    protected AuditType getAuditTypeToTest(Long id)
+    protected AuditEntityType getAuditTypeToTest(Long id)
     {
-        AuditType at = new AuditType();
+        AuditEntityType at = new AuditEntityType((Class)null, (Class)null);
         at.setId(id);
         return at;
     }
@@ -314,5 +261,13 @@ public class AuditTypeTest extends AuditTypeTestBase
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private class EntityType
+    {
+    }
+
+    private class RandomType
+    {
+    }
 
 }

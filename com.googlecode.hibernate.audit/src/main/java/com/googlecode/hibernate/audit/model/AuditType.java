@@ -1,6 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
 import org.apache.log4j.Logger;
+import org.hibernate.StatelessSession;
+import org.hibernate.Query;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -17,7 +19,6 @@ import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
 import java.lang.reflect.Method;
 import java.util.Date;
-import java.util.Collection;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -64,6 +65,46 @@ public class AuditType
         return null;
     }
 
+    /**
+     * Returns a persistent instance of given type from the database. If "create" is set to false
+     * and the type does not exist in the database, the method returns null. If "create" is set to
+     * true and the type does not exist in the database, it is persisted, and then returned.
+     *
+     * @param session - the hibernate stateless session to be used to interact with the database.
+     *        It is assumed that a transaction is already started, and it will be committed outside
+     *        the scope of this method.
+     *
+     * @return the persisted type (or null)
+     */
+    public static AuditType getInstanceFromDatabase(Class c, boolean create,
+                                                    StatelessSession session)
+    {
+        checkTransaction(session);
+
+        String qs = "from AuditType as a where a.className  = :className";
+        Query q = session.createQuery(qs);
+        q.setString("className", c.getName());
+
+        AuditType persistedType = (AuditType)q.uniqueResult();
+
+        if (persistedType != null || !create)
+        {
+            return persistedType;
+        }
+
+        persistedType = new AuditType(c);
+        session.insert(persistedType);
+        return persistedType;
+    }
+
+    protected static void checkTransaction(StatelessSession s) throws IllegalStateException
+    {
+        if (s.getTransaction() == null || !s.getTransaction().isActive())
+        {
+            throw new IllegalStateException("No active transaction found, bailing out");
+        }
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
@@ -78,7 +119,7 @@ public class AuditType
     private String label;
 
     @Transient
-    protected Class c;
+    protected Class classInstance;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -91,8 +132,12 @@ public class AuditType
      */
     AuditType(Class c)
     {
-        this.c = c;
-        this.className = c.getName();
+        this.classInstance = c;
+
+        if (classInstance != null)
+        {
+            this.className = classInstance.getName();
+        }
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -129,9 +174,9 @@ public class AuditType
 
     public Class getClassInstance()
     {
-        if (c != null)
+        if (classInstance != null)
         {
-            return c;
+            return classInstance;
         }
 
         if (className == null)
@@ -140,14 +185,14 @@ public class AuditType
         }
         try
         {
-            c = Class.forName(this.className);
+            classInstance = Class.forName(this.className);
         }
         catch(ClassNotFoundException e)
         {
             throw new IllegalArgumentException("cannot resolve class " + className, e);
         }
 
-        return c;
+        return classInstance;
     }
 
     public boolean isPrimitiveType()
@@ -173,34 +218,27 @@ public class AuditType
     }
 
     /**
-     * If this AuditType represents an Hibernate entity, then the entity ID is accepted as "value".
-     * See the subclass implementation.
-     *
      * @exception IllegalArgumentException if the conversion fails for some reason.
      */
     public String valueToString(Object o)
     {
         getClassInstance();
-        if (!c.isInstance(o))
+
+        if (!classInstance.isInstance(o))
         {
             throw new IllegalArgumentException(
-                "the argument is not a " + c.getName() + " instance");
-        }
-
-        if (o instanceof Collection)
-        {
-            return "COLLECTION";
+                "the argument is not a " + classInstance.getName() + " instance");
         }
 
         try
         {
-            Method m = c.getMethod("toString");
+            Method m = classInstance.getMethod("toString");
             return (String)m.invoke(o);
         }
         catch(Exception e)
         {
             throw new IllegalArgumentException(
-                "failed to invoke " + c.getName() + "'s toString()", e);
+                "failed to invoke " + classInstance.getName() + "'s toString()", e);
         }
     }
 
@@ -213,23 +251,23 @@ public class AuditType
 
         // avoid reflection for often-used types
 
-        if (String.class == c)
+        if (String.class == classInstance)
         {
             return s;
         }
-        else if (Integer.class == c)
+        else if (Integer.class == classInstance)
         {
             return Integer.parseInt(s);
         }
-        else if (Long.class == c)
+        else if (Long.class == classInstance)
         {
             return Long.parseLong(s);
         }
-        else if (Boolean.class == c)
+        else if (Boolean.class == classInstance)
         {
             return Boolean.parseBoolean(s);
         }
-        else if (Date.class == c)
+        else if (Date.class == classInstance)
         {
             try
             {
@@ -242,13 +280,13 @@ public class AuditType
             }
         }
 
-        String parseMethodName = c.getName();
+        String parseMethodName = classInstance.getName();
         parseMethodName = parseMethodName.substring(parseMethodName.lastIndexOf('.') + 1);
         parseMethodName = "parse" + parseMethodName;
 
         try
         {
-            Method m = c.getMethod(parseMethodName, String.class);
+            Method m = classInstance.getMethod(parseMethodName, String.class);
             return (Serializable)m.invoke(null, s);
         }
         catch(Exception e)
@@ -256,7 +294,7 @@ public class AuditType
             log.debug("failed to obtain value from string via reflection", e);
         }
 
-        throw new RuntimeException("don't know to convert string to " + c.getName());
+        throw new RuntimeException("don't know to convert string to " + classInstance.getName());
     }
 
     /**

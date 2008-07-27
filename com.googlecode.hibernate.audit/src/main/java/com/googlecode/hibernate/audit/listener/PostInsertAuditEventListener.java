@@ -101,7 +101,6 @@ public class PostInsertAuditEventListener
 
             SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
             Type hibernateType = persister.getPropertyType(name);
-            Class javaType = hibernateType.getReturnedClass();
 
             AuditType auditType = null;
             AuditEventPair pair = null;
@@ -114,8 +113,9 @@ public class PostInsertAuditEventListener
                 }
 
 
-                Class idClass = sf.getIdentifierType(javaType.getName()).getReturnedClass();
-                auditType = new AuditEntityType(idClass, javaType);
+                Class entityClass = hibernateType.getReturnedClass();
+                Class idClass = sf.getIdentifierType(entityClass.getName()).getReturnedClass();
+                auditType = new AuditEntityType(idClass, entityClass);
 
                 if (value == null)
                 {
@@ -129,7 +129,6 @@ public class PostInsertAuditEventListener
                 // the entity mode is a session characteristic, so using the previously determined
                 // entity mode (TODO: verify this is really true)
                 value = associatedEntityPersister.getIdentifier(value, mode);
-
                 pair = new AuditEventPair();
 
             }
@@ -162,10 +161,9 @@ public class PostInsertAuditEventListener
             else
             {
                 auditType = new AuditType();
+                auditType.setClassName(hibernateType.getReturnedClass().getName());
                 pair = new AuditEventPair();
             }
-
-            auditType.setClassName(javaType.getName());
 
             AuditTypeField f = new AuditTypeField();
             f.setType(auditType);

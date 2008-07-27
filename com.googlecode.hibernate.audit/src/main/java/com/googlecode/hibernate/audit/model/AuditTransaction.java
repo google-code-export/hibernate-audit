@@ -21,6 +21,7 @@ import javax.persistence.Transient;
 import javax.transaction.Synchronization;
 import java.util.Date;
 import java.util.List;
+import java.util.Collection;
 import java.security.Principal;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -201,7 +202,7 @@ public class AuditTransaction implements Synchronization
         if (at != null && at.getId() == null)
         {
             // look it up in the database first
-            AuditType persisted = getAuditType(at.getClassInstance());
+            AuditType persisted = getAuditType(at);
             ae.setTargetType(persisted);
         }
 
@@ -231,7 +232,7 @@ public class AuditTransaction implements Synchronization
         if (at.getId() == null)
         {
             // look it up in the database first
-            AuditType persistedType = getAuditType(at.getClassInstance());
+            AuditType persistedType = getAuditType(at);
             field.setType(persistedType);
         }
 
@@ -271,6 +272,7 @@ public class AuditTransaction implements Synchronization
             List<Long> ids = cpair.getIds();
             for(Long id: ids)
             {
+                // TODO insert multiple pairs with the same statement
                 String qs =
                     "insert into AUDIT_EVENT_PAIR_COLLECTION " +
                     "(AUDIT_EVENT_PAIR_ID, COLLECTION_ENTITY_ID) " +
@@ -289,9 +291,32 @@ public class AuditTransaction implements Synchronization
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
      */
-    public AuditType getAuditType(Class c)
+    public AuditType getAuditType(AuditType at)
     {
-        return getAuditType(null, c);
+        if(at.getId() != null)
+        {
+            // already persisted
+            return at;
+        }
+
+        if (at.isPrimitiveType())
+        {
+            return AuditType.getInstanceFromDatabase(at.getClassInstance(), true, session);
+        }
+        else if (at.isEntityType())
+        {
+            AuditEntityType et = (AuditEntityType)at;
+            return AuditEntityType.getInstanceFromDatabase(
+                et.getClassInstance(), et.getIdClassInstance(), true, session);
+        }
+        else if (at.isCollectionType())
+        {
+            AuditCollectionType ct = (AuditCollectionType)at;
+            return AuditCollectionType.getInstanceFromDatabase(
+                ct.getCollectionClassInstance(), ct.getClassInstance(), true, session);
+        }
+
+        throw new IllegalArgumentException("don't know how to handle " + at);
     }
 
     /**
@@ -300,28 +325,17 @@ public class AuditTransaction implements Synchronization
      * Returns the corresponding AuditType (AuditCollectionType, AuditEntityType, etc), making a
      * database insert if the underlying class (or classes) were not persised in the database yet.
      */
-    public AuditType getAuditType(Class collectionClass, Class actualClass)
+    public AuditType getAuditType(Class collectionOrEntityClass, Class memberOrIdClass)
     {
-        String qs =
-            "from AuditType as a where " + 
-            "a.collectionClassName  = :collectionClassName and " +
-            "a.className = :className";
-
-        Query q = session.createQuery(qs);
-
-        q.setString("collectionClassName",
-                    collectionClass == null ? null : collectionClass.getName());
-        q.setString("className", actualClass.getName());
-
-        AuditType persistedType = (AuditType)q.uniqueResult();
-
-        if (persistedType == null)
+        if (Collection.class.isAssignableFrom(collectionOrEntityClass))
         {
-            persistedType = AuditType.createInstance(collectionClass, actualClass);
-            session.insert(persistedType);
+            return AuditCollectionType.
+                getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
         }
 
-        return persistedType;
+        // it's an entity
+        return AuditEntityType.
+            getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
     }
 
     /**

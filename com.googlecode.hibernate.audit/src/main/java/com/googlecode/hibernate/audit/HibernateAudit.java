@@ -473,7 +473,7 @@ public class HibernateAudit
 
             Query q = s.createQuery(query);
             QueryParameters.fill(q, args);
-            return postProcess(q.list());
+            return q.list();
         }
         finally
         {
@@ -491,28 +491,6 @@ public class HibernateAudit
                 s.close();
             }
         }
-    }
-
-    /**
-     * The list with results from database may need "postprocessing", in that some instances may
-     * need semantic enhancing. For example, we may realize that AuditType instances are actually
-     * AuditEntityType instances, so we do the switch here.
-     */
-    private List postProcess(List queryResult)
-    {
-        List<Object> result = new ArrayList<Object>();
-
-        for(Object o: queryResult)
-        {
-            if (o instanceof AuditType)
-            {
-                o = enhance(auditedSessionFactory, (AuditType)o);
-            }
-
-            result.add(o);
-        }
-
-        return result;
     }
 
     // Inner classes -------------------------------------------------------------------------------
