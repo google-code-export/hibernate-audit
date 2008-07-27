@@ -7,6 +7,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.JoinTable;
 import javax.persistence.JoinColumn;
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -31,7 +32,7 @@ public class AuditEventCollectionPair extends AuditEventPair
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @CollectionOfElements
+    @CollectionOfElements(fetch = FetchType.EAGER) // TODO https://jira.novaordis.org/browse/HBA-68
     @JoinTable(name = "AUDIT_EVENT_PAIR_COLLECTION",
                joinColumns = @JoinColumn(name = "AUDIT_EVENT_PAIR_ID"))
     @Column(name = "COLLECTION_ENTITY_ID", nullable = false)
