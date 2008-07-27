@@ -96,6 +96,9 @@ public class FailedCommitTest extends JTATransactionTest
         }
         finally
         {
+            // restore mock data source's sanity
+            ds.setBroken(false);
+            
             if (sf != null)
             {
                 sf.close();
