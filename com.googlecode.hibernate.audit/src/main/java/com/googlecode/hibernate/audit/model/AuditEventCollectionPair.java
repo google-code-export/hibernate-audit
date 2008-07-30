@@ -41,8 +41,8 @@ public class AuditEventCollectionPair extends AuditEventPair
     /**
      * Reserved for future use (lists)
      */
-    @Column(name = "LIST_INDEX")
-    private Integer index;
+//    @Column(name = "LIST_INDEX")
+//    private Integer index;
 
     // Constructors --------------------------------------------------------------------------------
 
