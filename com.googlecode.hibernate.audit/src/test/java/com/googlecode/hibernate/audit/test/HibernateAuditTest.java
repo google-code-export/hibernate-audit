@@ -45,7 +45,7 @@ public class HibernateAuditTest extends JTATransactionTest
     @Test(enabled = true)
     public void testEnableDisable() throws Exception
     {
-        assert !HibernateAudit.isEnabled();
+        assert !HibernateAudit.isStarted();
 
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -57,7 +57,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
             HibernateAudit.enable(sf);
 
-            assert HibernateAudit.isEnabled();
+            assert HibernateAudit.isEnabled(sf);
 
             // make sure that all available HBA listeners are installed
             Set<String> aets = Listeners.getAuditedEventTypes();
@@ -89,7 +89,7 @@ public class HibernateAuditTest extends JTATransactionTest
             // testing noop behavior
             HibernateAudit.enable(sf);
 
-            assert HibernateAudit.disable();
+            assert HibernateAudit.disableAll();
 
             // make sure none of the audit listeners are still registered
 
@@ -114,10 +114,12 @@ public class HibernateAuditTest extends JTATransactionTest
             }
 
             // testing noop behavior
-            assert !HibernateAudit.disable();
+            assert !HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+            
             if (sf != null)
             {
                 sf.close();
@@ -128,7 +130,7 @@ public class HibernateAuditTest extends JTATransactionTest
     @Test(enabled = true)
     public void testQueryOnDisabledRuntime() throws Exception
     {
-        assert !HibernateAudit.isEnabled();
+        assert !HibernateAudit.isStarted();
 
         try
         {
@@ -139,6 +141,225 @@ public class HibernateAuditTest extends JTATransactionTest
         catch(IllegalStateException e)
         {
             log.debug(e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testIsEnabledOnDifferentSessionFactory() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
+        SessionFactory sf2 = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            assert HibernateAudit.isEnabled(sf);
+
+            sf2 = config.buildSessionFactory();
+
+            assert !HibernateAudit.isEnabled(sf2);
+
+            assert HibernateAudit.disableAll();
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+
+            if (sf2 != null)
+            {
+                sf2.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testEnableDisableTwoSessionFactories() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
+        SessionFactory sf2 = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            sf2 = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            assert HibernateAudit.isEnabled(sf);
+            assert !HibernateAudit.isEnabled(sf2);
+
+            // make sure that all available HBA listeners are installed
+            Set<String> aets = Listeners.getAuditedEventTypes();
+
+            assert !aets.isEmpty();
+
+            outer: for(String aet: aets)
+            {
+                log.debug("verifying '" + aet + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(aet);
+                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+
+                assert listeners.length != 0;
+                Class c = Listeners.getAuditEventListenerClass(aet);
+
+                for(Object o: listeners)
+                {
+                    if (c.isInstance(o))
+                    {
+                        // found, all good
+                        continue outer;
+                    }
+                }
+
+                throw new Exception("Did not find a " + aet + " audit listener");
+            }
+
+
+            HibernateAudit.enable(sf2);
+
+            assert HibernateAudit.isEnabled(sf);
+            assert HibernateAudit.isEnabled(sf2);
+
+            // make sure that all available HBA listeners are installed
+            outer: for(String aet: aets)
+            {
+                log.debug("verifying '" + aet + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(aet);
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf2).getEventListeners());
+
+                assert listeners.length != 0;
+                Class c = Listeners.getAuditEventListenerClass(aet);
+
+                for(Object o: listeners)
+                {
+                    if (c.isInstance(o))
+                    {
+                        // found, all good
+                        continue outer;
+                    }
+                }
+
+                throw new Exception("Did not find a " + aet + " audit listener on sf2");
+            }
+
+            // testing noop behavior
+            HibernateAudit.enable(sf);
+            HibernateAudit.enable(sf2);
+
+            assert HibernateAudit.disable(sf);
+            assert !HibernateAudit.isEnabled(sf);
+            assert HibernateAudit.isEnabled(sf2);
+
+            // make sure none of the audit listeners are still registered on the disabled sf
+
+            assert !Listeners.ALL_EVENT_TYPES.isEmpty();
+
+            for(String et: Listeners.ALL_EVENT_TYPES)
+            {
+                log.debug("verifying '" + et + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(et);
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+
+                if (listeners == null)
+                {
+                    continue; // we're ok
+                }
+
+                for(Object o: listeners)
+                {
+                    assert !(o instanceof AuditEventListener);
+                }
+            }
+
+            // however make sure the listeners are still registered with sf2
+
+            outer: for(String aet: aets)
+            {
+                log.debug("verifying '" + aet + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(aet);
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf2).getEventListeners());
+
+                assert listeners.length != 0;
+                Class c = Listeners.getAuditEventListenerClass(aet);
+
+                for(Object o: listeners)
+                {
+                    if (c.isInstance(o))
+                    {
+                        // found, all good
+                        continue outer;
+                    }
+                }
+
+                throw new Exception("Did not find a " + aet + " audit listener on sf2");
+            }
+
+            assert HibernateAudit.disable(sf2);
+            assert !HibernateAudit.isEnabled(sf);
+            assert !HibernateAudit.isEnabled(sf2);
+
+            // make sure none of the audit listeners are still registered on the disabled sf2
+
+            assert !Listeners.ALL_EVENT_TYPES.isEmpty();
+
+            for(String et: Listeners.ALL_EVENT_TYPES)
+            {
+                log.debug("verifying '" + et + "' listeners");
+
+                Method m = Listeners.getEventListenersGetter(et);
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf2).getEventListeners());
+
+                if (listeners == null)
+                {
+                    continue; // we're ok
+                }
+
+                for(Object o: listeners)
+                {
+                    assert !(o instanceof AuditEventListener);
+                }
+            }
+
+            // testing noop behavior
+            assert !HibernateAudit.disable(sf);
+            assert !HibernateAudit.disable(sf2);
+            assert !HibernateAudit.disableAll();
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+
+            if (sf2 != null)
+            {
+                sf2.close();
+            }
         }
     }
 
@@ -162,11 +383,13 @@ public class HibernateAuditTest extends JTATransactionTest
             }
             finally
             {
-                assert HibernateAudit.disable();
+                assert HibernateAudit.disableAll();
             }
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -191,10 +414,12 @@ public class HibernateAuditTest extends JTATransactionTest
 
             assert p == null;
 
-            assert HibernateAudit.disable();
+            assert HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();

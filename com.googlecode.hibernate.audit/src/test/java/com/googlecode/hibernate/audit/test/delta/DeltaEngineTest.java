@@ -185,7 +185,7 @@ public class DeltaEngineTest extends JTATransactionTest
                 log.info(e.getMessage());
             }
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         finally
         {
@@ -240,7 +240,7 @@ public class DeltaEngineTest extends JTATransactionTest
                 log.info(e.getMessage());
             }
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         finally
         {
@@ -295,7 +295,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             assert 33 == base.getAge();
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         finally
         {
@@ -345,7 +345,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             assert "cami".equals(base.getName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         finally
         {
