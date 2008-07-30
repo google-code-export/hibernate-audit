@@ -136,7 +136,7 @@ public class PostInsertEntityTest extends JTATransactionTest
                 assert expectedStringValues.remove(pair.getStringValue());
             }
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -200,7 +200,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -279,7 +279,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -376,7 +376,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {

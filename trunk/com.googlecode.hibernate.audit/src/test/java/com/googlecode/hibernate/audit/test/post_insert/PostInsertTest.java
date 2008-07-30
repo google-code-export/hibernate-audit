@@ -105,7 +105,7 @@ public class PostInsertTest extends JTATransactionTest
             type = field.getType();
             assert String.class.getName().equals(type.getClassName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -186,7 +186,7 @@ public class PostInsertTest extends JTATransactionTest
             AuditType type = field.getType();
             assert String.class.getName().equals(type.getClassName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -296,7 +296,7 @@ public class PostInsertTest extends JTATransactionTest
             assert "name".equals(pair.getField().getName());
             assert expectedPairValues.remove((String)pair.getValue());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         finally
         {
@@ -359,7 +359,7 @@ public class PostInsertTest extends JTATransactionTest
             assert entityAuditType.getId().equals(at2.getId());
             assert entityAuditType.equals(at2);
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -436,7 +436,7 @@ public class PostInsertTest extends JTATransactionTest
             assert entityType.getId().equals(at3.getId());
             assert entityType.equals(at3);
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -522,7 +522,7 @@ public class PostInsertTest extends JTATransactionTest
             assert entityType.getId().equals(at3.getId());
             assert entityType.equals(at3);
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -587,7 +587,7 @@ public class PostInsertTest extends JTATransactionTest
             assert expectedClassNames.remove(((AuditType)rs.get(1)).getClassName());
             assert expectedClassNames.remove(((AuditType)rs.get(2)).getClassName());
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -741,7 +741,7 @@ public class PostInsertTest extends JTATransactionTest
                 assert expectedValues.remove(value);
             }
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {

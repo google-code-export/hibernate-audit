@@ -158,7 +158,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedStringValues.isEmpty();
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -228,7 +228,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert base == postTWb.getWa();
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -298,7 +298,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             // no bidirectionality
             assert postTWb.getWa() == null;
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -392,7 +392,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedWbIds.isEmpty();
             
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -485,7 +485,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedWbIds.isEmpty();
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -515,7 +515,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             sf = config.buildSessionFactory();
 
             // create the state in database, without auditing
-            assert !HibernateAudit.isEnabled();
+            assert !HibernateAudit.isEnabled(null);
 
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
@@ -564,7 +564,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             t.commit();
             s.close();
 
-            HibernateAudit.disable();
+            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
