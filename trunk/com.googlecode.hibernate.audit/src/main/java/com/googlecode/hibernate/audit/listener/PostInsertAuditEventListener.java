@@ -78,6 +78,10 @@ public class PostInsertAuditEventListener
         ae.setTargetId((Long)id);
         ae.setTargetType(at);
 
+        // even if it may seem redundant, log the event here in case the entity state is empty and
+        // no pairs will be logged (see HBA-74).
+        aTx.log(ae);
+
         EntityPersister persister = event.getPersister();
         EntityMode mode = persister.guessEntityMode(entity);
 

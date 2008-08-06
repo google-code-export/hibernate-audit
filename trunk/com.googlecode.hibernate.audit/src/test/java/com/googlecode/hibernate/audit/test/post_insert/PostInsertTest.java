@@ -48,7 +48,7 @@ public class PostInsertTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_NullProperty() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -202,7 +202,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -307,7 +307,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -375,7 +375,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -452,7 +452,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -538,7 +538,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -603,7 +603,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditField_TwoEntities_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -750,6 +750,57 @@ public class PostInsertTest extends JTATransactionTest
         }
         finally
         {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testInsert_EmptyState() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            A a = new A();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(a);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(a.getId());
+
+            assert transactions.size() == 1;
+
+            A base = new A();
+            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId());
+
+            assert a.getId().equals(base.getId());
+            assert base.getName() == null;
+            assert base.getAge() == null;
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
