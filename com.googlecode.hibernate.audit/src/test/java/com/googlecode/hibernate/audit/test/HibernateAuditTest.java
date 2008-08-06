@@ -42,7 +42,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnableDisable() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -127,7 +127,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testQueryOnDisabledRuntime() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -144,7 +144,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testIsEnabledOnDifferentSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -182,7 +182,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnableDisableTwoSessionFactories() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -363,7 +363,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -397,7 +397,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testGetNullSecurityInformationProvider() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -415,6 +415,33 @@ public class HibernateAuditTest extends JTATransactionTest
             assert p == null;
 
             assert HibernateAudit.disableAll();
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testEnableDisable_InternalStatefulSession() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            HibernateAudit.enable(sf);
+
+            throw new RuntimeException("CONTINUE HERE");
         }
         finally
         {
