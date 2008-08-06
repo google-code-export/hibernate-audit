@@ -4,12 +4,23 @@ import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.connection.ConnectionProvider;
+import org.hibernate.cfg.Settings;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.cfg.SettingsFactory;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
+import com.googlecode.hibernate.audit.model.AuditEventPair;
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
 
@@ -78,16 +89,18 @@ public class HibernateAudit
         if (!(asf instanceof SessionFactoryImpl))
         {
             throw new IllegalArgumentException(
-                "session factory should be a SessionFactoryImpl instance");
+                "Cannot enable audit unless session factory is a SessionFactoryImpl instance");
         }
+
+        SessionFactoryImpl sfi = (SessionFactoryImpl)asf;
 
         if (singleton == null)
         {
-            singleton = new HibernateAudit(null);
+            singleton = new HibernateAudit(sfi.getSettings());
             singleton.start();
         }
 
-        singleton.enableOn((SessionFactoryImpl)asf);
+        singleton.enableOn(sfi);
     }
 
     /**
@@ -221,10 +234,32 @@ public class HibernateAudit
     // Attributes ----------------------------------------------------------------------------------
 
     private Set<SessionFactoryImpl> auditedSessionFactories;
+    private Settings sourceSettings;
     private String secondaryConfigurationResource;
     private SecurityInformationProvider securityInformationProvider;
 
+
+    // the session factory to create sessions used to write the audit log
+    private SessionFactoryImpl internalSessionFactory;
+
     // Constructors --------------------------------------------------------------------------------
+
+    private HibernateAudit()
+    {
+        auditedSessionFactories = new HashSet<SessionFactoryImpl>();
+    }
+
+    /**
+     * @param settings - settings "borrowed" from the *first* audited session factory HBA is enabled
+     *        on. HBA will use the datasouce/database url and associated credentials to log audit
+     *        data.
+     */
+    private HibernateAudit(Settings settings) throws Exception
+    {
+        this();
+        log.debug("creating HibernateAudit runtime based on settings " + settings);
+        this.sourceSettings = settings;
+    }
 
     /**
      * @param resource - the resource which contains the configuration for the secondary persistence
@@ -234,19 +269,11 @@ public class HibernateAudit
      */
     private HibernateAudit(String resource) throws Exception
     {
-        auditedSessionFactories = new HashSet<SessionFactoryImpl>();
+        this();
         this.secondaryConfigurationResource = resource;
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    /**
-     * May return null if no security information provider has been installed.
-     */
-    SecurityInformationProvider getSecurityInformationProvider()
-    {
-        return securityInformationProvider;
-    }
 
     @Override
     public String toString()
@@ -264,63 +291,15 @@ public class HibernateAudit
     {
         log.debug(this + " starting ...");
 
+        SettingsFactory sf = new AuditSettingsFactory(sourceSettings);
+        AnnotationConfiguration config = new AnnotationConfiguration(sf);
+        installMappings(config);
+        internalSessionFactory = (SessionFactoryImpl)config.buildSessionFactory();
+
         // if using a different persistence unit, initialize it first
 
         if (secondaryConfigurationResource != null)
         {
-            //Configuration secondary = new AnnotationConfiguration()
-
-//    /**
-//     * Use the mappings and properties specified in the given application
-//     * resource. The format of the resource is defined in
-//     * <tt>hibernate-configuration-3.0.dtd</tt>.
-//     * <p/>
-//     * The resource is found via <tt>getConfigurationInputStream(resource)</tt>.
-//     */
-//    public Configuration configure(String resource) throws HibernateException {
-//        log.info( "configuring from resource: " + resource );
-//        InputStream stream = getConfigurationInputStream( resource );
-//        return doConfigure( stream, resource );
-//    }
-//
-//    /**
-//     * Use the mappings and properties specified in the given document.
-//     * The format of the document is defined in
-//     * <tt>hibernate-configuration-3.0.dtd</tt>.
-//     *
-//     * @param url URL from which you wish to load the configuration
-//     * @return A configuration configured via the file
-//     * @throws HibernateException
-//     */
-//    public Configuration configure(URL url) throws HibernateException {
-//        log.info( "configuring from url: " + url.toString() );
-//        try {
-//            return doConfigure( url.openStream(), url.toString() );
-//        }
-//        catch (IOException ioe) {
-//            throw new HibernateException( "could not configure from URL: " + url, ioe );
-//        }
-//    }
-//
-//    /**
-//     * Use the mappings and properties specified in the given application
-//     * file. The format of the file is defined in
-//     * <tt>hibernate-configuration-3.0.dtd</tt>.
-//     *
-//     * @param configFile <tt>File</tt> from which you wish to load the configuration
-//     * @return A configuration configured via the file
-//     * @throws HibernateException
-//     */
-//    public Configuration configure(File configFile) throws HibernateException {
-//        log.info( "configuring from file: " + configFile.getName() );
-//        try {
-//            return doConfigure( new FileInputStream( configFile ), configFile.toString() );
-//        }
-//        catch (FileNotFoundException fnfe) {
-//            throw new HibernateException( "could not find file: " + configFile, fnfe );
-//        }
-//    }
-
             throw new Exception("NOT YET IMPLEMENTED");
         }
 
@@ -352,6 +331,8 @@ public class HibernateAudit
         }
 
         auditedSessionFactories.clear();
+
+        internalSessionFactory.close();
 
         log.debug(this + " stopped");
     }
@@ -416,8 +397,22 @@ public class HibernateAudit
             return;
         }
 
+        // TODO:  make sure the audited session factory and the internal session factory use the
+        // same connection provider, otherwise the transactional integrity is compromised.
+
+        ConnectionProvider thatConnectioProvider = asf.getConnectionProvider();
+        ConnectionProvider thisConnectionProvider =
+            ((DelegateConnectionProvider)internalSessionFactory.getConnectionProvider()).
+                getDelegate();
+
+        if (thatConnectioProvider != thisConnectionProvider)
+        {
+            // TODO test this
+            throw new IllegalArgumentException("Internal connection provider and audited session " +
+                                               "factory connection provider do not match");
+        }
+
         installAuditListeners(asf);
-//        installMappings(asf);
         auditedSessionFactories.add(asf);
     }
 
@@ -442,8 +437,6 @@ public class HibernateAudit
         }
 
         uninstallAuditListeners(sfi);
-//        uninstallMappings(asf);
-        
         return true;
     }
 
@@ -541,14 +534,18 @@ public class HibernateAudit
         log.debug(this + " uninstalled audit listeners");
     }
 
-//    private void installMappings(SessionFactoryImpl sf) throws Exception
-//    {
-//    }
-
-//    private void uninstallMappings(SessionFactoryImpl sf) throws Exception
-//    {
-//        throw new Exception("NOT YET IMPLEMENTED");
-//    }
+    private void installMappings(AnnotationConfiguration config) throws Exception
+    {
+        // TODO currently adding classes individually, it can be automated
+        config.addAnnotatedClass(AuditCollectionType.class);
+        config.addAnnotatedClass(AuditEntityType.class);
+        config.addAnnotatedClass(AuditEvent.class);
+        config.addAnnotatedClass(AuditEventCollectionPair.class);
+        config.addAnnotatedClass(AuditEventPair.class);
+        config.addAnnotatedClass(AuditTransaction.class);
+        config.addAnnotatedClass(AuditType.class);
+        config.addAnnotatedClass(AuditTypeField.class);
+    }
 
     private List doQuery(String query, Object... args) throws Exception
     {
@@ -588,6 +585,14 @@ public class HibernateAudit
                 s.close();
             }
         }
+    }
+
+    /**
+     * May return null if no security information provider has been installed.
+     */
+    private SecurityInformationProvider getSecurityInformationProvider()
+    {
+        return securityInformationProvider;
     }
 
     // Inner classes -------------------------------------------------------------------------------
