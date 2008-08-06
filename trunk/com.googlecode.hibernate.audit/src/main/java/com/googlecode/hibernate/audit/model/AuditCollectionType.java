@@ -1,7 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
-import org.hibernate.StatelessSession;
 import org.hibernate.Query;
+import org.hibernate.Session;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -35,8 +35,8 @@ public class AuditCollectionType extends AuditType
      * and the type does not exist in the database, the method returns null. If "create" is set to
      * true and the type does not exist in the database, it is persisted, and then returned.
      *
-     * @param session - the hibernate stateless session to be used to interact with the database.
-     *        It is assumed that a transaction is already started, and it will be committed outside
+     * @param session - the hibernate session to be used to interact with the database. It is
+     *        assumed that a transaction is already started, and it will be committed outside
      *        the scope of this method.
      *
      * @return the persisted type (or null)
@@ -44,7 +44,7 @@ public class AuditCollectionType extends AuditType
     public static AuditCollectionType getInstanceFromDatabase(Class collectionClass,
                                                               Class memberClass,
                                                               boolean create,
-                                                              StatelessSession session)
+                                                              Session session)
     {
         checkTransaction(session);
 
@@ -64,7 +64,7 @@ public class AuditCollectionType extends AuditType
         }
 
         persistedType = new AuditCollectionType(collectionClass, memberClass);
-        session.insert(persistedType);
+        session.save(persistedType);
         return persistedType;
     }
 

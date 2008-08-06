@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.SequenceGenerator;
@@ -11,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+
 
 /**
  * An atomic audit event as captured by Hibernate listeners.
@@ -39,18 +43,21 @@ public class AuditEvent
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_TRANSACTION_ID")
     private AuditTransaction transaction;
 
-    @Column(name = "EVENT_TYPE")
+    @Column(name = "EVENT_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
     private AuditEventType type;
 
     @Column(name = "TARGET_ENTITY_ID", columnDefinition="NUMBER(30, 0)")
     private Long targetId; // TODO current implementation supports only Longs as ids, this needs
                            // to be generalized if audited model uses other types as ids.
-    @ManyToOne
+
+    @ManyToOne(optional = false)
+    @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
     private AuditType targetType;
 

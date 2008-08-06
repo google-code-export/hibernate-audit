@@ -14,13 +14,7 @@ import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.AuditCollectionType;
-import com.googlecode.hibernate.audit.model.AuditEntityType;
-import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
-import com.googlecode.hibernate.audit.model.AuditEventPair;
-import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.model.AuditTypeField;
+import com.googlecode.hibernate.audit.model.Entities;
 import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
 
@@ -178,12 +172,28 @@ public class HibernateAudit
         return auditTransaction.get();
     }
 
+    /**
+     * TODO this method shouldn't be publicly exposed
+     */
     public static void setCurrentAuditTransaction(AuditTransaction at)
     {
         log.debug(at == null ?
                   "dissasociating audit transaction from the current thread":
                   "associating " + at + " with the current thread");
         auditTransaction.set(at);
+    }
+
+    /**
+     * @return the internal SessionFactory instance. May return null if audit is not enabled.
+     */
+    public static SessionFactoryImpl getSessionFactory()
+    {
+        if (singleton == null)
+        {
+            return null;
+        }
+
+        return singleton.getInternalSessionFactory();
     }
 
     /**
@@ -235,9 +245,8 @@ public class HibernateAudit
 
     private Set<SessionFactoryImpl> auditedSessionFactories;
     private Settings sourceSettings;
-    private String secondaryConfigurationResource;
+//    private String secondaryConfigurationResource;
     private SecurityInformationProvider securityInformationProvider;
-
 
     // the session factory to create sessions used to write the audit log
     private SessionFactoryImpl internalSessionFactory;
@@ -261,17 +270,17 @@ public class HibernateAudit
         this.sourceSettings = settings;
     }
 
-    /**
-     * @param resource - the resource which contains the configuration for the secondary persistence
-     *        unit (used to persist audit data). A null resource means that there is no secondary
-     *        persistence unit, the audited persistence unit will be used to persist audit data as
-     *        well.
-     */
-    private HibernateAudit(String resource) throws Exception
-    {
-        this();
-        this.secondaryConfigurationResource = resource;
-    }
+//    /**
+//     * @param resource - the resource which contains the configuration for the secondary persistence
+//     *        unit (used to persist audit data). A null resource means that there is no secondary
+//     *        persistence unit, the audited persistence unit will be used to persist audit data as
+//     *        well.
+//     */
+//    private HibernateAudit(String resource) throws Exception
+//    {
+//        this();
+//        this.secondaryConfigurationResource = resource;
+//    }
 
     // Public --------------------------------------------------------------------------------------
 
@@ -298,10 +307,10 @@ public class HibernateAudit
 
         // if using a different persistence unit, initialize it first
 
-        if (secondaryConfigurationResource != null)
-        {
-            throw new Exception("NOT YET IMPLEMENTED");
-        }
+//        if (secondaryConfigurationResource != null)
+//        {
+//            throw new Exception("NOT YET IMPLEMENTED");
+//        }
 
         try
         {
@@ -333,6 +342,7 @@ public class HibernateAudit
         auditedSessionFactories.clear();
 
         internalSessionFactory.close();
+        internalSessionFactory = null;
 
         log.debug(this + " stopped");
     }
@@ -506,7 +516,7 @@ public class HibernateAudit
 
             if (needUninstall)
             {
-                log.debug("uninstalling '" + eventType + "' audit listeners");
+                log.debug("uninstalling '" + eventType + "' audit listeners from " + sf);
 
                 List<Object> clean = new ArrayList<Object>();
                 for(Object listener: listeners)
@@ -536,33 +546,22 @@ public class HibernateAudit
 
     private void installMappings(AnnotationConfiguration config) throws Exception
     {
-        // TODO currently adding classes individually, it can be automated
-        config.addAnnotatedClass(AuditCollectionType.class);
-        config.addAnnotatedClass(AuditEntityType.class);
-        config.addAnnotatedClass(AuditEvent.class);
-        config.addAnnotatedClass(AuditEventCollectionPair.class);
-        config.addAnnotatedClass(AuditEventPair.class);
-        config.addAnnotatedClass(AuditTransaction.class);
-        config.addAnnotatedClass(AuditType.class);
-        config.addAnnotatedClass(AuditTypeField.class);
+        Set<Class> entities = Entities.getAuditEntities();
+
+        for(Class e: entities)
+        {
+            config.addAnnotatedClass(e);
+            log.debug("added annotated class " + e);
+        }
     }
 
     private List doQuery(String query, Object... args) throws Exception
     {
-        if (secondaryConfigurationResource != null)
-        {
-            throw new Exception("NOT YET IMPLEMENTED");
-        }
-
         Session s = null;
 
         try
         {
-            // Just pick one session factory for that, this is undeterministic and bad, and also see
-            // the above TODO (delta())
-            SessionFactoryImpl sf = auditedSessionFactories.iterator().next();
-
-            s = sf.openSession();
+            s = internalSessionFactory.openSession();
             s.beginTransaction();
 
             Query q = s.createQuery(query);
@@ -593,6 +592,11 @@ public class HibernateAudit
     private SecurityInformationProvider getSecurityInformationProvider()
     {
         return securityInformationProvider;
+    }
+
+    private SessionFactoryImpl getInternalSessionFactory()
+    {
+        return internalSessionFactory;
     }
 
     // Inner classes -------------------------------------------------------------------------------

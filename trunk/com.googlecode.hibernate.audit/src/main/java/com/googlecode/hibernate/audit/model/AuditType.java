@@ -1,8 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
 import org.apache.log4j.Logger;
-import org.hibernate.StatelessSession;
 import org.hibernate.Query;
+import org.hibernate.Session;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -76,8 +76,7 @@ public class AuditType
      *
      * @return the persisted type (or null)
      */
-    public static AuditType getInstanceFromDatabase(Class c, boolean create,
-                                                    StatelessSession session)
+    public static AuditType getInstanceFromDatabase(Class c, boolean create, Session session)
     {
         checkTransaction(session);
 
@@ -93,11 +92,11 @@ public class AuditType
         }
 
         persistedType = new AuditType(c);
-        session.insert(persistedType);
+        session.save(persistedType);
         return persistedType;
     }
 
-    protected static void checkTransaction(StatelessSession s) throws IllegalStateException
+    protected static void checkTransaction(Session s) throws IllegalStateException
     {
         if (s.getTransaction() == null || !s.getTransaction().isActive())
         {

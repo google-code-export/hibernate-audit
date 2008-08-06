@@ -94,6 +94,8 @@ public class Listeners
      *         org.hibernate.event.EventListeners to key the listeners in its eventInterfaceFromType
      *         map.
      *
+     * TODO implementation quasi-identical with Entities.getAuditEntities(). Could be consolidated.
+     *
      * @see org.hibernate.event.EventListeners
      *
      * @exception Exception if anything goes wrong while rummaging through the filesystem.

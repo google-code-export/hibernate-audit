@@ -5,8 +5,12 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
+import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.DelegateConnectionProvider;
+import com.googlecode.hibernate.audit.model.Entities;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -439,9 +443,34 @@ public class HibernateAuditTest extends JTATransactionTest
         try
         {
             sf = config.buildSessionFactory();
+
+            assert HibernateAudit.getSessionFactory() == null;
+
             HibernateAudit.enable(sf);
 
-            throw new RuntimeException("CONTINUE HERE");
+            assert HibernateAudit.isEnabled(sf);
+
+            SessionFactoryImpl internal = HibernateAudit.getSessionFactory();
+
+            // make sure (somehow superfluously) that all mappings are there
+            Set<Class> entities = Entities.getAuditEntities();
+
+            for(Class e: entities)
+            {
+                ClassMetadata cm = internal.getClassMetadata(e);
+                assert cm != null;
+            }
+
+            DelegateConnectionProvider dcp =
+                (DelegateConnectionProvider)internal.getConnectionProvider();
+            ConnectionProvider icp = dcp.getDelegate();
+            ConnectionProvider cp = ((SessionFactoryImpl)sf).getConnectionProvider();
+
+            assert icp == cp;
+
+            assert HibernateAudit.disable(sf);
+
+            assert HibernateAudit.getSessionFactory() == null;
         }
         finally
         {

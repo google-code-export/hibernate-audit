@@ -48,7 +48,7 @@ public class PostInsertTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_NullProperty() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -202,7 +202,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -307,7 +307,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -375,7 +375,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -452,7 +452,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -538,7 +538,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -603,7 +603,7 @@ public class PostInsertTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditField_TwoEntities_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

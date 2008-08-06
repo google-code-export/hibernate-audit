@@ -34,7 +34,7 @@ public class SaveAuditEventListener
         log.debug(this + ".onSaveOrUpdate(...)");
 
         // this will create an audit transaction and properly register the synchronizations
-        logTransaction(event.getSession());
+        createAuditTransaction(event.getSession());
     }
 
     // Public --------------------------------------------------------------------------------------

@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.SequenceGenerator;
@@ -9,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -35,11 +39,12 @@ public class AuditTypeField
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
     private AuditType type;
 
-    @Column(name = "FIELD_NAME")
+    @Column(name = "FIELD_NAME", nullable = false)
     private String name;
 
     @Column(name = "LABEL")

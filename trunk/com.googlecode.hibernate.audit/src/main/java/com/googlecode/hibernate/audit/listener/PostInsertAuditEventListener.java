@@ -54,8 +54,7 @@ public class PostInsertAuditEventListener
         log.debug(this + ".onPostInsert(...)");
 
         EventSource session = event.getSession();
-
-        AuditTransaction auditTransaction = logTransaction(session);
+        AuditTransaction aTx = createAuditTransaction(session);
 
         Serializable id = event.getId();
         Object entity = event.getEntity();
@@ -63,7 +62,7 @@ public class PostInsertAuditEventListener
 
         log.debug(this + " handles " + entityClassName + "[" + id + "]");
 
-        AuditType at = new AuditEntityType(id.getClass(), entity.getClass());
+        AuditEntityType at = (AuditEntityType)aTx.getAuditType(entity.getClass(), id.getClass());
 
         // TODO currently we only support Long as ids, we may need to generalize this
         if (!(id instanceof Long))
@@ -74,12 +73,10 @@ public class PostInsertAuditEventListener
         }
 
         AuditEvent ae = new AuditEvent();
-
+        ae.setTransaction(aTx);
         ae.setType(AuditEventType.INSERT);
         ae.setTargetId((Long)id);
         ae.setTargetType(at);
-
-        auditTransaction.logEvent(ae);
 
         EntityPersister persister = event.getPersister();
         EntityMode mode = persister.guessEntityMode(entity);
@@ -112,15 +109,15 @@ public class PostInsertAuditEventListener
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-
-                Class entityClass = hibernateType.getReturnedClass();
-                Class idClass = sf.getIdentifierType(entityClass.getName()).getReturnedClass();
-                auditType = new AuditEntityType(idClass, entityClass);
-
                 if (value == null)
                 {
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
+
+                Class entityClass = hibernateType.getReturnedClass();
+                Class idClass = sf.getIdentifierType(entityClass.getName()).getReturnedClass();
+
+                auditType = aTx.getAuditType(entityClass, idClass);
 
                 // TODO Refactor this into something more palatable
                 String entityName = session.getEntityName(value);
@@ -130,7 +127,6 @@ public class PostInsertAuditEventListener
                 // entity mode (TODO: verify this is really true)
                 value = associatedEntityPersister.getIdentifier(value, mode);
                 pair = new AuditEventPair();
-
             }
             else if (hibernateType.isCollectionType())
             {
@@ -140,7 +136,7 @@ public class PostInsertAuditEventListener
                 Class memberClass = memberType.getReturnedClass();
                 Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
 
-                auditType = auditTransaction.getAuditType(collectionClass, memberClass);
+                auditType = aTx.getAuditType(collectionClass, memberClass);
 
                 String entityName = memberClass.getName();
                 EntityPersister memberPersister = sf.getEntityPersister(entityName);
@@ -160,8 +156,7 @@ public class PostInsertAuditEventListener
             }
             else
             {
-                auditType = new AuditType();
-                auditType.setClassName(hibernateType.getReturnedClass().getName());
+                auditType = aTx.getAuditType(hibernateType.getReturnedClass());
                 pair = new AuditEventPair();
             }
 
@@ -181,7 +176,7 @@ public class PostInsertAuditEventListener
                 //throw new RuntimeException("NOT YET IMPLEMENTED");
             }
 
-            auditTransaction.logPair(pair);
+            aTx.log(pair);
         }
     }
 

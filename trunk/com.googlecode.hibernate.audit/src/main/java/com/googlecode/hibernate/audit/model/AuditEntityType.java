@@ -1,7 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
-import org.hibernate.StatelessSession;
 import org.hibernate.Query;
+import org.hibernate.Session;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
@@ -38,14 +38,14 @@ public class AuditEntityType extends AuditType
      * @param entityClass - the entity type.
      * @param idClass - disregarded while querying, only used if creation is necessary.
      *
-     * @param session - the hibernate stateless session to be used to interact with the database.
-     *        It is assumed that a transaction is already started, and it will be committed outside
+     * @param session - the hibernate session to be used to interact with the database. It is
+     *        assumed that a transaction is already started, and it will be committed outside
      *        the scope of this method.
      *
      * @return the persisted type (or null)
      */
     public static AuditEntityType getInstanceFromDatabase(Class entityClass, Class idClass,
-                                                          boolean create, StatelessSession session)
+                                                          boolean create, Session session)
     {
         checkTransaction(session);
 
@@ -61,7 +61,7 @@ public class AuditEntityType extends AuditType
         }
 
         persistedType = new AuditEntityType(idClass, entityClass);
-        session.insert(persistedType);
+        session.save(persistedType);
         return persistedType;
     }
 

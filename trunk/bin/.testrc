@@ -13,7 +13,7 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 
 
 #TARGET_CLASS=ListenersTest
-TARGET_CLASS=HibernateAuditTest
+#TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=StatelessSessionWithJTATransactionTest
 #TARGET_CLASS=FailedCommitTest
 #TARGET_CLASS=AuditPairTest
@@ -26,3 +26,5 @@ TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=AuditTypeTest
 #TARGET_CLASS=AuditEntityTypeTest
 #TARGET_CLASS=AuditCollectionTypeTest
+#TARGET_CLASS=EntitiesTest
+TARGET_CLASS=PostInsertStatefulSessionTest
