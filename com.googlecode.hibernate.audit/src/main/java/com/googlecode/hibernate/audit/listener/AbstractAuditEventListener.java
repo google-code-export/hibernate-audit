@@ -38,10 +38,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     // Protected -----------------------------------------------------------------------------------
 
     /**
-     * Make sure we log the transaction the current event occured in scope of and return a reference
-     * to it.
+     * Creates in-memory instance of the audit transaction the current event occured in scope of
+     * and perform all necessary associations (with the thread, register synchronizations, etc.).
+     * No unnecessary creation occurs if the audit transaction instance already exists.
      */
-    protected AuditTransaction logTransaction(EventSource auditedSession)
+    protected AuditTransaction createAuditTransaction(EventSource auditedSession)
     {
         Transaction ht = auditedSession.getTransaction();
         AuditTransaction at = HibernateAudit.getCurrentAuditTransaction();
@@ -49,19 +50,15 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         if (at != null)
         {
             // already logged
-
             assert ht == at.getTransaction();
             return at;
         }
 
         Principal p = HibernateAudit.getPrincipal();
         at = new AuditTransaction(auditedSession, p);
-
-        at.log();
-
         HibernateAudit.setCurrentAuditTransaction(at);
 
-        log.debug(this + " logged transaction " + ht);
+        log.debug(this + " created");
 
         return at;
     }

@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.SequenceGenerator;
@@ -14,6 +17,7 @@ import javax.persistence.DiscriminatorColumn;
 import javax.persistence.InheritanceType;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
+
 
 /**
  * An atomic audit name/value pair.
@@ -45,11 +49,13 @@ public class AuditEventPair
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_EVENT_ID")
     private AuditEvent event;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_FIELD_ID")
     private AuditTypeField field;
 

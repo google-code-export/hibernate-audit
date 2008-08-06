@@ -1,10 +1,8 @@
 package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.Transaction;
-import org.hibernate.StatelessSession;
-import org.hibernate.Query;
 import org.hibernate.SessionFactory;
-import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.hibernate.event.EventSource;
 import org.apache.log4j.Logger;
 
@@ -20,7 +18,6 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.transaction.Synchronization;
 import java.util.Date;
-import java.util.List;
 import java.util.Collection;
 import java.security.Principal;
 
@@ -70,10 +67,10 @@ public class AuditTransaction implements Synchronization
     private Transaction transaction;
 
     /**
-     * The stateless session used to persist this transaction and all related audit elements.
+     * The session used to persist this transaction and all related audit elements.
      */
     @Transient
-    private StatelessSession session;
+    private Session session;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -100,9 +97,8 @@ public class AuditTransaction implements Synchronization
         // in the context of the dedicated session, if available. TODO: for the time being we
         // operate under the assumption that no dedicated session is available
 
-        SessionFactory sessionFactory = auditedSession.getFactory();
-
-        session = sessionFactory.openStatelessSession();
+        SessionFactory sf = HibernateAudit.getSessionFactory();
+        session = sf.openSession();
 
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
@@ -176,116 +172,17 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
-     * Write this transaction information on persistent storage, in the context of the transaction
-     * itself.
-     */
-    public void log()
-    {
-        log.debug(this + ".log()");
-        session.insert(this);
-    }
-
-    /**
-     * Write audit event information on persistent storage, in the context of this transaction.
-     */
-    public void logEvent(AuditEvent ae)
-    {
-        log.debug(this + " logging " + ae);
-        ae.setTransaction(this);
-
-        // because we're using a stateless session, we cannot rely on persistence by reachability
-        // so if the AuditType instance is not persisted, explicitely persist it
-
-        AuditType at = ae.getTargetType();
-
-        // TODO remove this if using a non-stateless session, it will be persisted by reachability
-        if (at != null && at.getId() == null)
-        {
-            // look it up in the database first
-            AuditType persisted = getAuditType(at);
-            ae.setTargetType(persisted);
-        }
-
-        session.insert(ae);
-    }
-
-    /**
      * Write a name/value pair on persistent storage, in the context of this transaction.
      */
-    public void logPair(AuditEventPair pair)
+    public void log(AuditEventPair pair)
     {
-        log.debug(this + " logging " + pair);
-
         if (pair.getEvent() == null)
         {
             throw new IllegalArgumentException("orphan name/value pair " + pair);
         }
 
-        // because we're using a stateless session, we cannot rely on persistence by reachability
-        // so if the related AuditTypeField and AuditType instances are not persisted, we explicitly
-        // persist them here
-
-        AuditTypeField field = pair.getField();
-        AuditType at = field.getType();
-
-        // TODO remove this if using a non-stateless session, it will be persisted by reachability
-        if (at.getId() == null)
-        {
-            // look it up in the database first
-            AuditType persistedType = getAuditType(at);
-            field.setType(persistedType);
-        }
-
-        // TODO remove this if using a non-stateless session, it will be persisted by reachability
-        if (field.getId() == null)
-        {
-            // look it up in the database first
-            Query q = session.
-                createQuery("from AuditTypeField as f where f.name = :name and f.type = :type");
-
-            q.setString("name", field.getName());
-            q.setParameter("type", field.getType());
-
-            AuditTypeField persistedField = (AuditTypeField)q.uniqueResult();
-
-            if (persistedField != null)
-            {
-                pair.setField(persistedField);
-            }
-            else
-            {
-                session.insert(field);
-            }
-        }
-
-        session.insert(pair);
-
-        // the stateless session doesn't automatically persist the id collection for
-        // AuditEventCollectionPair so I have to do it by hand. Consider using a regular session,
-        // see https://jira.novaordis.org/browse/HBA-64
-
-        if (pair instanceof AuditEventCollectionPair)
-        {
-            // TODO This is a hack and must be changed! See https://jira.novaordis.org/browse/HBA-65
-            Long pairId = pair.getId();
-            AuditEventCollectionPair cpair = (AuditEventCollectionPair)pair;
-            List<Long> ids = cpair.getIds();
-            for(Long id: ids)
-            {
-                // TODO insert multiple pairs with the same statement
-                String qs =
-                    "insert into AUDIT_EVENT_PAIR_COLLECTION " +
-                    "(AUDIT_EVENT_PAIR_ID, COLLECTION_ENTITY_ID) " +
-                    "VALUES (" + pairId + ", " + id + ")";
-                SQLQuery sqlQuery = session.createSQLQuery(qs);
-                int updated = sqlQuery.executeUpdate();
-
-                if (updated != 1)
-                {
-                    throw new IllegalStateException(qs + " did not succeed");
-                }
-            }
-        }
+        session.save(pair);
+        log.debug(this + " logged " + pair);
     }
 
     /**
@@ -336,6 +233,17 @@ public class AuditTransaction implements Synchronization
         // it's an entity
         return AuditEntityType.
             getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
+    }
+
+    /**
+     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     *
+     * Returns the corresponding AuditType, making a database insert if the underlying class (or
+     * classes) were not persised in the database yet.
+     */
+    public AuditType getAuditType(Class c)
+    {
+        return AuditType.getInstanceFromDatabase(c, true, session);
     }
 
     /**

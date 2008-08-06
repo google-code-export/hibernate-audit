@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.FlushEventListener;
 import org.hibernate.event.FlushEvent;
 import org.hibernate.HibernateException;
-import org.apache.log4j.Logger;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -19,8 +18,6 @@ public class FlushAuditEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(FlushAuditEventListener.class);
-
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
@@ -31,7 +28,7 @@ public class FlushAuditEventListener
 
     public void onFlush(FlushEvent event) throws HibernateException
     {
-        log.debug(this + ".onFlush(...)");
+        //log.debug(this + ".onFlush(...)");
     }
 
     // Public --------------------------------------------------------------------------------------
