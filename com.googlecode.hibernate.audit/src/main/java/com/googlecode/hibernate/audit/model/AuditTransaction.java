@@ -172,6 +172,17 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
+     * Write an event on persistent storage, in the context of this transaction. This method may
+     * seem redundant, as log(AuditEventPair) will also write the parent event, via cascade. However
+     * there are cases when events do not generate any pairs, so we need this method. See HBA-74.
+     */
+    public void log(AuditEvent event)
+    {
+        session.save(event);
+        log.debug(this + " logged " + event);
+    }
+
+    /**
      * Write a name/value pair on persistent storage, in the context of this transaction.
      */
     public void log(AuditEventPair pair)

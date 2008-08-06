@@ -48,7 +48,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -174,7 +174,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -244,7 +244,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -314,7 +314,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddTwoInCollection_Bidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -408,7 +408,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -589,6 +589,70 @@ public class PostInsertCollectionTest extends JTATransactionTest
     public void testModifyOneInCollection() throws Exception
     {
     }
+
+    @Test(enabled = true)
+    public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            WA wa = new WA();
+            WB wb = new WB();
+            wa.getWbs().add(wb);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(wa);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(wa.getId());
+
+            assert transactions.size() == 1;
+
+            Long txId = transactions.get(0).getId();
+
+            WA base = new WA();
+            HibernateAudit.delta(base, wa.getId(), txId);
+
+            assert wa.getId().equals(base.getId());
+            assert base.getName() == null;
+
+            List<WB> wbs = wa.getWbs();
+            assert wbs.size() == 1;
+
+            WB wbCopy = wbs.get(0);
+            assert wbCopy.getId().equals(wb.getId());
+            assert wbCopy.getName() == null;
+            assert wbCopy.getWa() == null;
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
 
     // Package protected ---------------------------------------------------------------------------
 

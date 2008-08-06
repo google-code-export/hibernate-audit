@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Collections;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.security.Principal;
@@ -162,6 +163,38 @@ public class HibernateAudit
         }
 
         return singleton.doQuery(query, args);
+    }
+
+    /**
+     * @return the list of transactions that have been applied to the entity with the specified id.
+     */
+    public synchronized static List<AuditTransaction> getTransactions(Serializable entityId)
+        throws Exception
+    {
+        if (singleton == null)
+        {
+            throw new IllegalStateException("Hibernate Audit runtime disabled");
+        }
+
+        String qs =
+            "from AuditTransaction as t, AuditEvent as e " +
+            "where e.transaction = t and e.id = :entityId";
+
+        List result = singleton.doQuery(qs, entityId);
+
+        if (result.size() == 0)
+        {
+            return Collections.emptyList();
+        }
+
+        List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
+        for(Object o: result)
+        {
+            Object[] a = (Object[])o;
+            ts.add((AuditTransaction)a[0]);
+        }
+
+        return ts;
     }
 
     /**
