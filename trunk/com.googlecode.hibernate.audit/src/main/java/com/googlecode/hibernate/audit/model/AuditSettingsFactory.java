@@ -5,7 +5,6 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.connection.ConnectionProvider;
-import org.hibernate.connection.DatasourceConnectionProvider;
 import org.hibernate.transaction.TransactionFactory;
 import org.hibernate.transaction.JTATransactionFactory;
 import org.hibernate.transaction.TransactionManagerLookup;
@@ -111,22 +110,13 @@ class AuditSettingsFactory extends SettingsFactory
         copy.setProperty(Environment.DIALECT, dialect.getClass().getName());
 
         ConnectionProvider cp = sourceSettings.getConnectionProvider();
-        if (!(cp instanceof DatasourceConnectionProvider))
-        {
-            throw new RuntimeException("NOT YET IMPLEMENTED: " +
-                                       (cp == null ?
-                                        "null ConnectionProvider" :
-                                        cp.getClass().getName() + " not yet supported!"));
-        }
-
-        DatasourceConnectionProvider dcp = (DatasourceConnectionProvider)cp;
 
         // because a DatasourceConnectionProvider does not maintain the JNDI name of the datasource
         // we cannot set Environment.DATASOURCE property to the original value, so we use a delegate
         // connection provider instead
         copy.setProperty(Environment.CONNECTION_PROVIDER,
                          DelegateConnectionProvider.class.getName());
-        copy.put(AuditEnvironment.CONNECTION_PROVIDER_DELEGATE, dcp);
+        copy.put(AuditEnvironment.CONNECTION_PROVIDER_DELEGATE, cp);
 
         TransactionFactory tf = sourceSettings.getTransactionFactory();
         if (!(tf instanceof JTATransactionFactory))
