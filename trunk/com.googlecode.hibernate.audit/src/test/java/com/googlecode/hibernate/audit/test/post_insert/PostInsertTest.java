@@ -786,7 +786,7 @@ public class PostInsertTest extends JTATransactionTest
             assert transactions.size() == 1;
 
             A base = new A();
-            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId(), sf);
+            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId());
 
             assert a.getId().equals(base.getId());
             assert base.getName() == null;

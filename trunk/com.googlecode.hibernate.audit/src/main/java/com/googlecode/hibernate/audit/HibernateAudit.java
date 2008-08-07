@@ -215,25 +215,16 @@ public final class HibernateAudit
     /**
      * @param base - the intial state of the object to apply transactional delta to.
      */
-    public static void delta(Object base, Long txId,
-                             SessionFactory auditedSessionFactory) throws Exception
+    public static void delta(Object base, Long txId) throws Exception
     {
-        delta(base, null, txId, auditedSessionFactory);
+        delta(base, null, txId);
     }
 
     /**
      * @param base - the intial state of the object to apply transactional delta to.
      */
-    public static void delta(Object base, Serializable id, Long txId,
-                             SessionFactory auditedSessionFactory) throws Exception
+    public static void delta(Object base, Serializable id, Long txId) throws Exception
     {
-
-        if(!(auditedSessionFactory instanceof SessionFactoryImplementor))
-        {
-            throw new IllegalArgumentException(
-                auditedSessionFactory + " not a SessionFactoryImplementor");
-        }
-
         Manager m = null;
 
         synchronized(lock)
@@ -246,8 +237,7 @@ public final class HibernateAudit
             m = manager;
         }
 
-        SessionFactoryImplementor sfi = (SessionFactoryImplementor)auditedSessionFactory;
-        m.delta(base, id, txId, sfi);
+        m.delta(base, id, txId);
     }
 
     /**
