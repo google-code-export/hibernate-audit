@@ -164,9 +164,7 @@ public class PostInsertAuditEventListener
                 pair = new AuditEventPair();
             }
 
-            AuditTypeField f = new AuditTypeField();
-            f.setType(auditType);
-            f.setName(name);
+            AuditTypeField f = aTx.getAuditTypeField(name, auditType);
 
             pair.setField(f);
             pair.setValue(value);

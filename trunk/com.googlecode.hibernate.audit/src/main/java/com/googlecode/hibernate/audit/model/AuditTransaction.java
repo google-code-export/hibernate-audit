@@ -228,6 +228,18 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
+     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     * TODO BAD signature
+     *
+     * Returns the corresponding AuditTypeField, making a database insert if the underlying class
+     * was not persised in the database yet.
+     */
+    public AuditTypeField getAuditTypeField(String name, AuditType type)
+    {
+        return AuditTypeField.getInstanceFromDatabase(name, type, true, session);
+    }
+
+    /**
      * Falls back to database identity.
      */
     @Override
