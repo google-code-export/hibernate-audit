@@ -10,7 +10,6 @@ import org.hibernate.connection.DatasourceConnectionProvider;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Query;
-import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.event.EventListeners;
 
 import java.util.HashSet;
@@ -345,10 +344,33 @@ public class Manager
     /**
      * @param base - the intial state of the object to apply transactional delta to.
      */
-    public void delta(Object base, Serializable id, Long txId,
-                      SessionFactoryImplementor auditedSessionFactory) throws Exception
+    public void delta(Object base, Serializable id, Long txId) throws Exception
     {
-        DeltaEngine.delta(base, id, txId, auditedSessionFactory);
+        // pick up a registered session factory to provide metadata
+        Class c = base.getClass();
+        SessionFactoryImpl sfi = null;
+        for(SessionFactoryImpl i: getAuditedSessionFactories())
+        {
+            if (i.getClassMetadata(c) != null)
+            {
+                if (sfi != null)
+                {
+                    throw new Exception(
+                        "NOT YET IMPLEMENTED: more than one SessionFactory maintains " +
+                        c.getName() + " metadata");
+                }
+
+                sfi = i;
+            }
+        }
+
+        if (sfi == null)
+        {
+            throw new IllegalStateException(
+                "no registered session factory maintains metadata on " + c.getName());
+        }
+
+        DeltaEngine.delta(base, id, txId, sfi);
     }
 
     @Override

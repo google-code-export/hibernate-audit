@@ -210,7 +210,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long wbId = wb.getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId(), sf);
+            HibernateAudit.delta(base, waId, at.getId());
 
             assert waId.equals(base.getId());
             assert "alana".equals(wa.getName());
@@ -279,7 +279,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long wbId = wb.getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId(), sf);
+            HibernateAudit.delta(base, waId, at.getId());
 
             assert waId.equals(base.getId());
             assert "alana".equals(wa.getName());
@@ -360,7 +360,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
             WA baseA = new WA();
-            HibernateAudit.delta(baseA, waId, at.getId(), sf);
+            HibernateAudit.delta(baseA, waId, at.getId());
 
             assert waId.equals(baseA.getId());
             assert "wasabi".equals(wa.getName());
@@ -453,7 +453,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
             WA baseA = new WA();
-            HibernateAudit.delta(baseA, waId, at.getId(), sf);
+            HibernateAudit.delta(baseA, waId, at.getId());
 
             assert waId.equals(baseA.getId());
             assert "wasabi".equals(wa.getName());
@@ -624,7 +624,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long txId = transactions.get(0).getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, wa.getId(), txId, sf);
+            HibernateAudit.delta(base, wa.getId(), txId);
 
             assert wa.getId().equals(base.getId());
             assert base.getName() == null;
