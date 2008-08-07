@@ -65,7 +65,7 @@ public class AuditType
      * and the type does not exist in the database, the method returns null. If "create" is set to
      * true and the type does not exist in the database, it is persisted, and then returned.
      *
-     * @param session - the hibernate stateless session to be used to interact with the database.
+     * @param session - the hibernate session to be used to interact with the database.
      *        It is assumed that a transaction is already started, and it will be committed outside
      *        the scope of this method.
      *
