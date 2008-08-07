@@ -98,7 +98,7 @@ public class AuditType
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "CLASS_NAME")
+    @Column(name = "CLASS_NAME", nullable = false)
     private String className;
 
     @Column(name = "LABEL")

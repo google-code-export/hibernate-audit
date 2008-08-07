@@ -21,12 +21,7 @@ import java.util.Date;
 import java.util.Collection;
 import java.security.Principal;
 
-import com.googlecode.hibernate.audit.HibernateAudit;
-
 /**
- * TODO mixing administrative logic with persistence concerns in such a way does not feel good to
-        me, this class must likely will be refactored.
- 
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -53,7 +48,7 @@ public class AuditTransaction implements Synchronization
     @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "TRANSACTION_TMSTP")
+    @Column(name = "TRANSACTION_TMSTP", nullable = false)
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
 
