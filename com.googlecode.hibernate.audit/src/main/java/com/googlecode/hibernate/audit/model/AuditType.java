@@ -50,22 +50,17 @@ public class AuditType
 
     // Static --------------------------------------------------------------------------------------
 
-    /**
-     * Creates detached instances.
-     *
-     * @param collectionClass may be null.
-     */
-    public static AuditType createInstance(Class collectionClass, Class actualClass)
+    protected static void checkTransaction(Session s) throws IllegalStateException
     {
-        if (collectionClass != null)
+        if (s.getTransaction() == null || !s.getTransaction().isActive())
         {
-            return new AuditCollectionType(collectionClass, actualClass);
-
+            throw new IllegalStateException("No active transaction found, bailing out");
         }
-        return null;
     }
 
     /**
+     * DO NOT access from outside package and DO NOT relax the access restrictions!
+     *
      * Returns a persistent instance of given type from the database. If "create" is set to false
      * and the type does not exist in the database, the method returns null. If "create" is set to
      * true and the type does not exist in the database, it is persisted, and then returned.
@@ -76,7 +71,7 @@ public class AuditType
      *
      * @return the persisted type (or null)
      */
-    public static AuditType getInstanceFromDatabase(Class c, boolean create, Session session)
+    static AuditType getInstanceFromDatabase(Class c, boolean create, Session session)
     {
         checkTransaction(session);
 
@@ -94,14 +89,6 @@ public class AuditType
         persistedType = new AuditType(c);
         session.save(persistedType);
         return persistedType;
-    }
-
-    protected static void checkTransaction(Session s) throws IllegalStateException
-    {
-        if (s.getTransaction() == null || !s.getTransaction().isActive())
-        {
-            throw new IllegalStateException("No active transaction found, bailing out");
-        }
     }
 
     // Attributes ----------------------------------------------------------------------------------

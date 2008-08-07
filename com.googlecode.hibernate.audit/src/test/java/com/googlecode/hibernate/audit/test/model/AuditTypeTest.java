@@ -4,10 +4,12 @@ import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
+import org.hibernate.Session;
 import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.TestAccessHelper;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.test.model.base.AuditTypeTestBase;
+import com.googlecode.hibernate.audit.HibernateAudit;
 
 import java.util.Date;
 
@@ -137,170 +139,186 @@ public class AuditTypeTest extends AuditTypeTestBase
     @Test(enabled = true)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
-        throw new Exception("NOT YET IMPLEMENTED");
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
 
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactory sf = null;
-//
-//        try
-//        {
-//            sf = config.buildSessionFactory();
-//            StatelessSession s = sf.openStatelessSession();
-//
-//            // DO NOT begin transaction
-//
-//            try
-//            {
-//                AuditType.getInstanceFromDatabase(Integer.class, false, s);
-//            }
-//            catch(IllegalStateException e)
-//            {
-//                log.debug(e.getMessage());
-//            }
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
+
+            // DO NOT begin transaction
+
+            try
+            {
+                TestAccessHelper.AuditType_getInstanceFromDatabase(Integer.class, false, s);
+            }
+            catch(IllegalStateException e)
+            {
+                log.debug(">>>> " + e.getMessage());
+            }
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
     public void testPersistence_NoTypeInDatabase_DontCreate() throws Exception
     {
-        throw new Exception("NOT YET IMPLEMENTED");
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
 
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactory sf = null;
-//
-//        try
-//        {
-//            sf = config.buildSessionFactory();
-//            StatelessSession s = sf.openStatelessSession();
-//            s.beginTransaction();
-//
-//            AuditType at = AuditType.getInstanceFromDatabase(Integer.class, false, s);
-//            assert at == null;
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
+            s.beginTransaction();
+
+            AuditType at = TestAccessHelper.
+                AuditType_getInstanceFromDatabase(Integer.class, false, s);
+
+            assert at == null;
+
+            s.getTransaction().commit();
+            s.close();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
     public void testPersistence_NoTypeInDatabase_Create() throws Exception
     {
-        throw new Exception("NOT YET IMPLEMENTED");
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
 
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactory sf = null;
-//
-//        try
-//        {
-//            sf = config.buildSessionFactory();
-//            StatelessSession s = sf.openStatelessSession();
-//            s.beginTransaction();
-//
-//            AuditType at = AuditType.getInstanceFromDatabase(Integer.class, true, s);
-//
-//            assert at.isPrimitiveType();
-//            assert !at.isEntityType();
-//            assert !at.isCollectionType();
-//
-//            assert at.getId() != null;
-//            assert Integer.class.equals(at.getClassInstance());
-//            assert "java.lang.Integer".equals(at.getClassName());
-//
-//            log.debug(at);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
+            s.beginTransaction();
+
+            AuditType at = TestAccessHelper.
+                AuditType_getInstanceFromDatabase(Integer.class, true, s);
+
+            assert at.isPrimitiveType();
+            assert !at.isEntityType();
+            assert !at.isCollectionType();
+
+            assert at.getId() != null;
+            assert Integer.class.equals(at.getClassInstance());
+            assert "java.lang.Integer".equals(at.getClassName());
+
+            log.debug(at);
+
+            s.getTransaction().commit();
+            s.close();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+            
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
     public void testPersistence_TypeAlreadyInDatabase() throws Exception
     {
-        throw new Exception("NOT YET IMPLEMENTED");
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactory sf = null;
 
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactory sf = null;
-//
-//        try
-//        {
-//            sf = config.buildSessionFactory();
-//            StatelessSession s = sf.openStatelessSession();
-//            s.beginTransaction();
-//
-//            AuditType at = AuditType.getInstanceFromDatabase(String.class, true, s);
-//
-//            assert at != null;
-//
-//            s.getTransaction().commit();
-//            s.beginTransaction();
-//
-//            at = AuditType.getInstanceFromDatabase(String.class, false, s);
-//
-//            assert at.isPrimitiveType();
-//            assert !at.isEntityType();
-//            assert !at.isCollectionType();
-//
-//            assert at.getId() != null;
-//            assert String.class.equals(at.getClassInstance());
-//            assert "java.lang.String".equals(at.getClassName());
-//
-//            log.debug(at);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
+            s.beginTransaction();
+
+            AuditType at =
+                TestAccessHelper.AuditType_getInstanceFromDatabase(String.class, true, s);
+
+            assert at != null;
+
+            s.getTransaction().commit();
+            s.beginTransaction();
+
+            at = TestAccessHelper.AuditType_getInstanceFromDatabase(String.class, false, s);
+
+            assert at.isPrimitiveType();
+            assert !at.isEntityType();
+            assert !at.isCollectionType();
+
+            assert at.getId() != null;
+            assert String.class.equals(at.getClassInstance());
+            assert "java.lang.String".equals(at.getClassName());
+
+            log.debug(at);
+
+            s.getTransaction().commit();
+            s.close();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+            
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -2,8 +2,10 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Transaction;
+import org.hibernate.SessionFactory;
 import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 import java.security.Principal;
@@ -45,7 +47,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     protected AuditTransaction createAuditTransaction(EventSource auditedSession)
     {
         Transaction ht = auditedSession.getTransaction();
-        AuditTransaction at = HibernateAudit.getCurrentAuditTransaction();
+        AuditTransaction at = Manager.getCurrentAuditTransaction();
 
         if (at != null)
         {
@@ -54,9 +56,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             return at;
         }
 
-        Principal p = HibernateAudit.getPrincipal();
-        at = new AuditTransaction(auditedSession, p);
-        HibernateAudit.setCurrentAuditTransaction(at);
+        Manager m = HibernateAudit.getManager();
+        Principal p = m.getPrincipal();
+        SessionFactory isf = m.getSessionFactory();
+        at = new AuditTransaction(auditedSession, p, isf);
+        Manager.setCurrentAuditTransaction(at);
 
         log.debug(this + " created");
 

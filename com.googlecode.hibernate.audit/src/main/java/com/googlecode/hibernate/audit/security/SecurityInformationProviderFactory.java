@@ -37,7 +37,7 @@ public class SecurityInformationProviderFactory
         catch(Exception e)
         {
             // ok, log and try next
-            log.debug("jboss provider not available", e);
+            log.debug("jboss provider not available: " + e.getMessage());
         }
 
         try
@@ -47,7 +47,7 @@ public class SecurityInformationProviderFactory
         catch(Exception e)
         {
             // ok, log and try next
-            log.debug("weblogic provider not available", e);
+            log.debug("weblogic provider not available" + e.getMessage());
         }
 
         log.warn("could not instantiate an AS-specific security information provider, " +

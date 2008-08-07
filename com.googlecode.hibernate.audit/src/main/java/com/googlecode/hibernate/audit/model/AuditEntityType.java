@@ -31,6 +31,8 @@ public class AuditEntityType extends AuditType
     // Static --------------------------------------------------------------------------------------
 
     /**
+     * DO NOT access from outside package and DO NOT relax the access restrictions!
+     *
      * Returns a persistent instance of given type from the database. If "create" is set to false
      * and the type does not exist in the database, the method returns null. If "create" is set to
      * true and the type does not exist in the database, it is persisted, and then returned.
@@ -44,8 +46,10 @@ public class AuditEntityType extends AuditType
      *
      * @return the persisted type (or null)
      */
-    public static AuditEntityType getInstanceFromDatabase(Class entityClass, Class idClass,
-                                                          boolean create, Session session)
+    static AuditEntityType getInstanceFromDatabase(Class entityClass, 
+                                                   Class idClass,
+                                                   boolean create,
+                                                   Session session)
     {
         checkTransaction(session);
 

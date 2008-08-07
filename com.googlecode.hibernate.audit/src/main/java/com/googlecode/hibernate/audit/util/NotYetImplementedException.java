@@ -1,8 +1,4 @@
-package com.googlecode.hibernate.audit.listener;
-
-import org.hibernate.event.SaveOrUpdateEventListener;
-import org.hibernate.event.SaveOrUpdateEvent;
-import org.hibernate.HibernateException;
+package com.googlecode.hibernate.audit.util;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -13,8 +9,7 @@ import org.hibernate.HibernateException;
  *
  * $Id$
  */
-public class SaveOrUpdateAuditEventListener
-    extends AbstractAuditEventListener implements SaveOrUpdateEventListener
+public class NotYetImplementedException extends RuntimeException
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -24,21 +19,32 @@ public class SaveOrUpdateAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
-    // SaveOrUpdateEventListener implementation ----------------------------------------------------
-
-    public void onSaveOrUpdate(SaveOrUpdateEvent event) throws HibernateException
+    public NotYetImplementedException()
     {
-        // this will create an audit transaction and properly register the synchronizations
-        createAuditTransaction(event.getSession());
+        super();
+    }
+
+    public NotYetImplementedException(String message)
+    {
+        super(message);
+    }
+
+    public NotYetImplementedException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
+    public NotYetImplementedException(Throwable cause)
+    {
+        super(cause);
     }
 
     // Public --------------------------------------------------------------------------------------
 
     @Override
-    public String toString()
+    public String getMessage()
     {
-        return "SaveOrUpdateAuditEventListener[" +
-               Integer.toHexString(System.identityHashCode(this)) + "]";
+        return "NOT YET IMPLEMENTED " + (super.getMessage() == null ? "" : super.getMessage()); 
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -48,5 +54,4 @@ public class SaveOrUpdateAuditEventListener
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

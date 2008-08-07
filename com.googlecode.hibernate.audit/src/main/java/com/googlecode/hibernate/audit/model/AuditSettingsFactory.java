@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.cfg.SettingsFactory;
 import org.hibernate.cfg.Settings;
@@ -16,6 +16,9 @@ import java.util.Set;
 import java.util.HashSet;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+
+import com.googlecode.hibernate.audit.DelegateConnectionProvider;
+import com.googlecode.hibernate.audit.AuditEnvironment;
 
 /**
  * A SettingsFactory that knows how to extract certain "interesting" properties from audited session

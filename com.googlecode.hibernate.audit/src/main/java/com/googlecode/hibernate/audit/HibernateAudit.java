@@ -2,30 +2,15 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.connection.ConnectionProvider;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.cfg.Settings;
-import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.cfg.SettingsFactory;
-import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
-import com.googlecode.hibernate.audit.listener.AuditEventListener;
-import com.googlecode.hibernate.audit.listener.Listeners;
-import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.Entities;
-import com.googlecode.hibernate.audit.security.SecurityInformationProvider;
-import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
+import com.googlecode.hibernate.audit.model.Manager;
 
-import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Collections;
-import java.lang.reflect.Method;
-import java.lang.reflect.Array;
-import java.security.Principal;
 import java.io.Serializable;
 
 /**
@@ -40,7 +25,7 @@ import java.io.Serializable;
  *
  * $Id$
  */
-public class HibernateAudit
+public final class HibernateAudit
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -48,139 +33,167 @@ public class HibernateAudit
 
     // Static --------------------------------------------------------------------------------------
 
-    // the (mostly one) audit transaction associated with a current thread
-    private static final ThreadLocal<AuditTransaction> auditTransaction;
+    private static Manager manager;
+    private static Object lock = new Object();
 
-    private static HibernateAudit singleton;
-
-    static
+    /**
+     * Enable audit on specified session factory, by dynamically registering listeners that
+     * capture and record state changes on transactional commits. In order to disable audit on the
+     * session, use HibernateAudit.disable(SessionFactory).
+     *
+     * @see HibernateAudit#disable(SessionFactory)
+     *
+     * @param auditedSessionFactory - the session factory of the audited persistence unit.
+     */
+    public static void enable(SessionFactory auditedSessionFactory) throws Exception
     {
-       auditTransaction = new ThreadLocal<AuditTransaction>();
-    }
-
-    public static synchronized boolean isStarted()
-    {
-        return singleton != null;
-    }
-
-    public static synchronized boolean isEnabled(SessionFactory asf)
-    {
-        if (!(asf instanceof SessionFactoryImpl))
+        if (!(auditedSessionFactory instanceof SessionFactoryImpl))
         {
             throw new IllegalArgumentException(
-                "session factory should be a SessionFactoryImpl instance");
+                "cannot enable audit unless given session factory is a SessionFactoryImpl " +
+                "instance; instead we got " +
+                (auditedSessionFactory == null ? null : auditedSessionFactory.getClass().getName()));
         }
 
-        return singleton != null && singleton.isEnabledOn((SessionFactoryImpl)asf);
+        SessionFactoryImpl sfi = (SessionFactoryImpl)auditedSessionFactory;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                Settings settings = sfi.getSettings();
+                manager = new Manager(settings);
+                manager.start();
+            }
+        }
+
+        manager.register(sfi);
+
+        log.debug("audit enabled on " + sfi);
     }
 
     /**
-     * Turns audit on.
-     *
-     * @param asf - the session factory of the audited persistence unit.
+     * @return true if audit manager is started, false otherwise.
      */
-    public static synchronized void enable(SessionFactory asf) throws Exception
+    public static boolean isStarted()
     {
-        if (!(asf instanceof SessionFactoryImpl))
+        synchronized(lock)
         {
-            throw new IllegalArgumentException(
-                "Cannot enable audit unless session factory is a SessionFactoryImpl instance");
+            return manager != null && manager.isStarted();
         }
-
-        SessionFactoryImpl sfi = (SessionFactoryImpl)asf;
-
-        if (singleton == null)
-        {
-            singleton = new HibernateAudit(sfi.getSettings());
-            singleton.start();
-        }
-
-        singleton.enableOn(sfi);
     }
 
     /**
-     * Turns audit off on this specific factory. If this is the last active factory associated
-     * with the audit engine, the engine itself is stopped.
-     *
-     * @return true if calling this method ended up in audit being disabled, or false if there was
-     *         no active audit runtime to disableAll.
+     * @return true if audit is enabled on the specified session factory instance, false otherwise.
      */
-    public static synchronized boolean disable(SessionFactory sf) throws Exception
+    public static boolean isEnabled(SessionFactory auditedSessionFactory)
     {
-        if (singleton == null)
+        if (!(auditedSessionFactory instanceof SessionFactoryImpl))
         {
             return false;
         }
 
-        if (!singleton.disableOn(sf))
-        {
-            return false;
-        }
+        SessionFactoryImpl sfi = (SessionFactoryImpl)auditedSessionFactory;
 
-        if (singleton.auditedSessionFactories.isEmpty())
+        synchronized(lock)
         {
-            singleton.stop();
-            singleton = null;
+            return manager != null && manager.isRegistered(sfi);
         }
-
-        return true;
     }
 
     /**
-     * Turns audit off, by disabling audit on all audited session factories, and stops the audit
-     * engine.
+     * Turns audit off on the specified session factory. If this is the last active factory
+     * associated with the audit manager, the manager itself is stopped and all audit resources are
+     * freed.
      *
-     * @return true if calling this method ended up in audit being disabled, or false if there was
-     *         no active audit runtime to disableAll.
+     * @return true if audit is turned off on the specified session factory, or false if there was
+     *         no active audit runtime to disable.
      */
-    public static synchronized boolean disableAll() throws Exception
+    public static boolean disable(SessionFactory sf) throws Exception
     {
-        if (singleton == null)
+        synchronized(lock)
         {
-            return false;
+            if (manager == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                return manager.unregister(sf);
+            }
+            finally
+            {
+                if (manager.getAuditedSessionFactories().isEmpty())
+                {
+                    manager.stop();
+                    manager = null;
+                }
+            }
         }
-
-        boolean result = false;
-
-        for(SessionFactoryImpl s: singleton.auditedSessionFactories)
-        {
-            result |= disable(s);
-        }
-
-        return result;
     }
+
+    /**
+     * Turns audit off on all registered session factories and stops the audit manager, freeing all
+     * audit resources.
+     *
+     * @return true if audit was turned off on at least one session factory, or false if there was
+     *         no active audit runtime to disable.
+     */
+    public static boolean disableAll() throws Exception
+    {
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                return false;
+            }
+
+            boolean result = false;
+
+            for(SessionFactoryImpl s: manager.getAuditedSessionFactories())
+            {
+                result |= disable(s);
+            }
+
+            return result;
+        }
+    }
+
+    // Queries -------------------------------------------------------------------------------------
 
     /**
      * A general purpose query facility. Understands HQL.
-     *
-     * @exception IllegalStateException if audit is not enabled.
      */
-    public synchronized static List query(String query, Object... args) throws Exception
+    public static List query(String query, Object... args) throws Exception
     {
-        if (singleton == null)
+        Manager m = null;
+
+        synchronized(lock)
         {
-            throw new IllegalStateException("Hibernate Audit runtime disabled");
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit stopped");
+            }
+
+            m = manager;
         }
 
-        return singleton.doQuery(query, args);
+        return m.query(query, args);
     }
 
     /**
+     * Specialized query.
+     *
      * @return the list of transactions that have been applied to the entity with the specified id.
      */
-    public synchronized static List<AuditTransaction> getTransactions(Serializable entityId)
-        throws Exception
+    public static List<AuditTransaction> getTransactions(Serializable entityId) throws Exception
     {
-        if (singleton == null)
-        {
-            throw new IllegalStateException("Hibernate Audit runtime disabled");
-        }
-
         String qs =
             "from AuditTransaction as t, AuditEvent as e " +
             "where e.transaction = t and e.id = :entityId";
 
-        List result = singleton.doQuery(qs, entityId);
+        List result = query(qs, entityId);
 
         if (result.size() == 0)
         {
@@ -197,130 +210,65 @@ public class HibernateAudit
         return ts;
     }
 
+    // Delta functions -----------------------------------------------------------------------------
+
     /**
-     * @return the AuditTransaction instance associated with the thread, if any. May return null.
+     * @param base - the intial state of the object to apply transactional delta to.
      */
-    public static AuditTransaction getCurrentAuditTransaction()
+    public static void delta(Object base, Long txId,
+                             SessionFactory auditedSessionFactory) throws Exception
     {
-        return auditTransaction.get();
+        delta(base, null, txId, auditedSessionFactory);
     }
 
     /**
-     * TODO this method shouldn't be publicly exposed
+     * @param base - the intial state of the object to apply transactional delta to.
      */
-    public static void setCurrentAuditTransaction(AuditTransaction at)
+    public static void delta(Object base, Serializable id, Long txId,
+                             SessionFactory auditedSessionFactory) throws Exception
     {
-        log.debug(at == null ?
-                  "dissasociating audit transaction from the current thread":
-                  "associating " + at + " with the current thread");
-        auditTransaction.set(at);
-    }
 
-    /**
-     * @return the internal SessionFactory instance. May return null if audit is not enabled.
-     */
-    public static SessionFactoryImpl getSessionFactory()
-    {
-        if (singleton == null)
+        if(!(auditedSessionFactory instanceof SessionFactoryImplementor))
         {
-            return null;
+            throw new IllegalArgumentException(
+                auditedSessionFactory + " not a SessionFactoryImplementor");
         }
 
-        return singleton.getInternalSessionFactory();
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit stopped");
+            }
+
+            m = manager;
+        }
+
+        SessionFactoryImplementor sfi = (SessionFactoryImplementor)auditedSessionFactory;
+        m.delta(base, id, txId, sfi);
     }
 
     /**
-     * @return the principal associated with the current security context, if any, or null
-     *         otherwise.
+     * Exposing the manager to the inner packages, until I refactor and I unify package protected
+     * access.
      */
-    public static Principal getPrincipal()
+    public static Manager getManager()
     {
-        if (singleton == null)
-        {
-            return null;
-        }
-
-        SecurityInformationProvider sip = singleton.getSecurityInformationProvider();
-
-        if (sip == null)
-        {
-            return null;
-        }
-
-        return sip.getPrincipal();
-    }
-
-    public static void delta(Object preTransactionState, Long transactionId) throws Exception
-    {
-        delta(preTransactionState, null, transactionId);
-    }
-
-    /**
-     * TODO I don't necessarily need an active HibernateAudit runtime for this, I can create
-     * a session factory from scratch and use it, but for the time being, I am using an active
-     * runtime, just to prove the idea is valid.
-     */
-    public static void delta(Object preTransactionState, Serializable id, Long transactionId)
-        throws Exception
-    {
-        if (singleton == null || singleton.auditedSessionFactories.isEmpty())
-        {
-            throw new IllegalStateException("Hibernate Audit runtime disabled");
-        }
-
-        // Just pick one session factory for that, this is undeterministic and bad, and also see
-        // the above TODO
-        SessionFactoryImpl sf = singleton.auditedSessionFactories.iterator().next();
-        DeltaEngine.delta(preTransactionState, id, transactionId, sf);
+        return manager;
     }
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private Set<SessionFactoryImpl> auditedSessionFactories;
-    private Settings sourceSettings;
-//    private String secondaryConfigurationResource;
-    private SecurityInformationProvider securityInformationProvider;
-
-    // the session factory to create sessions used to write the audit log
-    private SessionFactoryImpl internalSessionFactory;
-
     // Constructors --------------------------------------------------------------------------------
-
-    private HibernateAudit()
-    {
-        auditedSessionFactories = new HashSet<SessionFactoryImpl>();
-    }
-
-    /**
-     * @param settings - settings "borrowed" from the *first* audited session factory HBA is enabled
-     *        on. HBA will use the datasouce/database url and associated credentials to log audit
-     *        data.
-     */
-    private HibernateAudit(Settings settings) throws Exception
-    {
-        this();
-        log.debug("creating HibernateAudit runtime based on settings " + settings);
-        this.sourceSettings = settings;
-    }
-
-//    /**
-//     * @param resource - the resource which contains the configuration for the secondary persistence
-//     *        unit (used to persist audit data). A null resource means that there is no secondary
-//     *        persistence unit, the audited persistence unit will be used to persist audit data as
-//     *        well.
-//     */
-//    private HibernateAudit(String resource) throws Exception
-//    {
-//        this();
-//        this.secondaryConfigurationResource = resource;
-//    }
 
     // Public --------------------------------------------------------------------------------------
 
     @Override
     public String toString()
     {
-        return "HibernateAuditRuntime[" + Integer.toHexString(System.identityHashCode(this)) + "]";
+        return "HibernateAudit[" + Integer.toHexString(System.identityHashCode(this)) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -328,309 +276,6 @@ public class HibernateAudit
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
-
-    private void start() throws Exception
-    {
-        log.debug(this + " starting ...");
-
-        SettingsFactory sf = new AuditSettingsFactory(sourceSettings);
-        AnnotationConfiguration config = new AnnotationConfiguration(sf);
-        installMappings(config);
-        internalSessionFactory = (SessionFactoryImpl)config.buildSessionFactory();
-
-        // if using a different persistence unit, initialize it first
-
-//        if (secondaryConfigurationResource != null)
-//        {
-//            throw new Exception("NOT YET IMPLEMENTED");
-//        }
-
-        try
-        {
-            securityInformationProvider =
-                SecurityInformationProviderFactory.getSecurityInformationProvider();
-        }
-        catch(Exception e)
-        {
-            // something went wrong and we cannot get our provider, shoot a short warning and give
-            // more info in the debug log
-            log.warn("Cannot instantiate a security information provider: " + e.getMessage());
-            log.debug("Cannot instantiate a security information provider", e);
-        }
-
-        log.debug(this + " started");
-    }
-
-    private void stop() throws Exception
-    {
-        log.debug(this + " stopping ...");
-
-        //TODO if using a different persistence unit, clean-up that
-
-        for(SessionFactoryImpl sf: auditedSessionFactories)
-        {
-            disableOn(sf);
-        }
-
-        auditedSessionFactories.clear();
-
-        internalSessionFactory.close();
-        internalSessionFactory = null;
-
-        log.debug(this + " stopped");
-    }
-
-    /**
-     * TODO: change name, it's named this way only because we have a similar static signature.
-     * @exception IllegalStateException on corrupted states (partial set of listeners, etc).
-     */
-    private boolean isEnabledOn(SessionFactoryImpl sfi)
-    {
-        // we look at whether the audit listeners are actually registered, we disregard the internal
-        // session factory list
-
-        try
-        {
-            Set<String> aets = Listeners.getAuditedEventTypes();
-
-            boolean atLeastOneFound = false;
-
-            outer: for(String aet: aets)
-            {
-                Method m = Listeners.getEventListenersGetter(aet);
-                Object[] listeners = (Object[])m.invoke(sfi.getEventListeners());
-                Class c = Listeners.getAuditEventListenerClass(aet);
-
-                for(Object o: listeners)
-                {
-                    if (c.isInstance(o))
-                    {
-                        // found at least one
-                        atLeastOneFound = true;
-                        continue outer;
-                    }
-                }
-
-                if (atLeastOneFound)
-                {
-                    throw new IllegalStateException(
-                        "Partial set of audit listeners found, possibly corrupted state");
-                }
-            }
-
-            return atLeastOneFound;
-        }
-        catch(Exception e)
-        {
-            throw new IllegalStateException("failed to determine whether HBA is enabled or not", e);
-        }
-    }
-
-    /**
-     * Turns audit on.
-     *
-     * @param asf - the session factory of the audited persistence unit.
-     */
-    private synchronized void enableOn(SessionFactoryImpl asf) throws Exception
-    {
-        if (isEnabledOn(asf))
-        {
-            // nothing to do here, noop
-            log.debug("audit already enabled on " + asf);
-            return;
-        }
-
-        // TODO:  make sure the audited session factory and the internal session factory use the
-        // same connection provider, otherwise the transactional integrity is compromised.
-
-        ConnectionProvider thatConnectioProvider = asf.getConnectionProvider();
-        ConnectionProvider thisConnectionProvider =
-            ((DelegateConnectionProvider)internalSessionFactory.getConnectionProvider()).
-                getDelegate();
-
-        if (thatConnectioProvider != thisConnectionProvider)
-        {
-            // TODO test this
-            throw new IllegalArgumentException("Internal connection provider and audited session " +
-                                               "factory connection provider do not match");
-        }
-
-        installAuditListeners(asf);
-        auditedSessionFactories.add(asf);
-    }
-
-    /**
-     * Turns audit off.
-     *
-     * @param asf - the session factory of the audited persistence unit.
-     */
-    private synchronized boolean disableOn(SessionFactory asf) throws Exception
-    {
-        if (!(asf instanceof SessionFactoryImpl))
-        {
-            // ignore
-            return false;
-        }
-
-        SessionFactoryImpl sfi = (SessionFactoryImpl)asf;
-        if (!auditedSessionFactories.remove(sfi))
-        {
-            // nothing to disable
-            return false;
-        }
-
-        uninstallAuditListeners(sfi);
-        return true;
-    }
-
-    private void installAuditListeners(SessionFactoryImpl sf) throws Exception
-    {
-        EventListeners els = sf.getEventListeners();
-
-        // at this stage, we should not have any registered audit listeners, but trust and verify
-        for(String eventType: Listeners.ALL_EVENT_TYPES)
-        {
-            Method getter = Listeners.getEventListenersGetter(eventType);
-            Object[] listeners = (Object[])getter.invoke(els);
-            for(Object listener: listeners)
-            {
-                if (listener instanceof AuditEventListener)
-                {
-                    throw new IllegalStateException("Hibernate audit already enabled, " +
-                                                    "found " + listener);
-                }
-            }
-        }
-
-        Set<String> eventTypes = Listeners.getAuditedEventTypes();
-
-        for(String auditEventType: eventTypes)
-        {
-            Method getter = Listeners.getEventListenersGetter(auditEventType);
-            Method setter = Listeners.getEventListenersSetter(auditEventType);
-
-            // we expect a listener array here, anything else would be invalid state
-            Object[] listeners = (Object[])getter.invoke(els);
-            Class hibernateListenerInteface = els.getListenerClassFor(auditEventType);
-            Object[] newListeners =
-                (Object[])Array.newInstance(hibernateListenerInteface, listeners.length + 1);
-            System.arraycopy(listeners, 0, newListeners, 0, listeners.length);
-
-            Class c = Listeners.getAuditEventListenerClass(auditEventType);
-            AuditEventListener ael = (AuditEventListener)c.newInstance();
-
-            newListeners[newListeners.length - 1] = ael;
-            setter.invoke(els, ((Object)newListeners));
-        }
-
-        log.debug(this + " installed audit listeners: " + eventTypes);
-    }
-
-    private void uninstallAuditListeners(SessionFactoryImpl sf) throws Exception
-    {
-        EventListeners els = sf.getEventListeners();
-
-        // scan all listener and uninstall all AuditEventListeners
-        for(String eventType: Listeners.ALL_EVENT_TYPES)
-        {
-            Method getter = Listeners.getEventListenersGetter(eventType);
-            Object[] listeners = (Object[])getter.invoke(els);
-
-            boolean needUninstall = false;
-            for(Object listener: listeners)
-            {
-                if (listener instanceof AuditEventListener)
-                {
-                    // uninstall it
-                    needUninstall = true;
-                    break;
-                }
-            }
-
-            if (needUninstall)
-            {
-                log.debug("uninstalling '" + eventType + "' audit listeners from " + sf);
-
-                List<Object> clean = new ArrayList<Object>();
-                for(Object listener: listeners)
-                {
-                    if (!(listener instanceof AuditEventListener))
-                    {
-                        clean.add(listener);
-                    }
-                }
-
-                Object[] cleanArray =
-                    (Object[])Array.newInstance(els.getListenerClassFor(eventType), clean.size());
-
-                int i = 0;
-                for(Object cleanListener: clean)
-                {
-                    cleanArray[i++] = cleanListener;
-                }
-
-                Method setter = Listeners.getEventListenersSetter(eventType);
-                setter.invoke(els, ((Object)cleanArray));
-            }
-        }
-
-        log.debug(this + " uninstalled audit listeners");
-    }
-
-    private void installMappings(AnnotationConfiguration config) throws Exception
-    {
-        Set<Class> entities = Entities.getAuditEntities();
-
-        for(Class e: entities)
-        {
-            config.addAnnotatedClass(e);
-            log.debug("added annotated class " + e);
-        }
-    }
-
-    private List doQuery(String query, Object... args) throws Exception
-    {
-        Session s = null;
-
-        try
-        {
-            s = internalSessionFactory.openSession();
-            s.beginTransaction();
-
-            Query q = s.createQuery(query);
-            QueryParameters.fill(q, args);
-            return q.list();
-        }
-        finally
-        {
-            if (s != null)
-            {
-                try
-                {
-                    s.getTransaction().commit();
-                }
-                catch(Exception e)
-                {
-                    log.error("failed to commit query transaction", e);
-                }
-
-                s.close();
-            }
-        }
-    }
-
-    /**
-     * May return null if no security information provider has been installed.
-     */
-    private SecurityInformationProvider getSecurityInformationProvider()
-    {
-        return securityInformationProvider;
-    }
-
-    private SessionFactoryImpl getInternalSessionFactory()
-    {
-        return internalSessionFactory;
-    }
 
     // Inner classes -------------------------------------------------------------------------------
 }

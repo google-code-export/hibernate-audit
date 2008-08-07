@@ -86,8 +86,6 @@ public class FailedCommitTest extends JTATransactionTest
             assert rs.size() == 0;
             rs = HibernateAudit.query("from AuditEventPair");
             assert rs.size() == 0;
-
-            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -98,6 +96,8 @@ public class FailedCommitTest extends JTATransactionTest
         {
             // restore mock data source's sanity
             ds.setBroken(false);
+
+            HibernateAudit.disableAll();
             
             if (sf != null)
             {

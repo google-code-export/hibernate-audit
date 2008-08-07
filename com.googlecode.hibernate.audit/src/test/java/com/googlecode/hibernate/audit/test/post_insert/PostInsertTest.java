@@ -104,8 +104,6 @@ public class PostInsertTest extends JTATransactionTest
 
             type = field.getType();
             assert String.class.getName().equals(type.getClassName());
-
-            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -114,6 +112,8 @@ public class PostInsertTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -185,8 +185,6 @@ public class PostInsertTest extends JTATransactionTest
 
             AuditType type = field.getType();
             assert String.class.getName().equals(type.getClassName());
-
-            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -195,6 +193,8 @@ public class PostInsertTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -295,11 +295,11 @@ public class PostInsertTest extends JTATransactionTest
             pair = (AuditEventPair)pairs.get(0);
             assert "name".equals(pair.getField().getName());
             assert expectedPairValues.remove((String)pair.getValue());
-
-            HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -740,8 +740,6 @@ public class PostInsertTest extends JTATransactionTest
                 assert expectedNames.remove(name);
                 assert expectedValues.remove(value);
             }
-
-            HibernateAudit.disableAll();
         }
         catch(Exception e)
         {
@@ -750,6 +748,8 @@ public class PostInsertTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -786,7 +786,7 @@ public class PostInsertTest extends JTATransactionTest
             assert transactions.size() == 1;
 
             A base = new A();
-            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId());
+            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId(), sf);
 
             assert a.getId().equals(base.getId());
             assert base.getName() == null;
