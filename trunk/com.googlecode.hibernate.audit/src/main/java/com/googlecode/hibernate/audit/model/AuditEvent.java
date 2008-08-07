@@ -52,7 +52,7 @@ public class AuditEvent
     @Enumerated(EnumType.STRING)
     private AuditEventType type;
 
-    @Column(name = "TARGET_ENTITY_ID", columnDefinition="NUMBER(30, 0)")
+    @Column(name = "TARGET_ENTITY_ID", nullable = false, columnDefinition="NUMBER(30, 0)")
     private Long targetId; // TODO current implementation supports only Longs as ids, this needs
                            // to be generalized if audited model uses other types as ids.
 
