@@ -175,12 +175,7 @@ public class Manager
         // insure transactional consistency by making sure that we ultimately delegate to the same
         // connection provider
 
-        if (!(thatCp instanceof DatasourceConnectionProvider))
-        {
-            // we haven't addressed this case yet, TODO
-            throw new RuntimeException("NOT YET IMPLEMENTED");
-        }
-        else
+        if (thatCp instanceof DatasourceConnectionProvider)
         {
             DatasourceConnectionProvider thatDscp = (DatasourceConnectionProvider)thatCp;
             DatasourceConnectionProvider thisDscp = (DatasourceConnectionProvider)thisCp;
@@ -191,6 +186,12 @@ public class Manager
                     "internal connection provider and audited session " +
                     "factory's connection provider do not match");
             }
+        }
+        else if (thatCp != thisCp)
+        {
+            // TODO we should see about this
+            log.warn("The connection provider of the registering session factory (" + thatCp +
+                     ") differs from the audit connection provider (" + thisCp + ")!");
         }
 
         installAuditListeners(asf);
