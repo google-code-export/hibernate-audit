@@ -130,7 +130,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
             HibernateAudit.enable(sf);
 
             // insert the entity type
-            SessionFactory isf = HibernateAudit.getSessionFactory();
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
             Session is = isf.openSession();
             is.beginTransaction();
 
@@ -196,7 +196,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
             HibernateAudit.enable(sf);
 
             // insert the primitive type
-            SessionFactory isf = HibernateAudit.getSessionFactory();
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
             Session is = isf.openSession();
             is.beginTransaction();
 
@@ -264,7 +264,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
             HibernateAudit.enable(sf);
 
             // insert the entity type
-            SessionFactory isf = HibernateAudit.getSessionFactory();
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
             Session is = isf.openSession();
             is.beginTransaction();
 

@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.security;
 
+import com.googlecode.hibernate.audit.util.NotYetImplementedException;
+
 import java.security.Principal;
 
 /**
@@ -23,7 +25,7 @@ final class WeblogicSecurityInformationProvider implements SecurityInformationPr
 
     WeblogicSecurityInformationProvider() throws Exception
     {
-        throw new Exception("NOT YET IMPLEMENTED");
+        throw new NotYetImplementedException();
     }
 
     // SecurityInformationProvider implemenation ---------------------------------------------------

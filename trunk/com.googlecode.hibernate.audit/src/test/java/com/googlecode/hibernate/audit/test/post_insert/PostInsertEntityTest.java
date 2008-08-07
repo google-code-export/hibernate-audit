@@ -189,7 +189,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
             C cBase = new C();
-            HibernateAudit.delta(cBase, cId, at.getId());
+            HibernateAudit.delta(cBase, cId, at.getId(), sf);
 
             assert cId.equals(cBase.getId());
 
@@ -268,7 +268,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(1);
 
             C cBase = new C();
-            HibernateAudit.delta(cBase, cId, at.getId());
+            HibernateAudit.delta(cBase, cId, at.getId(), sf);
 
             assert cId.equals(cBase.getId());
 
@@ -353,7 +353,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(1);
 
             C cBase = new C();
-            HibernateAudit.delta(cBase, cId, at.getId());
+            HibernateAudit.delta(cBase, cId, at.getId(), sf);
 
             assert cId.equals(cBase.getId());
 
@@ -365,7 +365,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert "diane".equals(recreatedD.getName());
 
             cBase = new C();
-            HibernateAudit.delta(cBase, cId2, at.getId());
+            HibernateAudit.delta(cBase, cId2, at.getId(), sf);
 
             assert cId2.equals(cBase.getId());
 

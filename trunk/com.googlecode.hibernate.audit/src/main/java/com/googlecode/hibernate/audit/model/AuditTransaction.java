@@ -83,7 +83,8 @@ public class AuditTransaction implements Synchronization
      * @param principal - could be null if it couldn't be determined by the upper layers.
      * @param auditedSession - the Hibernate session the audited event belongs to.
      */
-    public AuditTransaction(EventSource auditedSession, Principal principal)
+    public AuditTransaction(EventSource auditedSession, Principal principal,
+                            SessionFactory internalSessionFactory)
     {
         this();
         this.transaction = auditedSession.getTransaction();
@@ -97,8 +98,7 @@ public class AuditTransaction implements Synchronization
         // in the context of the dedicated session, if available. TODO: for the time being we
         // operate under the assumption that no dedicated session is available
 
-        SessionFactory sf = HibernateAudit.getSessionFactory();
-        session = sf.openSession();
+        session = internalSessionFactory.openSession();
 
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
@@ -125,7 +125,7 @@ public class AuditTransaction implements Synchronization
         finally
         {
             // no matter what happens, disassociate myself from the thread
-            HibernateAudit.setCurrentAuditTransaction(null);
+            Manager.setCurrentAuditTransaction(null);
         }
     }
 
@@ -198,37 +198,7 @@ public class AuditTransaction implements Synchronization
 
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
-     */
-    public AuditType getAuditType(AuditType at)
-    {
-        if(at.getId() != null)
-        {
-            // already persisted
-            return at;
-        }
-
-        if (at.isPrimitiveType())
-        {
-            return AuditType.getInstanceFromDatabase(at.getClassInstance(), true, session);
-        }
-        else if (at.isEntityType())
-        {
-            AuditEntityType et = (AuditEntityType)at;
-            return AuditEntityType.getInstanceFromDatabase(
-                et.getClassInstance(), et.getIdClassInstance(), true, session);
-        }
-        else if (at.isCollectionType())
-        {
-            AuditCollectionType ct = (AuditCollectionType)at;
-            return AuditCollectionType.getInstanceFromDatabase(
-                ct.getCollectionClassInstance(), ct.getClassInstance(), true, session);
-        }
-
-        throw new IllegalArgumentException("don't know how to handle " + at);
-    }
-
-    /**
-     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     * TODO BAD signature
      *
      * Returns the corresponding AuditType (AuditCollectionType, AuditEntityType, etc), making a
      * database insert if the underlying class (or classes) were not persised in the database yet.

@@ -48,7 +48,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -174,7 +174,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -210,7 +210,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long wbId = wb.getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId());
+            HibernateAudit.delta(base, waId, at.getId(), sf);
 
             assert waId.equals(base.getId());
             assert "alana".equals(wa.getName());
@@ -244,7 +244,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -279,7 +279,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long wbId = wb.getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId());
+            HibernateAudit.delta(base, waId, at.getId(), sf);
 
             assert waId.equals(base.getId());
             assert "alana".equals(wa.getName());
@@ -314,7 +314,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddTwoInCollection_Bidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -360,7 +360,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
             WA baseA = new WA();
-            HibernateAudit.delta(baseA, waId, at.getId());
+            HibernateAudit.delta(baseA, waId, at.getId(), sf);
 
             assert waId.equals(baseA.getId());
             assert "wasabi".equals(wa.getName());
@@ -408,7 +408,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -453,7 +453,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             AuditTransaction at = (AuditTransaction)transactions.get(0);
 
             WA baseA = new WA();
-            HibernateAudit.delta(baseA, waId, at.getId());
+            HibernateAudit.delta(baseA, waId, at.getId(), sf);
 
             assert waId.equals(baseA.getId());
             assert "wasabi".equals(wa.getName());
@@ -501,7 +501,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -580,12 +580,12 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = true)  // FUNCTIONALITY NOT AVAILABLE
     public void testRemoveTwoFromCollection() throws Exception
     {
     }
 
-    @Test(enabled = false)  // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = true)  // FUNCTIONALITY NOT AVAILABLE
     public void testModifyOneInCollection() throws Exception
     {
     }
@@ -624,7 +624,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             Long txId = transactions.get(0).getId();
 
             WA base = new WA();
-            HibernateAudit.delta(base, wa.getId(), txId);
+            HibernateAudit.delta(base, wa.getId(), txId, sf);
 
             assert wa.getId().equals(base.getId());
             assert base.getName() == null;

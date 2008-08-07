@@ -18,6 +18,8 @@ import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import java.util.Set;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationHandler;
 import java.security.Principal;
 
 /**
@@ -46,7 +48,35 @@ public class HibernateAuditTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
+    public void testEnableOnProxy() throws Exception
+    {
+        SessionFactory proxy =
+            (SessionFactory)Proxy.newProxyInstance(HibernateAudit.class.getClassLoader(),
+                                                   new Class[] {SessionFactory.class},
+                                                   new InvocationHandler()
+                                                   {
+                                                       public Object invoke(Object proxy,
+                                                                            Method method,
+                                                                            Object[] args)
+                                                           throws Throwable
+                                                       {
+                                                           throw new RuntimeException(
+                                                               "NOT YET IMPLEMENTED");
+                                                       }
+                                                   });
+        try
+        {
+            HibernateAudit.enable(proxy);
+            throw new Error("should've failed");
+        }
+        catch(IllegalArgumentException e)
+        {
+            log.debug(">>>> " + e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
     public void testEnableDisable() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -131,7 +161,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testQueryOnDisabledRuntime() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -148,7 +178,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testIsEnabledOnDifferentSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -186,7 +216,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnableDisableTwoSessionFactories() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -367,7 +397,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -401,7 +431,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testGetNullSecurityInformationProvider() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -414,7 +444,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
             HibernateAudit.enable(sf);
 
-            Principal p = HibernateAudit.getPrincipal();
+            Principal p = HibernateAudit.getManager().getPrincipal();
 
             assert p == null;
 
@@ -444,13 +474,13 @@ public class HibernateAuditTest extends JTATransactionTest
         {
             sf = config.buildSessionFactory();
 
-            assert HibernateAudit.getSessionFactory() == null;
+            assert HibernateAudit.getManager() == null;
 
             HibernateAudit.enable(sf);
 
             assert HibernateAudit.isEnabled(sf);
 
-            SessionFactoryImpl internal = HibernateAudit.getSessionFactory();
+            SessionFactoryImpl internal = HibernateAudit.getManager().getSessionFactory();
 
             // make sure (somehow superfluously) that all mappings are there
             Set<Class> entities = Entities.getAuditEntities();
@@ -470,7 +500,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
             assert HibernateAudit.disable(sf);
 
-            assert HibernateAudit.getSessionFactory() == null;
+            assert HibernateAudit.getManager() == null;
         }
         finally
         {
