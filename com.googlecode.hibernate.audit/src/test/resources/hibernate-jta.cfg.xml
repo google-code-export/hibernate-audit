@@ -22,15 +22,6 @@
         <!-- <property name="hibernate.hbm2ddl.auto">update</property> -->
         <property name="hibernate.jdbc.batch_size">10</property>
 
-        <mapping class="com.googlecode.hibernate.audit.model.AuditTransaction"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditEvent"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditType"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditEntityType"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditCollectionType"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditTypeField"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditEventPair"/>
-        <mapping class="com.googlecode.hibernate.audit.model.AuditEventCollectionPair"/>
-
     </session-factory>
 
 </hibernate-configuration>

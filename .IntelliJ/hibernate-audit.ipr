@@ -460,6 +460,13 @@
       <JAVADOC />
       <SOURCES />
     </library>
+    <library name="hibernate-commons-annotations-3.3.0.ga">
+      <CLASSES>
+        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/hibernate/hibernate-commons-annotations/3.3.0.ga/hibernate-commons-annotations-3.3.0.ga.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
   </component>
   <component name="uidesigner-configuration">
     <option name="INSTRUMENT_CLASSES" value="true" />
