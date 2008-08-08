@@ -175,19 +175,32 @@ public class Manager
         // insure transactional consistency by making sure that we ultimately delegate to the same
         // connection provider
 
-        if (thatCp instanceof DatasourceConnectionProvider)
+        boolean sameConnectionProvider = false;
+
+        if (thatCp == thisCp)
+        {
+            sameConnectionProvider = true;
+        }
+        else if (thatCp instanceof DatasourceConnectionProvider)
         {
             DatasourceConnectionProvider thatDscp = (DatasourceConnectionProvider)thatCp;
-            DatasourceConnectionProvider thisDscp = (DatasourceConnectionProvider)thisCp;
 
-            if (thatDscp.getDataSource() != thisDscp.getDataSource())
+            if (thisCp instanceof DatasourceConnectionProvider)
             {
-                throw new IllegalArgumentException(
-                    "internal connection provider and audited session " +
-                    "factory's connection provider do not match");
+                DatasourceConnectionProvider thisDscp = (DatasourceConnectionProvider)thisCp;
+
+                if (thatDscp.getDataSource() != thisDscp.getDataSource())
+                {
+                    throw new IllegalArgumentException(
+                        "internal connection provider and audited session " +
+                        "factory's connection provider do not match");
+                }
+
+                sameConnectionProvider = true;
             }
         }
-        else if (thatCp != thisCp)
+
+        if (!sameConnectionProvider)
         {
             // TODO we should see about this
             log.warn("The connection provider of the registering session factory (" + thatCp +
