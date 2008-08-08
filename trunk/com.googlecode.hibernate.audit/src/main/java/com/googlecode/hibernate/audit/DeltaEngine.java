@@ -236,6 +236,7 @@ public class DeltaEngine
                     {
                         AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
                         AuditCollectionType ct = (AuditCollectionType)type;
+                        Class collectionClass = ct.getCollectionClassInstance();
                         Class memberClass = ct.getClassInstance();
 
                         List<Long> ids = cp.getIds();
@@ -245,7 +246,9 @@ public class DeltaEngine
                             throw new RuntimeException("NOT YET IMPLEMENTED");
                         }
 
-                        CollectionExpectation ce = new CollectionExpectation(e, name, memberClass);
+                        CollectionExpectation ce =
+                            new CollectionExpectation(e, name, collectionClass, memberClass);
+                        
                         collectionExpectations.add(ce);
 
                         for(Long cmid: ids)

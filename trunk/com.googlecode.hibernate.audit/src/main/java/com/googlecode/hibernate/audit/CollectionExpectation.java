@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -26,6 +28,7 @@ class CollectionExpectation
 
     private EntityExpectation ownerExpectation;
     private String memberName;
+    private Class collectionType;
     private Class memberType;
 
     private List<EntityExpectation> members;
@@ -33,15 +36,16 @@ class CollectionExpectation
     // Constructors --------------------------------------------------------------------------------
 
     /**
-     * @param ownerExpectation - the expectation of the owner.
+     * @param ownerExpectation - owner's expectation.
      * @param memberName - the owner entity's memeber name that holds this collection.
      */
     CollectionExpectation(EntityExpectation ownerExpectation,
-                          String memberName, Class memberType)
+                          String memberName, Class collectionType, Class memberType)
         throws Exception
     {
         this.ownerExpectation = ownerExpectation;
         this.memberName = memberName;
+        this.collectionType = collectionType;
         this.memberType = memberType;
 
         this.members = new ArrayList<EntityExpectation>();
@@ -111,7 +115,22 @@ class CollectionExpectation
             throw new IllegalStateException("owner " + ownerExpectation + " not fulfilled");
         }
 
-        Collection<Object> c = new ArrayList<Object>();
+        Collection<Object> c = null;
+
+        // TODO HACK, NEED TO BE REVIEWED
+        if (Set.class.isAssignableFrom(collectionType))
+        {
+            c = new HashSet<Object>();
+        }
+        else if (List.class.isAssignableFrom(collectionType))
+        {
+            c = new ArrayList<Object>();
+        }
+        else
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
+
         for(EntityExpectation e: members)
         {
             if (!e.isFulfilled())

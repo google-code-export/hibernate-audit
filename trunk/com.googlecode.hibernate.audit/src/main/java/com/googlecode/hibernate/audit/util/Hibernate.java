@@ -2,11 +2,13 @@ package com.googlecode.hibernate.audit.util;
 
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.BagType;
+import org.hibernate.type.SetType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.tuple.Tuplizer;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -29,6 +31,10 @@ public class Hibernate
         {
             // this is hibernate's unordered collection that accepts duplicates, we use list
             return List.class;
+        }
+        else if (ct instanceof SetType)
+        {
+            return Set.class;
         }
 
         throw new RuntimeException("we don't know to translate " + ct);
