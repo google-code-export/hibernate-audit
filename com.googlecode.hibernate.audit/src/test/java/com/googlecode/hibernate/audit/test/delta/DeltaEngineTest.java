@@ -52,11 +52,14 @@ public class DeltaEngineTest extends JTATransactionTest
         {
             sf = config.buildSessionFactory();
 
+            HibernateAudit.enable(sf);
+
             RandomType o = new RandomType();
 
             try
             {
-                DeltaEngine.delta(o, null, null, (SessionFactoryImplementor)sf);
+                DeltaEngine.delta(o, null, null, (SessionFactoryImplementor)sf,
+                                  HibernateAudit.getManager().getSessionFactory());
                 throw new Error("should've failed");
             }
             catch(MappingException e)
@@ -66,6 +69,8 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -85,11 +90,14 @@ public class DeltaEngineTest extends JTATransactionTest
         {
             sf = config.buildSessionFactory();
 
+            HibernateAudit.enable(sf);
+
             A a = new A();
 
             try
             {
-                DeltaEngine.delta(a, null, null, (SessionFactoryImplementor)sf);
+                DeltaEngine.delta(a, null, null, (SessionFactoryImplementor)sf,
+                                  HibernateAudit.getManager().getSessionFactory());
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -99,6 +107,8 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -118,12 +128,17 @@ public class DeltaEngineTest extends JTATransactionTest
         {
             sf = config.buildSessionFactory();
 
+            HibernateAudit.enable(sf);
+
             A a = new A();
             a.setId(new Long(0));
 
             try
             {
-                DeltaEngine.delta(a, null, new Long(23843431223l), (SessionFactoryImplementor)sf);
+                DeltaEngine.delta(a, null, new Long(23843431223l),
+                                  (SessionFactoryImplementor)sf,
+                                  HibernateAudit.getManager().getSessionFactory());
+
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
@@ -133,6 +148,8 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -177,18 +194,21 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta(toFillUp, null, at.getId(), (SessionFactoryImplementor)sf);
+                DeltaEngine.delta(toFillUp, null, at.getId(),
+                                  (SessionFactoryImplementor)sf,
+                                  HibernateAudit.getManager().getSessionFactory());
+
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
             {
                 log.info(e.getMessage());
             }
-
-            HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -232,18 +252,19 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta(toFillUp, at.getId(), (SessionFactoryImplementor)sf);
+                DeltaEngine.delta(toFillUp, at.getId(), (SessionFactoryImplementor)sf,
+                                  HibernateAudit.getManager().getSessionFactory());
                 throw new Error("should've failed");
             }
             catch(IllegalArgumentException e)
             {
                 log.info(e.getMessage());
             }
-
-            HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -287,18 +308,19 @@ public class DeltaEngineTest extends JTATransactionTest
 
             A base = new A();
 
-            DeltaEngine.delta(base, id, at.getId(),(SessionFactoryImplementor)sf);
+            DeltaEngine.delta(base, id, at.getId(),(SessionFactoryImplementor)sf,
+                              HibernateAudit.getManager().getSessionFactory());
 
             assert id.equals(base.getId());
 
             assert "alice".equals(base.getName());
 
             assert 33 == base.getAge();
-
-            HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();
@@ -339,16 +361,18 @@ public class DeltaEngineTest extends JTATransactionTest
 
             ProtectedConstructorC base = ProtectedConstructorC.getInstance();
 
-            DeltaEngine.delta(base, id, at.getId(), (SessionFactoryImplementor)sf);
+            DeltaEngine.delta(base, id, at.getId(), (SessionFactoryImplementor)sf,
+                              HibernateAudit.getManager().getSessionFactory());
 
             assert id.equals(base.getId());
 
             assert "cami".equals(base.getName());
 
-            HibernateAudit.disableAll();
         }
         finally
         {
+            HibernateAudit.disableAll();
+            
             if (sf != null)
             {
                 sf.close();

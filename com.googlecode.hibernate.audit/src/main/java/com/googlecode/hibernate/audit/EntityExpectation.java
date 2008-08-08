@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
+import org.hibernate.MappingException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -169,7 +170,37 @@ class EntityExpectation
         }
 
         String name = c.getName();
-        EntityPersister p = sf.getEntityPersister(name);
+        EntityPersister p = null;
+
+        try
+        {
+            p = sf.getEntityPersister(name);
+        }
+        catch(MappingException e)
+        {
+            // TODO THIS IS A HACK! We need to maintain entity name in persistent storage, as well
+            // https://jira.novaordis.org/browse/HBA-80
+            name = name.substring(name.lastIndexOf('.') + 1);
+
+            try
+            {
+                p = sf.getEntityPersister(name);
+            }
+            catch(MappingException e2)
+            {
+                // TODO same hack as above
+                int i = name.lastIndexOf("Impl");
+
+                if (i == -1)
+                {
+                    throw e2;
+                }
+
+                name = name.substring(0, i);
+                p = sf.getEntityPersister(name);
+            }
+        }
+
         detachedInstance = p.instantiate(id, mode);
     }
 

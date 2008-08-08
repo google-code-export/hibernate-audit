@@ -5,6 +5,7 @@ import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
+import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
@@ -24,6 +25,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -113,22 +115,29 @@ public class PostInsertAuditEventListener
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-                if (value == null)
-                {
-                    throw new RuntimeException("NOT YET IMPLEMENTED");
-                }
-
-                Class entityClass = hibernateType.getReturnedClass();
-                Class idClass = sf.getIdentifierType(entityClass.getName()).getReturnedClass();
-
-                auditType = aTx.getAuditType(entityClass, idClass);
-
                 // TODO Refactor this into something more palatable
                 String entityName = session.getEntityName(value);
                 EntityPersister associatedEntityPersister = sf.getEntityPersister(entityName);
 
+                // TODO verify if the following assumption is true:
                 // the entity mode is a session characteristic, so using the previously determined
-                // entity mode (TODO: verify this is really true)
+                // entity mode everywhere associated entity mode is needed
+
+                Class entityClass = hibernateType.getReturnedClass();
+
+                if (Map.class.equals(entityClass))
+                {
+                    // this is what Hibernate returns when it cannot figure out the class,
+                    // most likley due to the fact that audited application uses entity names and
+                    // custom tuplizers
+                    EntityTuplizer t = associatedEntityPersister.
+                        getEntityMetamodel().getTuplizer(mode);
+
+                    entityClass = t.getMappedClass();
+                }
+
+                Class idClass = associatedEntityPersister.getIdentifierType().getReturnedClass();
+                auditType = aTx.getAuditType(entityClass, idClass);
                 value = associatedEntityPersister.getIdentifier(value, mode);
                 pair = new AuditEventPair();
             }

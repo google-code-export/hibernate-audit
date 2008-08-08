@@ -19,6 +19,8 @@ public class XA
     private String name;
     private XB xb;
 
+    private XC xc;
+
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
@@ -51,6 +53,16 @@ public class XA
     public void setXb(XB xb)
     {
         this.xb = xb;
+    }
+
+    public XC getXc()
+    {
+        return xc;
+    }
+
+    public void setXc(XC xc)
+    {
+        this.xc = xc;
     }
 
     @Override

@@ -39,10 +39,11 @@ public class DeltaEngine
 
     // Static --------------------------------------------------------------------------------------
 
-    public static void delta(Object preTransactionState, Long tid, SessionFactoryImplementor sf)
-        throws Exception
+    public static void delta(Object preTransactionState, Long tid,
+                             SessionFactoryImplementor sf,
+                             SessionFactoryImplementor internalSf) throws Exception
     {
-        delta(preTransactionState, null, tid, sf);
+        delta(preTransactionState, null, tid, sf, internalSf);
     }
 
     /**
@@ -61,10 +62,11 @@ public class DeltaEngine
      *         id, etc.
      */
     public static void delta(Object preTransactionState, Serializable id, Long tid,
-                             SessionFactoryImplementor sf) throws Exception
+                             SessionFactoryImplementor sf,
+                             SessionFactoryImplementor internalSf) throws Exception
     {
-        Session s = null;
-        Transaction t = null;
+        Session is = null;
+        Transaction iTx = null;
 
         try
         {
@@ -89,10 +91,11 @@ public class DeltaEngine
                 throw new IllegalArgumentException("initial state must have a non-null id");
             }
 
-            s = sf.openSession();
-            t = s.beginTransaction();
+            is = internalSf.openSession();
 
-            AuditTransaction at = (AuditTransaction)s.get(AuditTransaction.class, tid);
+            iTx = is.beginTransaction();
+
+            AuditTransaction at = (AuditTransaction)is.get(AuditTransaction.class, tid);
 
             if (at == null)
             {
@@ -102,7 +105,7 @@ public class DeltaEngine
 
             // first query the type
             String qs = "from AuditType as a where a.className = :className";
-            Query q = s.createQuery(qs);
+            Query q = is.createQuery(qs);
             q.setString("className", className);
 
             AuditType atype = (AuditType)q.uniqueResult();
@@ -115,7 +118,7 @@ public class DeltaEngine
 
             // get all events of that transaction
             qs = "from AuditEvent as a where a.transaction = :transaction order by a.id";
-            q = s.createQuery(qs);
+            q = is.createQuery(qs);
             q.setParameter("transaction", at);
 
             List events = q.list();
@@ -174,7 +177,7 @@ public class DeltaEngine
                 Object detachedEntity = e.getDetachedInstance();
 
                 // insert all pairs of this event into this entity
-                q = s.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
+                q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
                 q.setParameter("event", ae);
 
                 List pairs = q.list();
@@ -280,7 +283,7 @@ public class DeltaEngine
                 e.transferToOwner();
             }
 
-            t.commit();
+            iTx.commit();
 
             Object transactionDelta = null;
             for(EntityExpectation e: entityExpectations)
@@ -303,11 +306,11 @@ public class DeltaEngine
         }
         catch(Exception e)
         {
-            if (t != null)
+            if (iTx != null)
             {
                 try
                 {
-                    t.rollback();
+                    iTx.rollback();
                 }
                 catch(Exception e2)
                 {
@@ -315,15 +318,15 @@ public class DeltaEngine
                 }
             }
 
-            if (s != null)
+            if (is != null)
             {
                 try
                 {
-                    s.close();
+                    is.close();
                 }
                 catch(Exception e2)
                 {
-                    log.error("failed to close Hibernate session", e2);
+                    log.error("failed to close internal Hibernate session", e2);
                 }
             }
 

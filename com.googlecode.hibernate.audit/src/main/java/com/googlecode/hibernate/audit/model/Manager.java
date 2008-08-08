@@ -384,7 +384,7 @@ public class Manager
                 "no registered session factory maintains metadata on " + c.getName());
         }
 
-        DeltaEngine.delta(base, id, txId, sfi);
+        DeltaEngine.delta(base, id, txId, sfi, isf);
     }
 
     @Override
