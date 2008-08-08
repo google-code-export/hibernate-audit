@@ -146,10 +146,13 @@ public class PostInsertAuditEventListener
                 Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
 
                 Collection collection = (Collection)((PersistentCollection)value).getValue();
-                EntityPersister memberEntityPersister = null;
+
                 List<Long> ids = new ArrayList<Long>();
+                EntityPersister memberEntityPersister = null;
                 String memberEntityName = null;
 
+                // TODO iterating over the members of the collection to figure out the type is not
+                //      a good idea. The mechanism breaks when faced with empty collections.
                 for(Object o: collection)
                 {
                     String s = session.getEntityName(o);
@@ -175,7 +178,6 @@ public class PostInsertAuditEventListener
                     ids.add(mid);
                 }
 
-
                 Type memberType = collectionType.getElementType(sf);
                 Class memberClass = memberType.getReturnedClass();
                 if (Map.class.equals(memberClass))
@@ -183,8 +185,18 @@ public class PostInsertAuditEventListener
                     // this is what Hibernate returns when it cannot figure out the class,
                     // most likley due to the fact that audited application uses entity names and
                     // custom tuplizers
-                    EntityTuplizer t = memberEntityPersister.getEntityMetamodel().getTuplizer(mode);
-                    memberClass = t.getMappedClass();
+                    if (memberEntityPersister != null)
+                    {
+                        EntityTuplizer t =
+                            memberEntityPersister.getEntityMetamodel().getTuplizer(mode);
+                        memberClass = t.getMappedClass();
+                    }
+                    else
+                    {
+                        // this means the collection was empty and we couldn't determine the
+                        // member's persister - this look to me like a hack, review TODO
+                        memberClass = Object.class;
+                    }
                 }
 
                 auditType = aTx.getAuditType(collectionClass, memberClass);

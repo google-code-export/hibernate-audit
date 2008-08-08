@@ -241,11 +241,6 @@ public class DeltaEngine
 
                         List<Long> ids = cp.getIds();
 
-                        if (ids.isEmpty())
-                        {
-                            throw new RuntimeException("NOT YET IMPLEMENTED");
-                        }
-
                         CollectionExpectation ce =
                             new CollectionExpectation(e, name, collectionClass, memberClass);
                         
