@@ -139,7 +139,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
     /**
      * This currently fails https://jira.novaordis.org/browse/HBA-81
      */
-    @Test(enabled = true) 
+    @Test(enabled = true)
     public void testMissingMutatorThatMayBeSalvagedByTuplizer() throws Exception
     {
         Configuration config = new Configuration();
@@ -327,6 +327,96 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
                     throw new Error("unexpected " + xb);
                 }
             }
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
+    {
+        Configuration config = new Configuration();
+        config.configure(getHibernateConfigurationFileName());
+
+        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+        // enough)
+
+        String xa2Mapping =
+            "<?xml version='1.0'?>\n" +
+            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+            "<hibernate-mapping>\n" +
+            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
+            "        <id name='id' type='long'>\n" +
+            "            <generator class='native'/>\n" +
+            "        </id>\n" +
+            "        <set name='xbs' cascade='all'>\n" +
+            "            <key column='xa_id'/>\n" +
+            "            <one-to-many entity-name='XB'/>\n" +
+            "        </set>\n" +
+            "    </class>\n" +
+            "</hibernate-mapping>";
+
+        String xbMapping =
+            "<?xml version='1.0'?>\n" +
+            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+            "<hibernate-mapping>\n" +
+            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
+            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer'/>\n" +
+            "      <id name='id' type='long'>\n" +
+            "         <generator class='native'/>\n" +
+            "      </id>\n" +
+            "      <property name='name' type='string'/>\n" +
+            "   </class>\n" +
+            "</hibernate-mapping>";
+
+        config.addInputStream(new ByteArrayInputStream(xa2Mapping.getBytes()));
+        config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
+
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            XA2 xa2 = new XA2();
+
+            // empty collection
+
+            s.save(xa2);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa2.getId());
+            assert transactions.size() == 1;
+
+            XA2 base = new XA2();
+            HibernateAudit.delta(base, xa2.getId(), transactions.get(0).getId());
+
+            Set<XB> restored = base.getXbs();
+            assert restored.isEmpty();
+
         }
         catch(Exception e)
         {
