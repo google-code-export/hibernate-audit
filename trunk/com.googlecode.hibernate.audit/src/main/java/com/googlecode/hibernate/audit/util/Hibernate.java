@@ -2,6 +2,9 @@ package com.googlecode.hibernate.audit.util;
 
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.BagType;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.EntityMode;
+import org.hibernate.tuple.Tuplizer;
 
 import java.util.List;
 
@@ -29,6 +32,21 @@ public class Hibernate
         }
 
         throw new RuntimeException("we don't know to translate " + ct);
+    }
+
+    /**
+     * @return null if it cannot figure out the type.
+     */
+    public static Class getTypeFromTuplizer(EntityPersister p, EntityMode m)
+    {
+        Tuplizer t = p.getEntityMetamodel().getTuplizerOrNull(m);
+
+        if (t == null)
+        {
+            return null;
+        }
+
+        return t.getMappedClass();
     }
 
     // Attributes ----------------------------------------------------------------------------------

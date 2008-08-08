@@ -67,6 +67,8 @@ public class Reflections
 
         if (mutator == null)
         {
+            // TODO last chance, to we use a tuplizer? https://jira.novaordis.org/browse/HBA-81
+
             throw new NoSuchMethodException(
                 "cannot find mutator " + methodName + "(...) for " + value.getClass().getName() +
                 " or any of its superclasses");
@@ -343,7 +345,8 @@ public class Reflections
             }
             else
             {
-                log.error("attributeType: " + attributeType);
+                log.error("base: " + base + ", delta: " + delta + ", " +
+                          "attributeType: " + attributeType);
                 throw new RuntimeException("NOT YET IMPLEMENTED");
             }
 
