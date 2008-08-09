@@ -56,6 +56,8 @@ Both persistence units are configured in the main `pom.xml`.
 
 6. Increment the version in the main pom.xml and com/googlecode/hibernate/audit/pom.xml
 
+7. Release in JIRA
+
 ==Test Situation==
 
  * 07/26/08 pre-1.0.0.Alpha5 101/0/0
