@@ -172,7 +172,7 @@ public final class HibernateAudit
         {
             if (manager == null)
             {
-                throw new IllegalStateException("audit stopped");
+                throw new IllegalStateException("audit runtime not enabled");
             }
 
             m = manager;
@@ -230,7 +230,7 @@ public final class HibernateAudit
         {
             if (manager == null)
             {
-                throw new IllegalStateException("audit stopped");
+                throw new IllegalStateException("audit runtime not enabled");
             }
 
             m = manager;
