@@ -424,7 +424,19 @@ public class Reflections
                 }
                 catch(Exception e)
                 {
-                    // ok
+                    // ok, one more shot
+                    try
+                    {
+                        adderName = memberClass.getName();
+                        adderName = adderName.substring(adderName.lastIndexOf('.') + 1);
+                        adderName = "add" + adderName;
+
+                        adder = c.getMethod(adderName, memberClass);
+                    }
+                    catch(Exception e2)
+                    {
+                        // tough luck
+                    }
                 }
 
                 if (adder != null)
