@@ -42,27 +42,30 @@ public class Reflections
         String methodName =
             "set" + Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
-        Class argumentType = value.getClass();
 
         Method mutator = null;
 
-        while(argumentType != Object.class)
+        outer: for(Method m: o.getClass().getDeclaredMethods())
         {
-            try
-            {
-                mutator = o.getClass().getMethod(methodName, argumentType);
+            String n = m.getName();
+            Class[] pts = m.getParameterTypes();
 
-                if (mutator != null)
+            if (!methodName.equals(n) || pts.length != 1)
+            {
+                continue;
+            }
+
+            Class argumentType = value.getClass();
+            while(argumentType != Object.class)
+            {
+                if (argumentType.equals(pts[0]))
                 {
-                    break;
+                    mutator = m;
+                    break outer;
                 }
-            }
-            catch(Exception e)
-            {
-                // ok, it's part of the logic
-            }
 
-            argumentType = argumentType.getSuperclass();
+                argumentType = argumentType.getSuperclass();
+            }
         }
 
         if (mutator == null)
@@ -72,6 +75,13 @@ public class Reflections
             throw new NoSuchMethodException(
                 "cannot find mutator " + methodName + "(...) for " + value.getClass().getName() +
                 " or any of its superclasses");
+        }
+
+        // override accessibility limitations if any
+        if (!Modifier.isPublic(mutator.getModifiers()))
+        {
+            // TODO see HBA-84
+            mutator.setAccessible(true);
         }
 
         mutator.invoke(o, value);
@@ -233,7 +243,7 @@ public class Reflections
             throw new IllegalArgumentException(base + " and " + delta + " have different types");
         }
 
-        outer: for(Method getter: c.getMethods())
+        outer: for(Method getter: c.getDeclaredMethods())
         {
             if (Modifier.isStatic(getter.getModifiers()))
             {
@@ -264,7 +274,7 @@ public class Reflections
 
             Method setter = null;
             String setterName = "set" + attributeName;
-            for(Method sm: c.getMethods())
+            for(Method sm: c.getDeclaredMethods())
             {
                 if (Modifier.isStatic(sm.getModifiers()))
                 {
@@ -284,6 +294,12 @@ public class Reflections
 
             if (setter != null)
             {
+                if (!Modifier.isPublic(getter.getModifiers()))
+                {
+                    // TODO see HBA-84
+                    getter.setAccessible(true);
+                }
+            
                 Object deltaPiece = getter.invoke(delta);
 
                 for(Node seen: seenInstances)
@@ -291,6 +307,12 @@ public class Reflections
                     if (seen.isSameInstance(deltaPiece))
                     {
                         // maintaining referential integrity
+
+                        if (!Modifier.isPublic(setter.getModifiers()))
+                        {
+                            // TODO see HBA-84
+                            setter.setAccessible(true);
+                        }
                         setter.invoke(base, seen.getValidReference());
                         continue outer;
                     }
@@ -299,6 +321,12 @@ public class Reflections
                 if (isMutable(deltaPiece))
                 {
                     deltaPiece = deepCopy(deltaPiece, seenInstances);
+                }
+
+                if (!Modifier.isPublic(setter.getModifiers()))
+                {
+                    // TODO see HBA-84
+                    setter.setAccessible(true);
                 }
 
                 setter.invoke(base, deltaPiece);
@@ -486,6 +514,7 @@ public class Reflections
         if (!Modifier.isPublic(constructor.getModifiers()) ||
             !Modifier.isPublic(c.getModifiers()))
         {
+            // TODO see HBA-84
             constructor.setAccessible(true);
         }
 

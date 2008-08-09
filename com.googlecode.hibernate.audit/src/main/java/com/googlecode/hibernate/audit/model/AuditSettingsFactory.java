@@ -18,6 +18,7 @@ import java.lang.reflect.Modifier;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.AuditEnvironment;
+import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
 
 /**
  * A SettingsFactory that knows how to extract certain "interesting" properties from audited session
@@ -146,9 +147,25 @@ class AuditSettingsFactory extends SettingsFactory
         copy.setProperty(Environment.USE_SECOND_LEVEL_CACHE, "false");
         copy.setProperty(Environment.SHOW_SQL, "true");
 
-        // TODO very dangerous - do not release like this: https://jira.novaordis.org/browse/HBA-73
-        //copy.setProperty(Environment.HBM2DDL_AUTO, "create-drop");
-        copy.setProperty(Environment.HBM2DDL_AUTO, "validate");
+        // look for external definitions of 'hbm2ddl.auto'
+        // TODO not sure if I am supposed to look within System, and not use the passed copy
+        String s = System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+        if (s != null)
+        {
+            // insure consistency
+            if (!"validate".equals(s) &&
+                !"update".equals(s) &&
+                !"create".equals(s) &&
+                !"create-drop".equals(s))
+            {
+                log.warn("'" + s + "' is an invalid " + HibernateAuditEnvironment.HBM2DDL_AUTO +
+                         " value, will be ignored!");
+            }
+            else
+            {
+                copy.setProperty(Environment.HBM2DDL_AUTO, s);
+            }
+        }
 
         return super.buildSettings(copy);
     }

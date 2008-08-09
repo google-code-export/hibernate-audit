@@ -10,6 +10,7 @@ import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
+import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
 import com.googlecode.hibernate.audit.model.Entities;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
@@ -504,6 +505,47 @@ public class HibernateAuditTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testEnable_HBM2DDL_AUTO() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        String originalValue = System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+        log.debug(originalValue);
+
+        SessionFactory sf = null;
+
+        try
+        {
+            Configuration config = new AnnotationConfiguration();
+            config.configure(getHibernateConfigurationFileName());
+            sf = config.buildSessionFactory();
+
+            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "some complete junk");
+
+            // this works, but logs a warning
+            HibernateAudit.enable(sf);
+        }
+        finally
+        {
+            if (originalValue != null)
+            {
+                System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, originalValue);
+            }
+            else
+            {
+                System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+            }
+
             HibernateAudit.disableAll();
 
             if (sf != null)

@@ -31,12 +31,14 @@ public class LocalTransactionTest extends ConfigurableEnvironmentSupport
     public void beforeTest() throws Exception
     {
         // make sure no JTA environment remnants are in sight
+        super.beforeTest();
     }
 
     @Override
     @AfterTest
     public void afterTest() throws Exception
     {
+        super.afterTest();
     }
 
     // Package protected ---------------------------------------------------------------------------

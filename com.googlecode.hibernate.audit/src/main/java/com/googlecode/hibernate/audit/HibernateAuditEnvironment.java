@@ -1,7 +1,4 @@
-package com.googlecode.hibernate.audit.test.base;
-
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.AfterTest;
+package com.googlecode.hibernate.audit;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -12,9 +9,15 @@ import org.testng.annotations.AfterTest;
  *
  * $Id$
  */
-public class JTATransactionTest extends ConfigurableEnvironmentSupport
+public final class HibernateAuditEnvironment
 {
     // Constants -----------------------------------------------------------------------------------
+
+    /**
+     * Auto export/update audit schema using hbm2ddl tool. Valid values are <tt>update</tt>,
+     * <tt>create</tt>, <tt>create-drop</tt> and <tt>validate</tt>.
+     */
+    public static final String HBM2DDL_AUTO = "hba.hbm2ddl.auto";
 
     // Static --------------------------------------------------------------------------------------
 
@@ -24,37 +27,9 @@ public class JTATransactionTest extends ConfigurableEnvironmentSupport
 
     // Public --------------------------------------------------------------------------------------
 
-    @Override
-    @BeforeTest
-    public void beforeTest() throws Exception
-    {
-        super.beforeTest();
-        startJTAEnvironment();
-    }
-
-    @Override
-    @AfterTest
-    public void afterTest() throws Exception
-    {
-        stopJTAEnvironment();
-        super.afterTest();
-    }
-
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
-
-    @Override
-    protected String getHibernateConfigurationFileName()
-    {
-        return "/hibernate-jta.cfg.xml";
-    }
-
-    @Override
-    protected TransactionType getTransactionType()
-    {
-        return TransactionType.JTA;
-    }
 
     // Private -------------------------------------------------------------------------------------
 

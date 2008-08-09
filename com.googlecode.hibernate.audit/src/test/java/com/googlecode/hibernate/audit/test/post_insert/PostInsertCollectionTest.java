@@ -580,12 +580,12 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)  // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
     public void testRemoveTwoFromCollection() throws Exception
     {
     }
 
-    @Test(enabled = true)  // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
     public void testModifyOneInCollection() throws Exception
     {
     }

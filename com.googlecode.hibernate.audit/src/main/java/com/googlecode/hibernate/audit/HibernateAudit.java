@@ -2,7 +2,6 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
-import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.cfg.Settings;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
