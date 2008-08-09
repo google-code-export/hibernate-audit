@@ -11,6 +11,7 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.B;
+import com.googlecode.hibernate.audit.test.post_insert.data.E;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventType;
@@ -791,6 +792,56 @@ public class PostInsertTest extends JTATransactionTest
             assert a.getId().equals(base.getId());
             assert base.getName() == null;
             assert base.getAge() == null;
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testPrivateMutators() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(E.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            E e = new E("alice");
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(e);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> ts = HibernateAudit.getTransactions(E.getIdFrom(e));
+
+            assert ts.size() == 1;
+
+            E base = new E();
+            HibernateAudit.delta(base, E.getIdFrom(e), ts.get(0).getId());
+
+            assert E.getIdFrom(e).equals(E.getIdFrom(base));
+            assert "alice".equals(E.getNameFrom(base));
+
         }
         catch(Exception e)
         {

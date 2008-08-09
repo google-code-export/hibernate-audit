@@ -9,6 +9,7 @@ import com.googlecode.hibernate.audit.test.mock.jndi.MockInitialContextFactoryBu
 import com.googlecode.hibernate.audit.test.mock.jta.MockUserTransaction;
 import com.googlecode.hibernate.audit.test.mock.jta.MockTransactionManager;
 import com.googlecode.hibernate.audit.test.mock.jca.MockJTAAwareDataSource;
+import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -52,8 +53,15 @@ abstract class ConfigurableEnvironmentSupport
 
     // Public --------------------------------------------------------------------------------------
 
-    public abstract void beforeTest() throws Exception;
-    public abstract void afterTest() throws Exception;
+    public void beforeTest() throws Exception
+    {
+        System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "create-drop");
+    }
+
+    public void afterTest() throws Exception
+    {
+        System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

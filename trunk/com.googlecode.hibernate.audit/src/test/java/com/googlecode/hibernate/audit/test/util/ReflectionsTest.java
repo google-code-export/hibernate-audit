@@ -16,6 +16,7 @@ import com.googlecode.hibernate.audit.test.util.data.H;
 import com.googlecode.hibernate.audit.test.util.data.I;
 import com.googlecode.hibernate.audit.test.util.data.J;
 import com.googlecode.hibernate.audit.test.util.data.F3;
+import com.googlecode.hibernate.audit.test.util.data.K;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -150,6 +151,18 @@ public class ReflectionsTest
         assert fParties.remove(new FParty("fenwick"));
         assert fParties.remove(new FParty("fester"));
         assert fParties.remove(new FParty("falwell"));
+    }
+
+    @Test(enabled = true)
+    public void testMutate_PrivateEverything() throws Exception
+    {
+        K k = new K();
+
+        Reflections.mutate(k, "id", new Long(10));
+        Reflections.mutate(k, "name", "blah");
+
+        assert new Long(10).equals(K.getIdFrom(k));
+        assert "blah".equals(K.getNameFrom(k));
     }
 
     @Test(enabled = true)
