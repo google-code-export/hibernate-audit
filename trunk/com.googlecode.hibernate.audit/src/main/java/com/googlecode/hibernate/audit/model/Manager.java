@@ -390,8 +390,9 @@ public class Manager
     @Override
     public String toString()
     {
-        return "Manager[" + Integer.toHexString(System.identityHashCode(this)) + "][" +
-               connectionProviderToString() + "]";
+        String s = connectionProviderToString();
+        return "Manager[" + Integer.toHexString(System.identityHashCode(this)) + "]" +
+               (s == null ? "" : "[" + s + "]");
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -508,7 +509,7 @@ public class Manager
     {
         if (isf == null)
         {
-            return "STOPPED";
+            return null;
         }
 
         ConnectionProvider cp = isf.getConnectionProvider();
