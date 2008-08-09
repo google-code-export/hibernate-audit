@@ -373,9 +373,10 @@ public class Reflections
             }
             else
             {
-                log.error("base: " + base + ", delta: " + delta + ", " +
+                log.debug("base: " + base + ", delta: " + delta + ", " +
                           "attributeType: " + attributeType);
-                throw new RuntimeException("NOT YET IMPLEMENTED");
+                throw new IllegalStateException("no " + setterName + "(" + attributeType +
+                                                ") method found on " + base.getClass());
             }
 
             if (collectionClass != null && attributeName.endsWith("s"))
