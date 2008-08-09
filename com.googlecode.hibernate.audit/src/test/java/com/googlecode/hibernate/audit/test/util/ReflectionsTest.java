@@ -48,7 +48,7 @@ public class ReflectionsTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate() throws Exception
     {
         A a = new A();
@@ -62,7 +62,7 @@ public class ReflectionsTest
         assert new Integer(77).equals(a.getI());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutateWithSubclass() throws Exception
     {
         A a = new A();
@@ -73,7 +73,7 @@ public class ReflectionsTest
         assert subB == a.getB();
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate_NoSuchMethodException() throws Exception
     {
         A a = new A();
@@ -90,7 +90,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate_Collection() throws Exception
     {
         A a = new A();
@@ -111,7 +111,7 @@ public class ReflectionsTest
         assert bs.remove(new B("becky"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate_Collection_NoSetMethod() throws Exception
     {
         D d = new D();
@@ -132,7 +132,7 @@ public class ReflectionsTest
         assert es.remove(new E("ethan"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate_Collection_NoSetMethod_FParties() throws Exception
     {
         D d = new D();
@@ -153,7 +153,7 @@ public class ReflectionsTest
         assert fParties.remove(new FParty("falwell"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testMutate_PrivateEverything() throws Exception
     {
         K k = new K();
@@ -165,13 +165,13 @@ public class ReflectionsTest
         assert "blah".equals(K.getNameFrom(k));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_Null() throws Exception
     {
         assert null == Reflections.deepCopy(null);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_NoState() throws Exception
     {
         G g = G.getInstance();
@@ -181,7 +181,7 @@ public class ReflectionsTest
         assert g != copy;
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_ReferenceToImmutable() throws Exception
     {
         G g = G.getInstance();
@@ -194,7 +194,7 @@ public class ReflectionsTest
         assert s == copy.getString();
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_ReferenceToMutable() throws Exception
     {
         G g = G.getInstance();
@@ -213,7 +213,7 @@ public class ReflectionsTest
         assert "otherG".equals(otherGCopy.getString());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_UntypedNullSet() throws Exception
     {
         G g = G.getInstance();
@@ -222,7 +222,7 @@ public class ReflectionsTest
         assert copy.getStrings() == null;
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_UntypedSetOfImmutables() throws Exception
     {
         G g = G.getInstance();
@@ -243,7 +243,7 @@ public class ReflectionsTest
         assert stringsCopy.contains("stwo");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_UntypedSetOfMutables() throws Exception
     {
         G g = G.getInstance();
@@ -283,7 +283,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_TypedSetOfImmutables() throws Exception
     {
         G g = G.getInstance();
@@ -304,7 +304,7 @@ public class ReflectionsTest
         assert typedStringsCopy.contains("stwo");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testDeepCopy_TypedSetOfMutables() throws Exception
     {
         G g = G.getInstance();
@@ -342,7 +342,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta() throws Exception
     {
         A base = new A();
@@ -398,7 +398,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_DeltaContainsReferenceToItself() throws Exception
     {
         A delta = new A();
@@ -414,7 +414,7 @@ public class ReflectionsTest
         assert base.getB().getA() == base;
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_DeltaContainsReferenceToItselfInACollection() throws Exception
     {
         A delta = new A();
@@ -441,7 +441,7 @@ public class ReflectionsTest
         assert base == as.get(0);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_DeltaContainsReferenceToItself_MultipleLevels() throws Exception
     {
         H h = new H();
@@ -494,7 +494,7 @@ public class ReflectionsTest
         assert c.isEmpty();
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_ImmutableUntypedCollectionWithAddMethod_OneMember() throws Exception
     {
         // first make sure the collection is immutable
@@ -525,7 +525,7 @@ public class ReflectionsTest
         assert c.contains("something");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_ImmutableUntypedCollectionWithAddMethod_HeterogeneousCollection()
         throws Exception
     {
@@ -594,7 +594,7 @@ public class ReflectionsTest
         assert c.isEmpty();
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_ImmutableUntypedSetWithAddMethod_OneMember() throws Exception
     {
         // first make sure the collection is immutable
@@ -625,7 +625,7 @@ public class ReflectionsTest
         assert s.contains("something");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_ImmutableUntypedSetWithAddMethod_HeterogeneousCollection()
         throws Exception
     {
@@ -692,7 +692,7 @@ public class ReflectionsTest
         assert strings.isEmpty();
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyDelta_ImmutableCollectionWithAddMethod() throws Exception
     {
         // first make sure the collection is immutable
@@ -726,6 +726,26 @@ public class ReflectionsTest
 
         assert strings.contains("alice");
         assert strings.contains("bob");
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_Collection_NoSetMethod_FParties() throws Exception
+    {
+        D d = new D();
+        d.addFParty(new FParty("fenwick"));
+        d.addFParty(new FParty("fester"));
+        d.addFParty(new FParty("falwell"));
+
+        D base = new D();
+        Reflections.applyDelta(base, d);
+
+        List<FParty> fParties = base.getFParties();
+
+        assert fParties.size() == 3;
+
+        assert fParties.remove(new FParty("fenwick"));
+        assert fParties.remove(new FParty("fester"));
+        assert fParties.remove(new FParty("falwell"));
     }
 
     // Package protected ---------------------------------------------------------------------------
