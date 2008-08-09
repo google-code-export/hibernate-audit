@@ -49,7 +49,7 @@ Both persistence units are configured in the main `pom.xml`.
 
 4. Tag:
 {{{
-    svn copy https://hibernate-audit.googlecode.com/svn/trunk https://hibernate-audit.googlecode.com/svn/tags/HBA_1_0_0_Alpha5
+    svn copy https://hibernate-audit.googlecode.com/svn/trunk https://hibernate-audit.googlecode.com/svn/tags/HBA_1_0_0_Alpha5 -m "releasing ..."
 }}}
 
 ==Test Situation==
