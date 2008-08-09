@@ -42,8 +42,11 @@ Both persistence units are configured in the main `pom.xml`.
 ==Release Process==
 
 1. Run a full testsuite and record the results in the "Test Situation" section
+
 2. Make sure all JIRA issues for the release are resolved. Shift to the next release anything that is still open.
+
 3. Synchronize work area with the SVN repository.
+
 4. Tag:
 {{{
     svn copy https://hibernate-audit.googlecode.com/svn/trunk https://hibernate-audit.googlecode.com/svn/tags/HBA_1_0_0_Alpha5
