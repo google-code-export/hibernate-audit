@@ -147,7 +147,8 @@ class AuditSettingsFactory extends SettingsFactory
         copy.setProperty(Environment.SHOW_SQL, "true");
 
         // TODO very dangerous - do not release like this: https://jira.novaordis.org/browse/HBA-73
-        copy.setProperty(Environment.HBM2DDL_AUTO, "create-drop");
+        //copy.setProperty(Environment.HBM2DDL_AUTO, "create-drop");
+        copy.setProperty(Environment.HBM2DDL_AUTO, "validate");
 
         return super.buildSettings(copy);
     }
