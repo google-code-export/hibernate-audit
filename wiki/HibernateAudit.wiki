@@ -52,6 +52,10 @@ Both persistence units are configured in the main `pom.xml`.
     svn copy https://hibernate-audit.googlecode.com/svn/trunk https://hibernate-audit.googlecode.com/svn/tags/HBA_1_0_0_Alpha5 -m "releasing ..."
 }}}
 
+5. Build the binary jar and the source jar for export to various repositories.
+
+6. Increment the version in the main pom.xml and com/googlecode/hibernate/audit/pom.xml
+
 ==Test Situation==
 
  * 07/26/08 pre-1.0.0.Alpha5 101/0/0
