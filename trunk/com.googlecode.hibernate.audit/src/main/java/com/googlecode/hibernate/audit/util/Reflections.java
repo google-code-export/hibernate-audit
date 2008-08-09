@@ -383,6 +383,12 @@ public class Reflections
             {
                 // special case for immutable collections that allow "add...(...)"
 
+                if (!Modifier.isPublic(getter.getModifiers()))
+                {
+                    // TODO see HBA-84
+                    getter.setAccessible(true);
+                }
+
                 Collection members = (Collection)getter.invoke(delta);;
 
                 if (memberClass == null)
@@ -441,6 +447,12 @@ public class Reflections
 
                 if (adder != null)
                 {
+                    if (!Modifier.isPublic(adder.getModifiers()))
+                    {
+                        // TODO see HBA-84
+                        adder.setAccessible(true);
+                    }
+
                     // loop over the collection and add members one by one
                     for(Iterator i = members.iterator(); i.hasNext(); )
                     {
