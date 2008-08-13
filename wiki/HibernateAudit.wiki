@@ -62,3 +62,4 @@ Both persistence units are configured in the main `pom.xml`.
 
  * 07/26/08 pre-1.0.0.Alpha5 101/0/0
  * 08/09/08 1.0.0.Alpha5 120/1/0
+ * 08/12/08 1.0.0.Alpha6 125/1/0
