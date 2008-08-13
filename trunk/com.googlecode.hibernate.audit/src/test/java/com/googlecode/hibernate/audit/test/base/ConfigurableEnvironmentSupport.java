@@ -10,9 +10,13 @@ import com.googlecode.hibernate.audit.test.mock.jta.MockUserTransaction;
 import com.googlecode.hibernate.audit.test.mock.jta.MockTransactionManager;
 import com.googlecode.hibernate.audit.test.mock.jca.MockJTAAwareDataSource;
 import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
+import com.googlecode.hibernate.audit.util.DDL;
+import com.googlecode.hibernate.audit.util.DDLSchema;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.io.InputStream;
+import java.sql.Connection;
 
 /**
  * A base class that manipulates the environment in such a way that give the tested code the
@@ -43,6 +47,23 @@ abstract class ConfigurableEnvironmentSupport
     private String connectionPassword;
     private String mockDataSourceJNDIName;
 
+    /**
+     * The single point of configuration for how schema is created: externally, by reading it from
+     * a DDL file, or internally by hibernate ('create-drop').
+     */
+    private boolean useExternallyCreatedSchema = false;
+
+    /**
+     * The schema DDL file name, relative to the classpath.
+     */
+    private String schemaDDLFileName;
+
+    private DDLSchema ddlSchema;
+
+    // TODO This is here temporarily until I figure out why beforeTest() and afterTest() aren't
+    // executed around every test
+    private String originalHbaHbm2DdlAutoValue_temp;
+
     // Constructors --------------------------------------------------------------------------------
 
     ConfigurableEnvironmentSupport()
@@ -55,12 +76,114 @@ abstract class ConfigurableEnvironmentSupport
 
     public void beforeTest() throws Exception
     {
-        System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "create-drop");
+        originalHbaHbm2DdlAutoValue_temp =
+            System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+
+        if (useExternallyCreatedSchema)
+        {
+            InputStream is = Thread.
+                currentThread().getContextClassLoader().getResourceAsStream(schemaDDLFileName);
+
+            if (is == null)
+            {
+                throw new Error("could not find schema DDL file " + schemaDDLFileName +
+                                " relative to the current class path");
+            }
+
+            ddlSchema = new DDLSchema(is);
+
+            Connection c = null;
+
+            try
+            {
+                c = DDL.getRawConnection(connectionDriverClassName, connectionUrl,
+                                         connectionUsername, connectionPassword);
+                ddlSchema.create(c);
+            }
+            finally
+            {
+                if (c != null)
+                {
+                    c.close();
+                }
+            }
+
+            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "validate");
+        }
+        else
+        {
+            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "create-drop");
+        }
     }
 
     public void afterTest() throws Exception
     {
         System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+
+        if (useExternallyCreatedSchema)
+        {
+            Connection c = null;
+
+            try
+            {
+                c = DDL.getRawConnection(connectionDriverClassName, connectionUrl,
+                                         connectionUsername, connectionPassword);
+                ddlSchema.drop(c);
+            }
+            finally
+            {
+                if (c != null)
+                {
+                    c.close();
+                }
+            }
+        }
+
+        if (originalHbaHbm2DdlAutoValue_temp != null)
+        {
+           System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO,
+                              originalHbaHbm2DdlAutoValue_temp); 
+        }
+    }
+    
+    public boolean isUseExternallyCreatedSchema()
+    {
+        return useExternallyCreatedSchema;
+    }
+
+    public void setUseExternallyCreatedSchema(boolean b)
+    {
+        this.useExternallyCreatedSchema = b;
+    }
+
+    public String getSchemaDDLFileName()
+    {
+        return schemaDDLFileName;
+    }
+
+    public void setSchemaDDLFileName(String schemaDDLFileName)
+    {
+        this.schemaDDLFileName = schemaDDLFileName;
+    }
+
+    public String getConnectionDriverClassName()
+    {
+        return connectionDriverClassName;
+    }
+
+    public String getConnectionUrl()
+    {
+        return connectionUrl;
+    }
+
+    public String getConnectionUsername()
+    {
+        return connectionUsername;
+    }
+
+    public String getConnectionPassword()
+    {
+        return connectionPassword;
     }
 
     // Package protected ---------------------------------------------------------------------------
