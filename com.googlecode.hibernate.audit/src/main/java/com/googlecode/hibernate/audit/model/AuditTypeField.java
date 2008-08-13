@@ -27,7 +27,7 @@ import javax.persistence.JoinColumn;
  */
 @Entity
 @Table(name = "AUDIT_CLASS_FIELD")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_FIELD_ID_SEQUENCE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_FIELD_SEQ")
 public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------

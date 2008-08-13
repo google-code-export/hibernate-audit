@@ -32,7 +32,7 @@ import javax.persistence.DiscriminatorValue;
  */
 @Entity
 @Table(name = "AUDIT_EVENT_PAIR")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_PAIR_ID_SEQUENCE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_PAIR_SEQ")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "IS_COLLECTION", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("N")

@@ -36,7 +36,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "AUDIT_CLASS")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_ID_SEQUENCE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_SEQ")
 @DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("P")
 public class AuditType

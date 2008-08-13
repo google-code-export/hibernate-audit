@@ -1,6 +1,8 @@
 package com.googlecode.hibernate.audit.test.base;
 
 import org.apache.log4j.Logger;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterMethod;
 
 import javax.naming.spi.NamingManager;
 import javax.naming.InitialContext;
@@ -31,11 +33,16 @@ import java.sql.Connection;
  *
  * $Id$
  */
-abstract class ConfigurableEnvironmentSupport
+public abstract class ConfigurableEnvironmentSupport
 {
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(ConfigurableEnvironmentSupport.class);
+
+    /**
+     * Relative to the classpath.
+     */
+    public static final String DEFAULT_DDL_FILE_NAME = "test_ddl.sql";
 
     // Static --------------------------------------------------------------------------------------
 
@@ -51,7 +58,7 @@ abstract class ConfigurableEnvironmentSupport
      * The single point of configuration for how schema is created: externally, by reading it from
      * a DDL file, or internally by hibernate ('create-drop').
      */
-    private boolean useExternallyCreatedSchema = false;
+    private boolean useExternallyCreatedSchema;
 
     /**
      * The schema DDL file name, relative to the classpath.
@@ -60,65 +67,73 @@ abstract class ConfigurableEnvironmentSupport
 
     private DDLSchema ddlSchema;
 
-    // TODO This is here temporarily until I figure out why beforeTest() and afterTest() aren't
-    // executed around every test
-    private String originalHbaHbm2DdlAutoValue_temp;
-
     // Constructors --------------------------------------------------------------------------------
 
     ConfigurableEnvironmentSupport()
     {
         extractConnectionConfiguration();
         setDataSourceJNDIName();
+        // the DDL file name will be ignored if useExternallyCreatedSchema is set to false
+        setSchemaDDLFileName(DEFAULT_DDL_FILE_NAME);
+
+        // TODO configure this externally
+        setUseExternallyCreatedSchema(false);
     }
 
     // Public --------------------------------------------------------------------------------------
 
+    /**
+     * TODO seems to me that this is run before suite, not before test
+     */
     public void beforeTest() throws Exception
     {
-        originalHbaHbm2DdlAutoValue_temp =
-            System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
-
-        if (useExternallyCreatedSchema)
-        {
-            InputStream is = Thread.
-                currentThread().getContextClassLoader().getResourceAsStream(schemaDDLFileName);
-
-            if (is == null)
-            {
-                throw new Error("could not find schema DDL file " + schemaDDLFileName +
-                                " relative to the current class path");
-            }
-
-            ddlSchema = new DDLSchema(is);
-
-            Connection c = null;
-
-            try
-            {
-                c = DDL.getRawConnection(connectionDriverClassName, connectionUrl,
-                                         connectionUsername, connectionPassword);
-                ddlSchema.create(c);
-            }
-            finally
-            {
-                if (c != null)
-                {
-                    c.close();
-                }
-            }
-
-            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "validate");
-        }
-        else
-        {
-            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "create-drop");
-        }
     }
 
+    /**
+     * TODO seems to me that this is run after suite, not after test
+     */
     public void afterTest() throws Exception
     {
+    }
+
+    @BeforeMethod
+    public void createAuditTables() throws Exception
+    {
+        if (!useExternallyCreatedSchema)
+        {
+            // we rely on Hibernate SchemaExport functionality
+            System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "create-drop");
+            return;
+        }
+
+        Connection c = null;
+
+        try
+        {
+            c = DDL.getRawConnection(connectionDriverClassName, connectionUrl,
+                                     connectionUsername, connectionPassword);
+
+            // will lazy instantiate if necessary
+            getExternalDDLSchema().create(c);
+        }
+        finally
+        {
+            if (c != null)
+            {
+                c.close();
+            }
+        }
+
+        System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "validate");
+    }
+
+    @AfterMethod
+    public void dropAuditTables() throws Exception
+    {
         System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
+
+        // if using an externally created schema, we drop the tables ourselves, otherwise rely
+        // on Hibernate to drop them on session factory close()
 
         if (useExternallyCreatedSchema)
         {
@@ -137,12 +152,6 @@ abstract class ConfigurableEnvironmentSupport
                     c.close();
                 }
             }
-        }
-
-        if (originalHbaHbm2DdlAutoValue_temp != null)
-        {
-           System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO,
-                              originalHbaHbm2DdlAutoValue_temp); 
         }
     }
     
@@ -357,6 +366,25 @@ abstract class ConfigurableEnvironmentSupport
     {
         mockDataSourceJNDIName = "local:MockDS";
         System.setProperty("local.test.datasource", mockDataSourceJNDIName);
+    }
+
+    private DDLSchema getExternalDDLSchema() throws Exception
+    {
+        if (ddlSchema == null)
+        {
+            InputStream is = Thread.
+                currentThread().getContextClassLoader().getResourceAsStream(schemaDDLFileName);
+
+            if (is == null)
+            {
+                throw new Error("could not find DDL file " + schemaDDLFileName +
+                                " relative to the current class path");
+            }
+
+            ddlSchema = new DDLSchema(is);
+        }
+
+        return ddlSchema;
     }
 
     // Inner classes -------------------------------------------------------------------------------
