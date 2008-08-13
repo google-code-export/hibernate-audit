@@ -32,7 +32,7 @@ import java.security.Principal;
  */
 @Entity
 @Table(name = "AUDIT_TRANSACTION")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_ID_SEQUENCE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_SEQ")
 public class AuditTransaction implements Synchronization
 {
     // Constants -----------------------------------------------------------------------------------

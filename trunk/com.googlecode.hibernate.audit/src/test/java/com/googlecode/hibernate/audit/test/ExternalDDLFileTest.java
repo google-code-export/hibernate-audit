@@ -107,8 +107,7 @@ public class ExternalDDLFileTest
             }
         }
 
-        // this is supposed to create schema in the database
-        tt.beforeTest();
+        tt.createAuditTables();
 
         // make sure DDL elements exist
 
@@ -155,8 +154,7 @@ public class ExternalDDLFileTest
             }
         }
 
-        // this is supposed to drop schema from the database
-        tt.afterTest();
+        tt.dropAuditTables();
 
         // make sure DDL elements are gone
 
@@ -281,8 +279,7 @@ public class ExternalDDLFileTest
         }
 
 
-        // this is supposed to create schema in the database
-        tt.beforeTest();
+        tt.createAuditTables();
 
         // make sure DDL elements exist
 
@@ -342,8 +339,7 @@ public class ExternalDDLFileTest
             }
         }
 
-        // this is supposed to drop schema from the database
-        tt.afterTest();
+        tt.dropAuditTables();
 
         // make sure DDL elements are gone
 

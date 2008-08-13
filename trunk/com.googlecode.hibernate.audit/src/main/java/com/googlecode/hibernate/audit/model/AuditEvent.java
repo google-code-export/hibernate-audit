@@ -29,7 +29,7 @@ import javax.persistence.JoinColumn;
  */
 @Entity
 @Table(name = "AUDIT_EVENT")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_ID_SEQUENCE")
+@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_SEQ")
 public class AuditEvent
 {
     // Constants -----------------------------------------------------------------------------------
