@@ -10,6 +10,7 @@ import org.hibernate.connection.DatasourceConnectionProvider;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Query;
+import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
 
 import java.util.HashSet;
@@ -360,18 +361,38 @@ public class Manager
      */
     public void delta(Object base, Serializable id, Long txId) throws Exception
     {
-        // pick up a registered session factory to provide metadata
-        Class c = base.getClass();
+        delta(base, null, id, txId);
+    }
+
+    /**
+     * @param base - the intial state of the object to apply transactional delta to.
+     * @param entityName - the entityName corresponding to the base instance. If null, base's class
+     *        will be used.
+     */
+    public void delta(Object base, String entityName, Serializable id, Long txId) throws Exception
+    {
+        Class c = null;
+
+        if (entityName == null)
+        {
+            c = base.getClass();
+        }
+
         SessionFactoryImpl sfi = null;
+
+        // pick up a registered session factory to provide metadata
         for(SessionFactoryImpl i: getAuditedSessionFactories())
         {
-            if (i.getClassMetadata(c) != null)
+            ClassMetadata cm =
+                entityName != null ? i.getClassMetadata(entityName) : i.getClassMetadata(c);
+
+            if (cm != null)
             {
                 if (sfi != null)
                 {
                     throw new Exception(
                         "NOT YET IMPLEMENTED: more than one SessionFactory maintains " +
-                        c.getName() + " metadata");
+                        (entityName != null ? entityName : c.getName()) + " metadata");
                 }
 
                 sfi = i;
@@ -381,11 +402,13 @@ public class Manager
         if (sfi == null)
         {
             throw new IllegalStateException(
-                "no registered session factory maintains metadata on " + c.getName());
+                "no registered session factory maintains metadata on " +
+                (entityName != null ? entityName : c.getName()));
         }
 
-        DeltaEngine.delta(base, id, txId, sfi, isf);
+        DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
     }
+
 
     @Override
     public String toString()
