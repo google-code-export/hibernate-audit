@@ -135,12 +135,13 @@ public class Reflections
 
         Class memberType = null;
 
-        while(methodNameRoot.length() > 0)
+        String tempNameRoot = methodNameRoot;
+        while(tempNameRoot.length() > 0)
         {
             Method addMethod = null;
             Iterator memberIterator = null;
 
-            String addMethodNamePrefix = "add" + methodNameRoot;
+            String addMethodNamePrefix = "add" + tempNameRoot;
 
             outer: for(Method m: methods)
             {
@@ -181,7 +182,7 @@ public class Reflections
             if (addMethod == null)
             {
                 // no method with such prefix, continue with the next choice
-                methodNameRoot = methodNameRoot.substring(0, methodNameRoot.length() - 1);
+                tempNameRoot = tempNameRoot.substring(0, tempNameRoot.length() - 1);
             }
             else
             {
@@ -210,11 +211,43 @@ public class Reflections
             }
         }
 
+        // if not successful so far, try next trick wich is to try to mutate the collection
+        // directly
+
+        if (!successful)
+        {
+            // TODO duplicate code (see applyDelta())
+            String getMethodName = "get" + methodNameRoot;
+
+            for(Method m: methods)
+            {
+                if (!m.getName().equals(getMethodName))
+                {
+                    continue;
+                }
+
+                // try to invoke
+                try
+                {
+                    Collection c = (Collection)m.invoke(o);
+                    c.clear();
+                    c.addAll(value);
+                    successful = true;
+                    break;
+                }
+                catch(Exception e)
+                {
+                    log.debug("failed to invoke", e);
+                }
+            }
+        }
+
         if (!successful)
         {
             throw new NoSuchMethodException(
                 "cannot find mutator " + setMethodName + "(" + value.getClass().getName() +
-                ") or add..." + (memberType == null ? "(...)" : "(" + memberType.getName() + ")"));
+                ") or add..." + (memberType == null ? "(...)" : "(" + memberType.getName() + ")") +
+                ", nor being able to mutate the collection directly");
         }
     }
 
@@ -464,6 +497,26 @@ public class Reflections
                 }
             }
 
+            // if not successful so far, try next trick wich is to try to mutate the collection
+            // directly
+
+            // TODO duplicate code (see applyDelta())
+
+            Object deltaPiece = getter.invoke(delta);
+
+            // TODO we're not doing a deep copy, we're copying shallow, bad, to fix this
+
+            if (collectionClass != null)
+            {
+                Collection baseCollection = (Collection)getter.invoke(base);
+                baseCollection.clear();
+                Collection deltaDeepCopy = (Collection)Reflections.
+                    deepCopy(deltaPiece, seenInstances);
+
+                baseCollection.addAll(deltaDeepCopy);
+                continue;
+            }
+
             // if we reach this point, it means we didn't find an appropriate mutator
             throw new NoSuchMethodException(
                 "cannot find set...() or add...() mutator corresponding to accessor " + name + "()");
@@ -534,7 +587,24 @@ public class Reflections
 
     public static Object instantiateOverridingAccessibility(Class c) throws Exception
     {
-        Constructor constructor = c.getDeclaredConstructor();
+        Constructor constructor = null;
+        try
+        {
+            constructor = c.getDeclaredConstructor();
+        }
+        catch(NoSuchMethodException e)
+        {
+            // temporary kludge for "proprietary" collections with restricted constructors
+            if (List.class.isAssignableFrom(c))
+            {
+                // TODO very simplistic, non-paramterized approach, need better implementation
+                constructor = ArrayList.class.getDeclaredConstructor();
+            }
+            else
+            {
+                throw e;
+            }
+        }
 
         if (!Modifier.isPublic(constructor.getModifiers()) ||
             !Modifier.isPublic(c.getModifiers()))
@@ -544,6 +614,7 @@ public class Reflections
         }
 
         return constructor.newInstance();
+
     }
 
     public static boolean isMutable(Object o)
