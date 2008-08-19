@@ -82,8 +82,10 @@ public class AuditTypeTest extends AuditTypeTestBase
 
         // it only supports "oracle" date format so far, this will be a problem in the future
         Date d = Formats.testDateFormat.parse("07/07/2008");
-        assert "Mon Jul 07 00:00:00 PDT 2008".equals(type.valueToString(d));
-        assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 PDT 2008"));
+        String timeZone = Formats.timeZone.format(new Date());
+
+        assert ("Mon Jul 07 00:00:00 " + timeZone + " 2008").equals(type.valueToString(d));
+        assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 " + timeZone + " 2008"));
     }
 
     @Test(enabled = true)
