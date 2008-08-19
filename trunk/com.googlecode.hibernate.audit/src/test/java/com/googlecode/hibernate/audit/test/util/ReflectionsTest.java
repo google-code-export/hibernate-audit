@@ -17,6 +17,7 @@ import com.googlecode.hibernate.audit.test.util.data.I;
 import com.googlecode.hibernate.audit.test.util.data.J;
 import com.googlecode.hibernate.audit.test.util.data.F3;
 import com.googlecode.hibernate.audit.test.util.data.K;
+import com.googlecode.hibernate.audit.test.util.data.L;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -151,6 +152,23 @@ public class ReflectionsTest
         assert fParties.remove(new FParty("fenwick"));
         assert fParties.remove(new FParty("fester"));
         assert fParties.remove(new FParty("falwell"));
+    }
+
+    @Test(enabled = true)
+    public void testMutate_Collection_NoMutator_MutableCollection() throws Exception
+    {
+        L l = new L();
+
+        assert l.getStrings().isEmpty();
+
+        List<String> newsts =  new ArrayList<String>();
+        newsts.add("blah");
+
+        Reflections.mutateCollection(l, "strings", newsts);
+
+        List<String> result = l.getStrings();
+        assert result.size() == 1;
+        assert result.contains("blah");
     }
 
     @Test(enabled = true)
@@ -747,6 +765,82 @@ public class ReflectionsTest
         assert fParties.remove(new FParty("fester"));
         assert fParties.remove(new FParty("falwell"));
     }
+
+    @Test(enabled = true)
+    public void testApplyDelta_Collection_NoMutator() throws Exception
+    {
+        L l = new L();
+        l.getStrings().add("blah");
+
+        L base = new L();
+        Reflections.applyDelta(base, l);
+
+        List<String> result = base.getStrings();
+        assert result.size() == 1;
+        assert result.contains("blah");
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_Collection_NoMutator_CorrectDeepCopy() throws Exception
+    {
+        L l = new L();
+        A a = new A();
+        a.setS("saa");
+        l.getAs().add(a);
+
+        L base = new L();
+        Reflections.applyDelta(base, l);
+
+        assert base.getStrings().isEmpty();
+
+        List<A> as = base.getAs();
+        assert as.size() == 1;
+
+        A aCopy = as.get(0);
+
+        assert a != aCopy;
+        assert "saa".equals(aCopy.getS());
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_Collection_NoMutator_EmptyDelta() throws Exception
+    {
+        L delta = new L();
+
+        L base = new L();
+        A a = new A();
+        a.setS("saa");
+        base.getAs().add(a);
+
+        Reflections.applyDelta(base, delta);
+
+        assert base.getStrings().isEmpty();
+        assert base.getAs().isEmpty();
+    }
+
+    @Test(enabled = true)
+    public void testApplyDelta_Collection_NoMutator_ProprietaryList() throws Exception
+    {
+        L delta = new L();
+        B b = new B();
+        b.setS("baa");
+        delta.getBs().add(b);
+
+        L base = new L();
+
+        Reflections.applyDelta(base, delta);
+
+        assert base.getStrings().isEmpty();
+        assert base.getAs().isEmpty();
+
+        List<B> result = base.getBs();
+
+        assert result.size() == 1;
+        B bCopy = result.get(0);
+        assert b != bCopy;
+        assert "baa".equals(bCopy.getS());
+    }
+
 
     // Package protected ---------------------------------------------------------------------------
 
