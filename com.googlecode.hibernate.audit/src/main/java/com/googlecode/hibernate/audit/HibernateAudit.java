@@ -224,6 +224,17 @@ public final class HibernateAudit
      */
     public static void delta(Object base, Serializable id, Long txId) throws Exception
     {
+        delta(base, null, id, txId);
+    }
+
+    /**
+     * @param base - the intial state of the object to apply transactional delta to.
+     * @param entityName - the entityName corresponding to the base instance. If null, base's class
+     *        will be used.
+     */
+    public static void delta(Object base, String entityName, Serializable id, Long txId)
+        throws Exception
+    {
         Manager m = null;
 
         synchronized(lock)
@@ -236,8 +247,9 @@ public final class HibernateAudit
             m = manager;
         }
 
-        m.delta(base, id, txId);
+        m.delta(base, entityName, id, txId);
     }
+
 
     /**
      * Exposing the manager to the inner packages, until I refactor and I unify package protected

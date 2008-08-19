@@ -39,11 +39,11 @@ public class DeltaEngine
 
     // Static --------------------------------------------------------------------------------------
 
-    public static void delta(Object preTransactionState, Long tid,
+    public static void delta(Object preTransactionState, String entityName, Long tid,
                              SessionFactoryImplementor sf,
                              SessionFactoryImplementor internalSf) throws Exception
     {
-        delta(preTransactionState, null, tid, sf, internalSf);
+        delta(preTransactionState, entityName, null, tid, sf, internalSf);
     }
 
     /**
@@ -52,16 +52,17 @@ public class DeltaEngine
      * @param preTransactionState - a detached entity instance initialized with the pre-transaction
      *        state. We will use as a base to to apply the forward transaction delta. If id not
      *        specified, it must contain a valid id.
-     *
+     * @param entityName - the entityName corresponding to the base instance. If null, base's class
+     *        will be used.
      * @param id - the entity id. If null, then preTransactionState must contain a valid id.
-     *
      * @param tid - the id of the transaction we want to apply to 'preTransactionState'.
      *
      * @throws MappingException - if the object passed as initial state is not a known entity.
      * @throws IllegalArgumentException - if such a transaction does not exist, doesn't have a valid
      *         id, etc.
      */
-    public static void delta(Object preTransactionState, Serializable id, Long tid,
+    public static void delta(Object preTransactionState,
+                             String entityName, Serializable id, Long tid,
                              SessionFactoryImplementor sf,
                              SessionFactoryImplementor internalSf) throws Exception
     {
@@ -73,11 +74,15 @@ public class DeltaEngine
             // determine the current events within the current transaction that directly
             // "touched" the object whose initial state is given
 
-            // for that, first determine the entity's id
             Class c = preTransactionState.getClass();
             String className = c.getName();
+            
+            if (entityName == null)
+            {
+                entityName = className;
+            }
 
-            EntityPersister persister = sf.getEntityPersister(className);
+            EntityPersister persister = sf.getEntityPersister(entityName);
 
             if (id == null)
             {
@@ -92,7 +97,6 @@ public class DeltaEngine
             }
 
             is = internalSf.openSession();
-
             iTx = is.beginTransaction();
 
             AuditTransaction at = (AuditTransaction)is.get(AuditTransaction.class, tid);

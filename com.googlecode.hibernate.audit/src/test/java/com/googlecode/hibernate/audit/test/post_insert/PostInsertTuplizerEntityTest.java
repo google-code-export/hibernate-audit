@@ -426,7 +426,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
             assert transactions.size() == 1;
 
             XA3 base = new XA3();
-            HibernateAudit.delta(base, xa3.getId(), transactions.get(0).getId());
+            HibernateAudit.delta(base, "XA3", xa3.getId(), transactions.get(0).getId());
 
 //            Set<XB> restored = base.getXbs();
 //            assert restored.size() == 2;

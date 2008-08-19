@@ -252,7 +252,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             try
             {
-                DeltaEngine.delta(toFillUp, at.getId(), (SessionFactoryImplementor)sf,
+                DeltaEngine.delta(toFillUp, null, at.getId(), (SessionFactoryImplementor)sf,
                                   HibernateAudit.getManager().getSessionFactory());
                 throw new Error("should've failed");
             }
@@ -308,7 +308,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             A base = new A();
 
-            DeltaEngine.delta(base, id, at.getId(),(SessionFactoryImplementor)sf,
+            DeltaEngine.delta(base, null, id, at.getId(),(SessionFactoryImplementor)sf,
                               HibernateAudit.getManager().getSessionFactory());
 
             assert id.equals(base.getId());
@@ -361,7 +361,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             ProtectedConstructorC base = ProtectedConstructorC.getInstance();
 
-            DeltaEngine.delta(base, id, at.getId(), (SessionFactoryImplementor)sf,
+            DeltaEngine.delta(base, null, id, at.getId(), (SessionFactoryImplementor)sf,
                               HibernateAudit.getManager().getSessionFactory());
 
             assert id.equals(base.getId());
