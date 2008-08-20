@@ -46,7 +46,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer() throws Exception
     {
         Configuration config = new Configuration();
@@ -142,7 +142,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
     /**
      * This currently fails https://jira.novaordis.org/browse/HBA-81
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testMissingMutatorThatMayBeSalvagedByTuplizer() throws Exception
     {
         Configuration config = new Configuration();
@@ -234,7 +234,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer_Collection() throws Exception
     {
         Configuration config = new Configuration();
@@ -463,7 +463,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
     {
         Configuration config = new Configuration();
