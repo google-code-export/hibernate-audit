@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.test.util;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
+import org.hibernate.proxy.HibernateProxy;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.test.util.data.A;
 import com.googlecode.hibernate.audit.test.util.data.B;
@@ -18,12 +19,23 @@ import com.googlecode.hibernate.audit.test.util.data.J;
 import com.googlecode.hibernate.audit.test.util.data.F3;
 import com.googlecode.hibernate.audit.test.util.data.K;
 import com.googlecode.hibernate.audit.test.util.data.L;
+import com.googlecode.hibernate.audit.test.util.data.M;
+import com.googlecode.hibernate.audit.test.util.data.N;
+import com.googlecode.hibernate.audit.test.util.data.NImpl;
+import com.googlecode.hibernate.audit.test.util.data.ASubclass;
+import com.googlecode.hibernate.audit.test.util.data.CustomImmutableInteger;
+import com.googlecode.hibernate.audit.test.util.data.P;
+import com.googlecode.hibernate.audit.test.util.data.PImpl;
+import com.googlecode.hibernate.audit.test.util.data.Q;
 
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -181,6 +193,34 @@ public class ReflectionsTest
 
         assert new Long(10).equals(K.getIdFrom(k));
         assert "blah".equals(K.getNameFrom(k));
+    }
+
+    /**
+     * Test case for https://jira.novaordis.org/browse/HBA-91
+     */
+    @Test(enabled = true)
+    public void testMutate_Subclass() throws Exception
+    {
+        M m = new M();
+        N n = new NImpl();
+
+        Reflections.mutate(m, "n", n);
+
+        N n2 = m.getN();
+        assert n == n2;
+    }
+
+    /**
+     * Test case for https://jira.novaordis.org/browse/HBA-91
+     */
+    @Test(enabled = true)
+    public void testMutate_MutatorIsInheritedFromSuperclass() throws Exception
+    {
+        ASubclass asub = new ASubclass();
+
+        Reflections.mutate(asub, "s", "blah");
+
+        assert "blah".equals(asub.getS());
     }
 
     @Test(enabled = true)
@@ -361,8 +401,105 @@ public class ReflectionsTest
     }
 
     @Test(enabled = true)
+    public void testDeepCopy_CircularReference() throws Exception
+    {
+        A a = new A();
+        B b = new B();
+
+        a.setB(b);
+        b.setA(a);
+
+        A aCopy = (A)Reflections.deepCopy(a);
+
+        assert a != aCopy;
+
+        B bCopy = aCopy.getB();
+        assert b != bCopy;
+
+        assert aCopy == bCopy.getA();
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_CircularReferencesViaACollection() throws Exception
+    {
+        A a = new A();
+        B b = new B();
+
+        List<B> bs = new ArrayList<B>();
+        bs.add(b);
+        a.setBs(bs);
+        b.setA(a);
+
+        A aCopy = (A)Reflections.deepCopy(a);
+
+        assert a != aCopy;
+
+        List<B> bsCopy = aCopy.getBs();
+        assert a.getBs() != bsCopy;
+
+        assert bsCopy.size() == 1;
+
+        B bCopy = bsCopy.get(0);
+        assert b != bCopy;
+
+        assert aCopy == bCopy.getA();
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_CircularReferencesViaHibernateProxy() throws Exception
+    {
+        PImpl p = new PImpl();
+        Q q = new Q();
+        p.setQ(q);
+        q.setP(p.createHibernateProxyOfMyself());
+
+        PImpl pCopy = (PImpl)Reflections.deepCopy(p);
+
+        assert pCopy != p;
+
+        Q qCopy = pCopy.getQ();
+
+        assert qCopy != q;
+
+        // this makes sure the proxies are cleaned out, but referential integrity maintained
+
+        assert pCopy == qCopy.getP();
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_RemoveHibernateProxy() throws Exception
+    {
+        Q q = new Q();
+        PImpl p = new PImpl();
+        q.setP(p.createHibernateProxyOfMyself());
+
+        Q qCopy = (Q)Reflections.deepCopy(q);
+
+        assert qCopy != q;
+
+        P pCopy = qCopy.getP();
+
+        assert pCopy != p;
+        assert pCopy instanceof PImpl; // HibernateProxy was stripped off
+    }
+
+    @Test(enabled = true)
+    public void testDeepCopy_RemoveHibernateProxy2() throws Exception
+    {
+        PImpl p = new PImpl();
+        p.setI(789125);
+        Object proxy = p.createHibernateProxyOfMyself();
+
+        Object copy = Reflections.deepCopy(proxy);
+
+        assert copy != p;
+        assert 789125 == ((PImpl)copy).getI();
+    }
+
+    @Test(enabled = true)
     public void testApplyDelta() throws Exception
     {
+
         A base = new A();
 
         A delta = new A();
@@ -841,6 +978,13 @@ public class ReflectionsTest
         assert "baa".equals(bCopy.getS());
     }
 
+    @Test(enabled = true)
+    public void testIsMuttable_CustomImmutableInteger() throws Exception
+    {
+        CustomImmutableInteger i = new CustomImmutableInteger(1);
+
+        assert !Reflections.isMutable(i);
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

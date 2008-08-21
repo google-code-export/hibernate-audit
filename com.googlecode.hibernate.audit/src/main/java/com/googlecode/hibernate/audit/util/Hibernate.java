@@ -55,6 +55,25 @@ public class Hibernate
         return t.getMappedClass();
     }
 
+    /**
+     * TODO this is a hack, should go away when https://jira.novaordis.org/browse/HBA-80 is fixed
+     * @return null if cannot figure out entityName based on class.
+     */
+    public static String entityNameHeuristics(Class c)
+    {
+
+        String name = c.getName();
+
+        name = name.substring(name.lastIndexOf('.') + 1);
+
+        if (name.endsWith("Impl"))
+        {
+            name = name.substring(0, name.lastIndexOf("Impl"));
+        }
+
+        return name;
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------

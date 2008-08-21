@@ -135,7 +135,9 @@ class CollectionExpectation
         {
             if (!e.isFulfilled())
             {
-                throw new IllegalStateException(e + " is not fulfilled");
+                // TODO https://jira.novaordis.org/browse/HBA-93
+                //throw new IllegalStateException(e + " is not fulfilled");  
+                continue;
             }
 
             c.add(e.getDetachedInstance());

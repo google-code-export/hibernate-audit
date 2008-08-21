@@ -190,7 +190,7 @@ public final class HibernateAudit
     {
         String qs =
             "from AuditTransaction as t, AuditEvent as e " +
-            "where e.transaction = t and e.id = :entityId";
+            "where e.transaction = t and e.targetId = :entityId";
 
         List result = query(qs, entityId);
 
@@ -203,7 +203,11 @@ public final class HibernateAudit
         for(Object o: result)
         {
             Object[] a = (Object[])o;
-            ts.add((AuditTransaction)a[0]);
+            AuditTransaction at = (AuditTransaction)a[0];
+            if (!ts.contains(at))
+            {
+                ts.add(at);
+            }
         }
 
         return ts;

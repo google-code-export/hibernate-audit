@@ -1,6 +1,8 @@
 package com.googlecode.hibernate.audit.util;
 
 import org.apache.log4j.Logger;
+import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.LazyInitializer;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +14,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -42,10 +48,21 @@ public class Reflections
         String methodName =
             "set" + Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
-
         Method mutator = null;
 
-        outer: for(Method m: o.getClass().getDeclaredMethods())
+        Collection<Method> allMethods = new HashSet<Method>();
+
+        // 'collect' all methods, including those of the superclasses
+        // TODO very inefficient
+        Class c = o.getClass();
+
+        while(c != null)
+        {
+            allMethods.addAll(Arrays.asList(c.getDeclaredMethods()));
+            c = c.getSuperclass();
+        }
+
+        outer: for(Method m: allMethods)
         {
             String n = m.getName();
             Class[] pts = m.getParameterTypes();
@@ -55,10 +72,13 @@ public class Reflections
                 continue;
             }
 
+            Class parameterType = pts[0];
             Class argumentType = value.getClass();
+
             while(argumentType != Object.class)
             {
-                if (argumentType.equals(pts[0]))
+                if (argumentType.equals(parameterType) ||
+                    parameterType.isAssignableFrom(argumentType))
                 {
                     mutator = m;
                     break outer;
@@ -73,8 +93,8 @@ public class Reflections
             // TODO last chance, to we use a tuplizer? https://jira.novaordis.org/browse/HBA-81
 
             throw new NoSuchMethodException(
-                "cannot find mutator " + methodName + "(...) for " + value.getClass().getName() +
-                " or any of its superclasses");
+                "cannot find mutator " + methodName + "(" + value.getClass().getName() +
+                ") on " + o.getClass().getName() + " or any of its superclasses");
         }
 
         // override accessibility limitations if any
@@ -334,6 +354,7 @@ public class Reflections
                 }
             
                 Object deltaPiece = getter.invoke(delta);
+                deltaPiece = cleanupHibernateProxy(deltaPiece);
 
                 for(Node seen: seenInstances)
                 {
@@ -362,7 +383,18 @@ public class Reflections
                     setter.setAccessible(true);
                 }
 
-                setter.invoke(base, deltaPiece);
+                try
+                {
+                    setter.invoke(base, deltaPiece);
+                }
+                catch(Exception e)
+                {
+                    // we wrap the origial exception within a 'synthetic' one because the original
+                    // exception can be pretty cryptic, and the synthetic one adds extra debugging
+                    // elements
+                    throw new Exception("failed to invoke " + setter.getName() + "(" +
+                                        deltaPiece + ") on " + base, e);
+                }
                 continue;
             }
 
@@ -526,6 +558,8 @@ public class Reflections
     /**
      * Performs a deep copy of the object, making copies for mutable instances and just linking to
      * immutable instances. If in doubt, it makes a copy.
+     *
+     * The method strips off HibernateProxy wrappers.
      */
     public static Object deepCopy(Object o) throws Exception
     {
@@ -535,8 +569,8 @@ public class Reflections
     /**
      * @param seenInstances - a list of instances passed along stack frames for recursive calls,
      *        containing instances which are candidates for circular references, thus needing to be
-     *        copied by reference, even if they're mutable, to maintain referential integrity. Never
-     *        null.
+     *        copied by reference, even if they're mutable, to maintain referential integrity or
+     *        avoid stack overflow. Never null.
      */
     private static Object deepCopy(Object o, List<Node> seenInstances) throws Exception
     {
@@ -544,6 +578,8 @@ public class Reflections
         {
             return null;
         }
+
+        o = cleanupHibernateProxy(o);
 
         Object copy = instantiateOverridingAccessibility(o.getClass());
 
@@ -578,7 +614,10 @@ public class Reflections
             return c;
         }
 
-        // TODO deepCopy() for arrays https://jira.novaordis.org/browse/HBA-67
+        // not a collection, the instance may be part of a circular reference
+        seenInstances.add(new Node(o, copy));
+
+        //TODO deepCopy() for arrays https://jira.novaordis.org/browse/HBA-67
 
         applyDelta(copy, o, seenInstances);
 
@@ -587,6 +626,21 @@ public class Reflections
 
     public static Object instantiateOverridingAccessibility(Class c) throws Exception
     {
+        // java.sql.Timestamp, java.sql.Date, etc. doen't have a no-argument constructor, so we case
+        // for them
+
+        if (Timestamp.class.equals(c))
+        {
+            return new Timestamp(0);
+        }
+
+        // TODO commented out because get/set succession goes awry. Declaring as immutable,
+        // see https://jira.novaordis.org/browse/HBA-98
+//        else if (java.sql.Date.class.equals(c))
+//        {
+//            return new java.sql.Date(0);
+//        }
+        
         Constructor constructor = null;
         try
         {
@@ -629,12 +683,64 @@ public class Reflections
         if (String.class.equals(c) ||
             Integer.class.equals(c) ||
             Long.class.equals(c) ||
-            Boolean.class.equals(c))
+            Boolean.class.equals(c) ||
+            Date.class.equals(c) ||
+            java.sql.Date.class.equals(c)) // TODO https://jira.novaordis.org/browse/HBA-98
+            // TODO implement a mechanism to allow declaring classes immutable,
+            // see https://jira.novaordis.org/browse/HBA-95
         {
             return false;
         }
+        else if (Collection.class.isAssignableFrom(c))
+        {
+            return true;
+        }
 
-        return true;
+        // TODO very very very inneficient
+
+        // one more attempt, this is slow and inneficient, and also it contains a unhealthty dose
+        // of heuristics, see https://jira.novaordis.org/browse/HBA-95
+
+        Collection<Method> allMethods = new HashSet<Method>();
+
+        while(c != null)
+        {
+            allMethods.addAll(Arrays.asList(c.getDeclaredMethods()));
+            c = c.getSuperclass();
+        }
+
+        for(Method m: allMethods)
+        {
+            String name = m.getName();
+            if (name.startsWith("set"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Strips away the HibernateProxy wrapper, if any, returning the underlying entity. If there is
+     * no proxy, the original object is returned.
+     */
+    public static Object cleanupHibernateProxy(Object o)
+    {
+        if (!(o instanceof HibernateProxy))
+        {
+            return o;
+        }
+
+        HibernateProxy hp = (HibernateProxy)o;
+        LazyInitializer li = hp.getHibernateLazyInitializer();
+
+        if (li.isUninitialized())
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
+
+        return li.getImplementation();
     }
 
     // Attributes ----------------------------------------------------------------------------------
