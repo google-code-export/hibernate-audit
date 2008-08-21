@@ -16,6 +16,7 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.util.Reflections;
+import com.googlecode.hibernate.audit.util.Hibernate;
 
 import java.util.List;
 import java.util.HashSet;
@@ -280,9 +281,9 @@ public class DeltaEngine
 
             // also loop over collections and make sure that the content from all of them are
             // transferred to the rightful owners
-            for(CollectionExpectation e: collectionExpectations)
+            for(CollectionExpectation ce: collectionExpectations)
             {
-                e.transferToOwner();
+                ce.transferToOwner();
             }
 
             iTx.commit();
@@ -355,7 +356,29 @@ public class DeltaEngine
             // more expensive operation
             // TODO https://jira.novaordis.org/browse/HBA-52
             log.warn("disregarding transaction id " + tid);
-            Object o = s.get(c, id);
+
+
+            // entityName
+            // TODO this is a hack, see https://jira.novaordis.org/browse/HBA-80
+            //org.hibernate.MappingException
+            Object o = null;
+            try
+            {
+                o = s.get(c, id);
+            }
+            catch(MappingException e)
+            {
+                // TODO this is a horrible kludge
+                String entityName = Hibernate.entityNameHeuristics(c);
+
+                if (entityName == null)
+                {
+                    throw new IllegalStateException(
+                        "cannot figure out entityName for " + c.getName());
+                }
+                
+                o = s.get(entityName, id);
+            }
 
             t.commit();
 
