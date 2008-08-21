@@ -28,6 +28,7 @@ import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.DeltaEngine;
+import com.googlecode.hibernate.audit.Temp;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -421,6 +422,14 @@ public class Manager
         }
 
         DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
+    }
+
+    /**
+     * TODO added in a haste, review
+     */
+    public List<Temp> getDelta(Long txId) throws Exception
+    {
+        return DeltaEngine.getDelta(txId, isf);
     }
 
     /**

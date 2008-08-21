@@ -2,7 +2,6 @@ package com.googlecode.hibernate.audit.test.util;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
-import org.hibernate.proxy.HibernateProxy;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.test.util.data.A;
 import com.googlecode.hibernate.audit.test.util.data.B;
@@ -27,15 +26,14 @@ import com.googlecode.hibernate.audit.test.util.data.CustomImmutableInteger;
 import com.googlecode.hibernate.audit.test.util.data.P;
 import com.googlecode.hibernate.audit.test.util.data.PImpl;
 import com.googlecode.hibernate.audit.test.util.data.Q;
+import com.googlecode.hibernate.audit.test.util.data.R;
+import com.googlecode.hibernate.audit.test.util.data.S;
 
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -984,6 +982,73 @@ public class ReflectionsTest
         CustomImmutableInteger i = new CustomImmutableInteger(1);
 
         assert !Reflections.isMutable(i);
+    }
+
+    @Test(enabled = true)
+    public void testFind_Itself() throws Exception
+    {
+        R r = new R();
+        Long id = new Long(234345l);
+        r.setId(id);
+
+        Object o = Reflections.find(r, R.class, id);
+        assert o == r;
+    }
+
+    @Test(enabled = true)
+    public void testFind_Collection() throws Exception
+    {
+        R r = new R();
+        Long id = new Long(334345l);
+        r.setId(id);
+
+        Set<R> set = new HashSet<R>();
+
+        set.add(new R());
+        set.add(new R(2345342345l));
+        set.add(r);
+        set.add(new R(23l));
+
+        Object o = Reflections.find(set, R.class, id);
+        assert o == r;
+    }
+
+    @Test(enabled = true)
+    public void testFind_SubCollection() throws Exception
+    {
+        R r = new R();
+        Long id = new Long(334345l);
+        r.setId(id);
+
+        S s = new S();
+        Set<R> rs = s.getRs();
+
+        rs.add(new R());
+        rs.add(new R(2345342345l));
+        rs.add(r);
+        rs.add(new R(23l));
+
+        Object o = Reflections.find(s, R.class, id);
+        assert o == r;
+    }
+
+    @Test(enabled = true)
+    public void testFind() throws Exception
+    {
+        // I *do* want the classes from post_update, not a refactoring error.
+        com.googlecode.hibernate.audit.test.post_update.data.A a =
+            new com.googlecode.hibernate.audit.test.post_update.data.A();
+
+        com.googlecode.hibernate.audit.test.post_update.data.B b = 
+            new com.googlecode.hibernate.audit.test.post_update.data.B();
+
+        b.setId(34234l);
+
+        a.getBs().add(b);
+
+        Object o = Reflections.find(a, b.getClass(), b.getId());
+
+        assert o == b;
     }
 
     // Package protected ---------------------------------------------------------------------------

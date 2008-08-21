@@ -17,7 +17,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
 import java.sql.Timestamp;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -741,6 +743,135 @@ public class Reflections
         }
 
         return li.getImplementation();
+    }
+
+    /**
+     * Recursively walks o internal graph of objects and returns the instance corresponding to
+     * targetClass and targetId.
+     *
+     * TODO incomplete and insuficiently tested needs refactoring
+     *
+     * @return null if nothing appropriate found.
+     */
+    public static Object find(Object o, Class targetClass, Serializable targetId)
+    {
+        if (o == null || targetClass == null || targetId == null)
+        {
+            return null;
+        }
+
+        if (targetClass.isInstance(o) && targetId.equals(getId(o)))
+        {
+            return o;
+        }
+        
+        if (o instanceof Collection)
+        {
+            return find((Collection)o, targetClass, targetId);
+        }
+
+        Set<Collection> collections = null;
+
+        for(Method m: o.getClass().getDeclaredMethods())
+        {
+            String name = m.getName();
+
+            if (!name.startsWith("get") || m.getParameterTypes().length > 0)
+            {
+                continue;
+            }
+
+            try
+            {
+                Object candidate = m.invoke(o);
+
+                if (candidate == null)
+                {
+                    continue;
+                }
+                else if (candidate instanceof Collection)
+                {
+                    if (collections == null)
+                    {
+                        collections = new HashSet<Collection>();
+                    }
+                    collections.add((Collection)candidate);
+                    continue;
+                }
+                else if (!targetClass.equals(candidate.getClass()))
+                {
+                    continue;
+                }
+                else if (!targetId.equals(getId(candidate)))
+                {
+                    continue;
+                }
+
+                // this is what we were looking for
+                return candidate;
+            }
+            catch(Exception e)
+            {
+                // too bad, ignore (TODO for the time being)
+            }
+        }
+
+        // try the collections
+        if (collections != null)
+        {
+            for(Collection c: collections)
+            {
+                Object result = find(c, targetClass, targetId);
+
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * TODO incomplete and insuficiently tested needs refactoring
+     */
+    public static Object find(Collection c, Class targetClass, Serializable targetId)
+    {
+        for(Iterator i = c.iterator(); i.hasNext(); )
+        {
+            Object o = i.next();
+            Object result = find(o, targetClass, targetId);
+
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+
+    /**
+     * TODO incomplete and insuficiently tested needs refactoring
+     */
+    public static Object getId(Object o)
+    {
+        if (o == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            Method getId = o.getClass().getMethod("getId");
+            return getId.invoke(o);
+        }
+        catch(Exception e)
+        {
+            return null;
+        }
     }
 
     // Attributes ----------------------------------------------------------------------------------

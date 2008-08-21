@@ -32,4 +32,5 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=DDLTest
 #TARGET_CLASS=DDLSchemaTest
 #TARGET_CLASS=DDLTypeTest
-TARGET_CLASS=LogicalGroupIdProviderTest
+#TARGET_CLASS=LogicalGroupIdProviderTest
+TARGET_CLASS=PostUpdateTest
