@@ -306,6 +306,28 @@ public final class HibernateAudit
         m.delta(base, entityName, id, txId);
     }
 
+    /**
+     * TODO added in a haste, review
+     */
+    public static List<Temp> getDelta(Long txId) throws Exception
+    {
+        // TODO duplicate code with delta()
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit runtime not enabled");
+            }
+
+            m = manager;
+        }
+
+        return m.getDelta(txId);
+    }
+
+    // Others --------------------------------------------------------------------------------------
 
     /**
      * Exposing the manager to the inner packages, until I refactor and I unify package protected

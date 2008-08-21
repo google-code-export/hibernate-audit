@@ -21,6 +21,7 @@ import com.googlecode.hibernate.audit.util.Hibernate;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
 import java.io.Serializable;
 
 /**
@@ -56,14 +57,14 @@ public class DeltaEngine
      * @param entityName - the entityName corresponding to the base instance. If null, base's class
      *        will be used.
      * @param id - the entity id. If null, then preTransactionState must contain a valid id.
-     * @param tid - the id of the transaction we want to apply to 'preTransactionState'.
+     * @param txId - the id of the transaction we want to apply to 'preTransactionState'.
      *
      * @throws MappingException - if the object passed as initial state is not a known entity.
      * @throws IllegalArgumentException - if such a transaction does not exist, doesn't have a valid
      *         id, etc.
      */
     public static void delta(Object preTransactionState,
-                             String entityName, Serializable id, Long tid,
+                             String entityName, Serializable id, Long txId,
                              SessionFactoryImplementor sf,
                              SessionFactoryImplementor internalSf) throws Exception
     {
@@ -100,16 +101,16 @@ public class DeltaEngine
             is = internalSf.openSession();
             iTx = is.beginTransaction();
 
-            AuditTransaction at = (AuditTransaction)is.get(AuditTransaction.class, tid);
+            AuditTransaction aTx = (AuditTransaction)is.get(AuditTransaction.class, txId);
 
-            if (at == null)
+            if (aTx == null)
             {
                 throw new IllegalArgumentException("No audit transaction with id " +
-                                                   tid + " exists");
+                                                   txId + " exists");
             }
 
             // first query the type
-            String qs = "from AuditType as a where a.className = :className";
+            String qs = "from AuditEntityType as a where a.className = :className";
             Query q = is.createQuery(qs);
             q.setString("className", className);
 
@@ -124,7 +125,7 @@ public class DeltaEngine
             // get all events of that transaction
             qs = "from AuditEvent as a where a.transaction = :transaction order by a.id";
             q = is.createQuery(qs);
-            q.setParameter("transaction", at);
+            q.setParameter("transaction", aTx);
 
             List events = q.list();
 
@@ -132,7 +133,7 @@ public class DeltaEngine
             {
                 throw new IllegalArgumentException(
                     "no audit events found for " + preTransactionState +
-                    " in transaction " + tid);
+                    " in transaction " + txId);
             }
 
             // "apply" events
@@ -143,8 +144,9 @@ public class DeltaEngine
             for(Object o: events)
             {
                 AuditEvent ae = (AuditEvent)o;
+                AuditEventType type = ae.getType();
 
-                if (!AuditEventType.INSERT.equals(ae.getType()))
+                if (!AuditEventType.INSERT.equals(type) && !AuditEventType.UPDATE.equals(type))
                 {
                     throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
                 }
@@ -181,6 +183,25 @@ public class DeltaEngine
 
                 Object detachedEntity = e.getDetachedInstance();
 
+                // make sure that the target of this even is actually the entity we're applying
+                // delta on. For UPDATEs, it's possible that the event refers to a related
+                // sub-entity
+
+                if (AuditEventType.UPDATE.equals(type) &&
+                    (!id.equals(targetId) || !atype.equals(targetType)))
+                {
+                    // looks like it's a sub-entity UPDATE, so find the target ...
+                    Object target = Reflections.
+                        find(preTransactionState, targetType.getClassInstance(), targetId);
+
+                    //String targetEntityName = "TROUBLE";
+                    String targetEntityName = null;
+
+                    // ... and apply delta on the target
+                    delta(target, targetEntityName, targetId, txId, sf, internalSf);
+                    return;
+                }
+
                 // insert all pairs of this event into this entity
                 q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
                 q.setParameter("event", ae);
@@ -191,14 +212,14 @@ public class DeltaEngine
                 {
                     AuditEventPair p = (AuditEventPair)o2;
                     String name = p.getField().getName();
-                    AuditType type = p.getField().getType();
+                    AuditType at = p.getField().getType();
 
                     Object value = null;
 
-                    if (type.isEntityType())
+                    if (at.isEntityType())
                     {
-                        Serializable entityId = type.stringToValue(p.getStringValue());
-                        Class entityClass = type.getClassInstance();
+                        Serializable entityId = at.stringToValue(p.getStringValue());
+                        Class entityClass = at.getClassInstance();
 
                         // the audit framework persisted persisted only the id of this entity,
                         // but we need the entire state, so we check if we find this entity on the
@@ -237,10 +258,10 @@ public class DeltaEngine
                             ee.addTargetEntity(detachedEntity, name);
                         }
                     }
-                    else if (type.isCollectionType())
+                    else if (at.isCollectionType())
                     {
                         AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
-                        AuditCollectionType ct = (AuditCollectionType)type;
+                        AuditCollectionType ct = (AuditCollectionType)at;
                         Class collectionClass = ct.getCollectionClassInstance();
                         Class memberClass = ct.getClassInstance();
 
@@ -261,7 +282,7 @@ public class DeltaEngine
                     else
                     {
                         // primitive
-                        value = type.stringToValue(p.getStringValue());
+                        value = at.stringToValue(p.getStringValue());
                         Reflections.mutate(detachedEntity, name, value);
                     }
                 }
@@ -274,7 +295,7 @@ public class DeltaEngine
                 {
                     // the state of this entity did not change in this transaction, so the
                     // state is whatever the state was previously of this transaction
-                    Object o = DeltaEngine.retrieve(e.getClassInstance(), e.getId(), tid, sf);
+                    Object o = DeltaEngine.retrieve(e.getClassInstance(), e.getId(), txId, sf);
                     e.fulfill(o);
                 }
             }
@@ -337,6 +358,120 @@ public class DeltaEngine
         }
     }
 
+    public static List<Temp> getDelta(Long txId, SessionFactoryImplementor internalSf)
+        throws Exception
+    {
+        Session is = null;
+        Transaction iTx = null;
+
+        List<Temp> result = new ArrayList<Temp>();
+
+        try
+        {
+            is = internalSf.openSession();
+            iTx = is.beginTransaction();
+
+            AuditTransaction aTx = (AuditTransaction)is.get(AuditTransaction.class, txId);
+
+            if (aTx == null)
+            {
+                throw new IllegalArgumentException("No audit transaction with id " +
+                                                   txId + " exists");
+            }
+
+            // get all events of that transaction
+            String qs = "from AuditEvent as a where a.transaction = :transaction order by a.id";
+            Query q = is.createQuery(qs);
+            q.setParameter("transaction", aTx);
+
+            List events = q.list();
+
+            if (events.isEmpty())
+            {
+                throw new IllegalArgumentException("no audit events found for transaction " + txId);
+            }
+
+            for(Object o: events)
+            {
+                AuditEvent ae = (AuditEvent)o;
+                AuditEventType type = ae.getType();
+
+                if (!AuditEventType.UPDATE.equals(type))
+                {
+                    continue;
+                }
+
+                Temp t = new Temp();
+                t.c = ae.getTargetType().getClassInstance();
+                t.id = ae.getTargetId();
+                result.add(t);
+
+                // insert all pairs of this event into this entity
+                q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
+                q.setParameter("event", ae);
+
+                List pairs = q.list();
+
+                for(Object o2: pairs)
+                {
+                    AuditEventPair p = (AuditEventPair)o2;
+                    String name = p.getField().getName();
+                    AuditType at = p.getField().getType();
+
+                    Object value = null;
+
+                    if (at.isEntityType())
+                    {
+                        // ignored for the time being
+                    }
+                    else if (at.isCollectionType())
+                    {
+                        // ignored for the time being
+                    }
+                    else
+                    {
+                        // primitive
+                        value = at.stringToValue(p.getStringValue());
+                        t.add(name, value);
+                    }
+                }
+            }
+
+            iTx.commit();
+
+            return result;
+
+        }
+        catch(Exception e)
+        {
+            if (iTx != null)
+            {
+                try
+                {
+                    iTx.rollback();
+                }
+                catch(Exception e2)
+                {
+                    log.error("failed to rollback Hibernate transaction", e2);
+                }
+            }
+
+            if (is != null)
+            {
+                try
+                {
+                    is.close();
+                }
+                catch(Exception e2)
+                {
+                    log.error("failed to close internal Hibernate session", e2);
+                }
+            }
+
+            throw e;
+        }
+    }
+    
     /**
      * Returns a (c, id) detached instance, as stored in the database at the <b>beginning</b> of
      * the transaction tid.
