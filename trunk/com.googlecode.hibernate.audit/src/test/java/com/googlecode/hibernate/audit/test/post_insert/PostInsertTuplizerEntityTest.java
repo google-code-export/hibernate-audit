@@ -428,24 +428,32 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
             XA3 base = new XA3();
             HibernateAudit.delta(base, "XA3", xa3.getId(), transactions.get(0).getId());
 
-//            Set<XB> restored = base.getXbs();
-//            assert restored.size() == 2;
-//
-//            for(XB xb: restored)
-//            {
-//                if (xbone.getId().equals(xb.getId()))
-//                {
-//                    assert "xbone".equals(xb.getName());
-//                }
-//                else if (xbtwo.getId().equals(xb.getId()))
-//                {
-//                    assert "xbtwo".equals(xb.getName());
-//                }
-//                else
-//                {
-//                    throw new Error("unexpected " + xb);
-//                }
-//            }
+            assert xa3 != base;
+            assert xa3.getId().equals(base.getId());
+
+            Set<XB> xbsREstored = base.getXbs();
+            assert xbsREstored != xbs;
+
+            assert xbsREstored.size() == 2;
+
+            for(XB xb: xbsREstored)
+            {
+                assert xb != xbone;
+                assert xb != xbtwo;
+                
+                if (xbone.getId().equals(xb.getId()))
+                {
+                    assert "xbone".equals(xb.getName());
+                }
+                else if (xbtwo.getId().equals(xb.getId()))
+                {
+                    assert "xbtwo".equals(xb.getName());
+                }
+                else
+                {
+                    throw new Error("unexpected " + xb);
+                }
+            }
         }
         catch(Exception e)
         {
