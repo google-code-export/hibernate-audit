@@ -29,7 +29,14 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private Manager manager;
+
     // Constructors --------------------------------------------------------------------------------
+
+    protected AbstractAuditEventListener(Manager manager)
+    {
+        this.manager = manager;
+    }
 
     // AuditEventListener implementation -----------------------------------------------------------
 
@@ -38,6 +45,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
+
+    protected Manager getManager()
+    {
+        return manager;
+    }
 
     /**
      * Creates in-memory instance of the audit transaction the current event occured in scope of
@@ -59,7 +71,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Manager m = HibernateAudit.getManager();
         Principal p = m.getPrincipal();
         SessionFactory isf = m.getSessionFactory();
-        at = new AuditTransaction(auditedSession, p, isf);
+        at = new AuditTransaction(ht, p, isf);
         Manager.setCurrentAuditTransaction(at);
 
         log.debug(this + " created");

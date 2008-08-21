@@ -1,21 +1,20 @@
-package com.googlecode.hibernate.audit.listener;
+package com.googlecode.hibernate.audit.test.logical_group_id.data;
 
-import org.hibernate.event.FlushEventListener;
-import org.hibernate.event.FlushEvent;
-import org.hibernate.HibernateException;
-import com.googlecode.hibernate.audit.model.Manager;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
- *
- * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-public class FlushAuditEventListener
-    extends AbstractAuditEventListener implements FlushEventListener
+@Entity
+@Table(name = "B")
+public class B
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -23,27 +22,34 @@ public class FlushAuditEventListener
 
     // Attributes ----------------------------------------------------------------------------------
 
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+
     // Constructors --------------------------------------------------------------------------------
-
-    public FlushAuditEventListener(Manager m)
-    {
-        super(m);
-    }
-
-    // SaveOrUpdateEventListener implementation ----------------------------------------------------
-
-    public void onFlush(FlushEvent event) throws HibernateException
-    {
-        //log.debug(this + ".onFlush(...)");
-    }
 
     // Public --------------------------------------------------------------------------------------
 
-    @Override
-    public String toString()
+    public Long getId()
     {
-        return "FlushAuditEventListener[" +
-               Integer.toHexString(System.identityHashCode(this)) + "]";
+        return id;
+    }
+
+    public void setId(Long id)
+    {
+        this.id = id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -53,5 +59,4 @@ public class FlushAuditEventListener
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

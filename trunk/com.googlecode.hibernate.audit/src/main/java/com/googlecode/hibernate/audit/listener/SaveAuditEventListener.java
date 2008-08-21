@@ -4,6 +4,7 @@ import org.hibernate.event.SaveOrUpdateEventListener;
 import org.hibernate.event.SaveOrUpdateEvent;
 import org.hibernate.HibernateException;
 import org.apache.log4j.Logger;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -26,6 +27,11 @@ public class SaveAuditEventListener
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
+
+    public SaveAuditEventListener(Manager m)
+    {
+        super(m);
+    }
 
     // SaveOrUpdateEventListener implementation ----------------------------------------------------
 
