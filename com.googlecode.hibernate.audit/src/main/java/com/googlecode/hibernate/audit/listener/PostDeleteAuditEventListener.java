@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostDeleteEvent;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -22,6 +23,11 @@ public class PostDeleteAuditEventListener
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
+
+    public PostDeleteAuditEventListener(Manager m)
+    {
+        super(m);
+    }
 
     // PostInsertEventListener implementation ------------------------------------------------------
 

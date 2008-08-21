@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PostUpdateEvent;
 import org.apache.log4j.Logger;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -25,6 +26,11 @@ public class PostUpdateAuditEventListener
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
+
+    public PostUpdateAuditEventListener(Manager m)
+    {
+        super(m);
+    }
 
     // PostInsertEventListener implementation ------------------------------------------------------
 

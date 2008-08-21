@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.model;
 import org.hibernate.Transaction;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
-import org.hibernate.event.EventSource;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Entity;
@@ -20,6 +19,7 @@ import javax.transaction.Synchronization;
 import java.util.Date;
 import java.util.Collection;
 import java.security.Principal;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -55,11 +55,16 @@ public class AuditTransaction implements Synchronization
     @Column(name = "TRANSACTION_USER")
     private String user;
 
+    // The id of the application-level logical group modified by this transaction. For more about
+    // logical groups see https://jira.novaordis.org/browse/HBA-100.
+    @Column(name = "LOGICAL_GROUP_ID", columnDefinition="NUMBER(30, 0)")
+    private Long logicalGroupId;
+
     /**
      * The originating Hibernate transaction. Can be a JDBCTransaction or a JTATransaction.
      */
     @Transient
-    private Transaction transaction;
+    private Transaction hibernateTransaction;
 
     /**
      * The session used to persist this transaction and all related audit elements.
@@ -76,13 +81,15 @@ public class AuditTransaction implements Synchronization
 
     /**
      * @param principal - could be null if it couldn't be determined by the upper layers.
-     * @param auditedSession - the Hibernate session the audited event belongs to.
+     * @param hibernateTransaction - the Hibernate transaction this audit transaction instance
+     *        corresponds to.
      */
-    public AuditTransaction(EventSource auditedSession, Principal principal,
+    public AuditTransaction(Transaction hibernateTransaction,
+                            Principal principal,
                             SessionFactory internalSessionFactory)
     {
         this();
-        this.transaction = auditedSession.getTransaction();
+        this.hibernateTransaction = hibernateTransaction;
 
         if (principal != null)
         {
@@ -98,8 +105,8 @@ public class AuditTransaction implements Synchronization
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         session.beginTransaction();
 
-        log.debug(this + " registering itself as synchronization on " + this.transaction);
-        this.transaction.registerSynchronization(this);
+        log.debug(this + " registering itself as synchronization on " + this.hibernateTransaction);
+        this.hibernateTransaction.registerSynchronization(this);
     }
 
     // Synchronization implementation --------------------------------------------------------------
@@ -163,7 +170,18 @@ public class AuditTransaction implements Synchronization
 
     public Transaction getTransaction()
     {
-        return transaction;
+        return hibernateTransaction;
+    }
+
+    public Serializable getLogicalGroupId()
+    {
+        return logicalGroupId;
+    }
+
+    public void setLogicalGroupId(Serializable logicalGroupId)
+    {
+        // TODO The API supports generic Serializables, internally we only support longs. Review that.
+        this.logicalGroupId = (Long)logicalGroupId;
     }
 
     /**

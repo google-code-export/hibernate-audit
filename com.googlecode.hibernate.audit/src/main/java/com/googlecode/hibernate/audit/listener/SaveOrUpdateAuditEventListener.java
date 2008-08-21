@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.SaveOrUpdateEventListener;
 import org.hibernate.event.SaveOrUpdateEvent;
 import org.hibernate.HibernateException;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -23,6 +24,11 @@ public class SaveOrUpdateAuditEventListener
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
+
+    public SaveOrUpdateAuditEventListener(Manager m)
+    {
+        super(m);
+    }
 
     // SaveOrUpdateEventListener implementation ----------------------------------------------------
 

@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.FlushEntityEventListener;
 import org.hibernate.event.FlushEntityEvent;
 import org.hibernate.HibernateException;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -23,6 +24,11 @@ public class FlushEntityAuditEventListener
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
+
+    public FlushEntityAuditEventListener(Manager m)
+    {
+        super(m);
+    }
 
     // SaveOrUpdateEventListener implementation ----------------------------------------------------
 

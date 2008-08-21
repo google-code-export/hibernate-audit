@@ -19,6 +19,7 @@ import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
+import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.util.Hibernate;
 
 import java.io.Serializable;
@@ -49,6 +50,11 @@ public class PostInsertAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
+    public PostInsertAuditEventListener(Manager m)
+    {
+        super(m);
+    }
+
     // PostInsertEventListener implementation ------------------------------------------------------
 
     public void onPostInsert(PostInsertEvent event)
@@ -61,6 +67,24 @@ public class PostInsertAuditEventListener
         Serializable id = event.getId();
         Object entity = event.getEntity();
         String entityClassName = entity.getClass().getName();
+
+        Manager manager = getManager();
+        Serializable newLGId = manager.getLogicalGroupId(session, id, entity);
+        Serializable currentLGId  = aTx.getLogicalGroupId();
+
+        if (currentLGId == null)
+        {
+            if (newLGId != null)
+            {
+                aTx.setLogicalGroupId(newLGId);
+            }
+        }
+        else if (!currentLGId.equals(newLGId))
+        {
+            throw new IllegalStateException(
+                "NOT YET IMPLEMENTED: inconsistent logical groups, current: " + currentLGId +
+                ", new: " + newLGId);
+        }
 
         log.debug(this + " handles " + entityClassName + "[" + id + "]");
 

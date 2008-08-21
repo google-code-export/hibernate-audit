@@ -12,13 +12,17 @@ import org.hibernate.Session;
 import org.hibernate.Query;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
+import org.hibernate.event.EventSource;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.security.Principal;
 import java.io.Serializable;
 
@@ -84,7 +88,7 @@ public class Manager
     // Attributes ----------------------------------------------------------------------------------
 
     private Settings settings;
-    private Set<SessionFactoryImpl> auditedSessionFactories;
+    private Map<SessionFactoryImpl, SessionFactoryHolder> sessionFactoryHolders;
     private SecurityInformationProvider securityInformationProvider;
 
     // the session factory to create sessions used to write the audit log
@@ -100,7 +104,7 @@ public class Manager
      */
     public Manager(Settings settings) throws Exception
     {
-        auditedSessionFactories = new HashSet<SessionFactoryImpl>();
+        sessionFactoryHolders = new HashMap<SessionFactoryImpl, SessionFactoryHolder>();
         this.settings = settings;
         log.debug(this + " created");
     }
@@ -160,8 +164,14 @@ public class Manager
      * Register the given session factory instance with this audit manager. During the registration
      * process, the audit manager registers listeners on the session factory. The listeners will
      * capture and persist state changes.
+     *
+     * @param lgip - the application-level LogicalGroupIdProvider that knows to provide logical
+     *        group ids for entities managed by this session factory. If null, no logical group id
+     *        will persisted in the database. This is alright if you don't need logical grouping
+     *        of entities.
      */
-    public synchronized void register(SessionFactoryImpl asf) throws Exception
+    public synchronized void register(SessionFactoryImpl asf, LogicalGroupIdProvider lgip)
+        throws Exception
     {
         if (isRegistered(asf))
         {
@@ -209,7 +219,7 @@ public class Manager
         }
 
         installAuditListeners(asf);
-        auditedSessionFactories.add(asf);
+        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip));
     }
 
     public synchronized boolean unregister(SessionFactory sf) throws Exception
@@ -221,13 +231,17 @@ public class Manager
         }
 
         SessionFactoryImpl sfi = (SessionFactoryImpl)sf;
-        if (!auditedSessionFactories.remove(sfi))
+        SessionFactoryHolder sfh = sessionFactoryHolders.remove(sfi);
+
+        if (sfh == null)
         {
             // nothing to disable
             return false;
         }
 
         uninstallAuditListeners(sfi);
+        sfh.sessionFactory = null;
+        sfh.logicalGroupIdProvider = null;
         return true;
     }
 
@@ -278,7 +292,7 @@ public class Manager
                 "failed to determine whether the session factory is registered", e);
         }
 
-        if (atLeastOneFound && !auditedSessionFactories.contains(sfi))
+        if (atLeastOneFound && !sessionFactoryHolders.keySet().contains(sfi))
         {
             throw new IllegalStateException(
                 "complete set of audit listeners found, but session factory is not known, " +
@@ -293,7 +307,7 @@ public class Manager
      */
     public synchronized Set<SessionFactoryImpl> getAuditedSessionFactories()
     {
-        return new HashSet<SessionFactoryImpl>(auditedSessionFactories);
+        return new HashSet<SessionFactoryImpl>(sessionFactoryHolders.keySet());
     }
 
     /**
@@ -409,6 +423,23 @@ public class Manager
         DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
     }
 
+    /**
+     * @return null if it cannot figure it out.
+     */
+    public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+    {
+        SessionFactoryImpl sf = (SessionFactoryImpl)es.getSessionFactory();
+
+        SessionFactoryHolder sfh = sessionFactoryHolders.get(sf);
+
+        if (sfh == null || sfh.logicalGroupIdProvider == null)
+        {
+            // no provider, return null
+            return null;
+        }
+
+        return sfh.logicalGroupIdProvider.getLogicalGroupId(es, id, entity);
+    }
 
     @Override
     public String toString()
@@ -458,7 +489,8 @@ public class Manager
             System.arraycopy(listeners, 0, newListeners, 0, listeners.length);
 
             Class c = Listeners.getAuditEventListenerClass(auditEventType);
-            AuditEventListener ael = (AuditEventListener)c.newInstance();
+            Constructor ctor = c.getConstructor(Manager.class);
+            AuditEventListener ael = (AuditEventListener)ctor.newInstance(this);
 
             newListeners[newListeners.length - 1] = ael;
             setter.invoke(els, ((Object)newListeners));
@@ -552,4 +584,17 @@ public class Manager
     }
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private class SessionFactoryHolder
+    {
+        SessionFactoryImpl sessionFactory;
+        LogicalGroupIdProvider logicalGroupIdProvider;
+
+        SessionFactoryHolder(SessionFactoryImpl sessionFactory,
+                             LogicalGroupIdProvider logicalGroupIdProvider)
+        {
+            this.sessionFactory = sessionFactory;
+            this.logicalGroupIdProvider = logicalGroupIdProvider;
+        }
+    }
 }

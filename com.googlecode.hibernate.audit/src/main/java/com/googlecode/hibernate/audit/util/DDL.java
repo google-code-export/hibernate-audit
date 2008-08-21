@@ -39,7 +39,7 @@ public class DDL
     public static void main(String[] args) throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate-jta.cfg.xml");
+        config.configure("/hibernate-thread.cfg.xml");
         SchemaExport se = new SchemaExport(config);
 
         log.debug(se);
