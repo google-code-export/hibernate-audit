@@ -618,7 +618,7 @@ public class ReflectionsTest
         assert base == h2;
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testApplyDelta_ImmutableUntypedEmptyCollectionWithAddMethod() throws Exception
     {
         // first make sure the collection is immutable
@@ -717,7 +717,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testApplyDelta_ImmutableUntypedEmptySetWithAddMethod() throws Exception
     {
         // first make sure the collection is immutable
@@ -817,7 +817,7 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testApplyDelta_ImmutableCollectionWithAddMethod_Empty() throws Exception
     {
         // first make sure the collection is immutable

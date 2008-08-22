@@ -501,7 +501,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -580,12 +580,12 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testRemoveTwoFromCollection() throws Exception
     {
     }
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+    @Test(enabled = false) // TEST_OFF
     public void testModifyOneInCollection() throws Exception
     {
     }

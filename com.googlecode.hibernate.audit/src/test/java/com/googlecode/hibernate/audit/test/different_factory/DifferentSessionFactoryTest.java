@@ -33,7 +33,7 @@ public class DifferentSessionFactoryTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE https://jira.novaordis.org/browse/HBA-11
+    @Test(enabled = false) // TEST_OFF https://jira.novaordis.org/browse/HBA-11
     public void testOne() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
