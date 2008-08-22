@@ -174,6 +174,8 @@ public class Manager
     public synchronized void register(SessionFactoryImpl asf, LogicalGroupIdProvider lgip)
         throws Exception
     {
+        checkStarted();
+
         if (isRegistered(asf))
         {
             log.debug(asf + " already registered on " + this);
@@ -225,6 +227,8 @@ public class Manager
 
     public synchronized boolean unregister(SessionFactory sf) throws Exception
     {
+        checkStarted();
+
         if (!(sf instanceof SessionFactoryImpl))
         {
             // ignore
@@ -335,6 +339,8 @@ public class Manager
 
     public List query(String query, Object... args) throws Exception
     {
+        checkStarted();
+
         SessionFactoryImpl localIsf = null;
         synchronized(this)
         {
@@ -386,6 +392,8 @@ public class Manager
      */
     public void delta(Object base, String entityName, Serializable id, Long txId) throws Exception
     {
+        checkStarted();
+        
         Class c = null;
 
         if (entityName == null)
@@ -590,6 +598,15 @@ public class Manager
         }
 
         return cp.toString();
+    }
+
+    private void checkStarted() throws IllegalStateException
+    {
+        if (!isStarted())
+        {
+            throw new IllegalStateException("HibernateAudit runtime not started. " +
+                                            "Check the log for possible startup failure causes.");
+        }
     }
 
     // Inner classes -------------------------------------------------------------------------------
