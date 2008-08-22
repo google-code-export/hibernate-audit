@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
  *
  * $Id$
  */
-@Test(enabled = false) // FUNCTIONALITY NOT AVAILABLE
+@Test(enabled = false) // TEST_OFF
 public class LocalTransactionTest extends ConfigurableEnvironmentSupport
 {
     // Constants -----------------------------------------------------------------------------------
