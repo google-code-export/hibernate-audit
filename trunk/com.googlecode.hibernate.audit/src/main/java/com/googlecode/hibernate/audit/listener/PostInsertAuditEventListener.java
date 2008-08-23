@@ -2,27 +2,20 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostInsertEvent;
-import org.hibernate.event.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.EntityMode;
 import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
 import org.apache.log4j.Logger;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.delta.ChangeType;
-import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
-import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.util.Hibernate;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
@@ -61,63 +54,15 @@ public class PostInsertAuditEventListener
     {
         log.debug(this + ".onPostInsert(...)");
 
-        EventSource session = event.getSession();
-        AuditTransaction aTx = createAuditTransaction(session);
+        EntityEventContext ec = createAndLogEntityEventContext(event);
 
-        Serializable id = event.getId();
-        Object entity = event.getEntity();
-        String entityClassName = entity.getClass().getName();
-
-        Manager manager = getManager();
-        Serializable newLGId = manager.getLogicalGroupId(session, id, entity);
-        Serializable currentLGId  = aTx.getLogicalGroupId();
-
-        if (currentLGId == null)
+        // TODO maybe there's no need to iterate over *all* properties, maybe the state contains
+        //      only the new properties, look at how onPostUpdate() was implemented and possibly
+        //      refactor this implementation as well
+        
+        for (String name : ec.persister.getPropertyNames())
         {
-            if (newLGId != null)
-            {
-                aTx.setLogicalGroupId(newLGId);
-            }
-        }
-        else if (!currentLGId.equals(newLGId))
-        {
-            throw new IllegalStateException(
-                "NOT YET IMPLEMENTED: inconsistent logical groups, current: " + currentLGId +
-                ", new: " + newLGId);
-        }
-
-        log.debug(this + " handles entity " + entityClassName + "[" + id + "]");
-
-        AuditEntityType at = (AuditEntityType)aTx.getAuditType(entity.getClass(), id.getClass());
-
-        // TODO currently we only support Long as ids, we may need to generalize this
-        if (!(id instanceof Long))
-        {
-            throw new IllegalArgumentException(
-                "audited entity " + entityClassName + "'s id is not a Long, " +
-                "so it is currently not supported");
-        }
-
-        AuditEvent ae = new AuditEvent();
-        ae.setTransaction(aTx);
-        ae.setType(ChangeType.INSERT);
-        ae.setTargetId((Long)id);
-        ae.setTargetType(at);
-
-        // even if it may seem redundant, log the event here in case the entity state is empty and
-        // no pairs will be logged (see HBA-74).
-        aTx.log(ae);
-
-        EntityPersister persister = event.getPersister();
-        EntityMode mode = persister.guessEntityMode(entity);
-
-        // log properties
-
-        for (String name : persister.getPropertyNames())
-        {
-            Object value = persister.getPropertyValue(entity, name, mode);
-
-            log.debug(this + " handles " + entityClassName + "[" + id + "]'s " + name + "=" + value);
+            Object value = ec.persister.getPropertyValue(ec.entity, name, ec.mode);
 
             if (value == null)
             {
@@ -126,8 +71,8 @@ public class PostInsertAuditEventListener
                 continue;
             }
 
-            SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
-            Type hibernateType = persister.getPropertyType(name);
+            SessionFactoryImpl sf = (SessionFactoryImpl)ec.session.getSessionFactory();
+            Type hibernateType = ec.persister.getPropertyType(name);
 
             AuditType auditType = null;
             AuditEventPair pair = null;
@@ -140,7 +85,7 @@ public class PostInsertAuditEventListener
                 }
 
                 // TODO Refactor this into something more palatable
-                String entityName = session.getEntityName(value);
+                String entityName = ec.session.getEntityName(value);
                 EntityPersister assocdEntityPersister = sf.getEntityPersister(entityName);
 
                 // TODO verify if the following assumption is true:
@@ -154,13 +99,14 @@ public class PostInsertAuditEventListener
                     // this is what Hibernate returns when it cannot figure out the class,
                     // most likley due to the fact that audited application uses entity names and
                     // custom tuplizers
-                    EntityTuplizer t = assocdEntityPersister.getEntityMetamodel().getTuplizer(mode);
+                    EntityTuplizer t =
+                        assocdEntityPersister.getEntityMetamodel().getTuplizer(ec.mode);
                     entityClass = t.getMappedClass();
                 }
 
                 Class idClass = assocdEntityPersister.getIdentifierType().getReturnedClass();
-                auditType = aTx.getAuditType(entityClass, idClass);
-                value = assocdEntityPersister.getIdentifier(value, mode);
+                auditType = ec.auditTransaction.getAuditType(entityClass, idClass);
+                value = assocdEntityPersister.getIdentifier(value, ec.mode);
                 pair = new AuditEventPair();
             }
             else if (hibernateType.isCollectionType())
@@ -179,7 +125,7 @@ public class PostInsertAuditEventListener
                 //      a good idea. The mechanism breaks when faced with empty collections.
                 for(Object o: collection)
                 {
-                    String s = session.getEntityName(o);
+                    String s = ec.session.getEntityName(o);
 
                     if (memberEntityName == null)
                     {
@@ -198,7 +144,7 @@ public class PostInsertAuditEventListener
 
                     // the entity mode is a session characteristic, so using the previously
                     // determined entity mode (TODO: verify this is really true)
-                    Long mid  = (Long)memberEntityPersister.getIdentifier(o, mode);
+                    Long mid  = (Long)memberEntityPersister.getIdentifier(o, ec.mode);
                     ids.add(mid);
                 }
 
@@ -212,7 +158,7 @@ public class PostInsertAuditEventListener
                     if (memberEntityPersister != null)
                     {
                         EntityTuplizer t =
-                            memberEntityPersister.getEntityMetamodel().getTuplizer(mode);
+                            memberEntityPersister.getEntityMetamodel().getTuplizer(ec.mode);
                         memberClass = t.getMappedClass();
                     }
                     else
@@ -223,22 +169,22 @@ public class PostInsertAuditEventListener
                     }
                 }
 
-                auditType = aTx.getAuditType(collectionClass, memberClass);
+                auditType = ec.auditTransaction.getAuditType(collectionClass, memberClass);
                 pair = new AuditEventCollectionPair();
                 ((AuditEventCollectionPair)pair).setIds(ids);
                 value = null;
             }
             else
             {
-                auditType = aTx.getAuditType(hibernateType.getReturnedClass());
+                auditType = ec.auditTransaction.getAuditType(hibernateType.getReturnedClass());
                 pair = new AuditEventPair();
             }
 
-            AuditTypeField f = aTx.getAuditTypeField(name, auditType);
+            AuditTypeField f = ec.auditTransaction.getAuditTypeField(name, auditType);
 
             pair.setField(f);
             pair.setValue(value);
-            pair.setEvent(ae);
+            pair.setEvent(ec.auditEvent);
 
             if (hibernateType.isComponentType())
             {
@@ -248,7 +194,7 @@ public class PostInsertAuditEventListener
                 //throw new RuntimeException("NOT YET IMPLEMENTED");
             }
 
-            aTx.log(pair);
+            ec.auditTransaction.log(pair);
         }
     }
 

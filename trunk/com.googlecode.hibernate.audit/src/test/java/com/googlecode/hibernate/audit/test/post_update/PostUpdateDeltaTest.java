@@ -1,71 +1,37 @@
-package com.googlecode.hibernate.audit.test.post_update.data;
+package com.googlecode.hibernate.audit.test.post_update;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+import org.testng.annotations.Test;
+import org.apache.log4j.Logger;
+import org.hibernate.event.EventSource;
+import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+import com.googlecode.hibernate.audit.test.post_update.data.A;
+import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
+
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-@Entity
-@Table(name = "A")
-public class A
+@Test(sequential = true)
+public class PostUpdateDeltaTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(PostUpdateDeltaTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String s;
-    private Integer i;
-
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
-    {
-    }
-
     // Public --------------------------------------------------------------------------------------
-
-    public Long getId()
-    {
-        return id;
-    }
-
-    public void setId(Long id)
-    {
-        this.id = id;
-    }
-
-    public String getS()
-    {
-        return s;
-    }
-
-    public void setS(String s)
-    {
-        this.s = s;
-    }
-
-    public Integer getI()
-    {
-        return i;
-    }
-
-    public void setI(Integer i)
-    {
-        this.i = i;
-    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -74,4 +40,19 @@ public class A
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private class LogicalGroupIdProviderImpl implements LogicalGroupIdProvider
+    {
+        private A groupLead;
+
+        public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+        {
+            return groupLead.getId();
+        }
+
+        void setGroupLead(A a)
+        {
+            groupLead = a;
+        }
+    }
 }

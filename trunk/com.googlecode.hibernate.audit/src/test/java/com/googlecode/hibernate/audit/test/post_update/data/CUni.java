@@ -4,8 +4,13 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
+import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
+import java.util.List;
 
 /**
+ * One To Many Unidirectional.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * @version <tt>$Revision$</tt>
@@ -13,8 +18,8 @@ import javax.persistence.GeneratedValue;
  * $Id$
  */
 @Entity
-@Table(name = "A")
-public class A
+@Table(name = "C")
+public class CUni
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,9 +34,12 @@ public class A
     private String s;
     private Integer i;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<DUni> ds;
+
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
+    public CUni()
     {
     }
 
@@ -65,6 +73,16 @@ public class A
     public void setI(Integer i)
     {
         this.i = i;
+    }
+
+    public List<DUni> getDs()
+    {
+        return ds;
+    }
+
+    public void setDs(List<DUni> ds)
+    {
+        this.ds = ds;
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -246,6 +246,8 @@ public class AuditTransaction implements Synchronization
      *
      * Returns the corresponding AuditTypeField, making a database insert if the underlying class
      * was not persised in the database yet.
+     *
+     * @param type - the type this fields belongs to.
      */
     public AuditTypeField getAuditTypeField(String name, AuditType type)
     {

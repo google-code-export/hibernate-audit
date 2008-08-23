@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.test.util.data;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -24,10 +25,13 @@ public class A
 
     private C c;
 
+    private List<R> rs;
+
     // Constructors --------------------------------------------------------------------------------
 
     public A()
     {
+        rs = new ArrayList<R>();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -90,6 +94,11 @@ public class A
     public void setC(C c)
     {
         this.c = c;
+    }
+
+    public List<R> getRs()
+    {
+        return rs;
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -210,6 +210,11 @@ public class AuditType
     {
         getClassInstance();
 
+        if (o == null)
+        {
+            return null;
+        }
+
         if (!classInstance.isInstance(o))
         {
             throw new IllegalArgumentException(
@@ -233,6 +238,11 @@ public class AuditType
      */
     public Serializable stringToValue(String s)
     {
+        if (s == null)
+        {
+            return null;
+        }
+        
         getClassInstance();
 
         // avoid reflection for often-used types

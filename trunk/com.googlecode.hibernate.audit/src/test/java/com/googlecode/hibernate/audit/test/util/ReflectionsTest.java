@@ -1035,20 +1035,16 @@ public class ReflectionsTest
     @Test(enabled = true)
     public void testFind() throws Exception
     {
-        // I *do* want the classes from post_update, not a refactoring error.
-        com.googlecode.hibernate.audit.test.post_update.data.A a =
-            new com.googlecode.hibernate.audit.test.post_update.data.A();
+        A a = new A();
+        R r = new R();
 
-        com.googlecode.hibernate.audit.test.post_update.data.B b = 
-            new com.googlecode.hibernate.audit.test.post_update.data.B();
+        r.setId(34234l);
 
-        b.setId(34234l);
+        a.getRs().add(r);
 
-        a.getBs().add(b);
+        Object o = Reflections.find(a, r.getClass(), r.getId());
 
-        Object o = Reflections.find(a, b.getClass(), b.getId());
-
-        assert o == b;
+        assert o == r;
     }
 
     // Package protected ---------------------------------------------------------------------------

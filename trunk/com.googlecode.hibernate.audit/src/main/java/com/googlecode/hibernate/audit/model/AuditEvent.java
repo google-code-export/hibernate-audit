@@ -121,6 +121,41 @@ public class AuditEvent
         this.targetType = type;
     }
 
+    /**
+     * Falls back to database identity.
+     */
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (!(o instanceof AuditEvent))
+        {
+            return false;
+        }
+
+        AuditEvent that = (AuditEvent)o;
+
+        return id != null && id.equals(that.id);
+    }
+
+    /**
+     * Falls back to database identity.
+     */
+    @Override
+    public int hashCode()
+    {
+        if (id == null)
+        {
+            return 0;
+        }
+
+        return id.hashCode();
+    }
+
     @Override
     public String toString()
     {
