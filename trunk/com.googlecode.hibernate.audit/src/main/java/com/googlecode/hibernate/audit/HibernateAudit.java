@@ -267,6 +267,26 @@ public final class HibernateAudit
 
     // Delta functions -----------------------------------------------------------------------------
 
+    public static Delta getDelta(Long txId) throws Exception
+    {
+        // TODO duplicate code with delta()
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit runtime not enabled");
+            }
+
+            m = manager;
+        }
+
+        return m.getDelta(txId);
+    }
+
+    
+
     /**
      * @param base - the intial state of the object to apply transactional delta to.
      */
@@ -304,27 +324,6 @@ public final class HibernateAudit
         }
 
         m.delta(base, entityName, id, txId);
-    }
-
-    /**
-     * TODO added in a haste, review
-     */
-    public static List<Temp> getDelta(Long txId) throws Exception
-    {
-        // TODO duplicate code with delta()
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
-
-        return m.getDelta(txId);
     }
 
     // Others --------------------------------------------------------------------------------------
