@@ -86,7 +86,7 @@ public class PostInsertAuditEventListener
                 ", new: " + newLGId);
         }
 
-        log.debug(this + " handles " + entityClassName + "[" + id + "]");
+        log.debug(this + " handles entity " + entityClassName + "[" + id + "]");
 
         AuditEntityType at = (AuditEntityType)aTx.getAuditType(entity.getClass(), id.getClass());
 
@@ -117,7 +117,7 @@ public class PostInsertAuditEventListener
         {
             Object value = persister.getPropertyValue(entity, name, mode);
 
-            log.debug(this + " handles " + name + "=" + value);
+            log.debug(this + " handles " + entityClassName + "[" + id + "]'s " + name + "=" + value);
 
             if (value == null)
             {

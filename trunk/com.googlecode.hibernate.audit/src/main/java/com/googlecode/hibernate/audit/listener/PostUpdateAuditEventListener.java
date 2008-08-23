@@ -5,11 +5,7 @@ import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
-import org.hibernate.collection.PersistentCollection;
-import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
-import org.hibernate.type.CollectionType;
-import org.hibernate.impl.SessionFactoryImpl;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
@@ -18,15 +14,9 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
-import com.googlecode.hibernate.audit.util.Hibernate;
 
 import java.io.Serializable;
-import java.util.Map;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -118,7 +108,7 @@ public class PostUpdateAuditEventListener
         {
             Object value = persister.getPropertyValue(entity, name, mode);
 
-            log.debug(this + " handles " + name + "=" + value);
+//            log.debug(this + " handles " + name + "=" + value); // <--- THIS CAUSES "collection [Employment.incomes] was not processed by flush()", SO WE SHOULD LOOK AT THE toString() impl.
 
             if (value == null)
             {
@@ -127,7 +117,7 @@ public class PostUpdateAuditEventListener
                 continue;
             }
 
-            SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
+//            SessionFactoryImpl sf = (SessionFactoryImpl)session.getSessionFactory();
             Type hibernateType = persister.getPropertyType(name);
 
             AuditType auditType = null;
@@ -135,99 +125,101 @@ public class PostUpdateAuditEventListener
 
             if (hibernateType.isEntityType())
             {
-                if (!hibernateType.isAssociationType())
-                {
-                    throw new RuntimeException("NOT YET IMPLEMENTED");
-                }
-
-                // TODO Refactor this into something more palatable
-                String entityName = session.getEntityName(value);
-                EntityPersister assocdEntityPersister = sf.getEntityPersister(entityName);
-
-                // TODO verify if the following assumption is true:
-                // the entity mode is a session characteristic, so using the previously determined
-                // entity mode everywhere associated entity mode is needed
-
-                Class entityClass = hibernateType.getReturnedClass();
-
-                if (Map.class.equals(entityClass))
-                {
-                    // this is what Hibernate returns when it cannot figure out the class,
-                    // most likley due to the fact that audited application uses entity names and
-                    // custom tuplizers
-                    EntityTuplizer t = assocdEntityPersister.getEntityMetamodel().getTuplizer(mode);
-                    entityClass = t.getMappedClass();
-                }
-
-                Class idClass = assocdEntityPersister.getIdentifierType().getReturnedClass();
-                auditType = aTx.getAuditType(entityClass, idClass);
-                value = assocdEntityPersister.getIdentifier(value, mode);
-                pair = new AuditEventPair();
+                continue; // TOOD this is a hack
+////                if (!hibernateType.isAssociationType())
+////                {
+////                    throw new RuntimeException("NOT YET IMPLEMENTED");
+////                }
+////
+////                // TODO Refactor this into something more palatable
+////                String entityName = session.getEntityName(value);
+////                EntityPersister assocdEntityPersister = sf.getEntityPersister(entityName);
+////
+////                // TODO verify if the following assumption is true:
+////                // the entity mode is a session characteristic, so using the previously determined
+////                // entity mode everywhere associated entity mode is needed
+////
+////                Class entityClass = hibernateType.getReturnedClass();
+////
+////                if (Map.class.equals(entityClass))
+////                {
+////                    // this is what Hibernate returns when it cannot figure out the class,
+////                    // most likley due to the fact that audited application uses entity names and
+////                    // custom tuplizers
+////                    EntityTuplizer t = assocdEntityPersister.getEntityMetamodel().getTuplizer(mode);
+////                    entityClass = t.getMappedClass();
+////                }
+////
+////                Class idClass = assocdEntityPersister.getIdentifierType().getReturnedClass();
+////                auditType = aTx.getAuditType(entityClass, idClass);
+////                value = assocdEntityPersister.getIdentifier(value, mode);
+////                pair = new AuditEventPair();
             }
             else if (hibernateType.isCollectionType())
             {
-                // figure out the member type and class
-                CollectionType collectionType = (CollectionType)hibernateType;
-                Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
-
-                Collection collection = (Collection)((PersistentCollection)value).getValue();
-
-                List<Long> ids = new ArrayList<Long>();
-                EntityPersister memberEntityPersister = null;
-                String memberEntityName = null;
-
-                // TODO iterating over the members of the collection to figure out the type is not
-                //      a good idea. The mechanism breaks when faced with empty collections.
-                for(Object o: collection)
-                {
-                    String s = session.getEntityName(o);
-
-                    if (memberEntityName == null)
-                    {
-                        memberEntityName = s;
-                    }
-                    else if (!memberEntityName.equals(s))
-                    {
-                        throw new IllegalStateException("Heterogeneous collection: " +
-                                                        memberEntityName + ", " + s);
-                    }
-
-                    if (memberEntityPersister == null)
-                    {
-                        memberEntityPersister = sf.getEntityPersister(memberEntityName);
-                    }
-
-                    // the entity mode is a session characteristic, so using the previously
-                    // determined entity mode (TODO: verify this is really true)
-                    Long mid  = (Long)memberEntityPersister.getIdentifier(o, mode);
-                    ids.add(mid);
-                }
-
-                Type memberType = collectionType.getElementType(sf);
-                Class memberClass = memberType.getReturnedClass();
-                if (Map.class.equals(memberClass))
-                {
-                    // this is what Hibernate returns when it cannot figure out the class,
-                    // most likley due to the fact that audited application uses entity names and
-                    // custom tuplizers
-                    if (memberEntityPersister != null)
-                    {
-                        EntityTuplizer t =
-                            memberEntityPersister.getEntityMetamodel().getTuplizer(mode);
-                        memberClass = t.getMappedClass();
-                    }
-                    else
-                    {
-                        // this means the collection was empty and we couldn't determine the
-                        // member's persister - this look to me like a hack, review TODO
-                        memberClass = Object.class;
-                    }
-                }
-
-                auditType = aTx.getAuditType(collectionClass, memberClass);
-                pair = new AuditEventCollectionPair();
-                ((AuditEventCollectionPair)pair).setIds(ids);
-                value = null;
+                continue; // TOOD this is a hack
+////                // figure out the member type and class
+////                CollectionType collectionType = (CollectionType)hibernateType;
+////                Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
+////
+////                Collection collection = (Collection)((PersistentCollection)value).getValue();
+////
+////                List<Long> ids = new ArrayList<Long>();
+////                EntityPersister memberEntityPersister = null;
+////                String memberEntityName = null;
+////
+////                // TODO iterating over the members of the collection to figure out the type is not
+////                //      a good idea. The mechanism breaks when faced with empty collections.
+////                for(Object o: collection)
+////                {
+////                    String s = session.getEntityName(o);
+////
+////                    if (memberEntityName == null)
+////                    {
+////                        memberEntityName = s;
+////                    }
+////                    else if (!memberEntityName.equals(s))
+////                    {
+////                        throw new IllegalStateException("Heterogeneous collection: " +
+////                                                        memberEntityName + ", " + s);
+////                    }
+////
+////                    if (memberEntityPersister == null)
+////                    {
+////                        memberEntityPersister = sf.getEntityPersister(memberEntityName);
+////                    }
+////
+////                    // the entity mode is a session characteristic, so using the previously
+////                    // determined entity mode (TODO: verify this is really true)
+////                    Long mid  = (Long)memberEntityPersister.getIdentifier(o, mode);
+////                    ids.add(mid);
+////                }
+////
+////                Type memberType = collectionType.getElementType(sf);
+////                Class memberClass = memberType.getReturnedClass();
+////                if (Map.class.equals(memberClass))
+////                {
+////                    // this is what Hibernate returns when it cannot figure out the class,
+////                    // most likley due to the fact that audited application uses entity names and
+////                    // custom tuplizers
+////                    if (memberEntityPersister != null)
+////                    {
+////                        EntityTuplizer t =
+////                            memberEntityPersister.getEntityMetamodel().getTuplizer(mode);
+////                        memberClass = t.getMappedClass();
+////                    }
+////                    else
+////                    {
+////                        // this means the collection was empty and we couldn't determine the
+////                        // member's persister - this look to me like a hack, review TODO
+////                        memberClass = Object.class;
+////                    }
+////                }
+////
+////                auditType = aTx.getAuditType(collectionClass, memberClass);
+////                pair = new AuditEventCollectionPair();
+////                ((AuditEventCollectionPair)pair).setIds(ids);
+////                value = null;
             }
             else
             {

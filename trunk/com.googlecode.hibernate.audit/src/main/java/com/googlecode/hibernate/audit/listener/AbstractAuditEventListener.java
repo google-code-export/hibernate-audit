@@ -64,7 +64,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         if (at != null)
         {
             // already logged
-            assert ht == at.getTransaction();
+            if (ht != at.getTransaction())
+            {
+                throw new IllegalStateException("other transaction");
+            }
+            
             return at;
         }
 

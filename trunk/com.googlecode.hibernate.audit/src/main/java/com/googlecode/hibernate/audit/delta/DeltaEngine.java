@@ -144,9 +144,11 @@ public class DeltaEngine
                 AuditEvent ae = (AuditEvent)o;
                 ChangeType type = ae.getType();
 
-                if (!ChangeType.INSERT.equals(type) && !ChangeType.UPDATE.equals(type))
+                if (!ChangeType.INSERT.equals(type))
                 {
-                    throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
+                    // TODO ignore for the time being
+                    continue;
+                    //throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
                 }
 
                 Long targetId = ae.getTargetId();
@@ -187,20 +189,20 @@ public class DeltaEngine
 
                 // TODO this section was added in a haste and probably must be removed
 
-                if (ChangeType.UPDATE.equals(type) &&
-                    (!id.equals(targetId) || !atype.equals(targetType)))
-                {
-                    // looks like it's a sub-entity UPDATE, so find the target ...
-                    Object target = Reflections.
-                        find(preTransactionState, targetType.getClassInstance(), targetId);
-
-                    //String targetEntityName = "TROUBLE";
-                    String targetEntityName = null;
-
-                    // ... and apply delta on the target
-                    delta(target, targetEntityName, targetId, txId, sf, internalSf);
-                    return;
-                }
+//                if (ChangeType.UPDATE.equals(type) &&
+//                    (!id.equals(targetId) || !atype.equals(targetType)))
+//                {
+//                    // looks like it's a sub-entity UPDATE, so find the target ...
+//                    Object target = Reflections.
+//                        find(preTransactionState, targetType.getClassInstance(), targetId);
+//
+//                    //String targetEntityName = "TROUBLE";
+//                    String targetEntityName = null;
+//
+//                    // ... and apply delta on the target
+//                    delta(target, targetEntityName, targetId, txId, sf, internalSf);
+//                    return;
+//                }
 
                 // insert all pairs of this event into this entity
                 q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");

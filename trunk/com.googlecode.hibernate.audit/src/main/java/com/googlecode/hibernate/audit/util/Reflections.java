@@ -877,12 +877,25 @@ public class Reflections
     public static Object newInstance(Class c, Serializable id) throws Exception
     {
         Constructor ctor = c.getDeclaredConstructor();
+
+        if (!Modifier.isPublic(ctor.getModifiers()))
+        {
+            // TODO see HBA-84
+            ctor.setAccessible(true);
+        }
+
         Object o = ctor.newInstance();
 
         for(Method m: c.getMethods())
         {
             if (m.getName().equals("setId"))
             {
+                if (!Modifier.isPublic(m.getModifiers()))
+                {
+                    // TODO see HBA-84
+                    ctor.setAccessible(true);
+                }
+
                 m.invoke(o, id);
             }
         }
