@@ -6,14 +6,19 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.MappingException;
 import org.hibernate.Session;
+import org.hibernate.event.EventSource;
 import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.RandomType;
-import com.googlecode.hibernate.audit.DeltaEngine;
+import com.googlecode.hibernate.audit.delta.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.delta.Delta;
+import com.googlecode.hibernate.audit.delta.Change;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 
 import java.util.List;
+import java.io.Serializable;
 
 /**
  * Tests the runtime API
@@ -373,6 +378,279 @@ public class DeltaEngineTest extends JTATransactionTest
         {
             HibernateAudit.disableAll();
             
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetDelta_NoSuchAuditTransaction() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            assert null == DeltaEngine.getDelta(new Long(23843431223l), null,
+                                                HibernateAudit.getManager().getSessionFactory());
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetDelta_NoMatchingLogicalGroupId() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(null);
+            
+            assert transactions.size() == 1;
+
+            assert null == DeltaEngine.getDelta(transactions.get(0).getId(), new Long(5),
+                                                HibernateAudit.getManager().getSessionFactory());
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetDelta_NoMatchingLogicalGroupId2() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf, new LogicalGroupIdProvider()
+            {
+                public Serializable getLogicalGroupId(EventSource es, 
+                                                      Serializable id,
+                                                      Object entity)
+                {
+                    return new Long(2);
+                }
+            });
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(null);
+
+            assert transactions.size() == 1;
+
+            assert null == DeltaEngine.getDelta(transactions.get(0).getId(), new Long(5),
+                                                HibernateAudit.getManager().getSessionFactory());
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetDelta_MatchingLogicalGroupId() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf, new LogicalGroupIdProvider()
+            {
+                public Serializable getLogicalGroupId(EventSource es,
+                                                      Serializable id,
+                                                      Object entity)
+                {
+                    return new Long(44);
+                }
+            });
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(null);
+
+            assert transactions.size() == 1;
+
+            Delta d = DeltaEngine.getDelta(transactions.get(0).getId(), new Long(44),
+                                           HibernateAudit.getManager().getSessionFactory());
+
+            assert d != null;
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false) // TEST_OFF
+    public void testGetDelta_InsertSimpleEntity() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(null);
+
+            assert transactions.size() == 1;
+
+            Delta d = DeltaEngine.getDelta(transactions.get(0).getId(), null,
+                                           HibernateAudit.getManager().getSessionFactory());
+
+            assert d != null;
+
+            throw new Exception("INCOMPLETE TEST");
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetDelta_UpdateSimpleEntity() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            HibernateAudit.enable(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            a.setName("alice");
+            a.setAge(30);
+
+            s.update(a);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> transactions = HibernateAudit.getTransactions(null);
+
+            assert transactions.size() == 2;
+
+            Delta d = DeltaEngine.getDelta(transactions.get(1).getId(), null,
+                                           HibernateAudit.getManager().getSessionFactory());
+
+            assert d != null;
+
+            List<Change> chages = d.getChanges();
+
+            log.debug(chages);
+        }
+        finally
+        {
+            HibernateAudit.disableAll();
+
             if (sf != null)
             {
                 sf.close();

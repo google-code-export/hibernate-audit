@@ -7,6 +7,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
@@ -14,7 +15,6 @@ import com.googlecode.hibernate.audit.test.post_insert.data.B;
 import com.googlecode.hibernate.audit.test.post_insert.data.E;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
@@ -86,7 +86,7 @@ public class PostInsertTest extends JTATransactionTest
 
             AuditEvent ae = (AuditEvent)events.get(0);
 
-            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ChangeType.INSERT.equals(ae.getType());
             assert transactions.remove(ae.getTransaction());
 
             AuditType type = ae.getTargetType();
@@ -167,7 +167,7 @@ public class PostInsertTest extends JTATransactionTest
 
             AuditEvent ae = (AuditEvent)es.get(0);
 
-            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ChangeType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
 
             AuditType aent = ae.getTargetType();
@@ -268,7 +268,7 @@ public class PostInsertTest extends JTATransactionTest
             assert ts.size() == 2;
 
             AuditEvent ae = (AuditEvent)es.get(0);
-            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ChangeType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
             AuditType aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());
@@ -283,7 +283,7 @@ public class PostInsertTest extends JTATransactionTest
             assert expectedPairValues.remove((String)pair.getValue());
 
             ae = (AuditEvent)es.get(1);
-            assert AuditEventType.INSERT.equals(ae.getType());
+            assert ChangeType.INSERT.equals(ae.getType());
             assert ts.remove(ae.getTransaction());
             aent = ae.getTargetType();
             assert A.class.getName().equals(aent.getClassName());

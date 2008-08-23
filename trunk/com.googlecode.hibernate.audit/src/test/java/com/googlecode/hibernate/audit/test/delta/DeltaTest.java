@@ -1,7 +1,7 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.test.delta;
 
-import java.util.List;
-import java.util.ArrayList;
+import org.testng.annotations.Test;
+import com.googlecode.hibernate.audit.delta.DeltaTestHelper;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -12,7 +12,8 @@ import java.util.ArrayList;
  *
  * $Id$
  */
-public class Temp
+@Test(sequential = true)
+public class DeltaTest extends DeltaTestHelper
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -20,23 +21,19 @@ public class Temp
 
     // Attributes ----------------------------------------------------------------------------------
 
-    public Class c;
-    public Long id;
-    public List<TempPair> pairs = new ArrayList<TempPair>();
-
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
 
-    public void add(String name, Object value)
-    {
-        TempPair tp = new TempPair();
-        tp.name = name;
-        tp.value = value;
-        pairs.add(tp);
-    }
-
     // Package protected ---------------------------------------------------------------------------
+
+    @Override
+    protected Object getEntityInstanceToTest()
+    {
+        A a = new A();
+        a.setId(new Long(1));
+        return a;
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

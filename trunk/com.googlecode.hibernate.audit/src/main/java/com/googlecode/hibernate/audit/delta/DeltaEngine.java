@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.delta;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditEventType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
@@ -21,7 +20,6 @@ import com.googlecode.hibernate.audit.util.Hibernate;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.ArrayList;
 import java.io.Serializable;
 
 /**
@@ -144,9 +142,9 @@ public class DeltaEngine
             for(Object o: events)
             {
                 AuditEvent ae = (AuditEvent)o;
-                AuditEventType type = ae.getType();
+                ChangeType type = ae.getType();
 
-                if (!AuditEventType.INSERT.equals(type) && !AuditEventType.UPDATE.equals(type))
+                if (!ChangeType.INSERT.equals(type) && !ChangeType.UPDATE.equals(type))
                 {
                     throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
                 }
@@ -187,7 +185,9 @@ public class DeltaEngine
                 // delta on. For UPDATEs, it's possible that the event refers to a related
                 // sub-entity
 
-                if (AuditEventType.UPDATE.equals(type) &&
+                // TODO this section was added in a haste and probably must be removed
+
+                if (ChangeType.UPDATE.equals(type) &&
                     (!id.equals(targetId) || !atype.equals(targetType)))
                 {
                     // looks like it's a sub-entity UPDATE, so find the target ...
@@ -358,56 +358,80 @@ public class DeltaEngine
         }
     }
 
-    public static List<Temp> getDelta(Long txId, SessionFactoryImplementor internalSf)
+    /**
+     * @param txId - the id of the transaction that introduced the delta.
+     * @param lgId - the id of the logical group. If null, all delta information is returned.
+     *
+     * @return the delta or null, if no delta information was found for this particular combination
+     *         of transaction/logical group.
+     */
+    public static Delta getDelta(Long txId, Serializable lgId, SessionFactoryImplementor internalSf)
         throws Exception
     {
-        Session is = null;
+        Session internalSession = null;
         Transaction iTx = null;
-
-        List<Temp> result = new ArrayList<Temp>();
 
         try
         {
-            is = internalSf.openSession();
-            iTx = is.beginTransaction();
+            internalSession = internalSf.openSession();
+            iTx = internalSession.beginTransaction();
 
-            AuditTransaction aTx = (AuditTransaction)is.get(AuditTransaction.class, txId);
+            AuditTransaction aTx =
+                (AuditTransaction)internalSession.get(AuditTransaction.class, txId);
 
             if (aTx == null)
             {
-                throw new IllegalArgumentException("No audit transaction with id " +
-                                                   txId + " exists");
+                return null;
+            }
+
+
+            if (lgId != null && !lgId.equals(aTx.getLogicalGroupId()))
+            {
+                return null;
             }
 
             // get all events of that transaction
             String qs = "from AuditEvent as a where a.transaction = :transaction order by a.id";
-            Query q = is.createQuery(qs);
+            Query q = internalSession.createQuery(qs);
             q.setParameter("transaction", aTx);
 
             List events = q.list();
 
             if (events.isEmpty())
             {
-                throw new IllegalArgumentException("no audit events found for transaction " + txId);
+                return null;
             }
+
+            Delta result = new Delta();
+
+            // "collect" events
 
             for(Object o: events)
             {
                 AuditEvent ae = (AuditEvent)o;
-                AuditEventType type = ae.getType();
+                ChangeType ct = ae.getType();
 
-                if (!AuditEventType.UPDATE.equals(type))
+                if (!ChangeType.INSERT.equals(ct) && !ChangeType.UPDATE.equals(ct))
                 {
-                    continue;
+                    throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
                 }
 
-                Temp t = new Temp();
-                t.c = ae.getTargetType().getClassInstance();
-                t.id = ae.getTargetId();
-                result.add(t);
+                AuditType tt = ae.getTargetType();
+
+                if (!tt.isEntityType())
+                {
+                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                }
+
+                Long tId = ae.getTargetId();
+
+                // add the entity expectation to the 'loading row'
+                EntityExpectation ee = new EntityExpectation(tt.getClassInstance(), tId); 
+                result.addEntityExpectation(ee);
 
                 // insert all pairs of this event into this entity
-                q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
+                qs = "from AuditEventPair as p where p.event = :event order by p.id";
+                q = internalSession.createQuery(qs);
                 q.setParameter("event", ae);
 
                 List pairs = q.list();
@@ -422,25 +446,119 @@ public class DeltaEngine
 
                     if (at.isEntityType())
                     {
-                        // ignored for the time being
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+//                        Serializable entityId = at.stringToValue(p.getStringValue());
+//                        Class entityClass = at.getClassInstance();
+//
+//                        // the audit framework persisted persisted only the id of this entity,
+//                        // but we need the entire state, so we check if we find this entity on the
+//                        // list of those we need state for; if it's there, fine, use it, if not
+//                        // register it on the list, hopefully the state will come later in a
+//                        // different event
+//                        EntityExpectation ee = new EntityExpectation(entityClass, entityId);
+//
+//                        boolean expectationExists = false;
+//                        for(EntityExpectation seen : entityExpectations)
+//                        {
+//                            if (seen.equals(ee))
+//                            {
+//                                expectationExists = true;
+//                                if (seen.isFulfilled())
+//                                {
+//                                    value = seen.getDetachedInstance();
+//                                    Reflections.mutate(detachedEntity, name, value);
+//                                    break;
+//                                }
+//                                else
+//                                {
+//                                    // line this up too
+//                                    seen.addTargetEntity(detachedEntity, name);
+//                                }
+//                            }
+//                        }
+//
+//                        if (!expectationExists)
+//                        {
+//                            entityExpectations.add(ee);
+//
+//                            // give the expectation info so it can update the entity that refers the
+//                            // target of the expectation, when the expectation is eventually
+//                            // fulfilled.
+//                            ee.addTargetEntity(detachedEntity, name);
+//                        }
                     }
                     else if (at.isCollectionType())
                     {
-                        // ignored for the time being
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+//                        AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
+//                        AuditCollectionType ct = (AuditCollectionType)at;
+//                        Class collectionClass = ct.getCollectionClassInstance();
+//                        Class memberClass = ct.getClassInstance();
+//
+//                        List<Long> ids = cp.getIds();
+//
+//                        CollectionExpectation ce =
+//                            new CollectionExpectation(e, name, collectionClass, memberClass);
+//
+//                        collectionExpectations.add(ce);
+//
+//                        for(Long cmid: ids)
+//                        {
+//                            EntityExpectation cmee = new EntityExpectation(memberClass, cmid);
+//                            entityExpectations.add(cmee); // noop if the expectation is already there
+//                            ce.add(cmee);
+//                        }
                     }
                     else
                     {
                         // primitive
                         value = at.stringToValue(p.getStringValue());
-                        t.add(name, value);
+                        result.addChange(new Change(ct, ee.getDetachedInstance(), name, value));
                     }
                 }
             }
 
-            iTx.commit();
+            result.compact();
+//
+//            // loop over entity expectations and make sure that all of them have been fulfilled
+//            for(EntityExpectation e: entityExpectations)
+//            {
+//                if (!e.isFulfilled())
+//                {
+//                    // the state of this entity did not change in this transaction, so the
+//                    // state is whatever the state was previously of this transaction
+//                    Object o = DeltaEngine.retrieve(e.getClassInstance(), e.getId(), txId, sf);
+//                    e.fulfill(o);
+//                }
+//            }
+//
+//            // also loop over collections and make sure that the content from all of them are
+//            // transferred to the rightful owners
+//            for(CollectionExpectation ce: collectionExpectations)
+//            {
+//                ce.transferToOwner();
+//            }
+//
+//            Object transactionDelta = null;
+//            for(EntityExpectation e: entityExpectations)
+//            {
+//                if (e.getId().equals(id) && e.getClassInstance().equals(c))
+//                {
+//                    transactionDelta = e.getDetachedInstance();
+//                }
+//            }
+//
+//            if (transactionDelta == null)
+//            {
+//                throw new IllegalArgumentException(
+//                    "no audit trace for " + c.getName() + "[" + id + "]" );
+//            }
+//
+//            entityExpectations.clear();
+//            Reflections.applyDelta(preTransactionState, transactionDelta);
 
             return result;
-
+            
         }
         catch(Exception e)
         {
@@ -454,21 +572,30 @@ public class DeltaEngine
                 {
                     log.error("failed to rollback Hibernate transaction", e2);
                 }
+
+                iTx = null;
             }
 
-            if (is != null)
+            throw e;
+        }
+        finally
+        {
+            if (iTx != null)
+            {
+                iTx.commit();
+            }
+
+            if (internalSession != null)
             {
                 try
                 {
-                    is.close();
+                    internalSession.close();
                 }
                 catch(Exception e2)
                 {
                     log.error("failed to close internal Hibernate session", e2);
                 }
             }
-
-            throw e;
         }
     }
     

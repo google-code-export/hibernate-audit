@@ -15,7 +15,7 @@ import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditEventType;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
@@ -101,7 +101,7 @@ public class PostUpdateAuditEventListener
 
         AuditEvent ae = new AuditEvent();
         ae.setTransaction(aTx);
-        ae.setType(AuditEventType.UPDATE);
+        ae.setType(ChangeType.UPDATE);
         ae.setTargetId((Long)id);
         ae.setTargetType(at);
 

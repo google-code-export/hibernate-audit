@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.delta;
 
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
@@ -114,6 +114,26 @@ class EntityExpectation
     Object getDetachedInstance()
     {
         return detachedInstance;
+    }
+
+    void setDetachedInstance(Object o)
+    {
+        if (o != null && !c.isInstance(o))
+        {
+            throw new IllegalArgumentException(o + " not a " + c.getName() + " instance");
+        }
+
+        this.detachedInstance = o;
+    }
+
+    void initializeDetachedInstance() throws Exception
+    {
+        if (detachedInstance != null)
+        {
+            throw new IllegalStateException("detached instance already initialized");
+        }
+
+        detachedInstance = Reflections.newInstance(c, id);
     }
 
     /**

@@ -27,8 +27,8 @@ import java.security.Principal;
 import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
-import com.googlecode.hibernate.audit.DeltaEngine;
-import com.googlecode.hibernate.audit.Temp;
+import com.googlecode.hibernate.audit.delta.DeltaEngine;
+import com.googlecode.hibernate.audit.delta.Delta;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -378,6 +378,18 @@ public class Manager
     }
 
     /**
+     * @param txId - the id of the transaction that introduced the delta.
+     * @param lgId - the id of the logical group. If null, all delta information is returned.
+     *
+     * @return the delta or null, if no delta information was found for this particular combination
+     *         of transaction/logical group.
+     */
+    public Delta getDelta(Long txId, Serializable lgId) throws Exception
+    {
+        return DeltaEngine.getDelta(txId, lgId, isf);
+    }
+
+    /**
      * @param base - the intial state of the object to apply transactional delta to.
      */
     public void delta(Object base, Serializable id, Long txId) throws Exception
@@ -430,14 +442,6 @@ public class Manager
         }
 
         DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
-    }
-
-    /**
-     * TODO added in a haste, review
-     */
-    public List<Temp> getDelta(Long txId) throws Exception
-    {
-        return DeltaEngine.getDelta(txId, isf);
     }
 
     /**

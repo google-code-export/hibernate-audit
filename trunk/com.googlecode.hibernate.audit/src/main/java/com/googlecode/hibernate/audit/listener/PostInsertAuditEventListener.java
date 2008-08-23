@@ -12,7 +12,7 @@ import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.AuditEventType;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
@@ -100,7 +100,7 @@ public class PostInsertAuditEventListener
 
         AuditEvent ae = new AuditEvent();
         ae.setTransaction(aTx);
-        ae.setType(AuditEventType.INSERT);
+        ae.setType(ChangeType.INSERT);
         ae.setTargetId((Long)id);
         ae.setTargetType(at);
 

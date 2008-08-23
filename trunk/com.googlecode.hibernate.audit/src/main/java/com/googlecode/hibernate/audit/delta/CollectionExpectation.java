@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.delta;
 
 import com.googlecode.hibernate.audit.util.Reflections;
 

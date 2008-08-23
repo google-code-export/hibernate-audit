@@ -2,19 +2,12 @@ package com.googlecode.hibernate.audit.test.post_update;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
-import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
-import org.hibernate.Session;
 import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_update.data.A;
-import com.googlecode.hibernate.audit.test.post_update.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.Temp;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
 
-import java.util.List;
 import java.io.Serializable;
 
 /**
@@ -44,67 +37,68 @@ public class PostUpdateTest extends JTATransactionTest
     @Test(enabled = true)
     public void testPostUpdate_UsingLogicalGroupId() throws Exception
     {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(A.class);
-        config.addAnnotatedClass(B.class);
-        SessionFactory sf = null;
-
-        try
-        {
-            sf = config.buildSessionFactory();
-            LogicalGroupIdProviderImpl lgip = new LogicalGroupIdProviderImpl();
-            HibernateAudit.enable(sf, lgip);
-
-            Session s = sf.openSession();
-            s.beginTransaction();
-
-            A a = new A();
-            lgip.setGroupLead(a);
-
-            B b = new B();
-            b.setS("ben");
-
-            a.getBs().add(b);
-            b.setA(a);
-
-            s.save(a);
-
-            s.getTransaction().commit();
-
-            Long aId = a.getId();
-
-            s.beginTransaction();
-
-            b.setS("bob");
-            s.update(a);
-
-            s.getTransaction().commit();
-
-            // our custom LGIP does uses aId as group id.
-            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(aId);
-
-            assert txs.size() == 2;
-
-            // recreate the current state applying 'insert' and 'update' deltas
-
-            A copy = new A();
-
-            HibernateAudit.delta(copy, aId, txs.get(0).getId());
-
-            List<Temp> deltas = HibernateAudit.getDelta(txs.get(1).getId());
-
-            log.debug(copy);
-        }
-        finally
-        {
-            HibernateAudit.disableAll();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
+        throw new Exception("NOT YET IMPLEMENTED");
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(A.class);
+//        config.addAnnotatedClass(B.class);
+//        SessionFactory sf = null;
+//
+//        try
+//        {
+//            sf = config.buildSessionFactory();
+//            LogicalGroupIdProviderImpl lgip = new LogicalGroupIdProviderImpl();
+//            HibernateAudit.enable(sf, lgip);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            A a = new A();
+//            lgip.setGroupLead(a);
+//
+//            B b = new B();
+//            b.setS("ben");
+//
+//            a.getBs().add(b);
+//            b.setA(a);
+//
+//            s.save(a);
+//
+//            s.getTransaction().commit();
+//
+//            Long aId = a.getId();
+//
+//            s.beginTransaction();
+//
+//            b.setS("bob");
+//            s.update(a);
+//
+//            s.getTransaction().commit();
+//
+//            // our custom LGIP does uses aId as group id.
+//            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(aId);
+//
+//            assert txs.size() == 2;
+//
+//            // recreate the current state applying 'insert' and 'update' deltas
+//
+//            A copy = new A();
+//
+//            HibernateAudit.delta(copy, aId, txs.get(0).getId());
+//
+//            List<Temp> deltas = HibernateAudit.getDelta(txs.get(1).getId());
+//
+//            log.debug(copy);
+//        }
+//        finally
+//        {
+//            HibernateAudit.disableAll();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -856,7 +856,7 @@ public class Reflections
     /**
      * TODO incomplete and insuficiently tested needs refactoring
      */
-    public static Object getId(Object o)
+    public static Serializable getId(Object o)
     {
         if (o == null)
         {
@@ -866,12 +866,27 @@ public class Reflections
         try
         {
             Method getId = o.getClass().getMethod("getId");
-            return getId.invoke(o);
+            return (Serializable)getId.invoke(o);
         }
         catch(Exception e)
         {
             return null;
         }
+    }
+
+    public static Object newInstance(Class c, Serializable id) throws Exception
+    {
+        Constructor ctor = c.getDeclaredConstructor();
+        Object o = ctor.newInstance();
+
+        for(Method m: c.getMethods())
+        {
+            if (m.getName().equals("setId"))
+            {
+                m.invoke(o, id);
+            }
+        }
+        return o;
     }
 
     // Attributes ----------------------------------------------------------------------------------

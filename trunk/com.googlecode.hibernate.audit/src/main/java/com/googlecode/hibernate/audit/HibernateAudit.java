@@ -7,6 +7,7 @@ import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.delta.Delta;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -267,9 +268,15 @@ public final class HibernateAudit
 
     // Delta functions -----------------------------------------------------------------------------
 
-    public static Delta getDelta(Long txId) throws Exception
+    /**
+     * @param txId - the id of the transaction that introduced the delta.
+     * @param lgId - the id of the logical group. If null, all delta information is returned.
+     *
+     * @return the delta or null, if no delta information was found for this particular combination
+     *         of transaction/logical group.
+     */
+    public static Delta getDelta(Long txId, Serializable lgId) throws Exception
     {
-        // TODO duplicate code with delta()
         Manager m = null;
 
         synchronized(lock)
@@ -282,10 +289,8 @@ public final class HibernateAudit
             m = manager;
         }
 
-        return m.getDelta(txId);
+        return m.getDelta(txId, lgId);
     }
-
-    
 
     /**
      * @param base - the intial state of the object to apply transactional delta to.

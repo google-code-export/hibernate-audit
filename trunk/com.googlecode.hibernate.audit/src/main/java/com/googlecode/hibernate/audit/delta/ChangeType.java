@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.model;
+package com.googlecode.hibernate.audit.delta;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -9,7 +9,7 @@ package com.googlecode.hibernate.audit.model;
  *
  * $Id$
  */
-public enum AuditEventType
+public enum ChangeType
 {
     INSERT,
     UPDATE,

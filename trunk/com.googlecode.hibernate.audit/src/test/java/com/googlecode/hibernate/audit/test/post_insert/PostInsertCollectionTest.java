@@ -13,7 +13,7 @@ import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.AuditEventType;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
@@ -124,7 +124,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
                 AuditEvent e = (AuditEvent)o;
 
                 assert at.equals(e.getTransaction());
-                assert AuditEventType.INSERT.equals(e.getType());
+                assert ChangeType.INSERT.equals(e.getType());
                 assert expectedTargetTypes.remove(e.getTargetType());
                 assert targetIds.remove(e.getTargetId());
             }

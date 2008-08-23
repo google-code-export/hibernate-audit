@@ -15,6 +15,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 
+import com.googlecode.hibernate.audit.delta.ChangeType;
+
 
 /**
  * An atomic audit event as captured by Hibernate listeners.
@@ -50,7 +52,7 @@ public class AuditEvent
 
     @Column(name = "EVENT_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
-    private AuditEventType type;
+    private ChangeType type;
 
     @Column(name = "TARGET_ENTITY_ID", nullable = false, columnDefinition="NUMBER(30, 0)")
     private Long targetId; // TODO current implementation supports only Longs as ids, this needs
@@ -79,12 +81,12 @@ public class AuditEvent
         this.id = id;
     }
 
-    public AuditEventType getType()
+    public ChangeType getType()
     {
         return type;
     }
 
-    public void setType(AuditEventType type)
+    public void setType(ChangeType type)
     {
         this.type = type;
     }

@@ -15,7 +15,7 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.model.AuditEventType;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 
@@ -92,7 +92,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
             AuditEvent e = p.getEvent();
             assert aTx.equals(e.getTransaction());
             assert aId.equals(e.getTargetId());
-            assert AuditEventType.INSERT.equals(e.getType());
+            assert ChangeType.INSERT.equals(e.getType());
 
             t = e.getTargetType();
             assert t.isEntityType();
