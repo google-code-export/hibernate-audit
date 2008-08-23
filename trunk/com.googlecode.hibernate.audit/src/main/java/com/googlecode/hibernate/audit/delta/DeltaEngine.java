@@ -448,7 +448,7 @@ public class DeltaEngine
 
                     if (at.isEntityType())
                     {
-                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                        log.warn("ignoring " + at + " for now");
 //                        Serializable entityId = at.stringToValue(p.getStringValue());
 //                        Class entityClass = at.getClassInstance();
 //
@@ -491,7 +491,7 @@ public class DeltaEngine
                     }
                     else if (at.isCollectionType())
                     {
-                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                        log.warn("ignoring " + at + " for now");
 //                        AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
 //                        AuditCollectionType ct = (AuditCollectionType)at;
 //                        Class collectionClass = ct.getCollectionClassInstance();

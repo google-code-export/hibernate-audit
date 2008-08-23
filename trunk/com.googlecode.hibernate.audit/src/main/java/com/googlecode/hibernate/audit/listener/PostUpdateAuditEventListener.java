@@ -51,8 +51,15 @@ public class PostUpdateAuditEventListener
 
         for(int i = 0; i < state.length; i++)
         {
-            String name = names[i];
             Type type = types[i];
+
+            if (type.isEntityType() || type.isCollectionType() || type.isComponentType())
+            {
+                log.warn("ignoring " + type + " for now"); // TODO fix this
+                continue;
+            }
+
+            String name = names[i];
             Object current = state[i];
             Object old = oldState[i];
 
