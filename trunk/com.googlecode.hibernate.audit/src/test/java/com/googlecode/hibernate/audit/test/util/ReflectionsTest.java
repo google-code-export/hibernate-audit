@@ -28,6 +28,8 @@ import com.googlecode.hibernate.audit.test.util.data.PImpl;
 import com.googlecode.hibernate.audit.test.util.data.Q;
 import com.googlecode.hibernate.audit.test.util.data.R;
 import com.googlecode.hibernate.audit.test.util.data.S;
+import com.googlecode.hibernate.audit.test.util.data.ApplicationLevelImmutableImpl;
+import com.googlecode.hibernate.audit.test.util.data.ApplicationLevelImmutable;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -1045,6 +1047,50 @@ public class ReflectionsTest
         Object o = Reflections.find(a, r.getClass(), r.getId());
 
         assert o == r;
+    }
+
+    @Test(enabled = true)
+    public void testApplicationLevelImmutableClass() throws Exception
+    {
+        assert Reflections.getImmutableClasses().isEmpty();
+
+        assert Reflections.registerImmutableClass(ApplicationLevelImmutableImpl.class);
+        assert !Reflections.registerImmutableClass(ApplicationLevelImmutableImpl.class);
+
+        assert Reflections.getImmutableClasses().size() == 1;
+
+        ApplicationLevelImmutableImpl immutable = new ApplicationLevelImmutableImpl();
+
+        assert !Reflections.isMutable(immutable);
+        Object o = Reflections.deepCopy(immutable);
+        assert o == immutable;
+
+        assert Reflections.unregisterImmutableClass(ApplicationLevelImmutableImpl.class);
+        assert !Reflections.unregisterImmutableClass(ApplicationLevelImmutableImpl.class);
+
+        assert Reflections.getImmutableClasses().isEmpty();
+    }
+
+    @Test(enabled = true)
+    public void testApplicationLevelImmutableInterface() throws Exception
+    {
+        assert Reflections.getImmutableClasses().isEmpty();
+
+        assert Reflections.registerImmutableClass(ApplicationLevelImmutable.class);
+        assert !Reflections.registerImmutableClass(ApplicationLevelImmutable.class);
+
+        assert Reflections.getImmutableClasses().size() == 1;
+
+        ApplicationLevelImmutableImpl immutable = new ApplicationLevelImmutableImpl();
+
+        assert !Reflections.isMutable(immutable);
+        Object o = Reflections.deepCopy(immutable);
+        assert o == immutable;
+
+        assert Reflections.unregisterImmutableClass(ApplicationLevelImmutable.class);
+        assert !Reflections.unregisterImmutableClass(ApplicationLevelImmutable.class);
+
+        assert Reflections.getImmutableClasses().isEmpty();
     }
 
     // Package protected ---------------------------------------------------------------------------

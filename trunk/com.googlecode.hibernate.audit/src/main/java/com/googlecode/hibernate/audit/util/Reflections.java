@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
+import java.util.Collections;
 import java.sql.Timestamp;
 import java.io.Serializable;
 
@@ -37,6 +38,48 @@ public class Reflections
     private static final Logger log = Logger.getLogger(Reflections.class);
 
     // Static --------------------------------------------------------------------------------------
+
+    private static Set<Class> appDeclaredImmutableClasses;
+
+    /**
+     * Add the application-level class to the internal set of classes that are considered immutable.
+     * No deep copy will be performed for an immutable class instance, it will be always be passed
+     * by reference.
+     *
+     * @param ic - the class or interface to be handled as immutable.
+     *
+     * @return true if the set did not already contain the specified class.
+     */
+    public synchronized static boolean registerImmutableClass(Class ic)
+    {
+        if (appDeclaredImmutableClasses == null)
+        {
+            appDeclaredImmutableClasses = new HashSet<Class>();
+        }
+
+        return appDeclaredImmutableClasses.add(ic);
+    }
+
+    /**
+     * Always returns a copy.
+     */
+    public synchronized static Set<Class> getImmutableClasses()
+    {
+        if (appDeclaredImmutableClasses == null)
+        {
+            return Collections.emptySet();
+        }
+
+        return new HashSet<Class>(appDeclaredImmutableClasses);
+    }
+
+    /**
+     * @return true if the set contained the specified class.
+     */
+    public synchronized static boolean unregisterImmutableClass(Class ic)
+    {
+        return appDeclaredImmutableClasses != null && appDeclaredImmutableClasses.remove(ic);
+    }
 
     /**
      * TODO: inefficient and incomplete, needs tests
@@ -583,6 +626,11 @@ public class Reflections
 
         o = cleanupHibernateProxy(o);
 
+        if (!isMutable(o))
+        {
+            return o;
+        }
+
         Object copy = instantiateOverridingAccessibility(o.getClass());
 
         if (o instanceof Collection)
@@ -687,9 +735,9 @@ public class Reflections
             Long.class.equals(c) ||
             Boolean.class.equals(c) ||
             Date.class.equals(c) ||
-            java.sql.Date.class.equals(c)) // TODO https://jira.novaordis.org/browse/HBA-98
-            // TODO implement a mechanism to allow declaring classes immutable,
-            // see https://jira.novaordis.org/browse/HBA-95
+            java.sql.Date.class.equals(c) || // TODO https://jira.novaordis.org/browse/HBA-98
+            (appDeclaredImmutableClasses != null && appDeclaredImmutableClasses.contains(c)) ||
+            isAssignableFromApplicationLevelImmutable(c)) // HBA-95: TODO not entirely correct, a subclass of a non-mutable can be mutable, review this
         {
             return false;
         }
@@ -699,9 +747,6 @@ public class Reflections
         }
 
         // TODO very very very inneficient
-
-        // one more attempt, this is slow and inneficient, and also it contains a unhealthty dose
-        // of heuristics, see https://jira.novaordis.org/browse/HBA-95
 
         Collection<Method> allMethods = new HashSet<Method>();
 
@@ -913,6 +958,26 @@ public class Reflections
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    private synchronized static boolean isAssignableFromApplicationLevelImmutable(Class c)
+    {
+
+        if (appDeclaredImmutableClasses == null)
+        {
+            return false;
+        }
+
+        for(Class ic: appDeclaredImmutableClasses)
+        {
+            if (ic.isAssignableFrom(c))
+            {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 

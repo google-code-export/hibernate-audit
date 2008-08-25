@@ -12,7 +12,7 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #DIALECT=org.hibernate.dialect.MySQL5Dialect
 
 # different test types
-#TARGET_CLASS=ReflectionsTest
+TARGET_CLASS=ReflectionsTest
 #TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=ExternalDDLFileTest
@@ -35,4 +35,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=DDLTypeTest
 #TARGET_CLASS=LogicalGroupIdProviderTest
 #TARGET_CLASS=PostUpdateTest
-TARGET_CLASS=PostUpdateRawTest
+#TARGET_CLASS=PostUpdateRawTest

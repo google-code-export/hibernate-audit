@@ -8,10 +8,12 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.delta.Delta;
+import com.googlecode.hibernate.audit.util.Reflections;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
 import java.io.Serializable;
 
 /**
@@ -340,6 +342,21 @@ public final class HibernateAudit
     public static Manager getManager()
     {
         return manager;
+    }
+
+    public static boolean registerImmutableClass(Class c)
+    {
+        return Reflections.registerImmutableClass(c);
+    }
+
+    public static Set<Class> getImmutableClasses()
+    {
+        return Reflections.getImmutableClasses();
+    }
+
+    public static boolean unregisterImmutableClass(Class c)
+    {
+        return Reflections.unregisterImmutableClass(c);
     }
 
     // Attributes ----------------------------------------------------------------------------------
