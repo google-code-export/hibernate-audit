@@ -1,7 +1,14 @@
 package com.googlecode.hibernate.audit.delta;
 
+import com.googlecode.hibernate.audit.util.Entity;
+
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Represents a transactional delta.
@@ -20,100 +27,88 @@ public class Delta
 
     // Static --------------------------------------------------------------------------------------
 
+    /**
+     * TODO this method should go away from here.
+     */
+    public static void render(StringBuffer sb, Delta delta)
+    {
+        List<Entity> entities = new ArrayList<Entity>(delta.getEntities());
+
+        Collections.sort(entities, new Comparator<Entity>()
+        {
+            public int compare(Entity o1, Entity o2)
+            {
+                return (int)(((Long)o1.getId()).longValue() - ((Long)o2.getId()).longValue());
+            }
+        });
+
+        for(Entity e: entities)
+        {
+
+            List<Change> changes = delta.getChanges(e);
+
+            if (changes.isEmpty())
+            {
+                continue;
+            }
+
+            for(Change c: changes)
+            {
+                sb.append("<tr><td>changeid</td><td>username</td><td>timestamp</td>").
+                    append("<td>").append(e.getType().getName()).append("</td>").
+                    append("<td>").append(e.getId()).append("</td>").
+                    append("<td>").append(c.getPropertyName()).append("</td>").
+                    append("<td>").append(c.getPropertyValue()).append("</td>").
+                    append("</tr>\n");
+            }
+        }
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
-    private List<EntityExpectation> entityExpectations;
-
-    private Object target;
-    private List<Change> changes;
+    private Map<Entity, List<Change>> changes;
 
     // Constructors --------------------------------------------------------------------------------
 
     public Delta()
     {
-        entityExpectations = new ArrayList<EntityExpectation>();
-        changes = new ArrayList<Change>();
+        changes = new HashMap<Entity, List<Change>>();
     }
 
     // Public --------------------------------------------------------------------------------------
 
     public void addChange(Change c)
     {
-        changes.add(c);
+        Entity e = c.getEntity();
+        List<Change> lc = changes.get(e);
+
+        if (lc == null)
+        {
+            lc = new ArrayList<Change>();
+            changes.put(e, lc);
+        }
+
+        lc.add(c);
     }
 
-    public List<Change> getChanges()
+    public Set<Entity> getEntities()
     {
-        return changes;
+        return changes.keySet();
     }
 
-    public void setTarget(Object target)
+    public List<Change> getChanges(Entity e)
     {
-        this.target = target;
-    }
+        List<Change> lc = changes.get(e);
 
-    public Object getTarget()
-    {
-        return target;
+        if (lc == null)
+        {
+            lc = Collections.emptyList();
+        }
+
+        return lc;
     }
 
     // Package protected ---------------------------------------------------------------------------
-
-    /**
-     * Adds the given entity expectation to delta, possibly adjusting the internal state of the
-     * expectation, if a previous equivalent expectation was already added.
-     *
-     * Note: Do not make this method public, it must be accessed only within the package.
-     *
-     * @exception IllegalArgumentException if the entity expectation passed as argument already
-     *            has a detached instance, the same entity is already registered, and it has a
-     *            different detached instance.
-     */
-    void addEntityExpectation(EntityExpectation e) throws Exception
-    {
-        // make sure that if the expectation is already here, we use that one
-
-        for(EntityExpectation i: entityExpectations)
-        {
-            if (i.equals(e))
-            {
-                Object idi = i.getDetachedInstance();
-                Object edi = e.getDetachedInstance();
-
-                if (edi == null)
-                {
-                    e.setDetachedInstance(idi);
-                }
-                else if (edi != idi)
-                {
-                    throw new IllegalArgumentException(
-                        "entity expectation already registered with a different detached instance");
-                }
-                
-                return;
-            }
-        }
-
-        e.initializeDetachedInstance();
-        entityExpectations.add(e);
-    }
-
-    /**
-     * Note: Do not make this method public, it must be accessed only within the package.
-     *
-     * @return returns the underlying collection, not a copy, so handle with care.
-     */
-    List<EntityExpectation> getEntityExpectations()
-    {
-        return entityExpectations;
-    }
-
-    /**
-     * TODO probably I want to change the name
-     */
-    void compact()
-    {
-    }
 
     // Protected -----------------------------------------------------------------------------------
 

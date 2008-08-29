@@ -1,17 +1,13 @@
-package com.googlecode.hibernate.audit.delta;
+package com.googlecode.hibernate.audit.util;
 
-import com.googlecode.hibernate.audit.util.Entity;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
- *
- * @version <tt>$Revision$</tt>
- *
- * $Id$
  */
-public class Change
+public class Entity
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,62 +15,69 @@ public class Change
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private ChangeType type;
-
-    private Entity entity;
-
-    private String propertyName;
-    private Class propertyType;
-    private Object propertyValue;
+    private Serializable id;
+    private Class type;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public Change(ChangeType type, Entity entity,
-                  String propertyName, Class propertyType, Object propertyValue)
+    public Entity(Serializable id, Class type)
     {
+        this.id = id;
         this.type = type;
-        this.entity = entity;
-        this.propertyName = propertyName;
-        this.propertyType = propertyType;
-        this.propertyValue = propertyValue;
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public ChangeType getType()
+    public Serializable getId()
+    {
+        return id;
+    }
+
+    public Class getType()
     {
         return type;
     }
 
-    public String getPropertyName()
+    @Override
+    public boolean equals(Object o)
     {
-        return propertyName;
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (id == null || type == null)
+        {
+            return false;
+        }
+
+        if (!(o instanceof Entity))
+        {
+            return false;
+        }
+
+        Entity that = (Entity)o;
+
+        return id.equals(that.id) && type.equals(that.type);
     }
 
-    public Class getPropertyType()
+    @Override
+    public int hashCode()
     {
-        return propertyType;
-    }
+        int result = 17;
 
-    public Object getPropertyValue()
-    {
-        return propertyValue;
-    }
+        result = 37 * result + (id == null ? 0 : id.hashCode());
+        result = 37 * result + (type == null ? 0 : type.hashCode());
 
-    public Entity getEntity()
-    {
-        return entity;
+        return result;
     }
 
     @Override
     public String toString()
     {
-        return (ChangeType.INSERT.equals(type) ? "NEW " : "UPDATE ") +
-        entity + " " +
-        (propertyType == null ? "null" : propertyType.getName()) +
-        "." + propertyName + " = " + propertyValue;
+        return (type == null ? "null" : type.getName()) + "[" + id + "]";
     }
-
+    
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
