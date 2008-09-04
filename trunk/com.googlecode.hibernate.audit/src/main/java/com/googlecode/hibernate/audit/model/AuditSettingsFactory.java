@@ -63,7 +63,7 @@ class AuditSettingsFactory extends SettingsFactory
         // filter properties, replacing the values of "interesting" properties with those inferred
         // from sourceSettings
 
-        Set<String> hibernatePropertyRoots = new HashSet<String>();
+        Set<String> hibernateProperties = new HashSet<String>();
         Field[] fields = Environment.class.getFields();
         for(Field f: fields)
         {
@@ -84,11 +84,6 @@ class AuditSettingsFactory extends SettingsFactory
                 }
 
                 value = (String)o;
-
-                if (value.startsWith("hibernate."))
-                {
-                    value = value.substring(10);
-                }
             }
             catch(Exception e)
             {
@@ -96,17 +91,17 @@ class AuditSettingsFactory extends SettingsFactory
                 continue;
             }
 
-            hibernatePropertyRoots.add(value);
+            hibernateProperties.add(value);
         }
 
         // get rid of all hibernate properties ...
-        for(String hibernatePropertyRoot: hibernatePropertyRoots)
+        for(String hibernatePropertyName: hibernateProperties)
         {
-            Object o = copy.remove("hibernate." + hibernatePropertyRoot);
+            Object o = copy.remove(hibernatePropertyName);
 
             if (o != null)
             {
-                log.debug("got rid of hibernate." + hibernatePropertyRoot + "=" + o);
+                log.debug("got rid of " + hibernatePropertyName + "=" + o);
             }
         }
 
@@ -162,7 +157,19 @@ class AuditSettingsFactory extends SettingsFactory
             {
                 String root = key.substring(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX.length());
 
-                if (hibernatePropertyRoots.contains(root))
+                String hibernatePropertyName = root;
+
+                if (!hibernateProperties.contains(hibernatePropertyName))
+                {
+                    hibernatePropertyName = "hibernate." + root;
+
+                    if (!hibernateProperties.contains(hibernatePropertyName))
+                    {
+                        hibernatePropertyName = null;
+                    }
+                }
+
+                if (hibernatePropertyName != null)
                 {
                     String hbaPropertyValue = System.getProperty(key);
 
@@ -188,7 +195,7 @@ class AuditSettingsFactory extends SettingsFactory
                             }
                         }
 
-                        copy.setProperty("hibernate." + root, hbaPropertyValue);
+                        copy.setProperty(hibernatePropertyName, hbaPropertyValue);
                     }
                 }
             }

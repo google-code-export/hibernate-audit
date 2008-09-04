@@ -6,6 +6,8 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.cfg.Settings;
 import org.hibernate.SessionFactory;
+import org.hibernate.Session;
+import org.hibernate.TransactionException;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.impl.SessionFactoryImpl;
@@ -17,6 +19,7 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
+import javax.naming.NameNotFoundException;
 import java.util.Set;
 import java.util.List;
 import java.lang.reflect.Method;
@@ -583,6 +586,56 @@ public class HibernateAuditTest extends JTATransactionTest
         finally
         {
             assert "72".equals(System.clearProperty("hba.jdbc.batch_size"));
+
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testConfigurableJtaHBAProperty() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        assert System.getProperty("jta.UserTransaction") == null;
+        assert System.getProperty("hba.jta.UserTransaction") == null;
+
+        SessionFactory sf = null;
+
+        try
+        {
+            Configuration config = new AnnotationConfiguration();
+            config.configure(getHibernateConfigurationFileName());
+            sf = config.buildSessionFactory();
+
+            System.setProperty("hba.jta.UserTransaction", "/UserTransactionDuJour");
+
+            HibernateAudit.enable(sf);
+
+            // try to create a transaction with the bogus user transaction
+
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+            Session s = isf.openSession();
+
+            try
+            {
+                s.beginTransaction();
+                throw new Error("should've failed");
+            }
+            catch(TransactionException e)
+            {
+                Throwable t = e.getCause();
+                assert t instanceof NameNotFoundException;
+            }
+        }
+        finally
+        {
+            assert "/UserTransactionDuJour".equals(System.clearProperty("hba.jta.UserTransaction"));
+            assert System.getProperty("jta.UserTransaction") == null;
 
             HibernateAudit.disableAll();
 
