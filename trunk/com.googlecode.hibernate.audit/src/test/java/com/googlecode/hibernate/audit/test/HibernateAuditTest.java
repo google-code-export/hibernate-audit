@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.cfg.Settings;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.connection.ConnectionProvider;
@@ -545,6 +546,77 @@ public class HibernateAuditTest extends JTATransactionTest
             {
                 System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
             }
+
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testConfigurableHBAProperty() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        assert System.getProperty("hibernate.jdbc.batch_size") == null;
+        assert System.getProperty("hba.jdbc.batch_size") == null;
+
+        SessionFactory sf = null;
+
+        try
+        {
+            Configuration config = new AnnotationConfiguration();
+            config.configure(getHibernateConfigurationFileName());
+            sf = config.buildSessionFactory();
+
+            System.setProperty("hba.jdbc.batch_size", Integer.toString(72));
+
+            HibernateAudit.enable(sf);
+
+            SessionFactoryImpl isf = HibernateAudit.getManager().getSessionFactory();
+            Settings settings = isf.getSettings();
+            assert 72 == settings.getJdbcBatchSize();
+        }
+        finally
+        {
+            assert "72".equals(System.clearProperty("hba.jdbc.batch_size"));
+
+            HibernateAudit.disableAll();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testBogusHBAProperty() throws Exception
+    {
+        assert !HibernateAudit.isStarted();
+
+        // make sure a bogus property doesn't break the initialization process
+
+        assert System.getProperty("hibernate.totally.bogus.property") == null;
+
+        SessionFactory sf = null;
+
+        try
+        {
+            Configuration config = new AnnotationConfiguration();
+            config.configure(getHibernateConfigurationFileName());
+            sf = config.buildSessionFactory();
+
+            System.setProperty("hibernate.totally.bogus.property", "blah");
+
+            HibernateAudit.enable(sf);
+        }
+        finally
+        {
+            assert "blah".equals(System.clearProperty("hibernate.totally.bogus.property"));
 
             HibernateAudit.disableAll();
 

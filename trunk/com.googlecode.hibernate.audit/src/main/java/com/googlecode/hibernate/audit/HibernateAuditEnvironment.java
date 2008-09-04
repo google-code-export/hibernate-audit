@@ -13,11 +13,13 @@ public final class HibernateAuditEnvironment
 {
     // Constants -----------------------------------------------------------------------------------
 
+    public static final String HBA_PROPERTY_PREFIX = "hba.";
+
     /**
      * Auto export/update audit schema using hbm2ddl tool. Valid values are <tt>update</tt>,
      * <tt>create</tt>, <tt>create-drop</tt> and <tt>validate</tt>.
      */
-    public static final String HBM2DDL_AUTO = "hba.hbm2ddl.auto";
+    public static final String HBM2DDL_AUTO = HBA_PROPERTY_PREFIX + "hbm2ddl.auto";
 
     // Static --------------------------------------------------------------------------------------
 

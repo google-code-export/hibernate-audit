@@ -63,7 +63,7 @@ class AuditSettingsFactory extends SettingsFactory
         // filter properties, replacing the values of "interesting" properties with those inferred
         // from sourceSettings
 
-        Set<String> hibernateProperties = new HashSet<String>();
+        Set<String> hibernatePropertyRoots = new HashSet<String>();
         Field[] fields = Environment.class.getFields();
         for(Field f: fields)
         {
@@ -84,6 +84,11 @@ class AuditSettingsFactory extends SettingsFactory
                 }
 
                 value = (String)o;
+
+                if (value.startsWith("hibernate."))
+                {
+                    value = value.substring(10);
+                }
             }
             catch(Exception e)
             {
@@ -91,17 +96,17 @@ class AuditSettingsFactory extends SettingsFactory
                 continue;
             }
 
-            hibernateProperties.add(value);
+            hibernatePropertyRoots.add(value);
         }
 
         // get rid of all hibernate properties ...
-        for(String hibernateProperty: hibernateProperties)
+        for(String hibernatePropertyRoot: hibernatePropertyRoots)
         {
-            Object o = copy.remove(hibernateProperty);
+            Object o = copy.remove("hibernate." + hibernatePropertyRoot);
 
             if (o != null)
             {
-                log.debug("got rid of " + hibernateProperty + "=" + o);
+                log.debug("got rid of hibernate." + hibernatePropertyRoot + "=" + o);
             }
         }
 
@@ -139,31 +144,53 @@ class AuditSettingsFactory extends SettingsFactory
 
         copy.setProperty(Environment.TRANSACTION_MANAGER_STRATEGY, tml.getClass().getName());
 
-        // other settings
+        // other default settings
 
         // TODO we force session retention to be 'jta', anaylize and come up with test cases
         copy.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "jta");
-
         copy.setProperty(Environment.USE_SECOND_LEVEL_CACHE, "false");
         copy.setProperty(Environment.SHOW_SQL, "true");
 
-        // look for external definitions of 'hbm2ddl.auto'
+        // look for "hba." properties and overwrite correspoding "hibernate." properties (HBA-102)
         // TODO not sure if I am supposed to look within System, and not use the passed copy
-        String s = System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
-        if (s != null)
+        Properties systemProperties = System.getProperties();
+        for(Object o: systemProperties.keySet())
         {
-            // insure consistency
-            if (!"validate".equals(s) &&
-                !"update".equals(s) &&
-                !"create".equals(s) &&
-                !"create-drop".equals(s))
+            String key = (String)o;
+
+            if (key.startsWith(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX))
             {
-                log.warn("'" + s + "' is an invalid " + HibernateAuditEnvironment.HBM2DDL_AUTO +
-                         " value, will be ignored!");
-            }
-            else
-            {
-                copy.setProperty(Environment.HBM2DDL_AUTO, s);
+                String root = key.substring(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX.length());
+
+                if (hibernatePropertyRoots.contains(root))
+                {
+                    String hbaPropertyValue = System.getProperty(key);
+
+                    if (hbaPropertyValue != null)
+                    {
+                        // valid "hba." property, use its value
+
+                        if (HibernateAuditEnvironment.HBM2DDL_AUTO.equals(key))
+                        {
+                            // extra checks for "hbm2ddl.auto", older code but valid check
+
+                            if (!"validate".equals(hbaPropertyValue) &&
+                                !"update".equals(hbaPropertyValue) &&
+                                !"create".equals(hbaPropertyValue) &&
+                                !"create-drop".equals(hbaPropertyValue))
+                            {
+                                log.warn(
+                                    "'" + hbaPropertyValue + "' is an invalid " +
+                                    HibernateAuditEnvironment.HBA_PROPERTY_PREFIX +
+                                    root + " value, will be ignored!");
+
+                                continue;
+                            }
+                        }
+
+                        copy.setProperty("hibernate." + root, hbaPropertyValue);
+                    }
+                }
             }
         }
 

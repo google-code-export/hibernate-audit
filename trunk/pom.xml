@@ -12,7 +12,7 @@
        Releases should follow an Alpha/Beta/CR/GA/SP naming convention.
        See https://jira.novaordis.org/browse/HBA-14.
     -->
-    <version>r190</version>
+    <version>1.0.0.Alpha8</version>
 
     <packaging>pom</packaging>
     
