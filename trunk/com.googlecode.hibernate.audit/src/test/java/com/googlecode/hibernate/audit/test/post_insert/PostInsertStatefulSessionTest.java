@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.WB;
@@ -54,12 +55,14 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setName("alice");
@@ -107,7 +110,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -122,12 +125,14 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             // insert the entity type
             SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
@@ -173,7 +178,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -188,12 +193,14 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             // insert the primitive type
             SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
@@ -240,7 +247,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -256,12 +263,14 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             // insert the entity type
             SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
@@ -321,7 +330,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {

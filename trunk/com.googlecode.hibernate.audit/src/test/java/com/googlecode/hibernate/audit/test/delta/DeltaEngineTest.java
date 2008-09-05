@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.test.delta;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
 import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.event.EventSource;
@@ -57,13 +56,14 @@ public class DeltaEngineTest extends JTATransactionTest
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             RandomType o = new RandomType();
 
@@ -80,7 +80,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -95,13 +95,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
 
@@ -118,7 +119,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -133,13 +134,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setId(new Long(0));
@@ -159,7 +161,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -175,13 +177,14 @@ public class DeltaEngineTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
         config.addAnnotatedClass(B.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setName("alice");
@@ -218,7 +221,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -233,13 +236,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setName("alice");
@@ -274,7 +278,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -289,13 +293,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setName("alice");
@@ -330,7 +335,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -345,13 +350,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(ProtectedConstructorC.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             ProtectedConstructorC c = ProtectedConstructorC.getInstance();
             c.setName("cami");
@@ -382,7 +388,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {
@@ -397,13 +403,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -418,7 +425,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -433,13 +440,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -458,7 +466,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -473,13 +481,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf, new LogicalGroupIdProvider()
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, new LogicalGroupIdProvider()
             {
                 public Serializable getLogicalGroupId(EventSource es, 
                                                       Serializable id,
@@ -506,7 +515,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -521,13 +530,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf, new LogicalGroupIdProvider()
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, new LogicalGroupIdProvider()
             {
                 public Serializable getLogicalGroupId(EventSource es,
                                                       Serializable id,
@@ -556,7 +566,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -571,13 +581,14 @@ public class DeltaEngineTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -600,7 +611,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -655,7 +666,7 @@ public class DeltaEngineTest extends JTATransactionTest
 //        }
 //        finally
 //        {
-//            HibernateAudit.disableAll();
+//            HibernateAudit.stopRuntime();
 //
 //            if (sf != null)
 //            {
@@ -671,15 +682,16 @@ public class DeltaEngineTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(C.class);
         config.addAnnotatedClass(D.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             C c = new C();
 
-            HibernateAudit.enable(sf, new RootLogicalGroupIdProvider(c));
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, new RootLogicalGroupIdProvider(c));
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -806,7 +818,7 @@ public class DeltaEngineTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {

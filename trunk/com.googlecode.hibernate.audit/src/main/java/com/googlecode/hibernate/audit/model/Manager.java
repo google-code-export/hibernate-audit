@@ -10,6 +10,7 @@ import org.hibernate.connection.DatasourceConnectionProvider;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Query;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
 import org.hibernate.event.EventSource;
@@ -171,9 +172,19 @@ public class Manager
      *        will persisted in the database. This is alright if you don't need logical grouping
      *        of entities.
      */
-    public synchronized void register(SessionFactoryImpl asf, LogicalGroupIdProvider lgip)
+    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupIdProvider lgip)
         throws Exception
     {
+        if (!(asfi instanceof SessionFactoryImpl))
+        {
+            throw new IllegalArgumentException(
+                "cannot enable audit unless given session factory is a SessionFactoryImpl " +
+                "instance; instead we got " +
+                (asfi == null ? null : asfi.getClass().getName()));
+        }
+
+        SessionFactoryImpl asf = (SessionFactoryImpl)asfi;
+        
         checkStarted();
 
         if (isRegistered(asf))

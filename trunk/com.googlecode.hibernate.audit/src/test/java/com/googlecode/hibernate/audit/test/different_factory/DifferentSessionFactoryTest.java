@@ -4,7 +4,7 @@ import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
@@ -40,11 +40,13 @@ public class DifferentSessionFactoryTest
         config.configure("hibernate.cfg.xml");
         config.addAnnotatedClass(A.class);
 
-        SessionFactory sessionFactory = config.buildSessionFactory();
+        SessionFactoryImplementor sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-        HibernateAudit.enable(sessionFactory);
+        HibernateAudit.startRuntime(sf.getSettings());
+        HibernateAudit.register(sf);
 
-        Session session = sessionFactory.openSession();
+
+        Session session = sf.openSession();
         Transaction tx = session.beginTransaction();
 
         A a = new A();
@@ -53,7 +55,7 @@ public class DifferentSessionFactoryTest
 
         tx.commit();
 
-        sessionFactory.close();
+        sf.close();
 
         log.info("done");
     }

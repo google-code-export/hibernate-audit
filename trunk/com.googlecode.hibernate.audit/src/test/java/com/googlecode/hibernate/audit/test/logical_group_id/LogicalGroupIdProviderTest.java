@@ -2,8 +2,8 @@ package com.googlecode.hibernate.audit.test.logical_group_id;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.event.EventSource;
 import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
@@ -50,13 +50,14 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             A a = new A();
             a.setName("alice");
@@ -80,7 +81,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -96,11 +97,11 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             final long random = new Random().nextLong();
 
@@ -114,7 +115,8 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
                 }
             };
 
-            HibernateAudit.enable(sf, lgip);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, lgip);
 
             A a = new A();
             a.setName("alice");
@@ -146,7 +148,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -164,11 +166,11 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         config.addAnnotatedClass(A.class);
         config.addAnnotatedClass(B.class);
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
             {
@@ -189,7 +191,8 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
                 }
             };
 
-            HibernateAudit.enable(sf, lgip);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, lgip);
 
             A a = new A();
             a.setName("alice");
@@ -216,7 +219,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {

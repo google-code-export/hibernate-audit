@@ -8,6 +8,7 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.TransactionException;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.impl.SessionFactoryImpl;
@@ -15,6 +16,7 @@ import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
 import com.googlecode.hibernate.audit.model.Entities;
+import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -56,6 +58,11 @@ public class HibernateAuditTest extends JTATransactionTest
     @Test(enabled = true)
     public void testEnableOnProxy() throws Exception
     {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+
         SessionFactory proxy =
             (SessionFactory)Proxy.newProxyInstance(HibernateAudit.class.getClassLoader(),
                                                    new Class[] {SessionFactory.class},
@@ -72,12 +79,24 @@ public class HibernateAuditTest extends JTATransactionTest
                                                    });
         try
         {
-            HibernateAudit.enable(proxy);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            HibernateAudit.startRuntime(sf.getSettings());
+            
+            HibernateAudit.register(proxy);
             throw new Error("should've failed");
         }
         catch(IllegalArgumentException e)
         {
             log.debug(">>>> " + e.getMessage());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
         }
     }
 
@@ -88,15 +107,18 @@ public class HibernateAuditTest extends JTATransactionTest
 
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
-            assert HibernateAudit.isEnabled(sf);
+            HibernateAudit.register(sf);
+
+            assert HibernateAudit.isRegistered(sf);
 
             // make sure that all available HBA listeners are installed
             Set<String> aets = Listeners.getAuditedEventTypes();
@@ -108,7 +130,8 @@ public class HibernateAuditTest extends JTATransactionTest
                 log.debug("verifying '" + aet + "' listeners");
 
                 Method m = Listeners.getEventListenersGetter(aet);
-                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
 
                 assert listeners.length != 0;
                 Class c = Listeners.getAuditEventListenerClass(aet);
@@ -126,9 +149,9 @@ public class HibernateAuditTest extends JTATransactionTest
             }
 
             // testing noop behavior
-            HibernateAudit.enable(sf);
+            HibernateAudit.register(sf);
 
-            assert HibernateAudit.disableAll();
+            assert HibernateAudit.unregisterAll();
 
             // make sure none of the audit listeners are still registered
 
@@ -139,7 +162,8 @@ public class HibernateAuditTest extends JTATransactionTest
                 log.debug("verifying '" + et + "' listeners");
 
                 Method m = Listeners.getEventListenersGetter(et);
-                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
 
                 if (listeners == null)
                 {
@@ -153,11 +177,11 @@ public class HibernateAuditTest extends JTATransactionTest
             }
 
             // testing noop behavior
-            assert !HibernateAudit.disableAll();
+            assert !HibernateAudit.unregisterAll();
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {
@@ -167,14 +191,34 @@ public class HibernateAuditTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testQueryOnDisabledRuntime() throws Exception
+    public void testFailedStartup() throws Exception
+    {
+        assert HibernateAudit.getManager() == null;
+
+        try
+        {
+            HibernateAudit.startRuntime(null);
+            throw new Error("should've failed");
+        }
+        catch(NullPointerException e)
+        {
+            log.debug(e);
+            assert HibernateAudit.getManager() == null;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+        }
+    }
+
+    @Test(enabled = true)
+    public void testQueryOnStoppedRuntime() throws Exception
     {
         assert !HibernateAudit.isStarted();
 
         try
         {
             HibernateAudit.query("form AuditTransaction");
-
             throw new Error("Should've failed");
         }
         catch(IllegalStateException e)
@@ -188,26 +232,29 @@ public class HibernateAuditTest extends JTATransactionTest
     {
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
         SessionFactory sf2 = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
-            assert HibernateAudit.isEnabled(sf);
+            HibernateAudit.register(sf);
+
+            assert HibernateAudit.isRegistered(sf);
 
             sf2 = config.buildSessionFactory();
 
-            assert !HibernateAudit.isEnabled(sf2);
+            assert !HibernateAudit.isRegistered(sf2);
 
-            assert HibernateAudit.disableAll();
+            assert HibernateAudit.unregisterAll();
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -228,18 +275,21 @@ public class HibernateAuditTest extends JTATransactionTest
 
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
         SessionFactory sf2 = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
+
             sf2 = config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
+            HibernateAudit.register(sf);
 
-            assert HibernateAudit.isEnabled(sf);
-            assert !HibernateAudit.isEnabled(sf2);
+            assert HibernateAudit.isRegistered(sf);
+            assert !HibernateAudit.isRegistered(sf2);
 
             // make sure that all available HBA listeners are installed
             Set<String> aets = Listeners.getAuditedEventTypes();
@@ -251,7 +301,8 @@ public class HibernateAuditTest extends JTATransactionTest
                 log.debug("verifying '" + aet + "' listeners");
 
                 Method m = Listeners.getEventListenersGetter(aet);
-                Object[] listeners = (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
+                Object[] listeners =
+                    (Object[])m.invoke(((SessionFactoryImpl)sf).getEventListeners());
 
                 assert listeners.length != 0;
                 Class c = Listeners.getAuditEventListenerClass(aet);
@@ -268,11 +319,10 @@ public class HibernateAuditTest extends JTATransactionTest
                 throw new Exception("Did not find a " + aet + " audit listener");
             }
 
+            HibernateAudit.register(sf2);
 
-            HibernateAudit.enable(sf2);
-
-            assert HibernateAudit.isEnabled(sf);
-            assert HibernateAudit.isEnabled(sf2);
+            assert HibernateAudit.isRegistered(sf);
+            assert HibernateAudit.isRegistered(sf2);
 
             // make sure that all available HBA listeners are installed
             outer: for(String aet: aets)
@@ -299,12 +349,12 @@ public class HibernateAuditTest extends JTATransactionTest
             }
 
             // testing noop behavior
-            HibernateAudit.enable(sf);
-            HibernateAudit.enable(sf2);
+            HibernateAudit.register(sf);
+            HibernateAudit.register(sf2);
 
-            assert HibernateAudit.disable(sf);
-            assert !HibernateAudit.isEnabled(sf);
-            assert HibernateAudit.isEnabled(sf2);
+            assert HibernateAudit.unregister(sf);
+            assert !HibernateAudit.isRegistered(sf);
+            assert HibernateAudit.isRegistered(sf2);
 
             // make sure none of the audit listeners are still registered on the disabled sf
 
@@ -354,9 +404,9 @@ public class HibernateAuditTest extends JTATransactionTest
                 throw new Exception("Did not find a " + aet + " audit listener on sf2");
             }
 
-            assert HibernateAudit.disable(sf2);
-            assert !HibernateAudit.isEnabled(sf);
-            assert !HibernateAudit.isEnabled(sf2);
+            assert HibernateAudit.unregister(sf2);
+            assert !HibernateAudit.isRegistered(sf);
+            assert !HibernateAudit.isRegistered(sf2);
 
             // make sure none of the audit listeners are still registered on the disabled sf2
 
@@ -382,13 +432,13 @@ public class HibernateAuditTest extends JTATransactionTest
             }
 
             // testing noop behavior
-            assert !HibernateAudit.disable(sf);
-            assert !HibernateAudit.disable(sf2);
-            assert !HibernateAudit.disableAll();
+            assert !HibernateAudit.unregister(sf);
+            assert !HibernateAudit.unregister(sf2);
+            assert !HibernateAudit.unregisterAll();
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -403,31 +453,73 @@ public class HibernateAuditTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testQueryOnEmptyAuditState() throws Exception
+    public void testQueryOnEmptyAuditState_NoRegisteredSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
             try
             {
-                List ats = HibernateAudit.query("from com.googlecode.hibernate.audit.model.AuditTransaction");
+                List ats = HibernateAudit.
+                    query("from com.googlecode.hibernate.audit.model.AuditTransaction");
+
                 assert ats.isEmpty();
             }
             finally
             {
-                assert HibernateAudit.disableAll();
+                assert !HibernateAudit.unregisterAll();
             }
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testQueryOnEmptyAuditState() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
+
+            HibernateAudit.startRuntime(settings);
+
+            HibernateAudit.register(sf);
+
+            try
+            {
+                List ats = HibernateAudit.
+                    query("from com.googlecode.hibernate.audit.model.AuditTransaction");
+
+                assert ats.isEmpty();
+            }
+            finally
+            {
+                assert HibernateAudit.unregisterAll();
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -441,23 +533,26 @@ public class HibernateAuditTest extends JTATransactionTest
     {
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
+
+            HibernateAudit.register(sf);
 
             Principal p = HibernateAudit.getManager().getPrincipal();
 
             assert p == null;
 
-            assert HibernateAudit.disableAll();
+            assert HibernateAudit.unregisterAll();
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -473,17 +568,20 @@ public class HibernateAuditTest extends JTATransactionTest
 
         Configuration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
             assert HibernateAudit.getManager() == null;
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
-            assert HibernateAudit.isEnabled(sf);
+            HibernateAudit.register(sf);
+
+            assert HibernateAudit.isRegistered(sf);
 
             SessionFactoryImpl internal = HibernateAudit.getManager().getSessionFactory();
 
@@ -503,13 +601,17 @@ public class HibernateAuditTest extends JTATransactionTest
 
             assert icp == cp;
 
-            assert HibernateAudit.disable(sf);
+            assert HibernateAudit.unregister(sf);
+
+            assert HibernateAudit.getManager() != null;
+
+            HibernateAudit.stopRuntime();
 
             assert HibernateAudit.getManager() == null;
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -526,18 +628,19 @@ public class HibernateAuditTest extends JTATransactionTest
         String originalValue = System.getProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
         log.debug(originalValue);
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
             Configuration config = new AnnotationConfiguration();
             config.configure(getHibernateConfigurationFileName());
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
             System.setProperty(HibernateAuditEnvironment.HBM2DDL_AUTO, "some complete junk");
 
             // this works, but logs a warning
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
         }
         finally
         {
@@ -550,7 +653,7 @@ public class HibernateAuditTest extends JTATransactionTest
                 System.clearProperty(HibernateAuditEnvironment.HBM2DDL_AUTO);
             }
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -567,27 +670,28 @@ public class HibernateAuditTest extends JTATransactionTest
         assert System.getProperty("hibernate.jdbc.batch_size") == null;
         assert System.getProperty("hba.jdbc.batch_size") == null;
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
             Configuration config = new AnnotationConfiguration();
             config.configure(getHibernateConfigurationFileName());
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
             System.setProperty("hba.jdbc.batch_size", Integer.toString(72));
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
             SessionFactoryImpl isf = HibernateAudit.getManager().getSessionFactory();
-            Settings settings = isf.getSettings();
+            settings = isf.getSettings();
             assert 72 == settings.getJdbcBatchSize();
         }
         finally
         {
             assert "72".equals(System.clearProperty("hba.jdbc.batch_size"));
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -604,17 +708,18 @@ public class HibernateAuditTest extends JTATransactionTest
         assert System.getProperty("jta.UserTransaction") == null;
         assert System.getProperty("hba.jta.UserTransaction") == null;
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
             Configuration config = new AnnotationConfiguration();
             config.configure(getHibernateConfigurationFileName());
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
             System.setProperty("hba.jta.UserTransaction", "/UserTransactionDuJour");
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
 
             // try to create a transaction with the bogus user transaction
 
@@ -637,7 +742,7 @@ public class HibernateAuditTest extends JTATransactionTest
             assert "/UserTransactionDuJour".equals(System.clearProperty("hba.jta.UserTransaction"));
             assert System.getProperty("jta.UserTransaction") == null;
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -655,23 +760,113 @@ public class HibernateAuditTest extends JTATransactionTest
 
         assert System.getProperty("hibernate.totally.bogus.property") == null;
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
             Configuration config = new AnnotationConfiguration();
             config.configure(getHibernateConfigurationFileName());
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
 
             System.setProperty("hibernate.totally.bogus.property", "blah");
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(settings);
         }
         finally
         {
             assert "blah".equals(System.clearProperty("hibernate.totally.bogus.property"));
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testRegister_RuntimeNotStarted() throws Exception
+    {
+        try
+        {
+            HibernateAudit.register(new MockSessionFactory());
+            throw new Error("should've failed");
+        }
+        catch(IllegalStateException e)
+        {
+            log.debug(">>> " + e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testStartRuntime() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
+
+            assert !HibernateAudit.isStarted();
+
+            HibernateAudit.startRuntime(settings);
+
+            assert HibernateAudit.isStarted();
+
+            Manager manager = HibernateAudit.getManager();
+
+            assert manager != null;
+            assert manager.getSessionFactory() != null;
+            assert manager.getAuditedSessionFactories().isEmpty();
+
+            // this should be a noop
+            HibernateAudit.startRuntime(settings);
+            assert HibernateAudit.isStarted();
+
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testStopRuntime() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
+
+            assert !HibernateAudit.isStarted();
+
+            HibernateAudit.startRuntime(settings);
+
+            assert HibernateAudit.isStarted();
+
+            HibernateAudit.stopRuntime();
+            assert !HibernateAudit.isStarted();
+
+            HibernateAudit.stopRuntime();
+            assert !HibernateAudit.isStarted();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {

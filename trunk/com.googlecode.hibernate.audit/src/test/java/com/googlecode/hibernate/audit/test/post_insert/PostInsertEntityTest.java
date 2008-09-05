@@ -3,9 +3,9 @@ package com.googlecode.hibernate.audit.test.post_insert;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.C;
 import com.googlecode.hibernate.audit.test.post_insert.data.D;
@@ -51,12 +51,14 @@ public class PostInsertEntityTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(C.class);
         config.addAnnotatedClass(D.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             C c = new C();
             c.setName("charlie");
@@ -136,7 +138,7 @@ public class PostInsertEntityTest extends JTATransactionTest
                 assert expectedStringValues.remove(pair.getStringValue());
             }
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -159,12 +161,14 @@ public class PostInsertEntityTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(C.class);
         config.addAnnotatedClass(D.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             C c = new C();
             c.setName("charlie");
@@ -200,7 +204,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -223,12 +227,14 @@ public class PostInsertEntityTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(C.class);
         config.addAnnotatedClass(D.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
 
@@ -279,7 +285,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -302,12 +308,14 @@ public class PostInsertEntityTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(C.class);
         config.addAnnotatedClass(D.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
 
@@ -376,7 +384,7 @@ public class PostInsertEntityTest extends JTATransactionTest
             assert dId.equals(recreatedD.getId());
             assert "diane".equals(recreatedD.getName());
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {

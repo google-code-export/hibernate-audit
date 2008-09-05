@@ -3,8 +3,8 @@ package com.googlecode.hibernate.audit.test.jta;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.mock.jca.MockJTAAwareDataSource;
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -50,12 +50,14 @@ public class FailedCommitTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             UserTransaction ut = (UserTransaction)ic.lookup(getUserTransactionJNDIName());
 
@@ -97,7 +99,7 @@ public class FailedCommitTest extends JTATransactionTest
             // restore mock data source's sanity
             ds.setBroken(false);
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {

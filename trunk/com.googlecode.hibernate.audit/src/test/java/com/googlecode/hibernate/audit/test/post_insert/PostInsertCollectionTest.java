@@ -6,6 +6,7 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.WA;
 import com.googlecode.hibernate.audit.test.post_insert.data.WB;
@@ -55,12 +56,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
 
@@ -158,7 +162,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedStringValues.isEmpty();
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -181,12 +185,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
 
@@ -228,7 +235,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert base == postTWb.getWa();
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -251,12 +258,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
 
@@ -298,7 +308,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             // no bidirectionality
             assert postTWb.getWa() == null;
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -321,12 +331,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
 
@@ -392,7 +405,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedWbIds.isEmpty();
             
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -415,12 +428,15 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
 
@@ -485,7 +501,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
 
             assert expectedWbIds.isEmpty();
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -515,7 +531,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             sf = config.buildSessionFactory();
 
             // create the state in database, without auditing
-            assert !HibernateAudit.isEnabled(null);
+            assert !HibernateAudit.isStarted();
 
             Session s = sf.openSession();
             Transaction t = s.beginTransaction();
@@ -564,7 +580,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
             t.commit();
             s.close();
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -597,13 +613,14 @@ public class PostInsertCollectionTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(WA.class);
         config.addAnnotatedClass(WB.class);
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             WA wa = new WA();
             WB wb = new WB();
@@ -644,7 +661,7 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {

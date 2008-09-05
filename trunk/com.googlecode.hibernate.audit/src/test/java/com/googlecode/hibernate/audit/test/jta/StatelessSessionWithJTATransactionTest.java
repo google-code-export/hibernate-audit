@@ -3,8 +3,8 @@ package com.googlecode.hibernate.audit.test.jta;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
@@ -43,13 +43,15 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
         InitialContext ic = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             // start a JTA transaction
             ic = new InitialContext();
@@ -71,7 +73,7 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
             List ts = HibernateAudit.query("from AuditTransaction");
             assert ts.size() == 1;
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -98,13 +100,15 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        SessionFactory sf = null;
         InitialContext ic = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
-            HibernateAudit.enable(sf);
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             // start JTA transaction 1
             ic = new InitialContext();
@@ -155,7 +159,7 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
             ts = HibernateAudit.query("from AuditEventPair");
             assert ts.size() == 4;
 
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {

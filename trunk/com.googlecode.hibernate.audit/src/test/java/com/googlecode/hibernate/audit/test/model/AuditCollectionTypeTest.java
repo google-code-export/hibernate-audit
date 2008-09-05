@@ -3,8 +3,8 @@ package com.googlecode.hibernate.audit.test.model;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.model.base.AuditTypeTestBase;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.model.TestAccessHelper;
@@ -57,13 +57,14 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = HibernateAudit.getManager().getSessionFactory().openSession();
 
@@ -85,7 +86,7 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {
@@ -99,13 +100,14 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = HibernateAudit.getManager().getSessionFactory().openSession();
             s.beginTransaction();
@@ -126,7 +128,7 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {
@@ -140,13 +142,14 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = HibernateAudit.getManager().getSessionFactory().openSession();
             s.beginTransaction();
@@ -175,7 +178,7 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {
@@ -189,13 +192,14 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = HibernateAudit.getManager().getSessionFactory().openSession();
             s.beginTransaction();
@@ -232,7 +236,7 @@ public class AuditCollectionTypeTest extends AuditTypeTestBase
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
             
             if (sf != null)
             {

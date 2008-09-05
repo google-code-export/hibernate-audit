@@ -3,8 +3,8 @@ package com.googlecode.hibernate.audit.test.post_insert;
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.XA;
 import com.googlecode.hibernate.audit.test.post_insert.data.XB;
@@ -88,13 +88,14 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         config.addInputStream(new ByteArrayInputStream(xaMapping.getBytes()));
         config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -130,7 +131,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -184,13 +185,14 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         config.addInputStream(new ByteArrayInputStream(xaMapping.getBytes()));
         config.addInputStream(new ByteArrayInputStream(xcMapping.getBytes()));
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -225,7 +227,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -278,13 +280,14 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         config.addInputStream(new ByteArrayInputStream(xa2Mapping.getBytes()));
         config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -338,7 +341,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -392,13 +395,14 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         config.addInputStream(new ByteArrayInputStream(xa3Mapping.getBytes()));
         config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -462,7 +466,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
@@ -515,13 +519,14 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         config.addInputStream(new ByteArrayInputStream(xa2Mapping.getBytes()));
         config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
 
-        SessionFactory sf = null;
+        SessionFactoryImplementor sf = null;
 
         try
         {
-            sf = config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-            HibernateAudit.enable(sf);
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -552,7 +557,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
         finally
         {
-            HibernateAudit.disableAll();
+            HibernateAudit.stopRuntime();
 
             if (sf != null)
             {
