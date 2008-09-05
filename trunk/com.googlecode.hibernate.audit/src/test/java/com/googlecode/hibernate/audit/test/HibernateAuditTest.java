@@ -101,7 +101,7 @@ public class HibernateAuditTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testEnableDisable() throws Exception
+    public void testRegisterUnregister() throws Exception
     {
         assert !HibernateAudit.isStarted();
 
@@ -863,6 +863,34 @@ public class HibernateAuditTest extends JTATransactionTest
 
             HibernateAudit.stopRuntime();
             assert !HibernateAudit.isStarted();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testConsecutiveRegistrationsOfSameSessionFactory() throws Exception
+    {
+        Configuration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Settings settings = sf.getSettings();
+
+            HibernateAudit.startRuntime(settings);
+
+            HibernateAudit.register(sf);
+
         }
         finally
         {

@@ -1,32 +1,46 @@
-package com.googlecode.hibernate.audit;
+package com.googlecode.hibernate.audit.util;
+
+import org.hibernate.transaction.TransactionManagerLookup;
+import org.hibernate.HibernateException;
+
+import javax.transaction.TransactionManager;
+import java.util.Properties;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
- *
- * @version <tt>$Revision$</tt>
- *
- * $Id$
  */
-public final class HibernateAuditEnvironment
+public class SyntheticTransactionManagerLookup implements TransactionManagerLookup
 {
     // Constants -----------------------------------------------------------------------------------
-
-    public static final String HBA_PROPERTY_PREFIX = "hba.";
-
-    /**
-     * Auto export/update audit schema using hbm2ddl tool. Valid values are <tt>update</tt>,
-     * <tt>create</tt>, <tt>create-drop</tt> and <tt>validate</tt>.
-     */
-    public static final String HBM2DDL_AUTO = HBA_PROPERTY_PREFIX + "hbm2ddl.auto";
-    public static final String USER_TRANSACTION = HBA_PROPERTY_PREFIX + "jta.UserTransaction";
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private TransactionManager tm;
+    private String userTransactionName;
+
     // Constructors --------------------------------------------------------------------------------
+
+    public SyntheticTransactionManagerLookup(TransactionManager tm, String userTransactionName)
+    {
+        this.tm = tm;
+        this.userTransactionName = userTransactionName;
+    }
+
+    // TransactionManagerLookup implementation -----------------------------------------------------
+
+    public TransactionManager getTransactionManager(Properties props) throws HibernateException
+    {
+        return tm;
+    }
+
+    public String getUserTransactionName()
+    {
+        return userTransactionName;
+    }
 
     // Public --------------------------------------------------------------------------------------
 
@@ -37,4 +51,5 @@ public final class HibernateAuditEnvironment
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

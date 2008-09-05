@@ -19,6 +19,9 @@ import java.lang.reflect.Modifier;
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.AuditEnvironment;
 import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
+import com.googlecode.hibernate.audit.util.SyntheticTransactionManagerLookup;
+
+import javax.transaction.TransactionManager;
 
 /**
  * A SettingsFactory that knows how to extract certain "interesting" properties from audited session
@@ -44,6 +47,7 @@ class AuditSettingsFactory extends SettingsFactory
     // Attributes ----------------------------------------------------------------------------------
 
     private Settings sourceSettings;
+    private String userTransactionNameFromProperties;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -57,6 +61,7 @@ class AuditSettingsFactory extends SettingsFactory
     @Override
     public Settings buildSettings(Properties props)
     {
+        reset();
         Properties copy = new Properties();
         copy.putAll(props);
 
@@ -130,15 +135,6 @@ class AuditSettingsFactory extends SettingsFactory
 
         copy.setProperty(Environment.TRANSACTION_STRATEGY, JTATransactionFactory.class.getName());
 
-        TransactionManagerLookup tml = sourceSettings.getTransactionManagerLookup();
-        if (tml == null)
-        {
-            throw new RuntimeException(
-                "NOT YET IMPLEMENTED: null TransactionManagerLookup not supported!");
-        }
-
-        copy.setProperty(Environment.TRANSACTION_MANAGER_STRATEGY, tml.getClass().getName());
-
         // other default settings
 
         // TODO we force session retention to be 'jta', anaylize and come up with test cases
@@ -194,6 +190,10 @@ class AuditSettingsFactory extends SettingsFactory
                                 continue;
                             }
                         }
+                        else if (HibernateAuditEnvironment.USER_TRANSACTION.equals(key))
+                        {
+                            userTransactionNameFromProperties = hbaPropertyValue;
+                        }
 
                         copy.setProperty(hibernatePropertyName, hbaPropertyValue);
                     }
@@ -208,7 +208,45 @@ class AuditSettingsFactory extends SettingsFactory
 
     // Protected -----------------------------------------------------------------------------------
 
+    @Override
+    protected TransactionManagerLookup createTransactionManagerLookup(Properties properties)
+    {
+        TransactionManagerLookup originalTML = sourceSettings.getTransactionManagerLookup();
+        TransactionManager origTM = originalTML.getTransactionManager(properties);
+
+        String userTransactionName = userTransactionNameFromProperties;
+        if (userTransactionName == null)
+        {
+            userTransactionName = originalTML.getUserTransactionName();
+        }
+        return new SyntheticTransactionManagerLookup(origTM, userTransactionName);
+    }
+
+    @Override
+    protected TransactionFactory createTransactionFactory(Properties properties)
+    {
+        TransactionFactory sourceTransactionFactory = sourceSettings.getTransactionFactory();
+
+        if (userTransactionNameFromProperties != null)
+        {
+            if (properties == null)
+            {
+                properties = new Properties();
+            }
+
+            properties.setProperty(Environment.USER_TRANSACTION, userTransactionNameFromProperties);
+            sourceTransactionFactory.configure(properties);
+        }
+        
+        return sourceTransactionFactory; 
+    }
+
     // Private -------------------------------------------------------------------------------------
+
+    private void reset()
+    {
+        userTransactionNameFromProperties = null;
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 }
