@@ -17,6 +17,6 @@ Collection directionality information is not maintained in the original model, s
 
 If a collection item is removed from a collection, there are at least two ways to express this change:
 
-1. UPDATE and the delta is the remaining collection content 
+1. UPDATE and the delta is the remaining collection content. It's easier to implement.
 
-2. REMOVE and the delta is the removed member. This is a lot better in expressing the semantic of the change, and also in terms of space used.
+2. REMOVE and the delta is the removed member. This is a lot better in expressing the semantic of the change, and also in terms of space used. HBA uses this method.
