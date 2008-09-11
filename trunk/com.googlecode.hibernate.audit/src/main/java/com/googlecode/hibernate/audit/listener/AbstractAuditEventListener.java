@@ -9,6 +9,8 @@ import org.hibernate.event.EventSource;
 import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostUpdateEvent;
+import org.hibernate.event.PostCollectionUpdateEvent;
+import org.hibernate.event.PreCollectionUpdateEvent;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
@@ -125,9 +127,29 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             c.entity = pue.getEntity();
             c.persister = pue.getPersister();
         }
+        else if (e instanceof PreCollectionUpdateEvent)
+        {
+            PreCollectionUpdateEvent pcue = (PreCollectionUpdateEvent)e;
+            c.changeType = ChangeType.UPDATE;
+            c.session = pcue.getSession();
+            c.entityId = pcue.getAffectedOwnerIdOrNull();
+            c.entity = pcue.getAffectedOwnerOrNull();
+            c.entityName = pcue.getAffectedOwnerEntityName();
+            c.persister = c.session.getEntityPersister(c.entityName, c.entity);
+        }
+        else if (e instanceof PostCollectionUpdateEvent)
+        {
+            PostCollectionUpdateEvent pcue = (PostCollectionUpdateEvent)e;
+            c.changeType = ChangeType.UPDATE;
+            c.session = pcue.getSession();
+            c.entityId = pcue.getAffectedOwnerIdOrNull();
+            c.entity = pcue.getAffectedOwnerOrNull();
+            c.entityName = pcue.getAffectedOwnerEntityName();
+            c.persister = c.session.getEntityPersister(c.entityName, c.entity);
+        }
         else
         {
-            throw new IllegalArgumentException(e + " not a PostInsertEvent or PostUpdateEvent");
+            throw new IllegalArgumentException("unsupported event type " + e);
         }
 
         c.entityIdClass = c.entityId.getClass();
@@ -190,6 +212,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         Serializable entityId;
         Class entityIdClass;
+        String entityName;
 
         Object entity;
         Class entityClass;

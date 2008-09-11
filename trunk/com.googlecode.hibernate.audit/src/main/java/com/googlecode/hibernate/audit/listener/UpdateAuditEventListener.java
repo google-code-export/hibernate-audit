@@ -14,7 +14,7 @@ import com.googlecode.hibernate.audit.model.Manager;
  *
  * $Id$
  */
-public class SaveAuditEventListener
+public class UpdateAuditEventListener
     extends AbstractAuditEventListener implements SaveOrUpdateEventListener
 {
     // Constants -----------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ public class SaveAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
-    public SaveAuditEventListener(Manager m)
+    public UpdateAuditEventListener(Manager m)
     {
         super(m);
     }
@@ -43,7 +43,8 @@ public class SaveAuditEventListener
     @Override
     public String toString()
     {
-        return "SaveAuditEventListener[" + Integer.toHexString(System.identityHashCode(this)) + "]";
+        return "UpdateAuditEventListener[" +
+               Integer.toHexString(System.identityHashCode(this)) + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -10,12 +10,15 @@ import com.googlecode.hibernate.audit.test.post_update.data.A;
 import com.googlecode.hibernate.audit.test.post_update.data.CUni;
 import com.googlecode.hibernate.audit.test.post_update.data.DUni;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.util.NotYetImplementedException;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -46,7 +49,9 @@ public class PostUpdateRawTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    // Primitive Updates ---------------------------------------------------------------------------
+
+    @Test(enabled = false)
     public void testPostUpdate_Noop() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -103,7 +108,7 @@ public class PostUpdateRawTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPostUpdate_OneNewPrimitive() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -176,7 +181,7 @@ public class PostUpdateRawTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPostUpdate_TwoNewPrimitives() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -267,7 +272,7 @@ public class PostUpdateRawTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPostUpdate_TwoRemovedPrimitives() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -360,8 +365,86 @@ public class PostUpdateRawTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
-    public void testPostUpdate_Collection_AddOne() throws Exception
+    @Test(enabled = false)
+    public void testPostUpdate_ChangeAPrimitive() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setS("shazam");
+            a.setI(234);
+            s.save(a);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            a.setS("sabar");
+            s.update(a);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(a.getId());
+            assert txs.size() == 2;
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            assert events.size() == 1;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.UPDATE.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert a.getId().equals(ae.getTargetId());
+
+            List types = HibernateAudit.query("from AuditEntityType as t where t.className = :cn",
+                                              A.class.getName());
+            assert types.size() == 1;
+            assert types.get(0).equals(ae.getTargetType());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            AuditType ft = f.getType();
+            assert "s".equals(f.getName());
+            assert ft.isPrimitiveType();
+            assert String.class.equals(ft.getClassInstance());
+            assert "sabar".equals(p.getValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    // Collection Updates --------------------------------------------------------------------------
+
+    @Test(enabled = false)
+    public void testPostUpdate_EmptyCollection_AddOne() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -419,11 +502,8 @@ public class PostUpdateRawTest extends JTATransactionTest
             {
                 AuditEntityType aet = (AuditEntityType)o;
 
-                if (CUni.class.equals(aet.getClassInstance()))
-                {
-                    // ok
-                }
-                else if (DUni.class.equals(aet.getClassInstance()))
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
                 {
                     // ok
                 }
@@ -437,7 +517,7 @@ public class PostUpdateRawTest extends JTATransactionTest
             List pairs = HibernateAudit.
                 query("from AuditEventPair as p where p.event = :event", ae);
 
-            assert pairs.size() == 0;
+            assert pairs.size() == 0; // no fields in for the new D instance
         }
         finally
         {
@@ -448,6 +528,540 @@ public class PostUpdateRawTest extends JTATransactionTest
                 sf.close();
             }
         }
+    }
+
+    @Test(enabled = false)
+    public void testPostUpdate_EmptyCollection_AddTwo() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            List<DUni> ds = new ArrayList<DUni>();
+            DUni done = new DUni();
+            DUni dtwo = new DUni();
+            dtwo.setI(7);
+
+            ds.add(done);
+            ds.add(dtwo);
+
+            c.setDs(ds);
+
+            s.update(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+            assert txs.size() == 2;
+
+            List types = HibernateAudit.query("from AuditEntityType");
+            assert types.size() == 2;
+
+            for(Object o: types)
+            {
+                AuditEntityType aet = (AuditEntityType)o;
+
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
+                {
+                    // ok
+                }
+                else
+                {
+                    throw new Error("unexpected type: "  + aet);
+                }
+
+            }
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            // two INSERTs, no UPDATE
+            assert events.size() == 2;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert done.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 0; // no fields in for the first D instance
+
+            ae = (AuditEvent)events.get(1);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert dtwo.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            assert "i".equals(f.getName());
+            assert Integer.class.equals(f.getType().getClassInstance());
+            assert new Integer(7).equals(p.getValue());
+            assert "7".equals(p.getStringValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false)
+    public void testPostUpdate_CollectionOfOne_AddAnotherOne() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            List<DUni> ds = new ArrayList<DUni>();
+            DUni done = new DUni();
+            ds.add(done);
+            c.setDs(ds);
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            DUni dtwo = new DUni();
+            dtwo.setI(7);
+            c.getDs().add(dtwo);
+            s.update(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+            assert txs.size() == 2;
+
+            List types = HibernateAudit.query("from AuditEntityType");
+            assert types.size() == 2;
+
+            for(Object o: types)
+            {
+                AuditEntityType aet = (AuditEntityType)o;
+
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
+                {
+                    // ok
+                }
+                else
+                {
+                    throw new Error("unexpected type: "  + aet);
+                }
+
+            }
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            // one INSERT, no UPDATE
+            assert events.size() == 1;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert dtwo.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            assert "i".equals(f.getName());
+            assert Integer.class.equals(f.getType().getClassInstance());
+            assert new Integer(7).equals(p.getValue());
+            assert "7".equals(p.getStringValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false)
+    public void testPostUpdate_CollectionOfOne_AddTwo() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            List<DUni> ds = new ArrayList<DUni>();
+            DUni done = new DUni();
+            ds.add(done);
+            c.setDs(ds);
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            DUni dtwo = new DUni();
+            dtwo.setI(8);
+            DUni dthree = new DUni();
+            dthree.setS("sonoma");
+
+            c.getDs().add(dtwo);
+            c.getDs().add(dthree);
+            s.update(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+            assert txs.size() == 2;
+
+            List types = HibernateAudit.query("from AuditEntityType");
+            assert types.size() == 2;
+
+            for(Object o: types)
+            {
+                AuditEntityType aet = (AuditEntityType)o;
+
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
+                {
+                    // ok
+                }
+                else
+                {
+                    throw new Error("unexpected type: "  + aet);
+                }
+
+            }
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            // two INSERTs, no UPDATE
+            assert events.size() == 2;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert dtwo.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            assert "i".equals(f.getName());
+            assert Integer.class.equals(f.getType().getClassInstance());
+            assert new Integer(8).equals(p.getValue());
+            assert "8".equals(p.getStringValue());
+
+            ae = (AuditEvent)events.get(1);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert dthree.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            p = (AuditEventPair)pairs.get(0);
+            assert ae.equals(p.getEvent());
+            f = p.getField();
+            assert "s".equals(f.getName());
+            assert String.class.equals(f.getType().getClassInstance());
+            assert "sonoma".equals(p.getValue());
+            assert "sonoma".equals(p.getStringValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false)
+    public void testPostUpdate_CollectionOfOne_UpdateExistingsContent() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            List<DUni> ds = new ArrayList<DUni>();
+            DUni done = new DUni();
+            ds.add(done);
+            c.setDs(ds);
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            done.setI(9);
+            done.setS("sith");
+
+            s.update(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+            assert txs.size() == 2;
+
+            List types = HibernateAudit.query("from AuditEntityType");
+            assert types.size() == 2;
+
+            for(Object o: types)
+            {
+                AuditEntityType aet = (AuditEntityType)o;
+
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
+                {
+                    // ok
+                }
+                else
+                {
+                    throw new Error("unexpected type: "  + aet);
+                }
+
+            }
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            // one UPDATE
+            assert events.size() == 1;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.UPDATE.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert done.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 2;
+
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            assert "i".equals(f.getName());
+            assert Integer.class.equals(f.getType().getClassInstance());
+            assert new Integer(9).equals(p.getValue());
+            assert "9".equals(p.getStringValue());
+
+            p = (AuditEventPair)pairs.get(1);
+            assert ae.equals(p.getEvent());
+            f = p.getField();
+            assert "s".equals(f.getName());
+            assert String.class.equals(f.getType().getClassInstance());
+            assert "sith".equals(p.getValue());
+            assert "sith".equals(p.getStringValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testPostUpdate_CollectionOfOne_RemoveExisting() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            List<DUni> ds = new ArrayList<DUni>();
+            DUni done = new DUni();
+            ds.add(done);
+            c.setDs(ds);
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            c.getDs().clear();
+            s.update(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+            assert txs.size() == 2;
+
+            List types = HibernateAudit.query("from AuditEntityType");
+            assert types.size() == 2;
+
+            for(Object o: types)
+            {
+                AuditEntityType aet = (AuditEntityType)o;
+
+                if (CUni.class.equals(aet.getClassInstance()) ||
+                    DUni.class.equals(aet.getClassInstance()))
+                {
+                    // ok
+                }
+                else
+                {
+                    throw new Error("unexpected type: "  + aet);
+                }
+
+            }
+
+            AuditTransaction tx = txs.get(1);
+
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            // one collection UPDATE
+            assert events.size() == 1;
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.UPDATE.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert c.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.
+                query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventPair p = (AuditEventPair)pairs.get(0);
+
+            assert ae.equals(p.getEvent());
+            AuditTypeField f = p.getField();
+            assert "ds".equals(f.getName());
+            AuditCollectionType ct = (AuditCollectionType)f.getType();
+            assert List.class.equals(ct.getCollectionClassInstance());
+            assert DUni.class.equals(ct.getClassInstance());
+
+            List<DUni> value = (List<DUni>)p.getValue();
+            assert value.isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = false)
+    public void testPostUpdate_CollectionOfOne_ReplaceExistingWithAnotherOne() throws Exception
+    {
+        throw new NotYetImplementedException();
     }
 
     // Package protected ---------------------------------------------------------------------------

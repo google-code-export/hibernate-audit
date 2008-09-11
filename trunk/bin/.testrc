@@ -13,7 +13,7 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 
 # different test types
 #TARGET_CLASS=ReflectionsTest
-TARGET_CLASS=HibernateAuditTest
+#TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=ExternalDDLFileTest
 #TARGET_CLASS=ListenersTest
@@ -25,7 +25,7 @@ TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=PostInsertStatefulSessionTest
 #TARGET_CLASS=PostInsertTuplizerEntityTest
 #TARGET_CLASS=DeltaEngineTest
-#>TARGET_CLASS=DeltaTest
+#TARGET_CLASS=DeltaTest
 #TARGET_CLASS=AuditTypeTest
 #TARGET_CLASS=AuditEntityTypeTest
 #TARGET_CLASS=AuditCollectionTypeTest
@@ -35,4 +35,4 @@ TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=DDLTypeTest
 #TARGET_CLASS=LogicalGroupIdProviderTest
 #TARGET_CLASS=PostUpdateTest
-#TARGET_CLASS=PostUpdateRawTest
+TARGET_CLASS=PostUpdateRawTest

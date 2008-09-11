@@ -55,8 +55,8 @@ public class PostUpdateAuditEventListener
 
             if (type.isEntityType() || type.isCollectionType() || type.isComponentType())
             {
-                log.warn("ignoring " + type + " for now"); // TODO fix this
-                continue;
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+                //continue;
             }
 
             String name = names[i];

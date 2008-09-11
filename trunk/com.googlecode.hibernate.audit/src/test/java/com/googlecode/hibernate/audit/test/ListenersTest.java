@@ -35,7 +35,7 @@ public class ListenersTest
     {
         Set<String> types = Listeners.getAuditedEventTypes();
 
-        assert types.size() == 7;
+        assert types.size() == 8;
         assert types.contains("post-insert");
         assert types.contains("save-update");
         assert types.contains("save");
@@ -43,6 +43,7 @@ public class ListenersTest
         assert types.contains("flush");
         assert types.contains("flush-entity");
         assert types.contains("post-update");
+        assert types.contains("update");
         assert !types.contains("abstract");
 
         log.debug("done");
