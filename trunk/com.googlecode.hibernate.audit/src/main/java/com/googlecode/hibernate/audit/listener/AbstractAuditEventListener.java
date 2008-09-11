@@ -4,13 +4,13 @@ import org.apache.log4j.Logger;
 import org.hibernate.Transaction;
 import org.hibernate.SessionFactory;
 import org.hibernate.EntityMode;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.event.EventSource;
 import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostCollectionUpdateEvent;
-import org.hibernate.event.PreCollectionUpdateEvent;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
@@ -127,16 +127,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             c.entity = pue.getEntity();
             c.persister = pue.getPersister();
         }
-        else if (e instanceof PreCollectionUpdateEvent)
-        {
-            PreCollectionUpdateEvent pcue = (PreCollectionUpdateEvent)e;
-            c.changeType = ChangeType.UPDATE;
-            c.session = pcue.getSession();
-            c.entityId = pcue.getAffectedOwnerIdOrNull();
-            c.entity = pcue.getAffectedOwnerOrNull();
-            c.entityName = pcue.getAffectedOwnerEntityName();
-            c.persister = c.session.getEntityPersister(c.entityName, c.entity);
-        }
         else if (e instanceof PostCollectionUpdateEvent)
         {
             PostCollectionUpdateEvent pcue = (PostCollectionUpdateEvent)e;
@@ -152,6 +142,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             throw new IllegalArgumentException("unsupported event type " + e);
         }
 
+        c.factory = c.session.getFactory();
         c.entityIdClass = c.entityId.getClass();
         c.entityClass = c.entity.getClass();
         c.entityClassName = c.entityClass.getName();
@@ -208,6 +199,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
      */
     protected class EntityEventContext
     {
+        SessionFactoryImplementor factory;
         EventSource session;
 
         Serializable entityId;

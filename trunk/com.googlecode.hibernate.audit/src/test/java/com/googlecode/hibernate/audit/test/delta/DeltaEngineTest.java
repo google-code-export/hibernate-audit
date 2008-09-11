@@ -714,10 +714,6 @@ public class DeltaEngineTest extends JTATransactionTest
             s.save(c);
             s.getTransaction().commit();
 
-            StringBuffer sb = new StringBuffer("<html><br>\n");
-            sb.append("<table border = '1'>\n");
-            sb.append("<tr><th>changeid</th><th>username</th><th>timestamp</th><th>entity</th><th>entity id</th><th>property name</th><th>property value</th></tr>\n");
-
             List<AuditTransaction> transactions =
                 HibernateAudit.getTransactionsByLogicalGroup(c.getId());
 
@@ -753,11 +749,8 @@ public class DeltaEngineTest extends JTATransactionTest
                 }
             }
 
+            StringBuffer sb = new StringBuffer();
             Delta.render(sb, delta);
-
-            sb.append("</table><br><br>\n");
-            sb.append("<table border = '1'>\n");
-            sb.append("<tr><th>changeid</th><th>username</th><th>timestamp</th><th>entity</th><th>entity id</th><th>property name</th><th>property value</th></tr>\n");
 
             s.beginTransaction();
 
@@ -808,10 +801,8 @@ public class DeltaEngineTest extends JTATransactionTest
             }
 
             Delta.render(sb, delta);
-            sb.append("</table></html>");
             FileWriter fw = new FileWriter(new File("C:\\tmp\\delta.html"));
             PrintWriter pw = new PrintWriter(fw);
-            pw.println(sb.toString());
             pw.close();
             fw.close();
 

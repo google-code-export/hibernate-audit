@@ -74,6 +74,18 @@ public class Hibernate
         return name;
     }
 
+    public static String roleToVariableName(String role)
+    {
+        int i = role.lastIndexOf('.');
+
+        if (i == -1)
+        {
+            return role;
+        }
+
+        return role.substring(i + 1);
+    }
+
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------

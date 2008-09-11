@@ -2,8 +2,22 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostCollectionUpdateEventListener;
 import org.hibernate.event.PostCollectionUpdateEvent;
+import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CollectionType;
+import org.hibernate.type.Type;
+import org.hibernate.collection.PersistentCollection;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
+import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
+import com.googlecode.hibernate.audit.model.AuditCollectionType;
+import com.googlecode.hibernate.audit.util.Hibernate;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -39,40 +53,32 @@ public class PostCollectionUpdateAuditEventListener
         log.debug(this + ".onPostUpdateCollection(...)");
 
         EntityEventContext ec = createAndLogEntityEventContext(event);
+        PersistentCollection c = event.getCollection();
+        String role = c.getRole();
+        CollectionPersister cp = ec.factory.getCollectionPersister(role);
+        CollectionType ct = cp.getCollectionType();
+        Class cc = Hibernate.collectionTypeToClass(ct);
+        Type et = ct.getElementType(ec.factory);
+        Class elemc = et.getReturnedClass();
+        AuditCollectionType ft = (AuditCollectionType)ec.auditTransaction.getAuditType(cc, elemc);
+        String fn = Hibernate.roleToVariableName(role);
+        AuditTypeField f = ec.auditTransaction.getAuditTypeField(fn, ft);
 
-//        Object[] state = event.getState();
-//        Object[] oldState = event.getOldState();
-//        String[] names = ec.persister.getPropertyNames();
-//        Type[] types = ec.persister.getPropertyTypes();
-//
-//        for(int i = 0; i < state.length; i++)
-//        {
-//            Type type = types[i];
-//
-//            if (type.isEntityType() || type.isCollectionType() || type.isComponentType())
-//            {
-//                throw new RuntimeException("NOT YET IMPLEMENTED");
-//                //continue;
-//            }
-//
-//            String name = names[i];
-//            Object current = state[i];
-//            Object old = oldState[i];
-//
-//            if (current == null && old == null || current != null && current.equals(old))
-//            {
-//                // nothing really happened here
-//                continue;
-//            }
-//
-//            AuditEventPair pair = new AuditEventPair();
-//            AuditType fieldType = ec.auditTransaction.getAuditType(type.getReturnedClass());
-//            AuditTypeField f = ec.auditTransaction.getAuditTypeField(name, fieldType);
-//            pair.setField(f);
-//            pair.setValue(current);
-//            pair.setEvent(ec.auditEvent);
-//            ec.auditTransaction.log(pair);
-//        }
+        AuditEventCollectionPair pair = new AuditEventCollectionPair();
+        pair.setEvent(ec.auditEvent);
+        pair.setField(f);
+
+        List<Long> ids = new ArrayList<Long>();
+        for(Iterator i = c.entries(cp); i.hasNext(); )
+        {
+            Object entry = i.next();
+            Long id = (Long)ec.session.getIdentifier(entry);
+            ids.add(id);
+        }
+
+        pair.setIds(ids);
+
+        ec.auditTransaction.log(pair);
     }
 
     // Public --------------------------------------------------------------------------------------

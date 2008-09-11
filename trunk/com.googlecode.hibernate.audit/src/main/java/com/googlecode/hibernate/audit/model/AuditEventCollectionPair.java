@@ -70,6 +70,12 @@ public class AuditEventCollectionPair extends AuditEventPair
     }
 
     @Override
+    public Object getValue()
+    {
+        return ids;
+    }
+
+    @Override
     public String toString()
     {
         return getField() + "=" + ids;

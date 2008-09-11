@@ -53,10 +53,15 @@ public class PostUpdateAuditEventListener
         {
             Type type = types[i];
 
-            if (type.isEntityType() || type.isCollectionType() || type.isComponentType())
+            if (type.isCollectionType())
+            {
+                // ignore, will be handled by PostCollectionUpdate listener
+                continue;
+            }
+
+            if (type.isComponentType())
             {
                 throw new RuntimeException("NOT YET IMPLEMENTED");
-                //continue;
             }
 
             String name = names[i];
@@ -65,8 +70,13 @@ public class PostUpdateAuditEventListener
 
             if (current == null && old == null || current != null && current.equals(old))
             {
-                // nothing really happened here
+                // nothing really happened here, nothing changes, exit ...
                 continue;
+            }
+            
+            if (type.isEntityType())
+            {
+                throw new RuntimeException("ENTITY MEMBER CHANGED, NOT YET IMPLEMENTED");
             }
 
             AuditEventPair pair = new AuditEventPair();
