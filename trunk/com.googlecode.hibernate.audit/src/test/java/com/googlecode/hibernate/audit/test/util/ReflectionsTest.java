@@ -620,34 +620,34 @@ public class ReflectionsTest
         assert base == h2;
     }
 
-    @Test(enabled = false) // TEST_OFF
-    public void testApplyDelta_ImmutableUntypedEmptyCollectionWithAddMethod() throws Exception
-    {
-        // first make sure the collection is immutable
-
-        F1 delta = new F1();
-
-        Collection ucstrings = delta.getUcstrings();
-
-        try
-        {
-            ucstrings.add("blah");
-            throw new Error("should've failed");
-        }
-        catch(UnsupportedOperationException e)
-        {
-            // ok
-        }
-
-        F1 base = new F1();
-        base.addUcstring("blah");
-        assert 1 == base.getUcstrings().size();
-
-        Reflections.applyDelta(base, delta);
-
-        Collection c = base.getUcstrings();
-        assert c.isEmpty();
-    }
+//    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-107
+//    public void testApplyDelta_ImmutableUntypedEmptyCollectionWithAddMethod() throws Exception
+//    {
+//        // first make sure the collection is immutable
+//
+//        F1 delta = new F1();
+//
+//        Collection ucstrings = delta.getUcstrings();
+//
+//        try
+//        {
+//            ucstrings.add("blah");
+//            throw new Error("should've failed");
+//        }
+//        catch(UnsupportedOperationException e)
+//        {
+//            // ok
+//        }
+//
+//        F1 base = new F1();
+//        base.addUcstring("blah");
+//        assert 1 == base.getUcstrings().size();
+//
+//        Reflections.applyDelta(base, delta);
+//
+//        Collection c = base.getUcstrings();
+//        assert c.isEmpty();
+//    }
 
     @Test(enabled = true)
     public void testApplyDelta_ImmutableUntypedCollectionWithAddMethod_OneMember() throws Exception
@@ -719,35 +719,35 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = false) // TEST_OFF
-    public void testApplyDelta_ImmutableUntypedEmptySetWithAddMethod() throws Exception
-    {
-        // first make sure the collection is immutable
-
-        F2 delta = new F2();
-
-        Set usstrings = delta.getUsstrings();
-
-        try
-        {
-            usstrings.add("blah");
-            throw new Error("should've failed");
-        }
-        catch(UnsupportedOperationException e)
-        {
-            // ok
-        }
-
-        F2 base = new F2();
-        base.addUsstring("blah");
-        assert 1 == base.getUsstrings().size();
-        assert delta.getUsstrings().isEmpty();
-
-        Reflections.applyDelta(base, delta);
-
-        Collection c = base.getUsstrings();
-        assert c.isEmpty();
-    }
+//    @Test(enabled = true)  // TODO https://jira.novaordis.org/browse/HBA-107
+//    public void testApplyDelta_ImmutableUntypedEmptySetWithAddMethod() throws Exception
+//    {
+//        // first make sure the collection is immutable
+//
+//        F2 delta = new F2();
+//
+//        Set usstrings = delta.getUsstrings();
+//
+//        try
+//        {
+//            usstrings.add("blah");
+//            throw new Error("should've failed");
+//        }
+//        catch(UnsupportedOperationException e)
+//        {
+//            // ok
+//        }
+//
+//        F2 base = new F2();
+//        base.addUsstring("blah");
+//        assert 1 == base.getUsstrings().size();
+//        assert delta.getUsstrings().isEmpty();
+//
+//        Reflections.applyDelta(base, delta);
+//
+//        Collection c = base.getUsstrings();
+//        assert c.isEmpty();
+//    }
 
     @Test(enabled = true)
     public void testApplyDelta_ImmutableUntypedSetWithAddMethod_OneMember() throws Exception
@@ -819,33 +819,33 @@ public class ReflectionsTest
         }
     }
 
-    @Test(enabled = false) // TEST_OFF
-    public void testApplyDelta_ImmutableCollectionWithAddMethod_Empty() throws Exception
-    {
-        // first make sure the collection is immutable
-
-        F3 delta = new F3();
-
-        Set<String> strings = delta.getStrings();
-
-        try
-        {
-            strings.add("blah");
-            throw new Error("should've failed");
-        }
-        catch(UnsupportedOperationException e)
-        {
-            // ok
-        }
-
-        F3 base = new F3();
-        base.addString("blah");
-
-        Reflections.applyDelta(base, delta);
-
-        strings = base.getStrings();
-        assert strings.isEmpty();
-    }
+//    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-107
+//    public void testApplyDelta_ImmutableCollectionWithAddMethod_Empty() throws Exception
+//    {
+//        // first make sure the collection is immutable
+//
+//        F3 delta = new F3();
+//
+//        Set<String> strings = delta.getStrings();
+//
+//        try
+//        {
+//            strings.add("blah");
+//            throw new Error("should've failed");
+//        }
+//        catch(UnsupportedOperationException e)
+//        {
+//            // ok
+//        }
+//
+//        F3 base = new F3();
+//        base.addString("blah");
+//
+//        Reflections.applyDelta(base, delta);
+//
+//        strings = base.getStrings();
+//        assert strings.isEmpty();
+//    }
 
     @Test(enabled = true)
     public void testApplyDelta_ImmutableCollectionWithAddMethod() throws Exception
