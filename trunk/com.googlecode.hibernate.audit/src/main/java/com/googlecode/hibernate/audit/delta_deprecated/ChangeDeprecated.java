@@ -1,6 +1,7 @@
-package com.googlecode.hibernate.audit.delta;
+package com.googlecode.hibernate.audit.delta_deprecated;
 
 import com.googlecode.hibernate.audit.util.Entity;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -10,8 +11,11 @@ import com.googlecode.hibernate.audit.util.Entity;
  * @version <tt>$Revision$</tt>
  *
  * $Id$
+ *
+ *
  */
-public class Change
+@Deprecated
+public class ChangeDeprecated 
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,7 +33,7 @@ public class Change
 
     // Constructors --------------------------------------------------------------------------------
 
-    public Change(ChangeType type, Entity entity,
+    public ChangeDeprecated(ChangeType type, Entity entity,
                   String propertyName, Class propertyType, Object propertyValue)
     {
         this.type = type;

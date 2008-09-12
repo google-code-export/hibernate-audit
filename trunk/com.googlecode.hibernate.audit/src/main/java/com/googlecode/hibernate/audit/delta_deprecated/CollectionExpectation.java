@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.delta;
+package com.googlecode.hibernate.audit.delta_deprecated;
 
 import com.googlecode.hibernate.audit.util.Reflections;
 

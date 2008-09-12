@@ -8,7 +8,7 @@ import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
-import com.googlecode.hibernate.audit.delta.Delta;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.util.Reflections;
 
 import java.util.List;
@@ -232,7 +232,7 @@ public final class HibernateAudit
         }
     }
 
-    // Queries -------------------------------------------------------------------------------------
+    // Generic Queries -----------------------------------------------------------------------------
 
     /**
      * A general purpose query facility. Understands HQL.
@@ -253,6 +253,8 @@ public final class HibernateAudit
 
         return m.query(query, args);
     }
+
+    // Specialized Queries -------------------------------------------------------------------------
 
     /**
      * Specialized query.
@@ -323,7 +325,7 @@ public final class HibernateAudit
      * @return the delta or null, if no delta information was found for this particular combination
      *         of transaction/logical group.
      */
-    public static Delta getDelta(Long txId, Serializable lgId) throws Exception
+    public static DeltaDeprecated getDelta(Long txId, Serializable lgId) throws Exception
     {
         Manager m = null;
 

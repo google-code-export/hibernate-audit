@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.delta;
+package com.googlecode.hibernate.audit.delta_deprecated;
 
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;

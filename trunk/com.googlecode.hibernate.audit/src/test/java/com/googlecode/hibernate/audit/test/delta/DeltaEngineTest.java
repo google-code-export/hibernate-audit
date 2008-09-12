@@ -9,11 +9,11 @@ import org.hibernate.event.EventSource;
 import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.RandomType;
-import com.googlecode.hibernate.audit.delta.DeltaEngine;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.delta_deprecated.ChangeDeprecated;
 import com.googlecode.hibernate.audit.util.Entity;
-import com.googlecode.hibernate.audit.delta.Delta;
-import com.googlecode.hibernate.audit.delta.Change;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 
@@ -559,7 +559,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             assert transactions.size() == 1;
 
-            Delta d = DeltaEngine.getDelta(transactions.get(0).getId(), new Long(44),
+            DeltaDeprecated d = DeltaEngine.getDelta(transactions.get(0).getId(), new Long(44),
                                            HibernateAudit.getManager().getSessionFactory());
 
             assert d != null;
@@ -621,7 +621,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             AuditTransaction tx = transactions.get(0);
 
-            Delta delta = HibernateAudit.getDelta(tx.getId(), c.getId());
+            DeltaDeprecated delta = HibernateAudit.getDelta(tx.getId(), c.getId());
 
             Set<Entity> entities = delta.getEntities();
 
@@ -629,7 +629,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             for(Entity e: entities)
             {
-                List<Change> changes = delta.getChanges(e);
+                List<ChangeDeprecated> changes = delta.getChanges(e);
 
                 if(new Entity(c.getId(), c.getClass()).equals(e))
                 {
@@ -650,7 +650,7 @@ public class DeltaEngineTest extends JTATransactionTest
             }
 
             StringBuffer sb = new StringBuffer();
-            Delta.render(sb, delta);
+            DeltaDeprecated.render(sb, delta);
 
             s.beginTransaction();
 
@@ -680,7 +680,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             for(Entity e: entities)
             {
-                List<Change> changes = delta.getChanges(e);
+                List<ChangeDeprecated> changes = delta.getChanges(e);
 
                 if(new Entity(c.getId(), c.getClass()).equals(e))
                 {
@@ -700,8 +700,8 @@ public class DeltaEngineTest extends JTATransactionTest
                 }
             }
 
-            Delta.render(sb, delta);
-            FileWriter fw = new FileWriter(new File("C:\\tmp\\delta.html"));
+            DeltaDeprecated.render(sb, delta);
+            FileWriter fw = new FileWriter(new File("C:\\tmp\\elta.html"));
             PrintWriter pw = new PrintWriter(fw);
             pw.close();
             fw.close();

@@ -43,7 +43,7 @@ public class PostDeleteRawTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPostDelete() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

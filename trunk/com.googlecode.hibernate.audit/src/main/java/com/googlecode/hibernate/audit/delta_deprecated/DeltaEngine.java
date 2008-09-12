@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.delta;
+package com.googlecode.hibernate.audit.delta_deprecated;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -17,6 +17,9 @@ import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.util.Entity;
+import com.googlecode.hibernate.audit.delta_deprecated.ChangeDeprecated;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 
 import java.util.List;
 import java.util.HashSet;
@@ -32,6 +35,7 @@ import java.io.Serializable;
  *
  * $Id$
  */
+@Deprecated
 public class DeltaEngine
 {
     // Constants -----------------------------------------------------------------------------------
@@ -368,7 +372,7 @@ public class DeltaEngine
      * @return the delta or null, if no delta information was found for this particular combination
      *         of transaction/logical group.
      */
-    public static Delta getDelta(Long txId, Serializable lgId, SessionFactoryImplementor internalSf)
+    public static DeltaDeprecated getDelta(Long txId, Serializable lgId, SessionFactoryImplementor internalSf)
         throws Exception
     {
         Session internalSession = null;
@@ -405,7 +409,7 @@ public class DeltaEngine
                 return null;
             }
 
-            Delta result = new Delta();
+            DeltaDeprecated result = new DeltaDeprecated();
 
             // "collect" events
 
@@ -467,7 +471,7 @@ public class DeltaEngine
                         propertyValue = propertyType.stringToValue(p.getStringValue());
                     }
 
-                    Change c = new Change(ct, entity, propertyName, 
+                    ChangeDeprecated c = new ChangeDeprecated(ct, entity, propertyName,
                                           propertyType.getClassInstance(),  propertyValue);
 
                     result.addChange(c);

@@ -28,8 +28,8 @@ import java.security.Principal;
 import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
-import com.googlecode.hibernate.audit.delta.DeltaEngine;
-import com.googlecode.hibernate.audit.delta.Delta;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
+import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -395,7 +395,7 @@ public class Manager
      * @return the delta or null, if no delta information was found for this particular combination
      *         of transaction/logical group.
      */
-    public Delta getDelta(Long txId, Serializable lgId) throws Exception
+    public DeltaDeprecated getDelta(Long txId, Serializable lgId) throws Exception
     {
         return DeltaEngine.getDelta(txId, lgId, isf);
     }
