@@ -1,7 +1,6 @@
 package com.googlecode.hibernate.audit.delta_deprecated;
 
 import com.googlecode.hibernate.audit.util.Entity;
-import com.googlecode.hibernate.audit.delta_deprecated.ChangeDeprecated;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,8 @@ import java.util.Comparator;
  * @version <tt>$</tt>
  */
 @Deprecated
-public class DeltaDeprecated {
+public class DeltaDeprecated
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------

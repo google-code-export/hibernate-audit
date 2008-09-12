@@ -10,6 +10,8 @@ import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.util.Reflections;
+import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
+import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -319,13 +321,13 @@ public final class HibernateAudit
     // Delta functions -----------------------------------------------------------------------------
 
     /**
-     * @param txId - the id of the transaction that introduced the delta.
-     * @param lgId - the id of the logical group. If null, all delta information is returned.
+     * @param txId the ide of the transaction we want delta for.
      *
-     * @return the delta or null, if no delta information was found for this particular combination
-     *         of transaction/logical group.
+     * @return the transaction delta or null if no such transaction if found.
+     *
+     * @throws Exception could be caused by an abnormal condition while accessing the database.
      */
-    public static DeltaDeprecated getDelta(Long txId, Serializable lgId) throws Exception
+    public static TransactionDelta getDelta(Long txId) throws Exception
     {
         Manager m = null;
 
@@ -339,7 +341,31 @@ public final class HibernateAudit
             m = manager;
         }
 
-        return m.getDelta(txId, lgId);
+        return m.getDelta(txId);
+    }
+
+    /**
+     * @param txId - the id of the transaction that introduced the delta.
+     * @param lgId - the id of the logical group. If null, all delta information is returned.
+     *
+     * @return the delta or null, if no delta information was found for this particular combination
+     *         of transaction/logical group.
+     */
+    public static DeltaDeprecated getDeltaDeprecated(Long txId, Serializable lgId) throws Exception
+    {
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit runtime not enabled");
+            }
+
+            m = manager;
+        }
+
+        return m.getDeltaDeprecated(txId, lgId);
     }
 
     /**

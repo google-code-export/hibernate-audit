@@ -9,6 +9,10 @@ import org.hibernate.event.EventSource;
 import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.RandomType;
+import com.googlecode.hibernate.audit.test.delta.data.A;
+import com.googlecode.hibernate.audit.test.delta.data.B;
+import com.googlecode.hibernate.audit.test.delta.data.D;
+import com.googlecode.hibernate.audit.test.delta.data.C;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta_deprecated.ChangeDeprecated;
@@ -621,7 +625,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             AuditTransaction tx = transactions.get(0);
 
-            DeltaDeprecated delta = HibernateAudit.getDelta(tx.getId(), c.getId());
+            DeltaDeprecated delta = HibernateAudit.getDeltaDeprecated(tx.getId(), c.getId());
 
             Set<Entity> entities = delta.getEntities();
 
@@ -672,7 +676,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             tx = transactions.get(1);
 
-            delta = HibernateAudit.getDelta(tx.getId(), c.getId());
+            delta = HibernateAudit.getDeltaDeprecated(tx.getId(), c.getId());
 
             entities = delta.getEntities();
 

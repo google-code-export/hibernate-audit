@@ -1,68 +1,35 @@
-package com.googlecode.hibernate.audit.test.delta;
+package com.googlecode.hibernate.audit.test.post_delete;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+import org.testng.annotations.Test;
+import org.apache.log4j.Logger;
+import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 
 /**
+ * This is a collection of various "post-delete" use cases of leaving an audit trail and then
+ * extracting the deltas from that audit trail via the API.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-@Entity
-@Table(name = "A")
-public class A
+@Test(sequential = true)
+public class PostDeleteDeltaTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(PostDeleteDeltaTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String name;
-
-    private Integer age;
-
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
-
-    public Long getId()
-    {
-        return id;
-    }
-
-    public void setId(Long id)
-    {
-        this.id = id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    public Integer getAge()
-    {
-        return age;
-    }
-
-    public void setAge(Integer age)
-    {
-        this.age = age;
-    }
 
     // Package protected ---------------------------------------------------------------------------
 

@@ -2,7 +2,16 @@ package com.googlecode.hibernate.audit.test.post_insert;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+import com.googlecode.hibernate.audit.test.post_insert.data.A;
+import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
+
+import java.util.List;
 
 /**
  * This is a collection of various "post-insert" use cases of leaving an audit trail and then
@@ -17,11 +26,11 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
  * $Id$
  */
 @Test(sequential = true)
-public class PostInsertGetDeltaTest extends JTATransactionTest 
+public class PostInsertDeltaTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(PostInsertGetDeltaTest.class);
+    private static final Logger log = Logger.getLogger(PostInsertDeltaTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -31,32 +40,37 @@ public class PostInsertGetDeltaTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-//    @Test(enabled = true)
-//    public void testInsert_NullProperty() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//            Session s = sf.openSession();
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//            s.beginTransaction();
-//
-//            A a = new A();
-//            a.setName("alice");
-//            // 'age' is null
-//
-//            s.save(a);
-//            s.getTransaction().commit();
-//
-//            List transactions = HibernateAudit.query("from AuditTransaction");
-//
-//            assert transactions.size() == 1;
+    @Test(enabled = true)
+    public void testInsert_NullProperty() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            Session s = sf.openSession();
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            // 'age' is null
+
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(a.getId());
+
+            assert txs.size() == 1;
+
+            AuditTransaction tx = txs.get(0);
+
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+
 //
 //            List events = HibernateAudit.query("from AuditEvent");
 //
@@ -83,22 +97,22 @@ public class PostInsertGetDeltaTest extends JTATransactionTest
 //
 //            type = field.getType();
 //            assert String.class.getName().equals(type.getClassName());
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 //
 //    @Test(enabled = true)
 //    public void testSingleInsert() throws Exception

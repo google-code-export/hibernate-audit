@@ -15,9 +15,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.persistence.OneToMany;
+import javax.persistence.FetchType;
 import javax.transaction.Synchronization;
 import java.util.Date;
 import java.util.Collection;
+import java.util.List;
 import java.security.Principal;
 import java.io.Serializable;
 
@@ -59,6 +62,10 @@ public class AuditTransaction implements Synchronization
     // logical groups see https://jira.novaordis.org/browse/HBA-100.
     @Column(name = "LOGICAL_GROUP_ID", columnDefinition="NUMBER(30, 0)")
     private Long logicalGroupId;
+
+    // the events are stored in the order they were initially logged in the database. TODO implement this
+    @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY)
+    private List<AuditEvent> events;
 
     /**
      * The originating Hibernate transaction. Can be a JDBCTransaction or a JTATransaction.
@@ -187,6 +194,15 @@ public class AuditTransaction implements Synchronization
     }
 
     /**
+     * The events are returned in the order they were initially logged in the database.
+     * TODO: ordering is not implemented yet.
+     */
+    public List<AuditEvent> getEvents()
+    {
+        return events;
+    }
+
+    /**
      * Write an event on persistent storage, in the context of this transaction. This method may
      * seem redundant, as log(AuditEventPair) will also write the parent event, via cascade. However
      * there are cases when events do not generate any pairs, so we need this method. See HBA-74.
@@ -298,6 +314,11 @@ public class AuditTransaction implements Synchronization
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    void setEvents(List<AuditEvent> events)
+    {
+        this.events = events;
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

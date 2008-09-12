@@ -1,35 +1,38 @@
-package com.googlecode.hibernate.audit.test.post_update;
-
-import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
-import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+package com.googlecode.hibernate.audit.delta;
 
 /**
- * This is a collection of various "post-update" use cases of leaving an audit trail and then
- * extracting the deltas from that audit trail via the API.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
- *
- * $Id$
  */
-@Test(sequential = true)
-public class PostUpdateGetDeltaTest extends JTATransactionTest 
+public class CollectionDelta
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostUpdateGetDeltaTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String name;
+
     // Constructors --------------------------------------------------------------------------------
 
+    public CollectionDelta(String name)
+    {
+        this.name = name;
+    }
+
     // Public --------------------------------------------------------------------------------------
+
+    /**
+     * @return the name of the collection variable this delta was recorded for.
+     */
+    public String getName()
+    {
+        return name;
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

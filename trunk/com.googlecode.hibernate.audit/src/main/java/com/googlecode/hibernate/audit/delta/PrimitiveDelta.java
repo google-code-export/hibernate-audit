@@ -1,35 +1,45 @@
-package com.googlecode.hibernate.audit.test.post_delete;
-
-import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
-import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+package com.googlecode.hibernate.audit.delta;
 
 /**
- * This is a collection of various "post-delete" use cases of leaving an audit trail and then
- * extracting the deltas from that audit trail via the API.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
- *
- * $Id$
  */
-@Test(sequential = true)
-public class PostDeleteGetDeltaTest extends JTATransactionTest
+public class PrimitiveDelta
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostDeleteGetDeltaTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String name;
+    private Object value;
+
     // Constructors --------------------------------------------------------------------------------
 
+    public PrimitiveDelta(String name, Object value)
+    {
+        this.name = name;
+        this.value = value;
+    }
+
     // Public --------------------------------------------------------------------------------------
+
+    /**
+     * @return the name of the primitive (variable) this delta was recorded for.
+     */
+    public String getName()
+    {
+        return name;
+    }
+
+    public Object getValue()
+    {
+        return value;
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

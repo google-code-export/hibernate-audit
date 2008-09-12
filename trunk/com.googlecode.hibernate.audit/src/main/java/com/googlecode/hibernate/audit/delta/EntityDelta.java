@@ -1,23 +1,22 @@
-package com.googlecode.hibernate.audit.test.delta;
+package com.googlecode.hibernate.audit.delta;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
-import java.util.List;
+import java.util.Map;
+import java.io.Serializable;
 
 /**
+ * Encapsulates the set of changes applied to entity state during a transaction.
+ *
+ * An EntityDelta instance contains complete information allowing to recreate the state of the
+ * entity at the end of the transaction, given that we have access to the state of the entity as
+ * persisted just before the transaction started.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
- * @version <tt>$Revision$</tt>
+ * Copyright 2008 Ovidiu Feodorov
  *
- * $Id$
+ * @version <tt>$Revision$</tt>
  */
-@Entity
-@Table(name = "C")
-public class C
+public class EntityDelta
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -25,59 +24,22 @@ public class C
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
+    // the entity id
+    private Serializable id;
 
-    private String s;
-
-    private Integer i;
-
-    @OneToMany(mappedBy = "c", cascade = CascadeType.ALL)
-    private List<D> ds;
+    private Map<String, PrimitiveDelta> primitiveDeltas;
+    private Map<String, CollectionDelta> collectionDeltas;
 
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
 
-    public Long getId()
+    /**
+     * The corresponding entity's id.
+     */
+    public Serializable getId()
     {
         return id;
-    }
-
-    public void setId(Long id)
-    {
-        this.id = id;
-    }
-
-    public String getS()
-    {
-        return s;
-    }
-
-    public void setS(String s)
-    {
-        this.s = s;
-    }
-
-    public Integer getI()
-    {
-        return i;
-    }
-
-    public void setI(Integer i)
-    {
-        this.i = i;
-    }
-
-    public List<D> getDs()
-    {
-        return ds;
-    }
-
-    public void setDs(List<D> ds)
-    {
-        this.ds = ds;
     }
 
     // Package protected ---------------------------------------------------------------------------
