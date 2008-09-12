@@ -34,7 +34,7 @@ public class WA
 
     private String name;
 
-    @OneToMany(mappedBy = "wa", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
     private List<WB> wbs;
 
     // Constructors --------------------------------------------------------------------------------

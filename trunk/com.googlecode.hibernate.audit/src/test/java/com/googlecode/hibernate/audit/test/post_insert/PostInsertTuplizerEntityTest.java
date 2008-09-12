@@ -140,10 +140,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
         }
     }
 
-    /**
-     * This currently fails https://jira.novaordis.org/browse/HBA-81
-     */
-    @Test(enabled = false) // TEST_OFF
+    @Test(enabled = false) // TEST_OFF 1.1 https://jira.novaordis.org/browse/HBA-81
     public void testMissingMutatorThatMayBeSalvagedByTuplizer() throws Exception
     {
         Configuration config = new Configuration();
