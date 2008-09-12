@@ -157,8 +157,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         }
     }
 
-    // explicitely disabled, because it breaks other tests (FailedCommitTest) TODO
-    @Test(enabled = false) // TEST_OFF
+    @Test(enabled = true)
     public void testInconsistentLogicalGroup() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

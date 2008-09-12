@@ -134,6 +134,8 @@ public class AuditTransaction implements Synchronization
     public void afterCompletion(int i)
     {
         log.debug("after completion, commit status " + i);
+        // no matter what happens, disassociate myself from the thread
+        Manager.setCurrentAuditTransaction(null);
     }
 
     // Public --------------------------------------------------------------------------------------
