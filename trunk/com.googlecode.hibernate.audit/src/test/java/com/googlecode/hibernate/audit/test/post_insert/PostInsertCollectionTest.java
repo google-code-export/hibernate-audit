@@ -596,16 +596,6 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false) // TEST_OFF
-    public void testRemoveTwoFromCollection() throws Exception
-    {
-    }
-
-    @Test(enabled = false) // TEST_OFF
-    public void testModifyOneInCollection() throws Exception
-    {
-    }
-
     @Test(enabled = true)
     public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
     {
