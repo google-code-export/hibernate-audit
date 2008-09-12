@@ -163,36 +163,48 @@ public class Reflections
     {
         String methodNameRoot =
             Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
+
         String setMethodName = "set" + methodNameRoot;
-
-        if (value.isEmpty())
-        {
-            // see why this is happening
-            // TODO https://jira.novaordis.org/browse/HBA-57
-            return;
-        }
-
+        String getMethodName = "get" + methodNameRoot;
+        boolean clear = value.isEmpty();
         boolean successful = false;
 
         Method[] methods = o.getClass().getMethods();
 
         for(Method m: methods)
         {
-            if (!m.getName().equals(setMethodName))
+            if ((!clear || !m.getName().equals(getMethodName)) && 
+                !m.getName().equals(setMethodName))
             {
                 continue;
             }
 
             // try to invoke
+
             try
             {
-                m.invoke(o, value);
+                if (clear)
+                {
+                    Collection c = (Collection)m.invoke(o);
+                    c.clear();
+                }
+                else
+                {
+                    m.invoke(o, value);
+                }
                 successful = true;
                 break;
             }
             catch(Exception e)
             {
                 log.debug("failed to invoke", e);
+
+                if (clear)
+                {
+                    // this is the only way we can clear the collection, so give up and bubble
+                    // the exception up
+                    throw new InvocationTargetException(e);
+                }
             }
         }
 
@@ -282,8 +294,6 @@ public class Reflections
         if (!successful)
         {
             // TODO duplicate code (see applyDelta())
-            String getMethodName = "get" + methodNameRoot;
-
             for(Method m: methods)
             {
                 if (!m.getName().equals(getMethodName))

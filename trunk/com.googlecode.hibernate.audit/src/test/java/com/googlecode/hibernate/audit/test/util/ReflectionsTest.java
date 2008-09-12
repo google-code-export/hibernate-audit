@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Collections;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -122,6 +123,22 @@ public class ReflectionsTest
         assert bs.remove(new B("ben"));
         assert bs.remove(new B("bill"));
         assert bs.remove(new B("becky"));
+    }
+
+    @Test(enabled = true)
+    public void testMutate_EmptyCollection() throws Exception
+    {
+        A a = new A();
+
+        List<B> c = new ArrayList<B>();
+        c.add(new B("ben"));
+        a.setBs(c);
+
+        assert a.getBs().size() == 1;
+
+        Reflections.mutateCollection(a, "bs", Collections.emptyList());
+
+        assert a.getBs().isEmpty();
     }
 
     @Test(enabled = true)
