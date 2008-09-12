@@ -11,6 +11,7 @@ import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostCollectionUpdateEvent;
+import org.hibernate.event.PostDeleteEvent;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
@@ -136,6 +137,15 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             c.entity = pcue.getAffectedOwnerOrNull();
             c.entityName = pcue.getAffectedOwnerEntityName();
             c.persister = c.session.getEntityPersister(c.entityName, c.entity);
+        }
+        else if (e instanceof PostDeleteEvent)
+        {
+            PostDeleteEvent pde = (PostDeleteEvent)e;
+            c.changeType = ChangeType.DELETE;
+            c.session = pde.getSession();
+            c.entityId = pde.getId();
+            c.entity = pde.getEntity();
+            c.persister = pde.getPersister();
         }
         else
         {

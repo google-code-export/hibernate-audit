@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostDeleteEvent;
+import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 
 /**
@@ -18,6 +19,8 @@ public class PostDeleteAuditEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
+     private static final Logger log = Logger.getLogger(PostDeleteAuditEventListener.class);
+
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
@@ -33,7 +36,13 @@ public class PostDeleteAuditEventListener
 
     public void onPostDelete(PostDeleteEvent event)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        log.debug(this + ".onPostUpdate(...)");
+
+        createAndLogEntityEventContext(event);
+
+        // no need for an audit pair
+
+//        Object[] ds = event.getDeletedState();
     }
 
     // Public --------------------------------------------------------------------------------------
