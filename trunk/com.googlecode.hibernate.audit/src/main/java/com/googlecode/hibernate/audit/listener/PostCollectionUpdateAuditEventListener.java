@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.PostCollectionUpdateEventListener;
 import org.hibernate.event.PostCollectionUpdateEvent;
 import org.hibernate.persister.collection.CollectionPersister;
-import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
 import org.hibernate.collection.PersistentCollection;
@@ -17,7 +16,6 @@ import com.googlecode.hibernate.audit.util.Hibernate;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -52,7 +50,7 @@ public class PostCollectionUpdateAuditEventListener
     {
         log.debug(this + ".onPostUpdateCollection(...)");
 
-        EntityEventContext ec = createAndLogEntityEventContext(event);
+        EventContext ec = createAndLogEventContext(event);
         PersistentCollection c = event.getCollection();
         String role = c.getRole();
         CollectionPersister cp = ec.factory.getCollectionPersister(role);

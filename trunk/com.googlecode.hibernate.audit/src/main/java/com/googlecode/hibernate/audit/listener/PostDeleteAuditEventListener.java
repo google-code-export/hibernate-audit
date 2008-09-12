@@ -38,7 +38,7 @@ public class PostDeleteAuditEventListener
     {
         log.debug(this + ".onPostUpdate(...)");
 
-        createAndLogEntityEventContext(event);
+        createAndLogEventContext(event);
 
         // no need for an audit pair
 

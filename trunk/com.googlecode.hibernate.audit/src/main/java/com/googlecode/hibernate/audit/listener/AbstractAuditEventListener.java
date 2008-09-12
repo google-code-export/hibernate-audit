@@ -97,7 +97,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     /**
      * Extracts all sorts of useful information out of the event and wrap them together as an
-     * EntityEventContext instance, and also log the audit transaction and the audit event into the
+     * EventContext instance, and also log the audit transaction and the audit event into the
      * audit log. 
      *
      * @param e - this method only gets entity events (PostInsertEvent, PostUpdateEvent, etc).
@@ -105,9 +105,9 @@ abstract class AbstractAuditEventListener implements AuditEventListener
      *        IllegalArgumentException. Interesting how PostInsertEvent, PostUpdateEvent don't have
      *        a common base class that would allow access to entity ...
      */
-    protected EntityEventContext createAndLogEntityEventContext(AbstractEvent e)
+    protected EventContext createAndLogEventContext(AbstractEvent e)
     {
-        EntityEventContext c = new EntityEventContext();
+        EventContext c = new EventContext();
 
         if (e instanceof PostInsertEvent)
         {
@@ -207,8 +207,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     /**
      * Visible only to AbstractAuditEventListener subclasses.
      */
-    protected class EntityEventContext
-    {
+    protected class EventContext {
         SessionFactoryImplementor factory;
         EventSource session;
 

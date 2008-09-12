@@ -42,7 +42,7 @@ public class PostUpdateAuditEventListener
     {
         log.debug(this + ".onPostUpdate(...)");
 
-        EntityEventContext ec = createAndLogEntityEventContext(event);
+        EventContext ec = createAndLogEventContext(event);
 
         Object[] state = event.getState();
         Object[] oldState = event.getOldState();

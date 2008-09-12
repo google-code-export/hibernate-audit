@@ -54,7 +54,7 @@ public class PostInsertAuditEventListener
     {
         log.debug(this + ".onPostInsert(...)");
 
-        EntityEventContext ec = createAndLogEntityEventContext(event);
+        EventContext ec = createAndLogEventContext(event);
 
         // TODO maybe there's no need to iterate over *all* properties, maybe the state contains
         //      only the new properties, look at how onPostUpdate() was implemented and possibly

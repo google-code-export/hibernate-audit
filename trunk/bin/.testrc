@@ -36,4 +36,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=LogicalGroupIdProviderTest
 #TARGET_CLASS=PostUpdateTest
 #TARGET_CLASS=PostUpdateRawTest
-TARGET_CLASS=PostDeleteRawTest
+#TARGET_CLASS=PostDeleteRawTest
