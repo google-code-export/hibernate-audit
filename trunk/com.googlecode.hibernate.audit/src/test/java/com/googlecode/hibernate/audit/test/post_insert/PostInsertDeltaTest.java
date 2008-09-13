@@ -7,14 +7,19 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
+import com.googlecode.hibernate.audit.test.post_insert.data.B;
+import com.googlecode.hibernate.audit.test.post_insert.data.C;
+import com.googlecode.hibernate.audit.test.post_insert.data.D;
+import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
-import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.ScalarDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
 
 /**
  * This is a collection of various "post-insert" use cases of leaving an audit trail and then
@@ -42,6 +47,8 @@ public class PostInsertDeltaTest extends JTATransactionTest
     // Constructors --------------------------------------------------------------------------------
 
     // Public --------------------------------------------------------------------------------------
+
+    // Tests initially developed in PostInsertTest -------------------------------------------------
 
     @Test(enabled = true)
     public void testInsert_NullProperty() throws Exception
@@ -76,15 +83,15 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert td.getEntityDeltas().size() == 1;
 
-            EntityDelta ed = td.getEntityDelta(a.getId());
+            EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
 
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
 
-            Set<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+            Set<ScalarDelta> pds = ed.getPrimitiveDeltas();
             assert pds.size() == 1;
 
-            PrimitiveDelta pd = ed.getPrimitiveDelta("name");
+            ScalarDelta pd = ed.getPrimitiveDelta("name");
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
         }
@@ -132,7 +139,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             s = sf.openSession();
             s.beginTransaction();
-            s.save(a);
+            s.save(a2);
             s.getTransaction().commit();
 
             List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
@@ -145,13 +152,13 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert td.getEntityDeltas().size() == 1;
 
-            EntityDelta ed = td.getEntityDelta(a.getId());
+            EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
 
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
-            Set<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+            Set<ScalarDelta> pds = ed.getPrimitiveDeltas();
             assert pds.size() == 1;
-            PrimitiveDelta pd = ed.getPrimitiveDelta("name");
+            ScalarDelta pd = ed.getPrimitiveDelta("name");
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
 
@@ -160,7 +167,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert td.getEntityDeltas().size() == 1;
 
-            ed = td.getEntityDelta(a2.getId());
+            ed = td.getEntityDelta(a2.getId(), A.class.getName());
             assert a2.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
             pds = ed.getPrimitiveDeltas();
@@ -179,975 +186,406 @@ public class PostInsertDeltaTest extends JTATransactionTest
             }
         }
     }
-//
-//    @Test(enabled = false)
-//    public void testAuditType() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Set<String> expectedTypes = new HashSet<String>();
-//            expectedTypes.add(A.class.getName());
-//            expectedTypes.add(String.class.getName());
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            s.save(a);
-//            t.commit();
-//
-//            List rs = HibernateAudit.query("from AuditType");
-//
-//            // we inserted two types, the entity and the field type
-//            assert rs.size() == 2;
-//            AuditType entityAuditType = null;
-//            for(Object o: rs)
-//            {
-//                AuditType at = (AuditType)o;
-//                assert expectedTypes.remove(at.getClassName());
-//                if (A.class.getName().equals(at.getClassName()))
-//                {
-//                    entityAuditType = at;
-//                }
-//            }
-//
-//            rs = HibernateAudit.query("from AuditEvent");
-//
-//            assert rs.size() == 1;
-//
-//            AuditEvent ae = (AuditEvent)rs.get(0);
-//            AuditType at2 = ae.getTargetType();
-//            assert A.class.getName().equals(at2.getClassName());
-//
-//            assert entityAuditType.getId().equals(at2.getId());
-//            assert entityAuditType.equals(at2);
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Set<String> expectedTypes = new HashSet<String>();
-//            expectedTypes.add(A.class.getName());
-//            expectedTypes.add(String.class.getName());
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            A a = new A();
-//            a.setName("alice");
-//            s.save(a);
-//
-//            a = new A();
-//            a.setName("alex");
-//            s.save(a);
-//
-//            t.commit();
-//
-//            List rs = HibernateAudit.query("from AuditType");
-//
-//            assert rs.size() == 2;
-//            AuditType entityType = null;
-//
-//            for(Object o: rs)
-//            {
-//                AuditType at = (AuditType)o;
-//                assert expectedTypes.remove((at.getClassName()));
-//                if (A.class.getName().equals(at.getClassName()))
-//                {
-//                    entityType = at;
-//                }
-//            }
-//
-//            rs = HibernateAudit.query("from AuditEvent");
-//
-//            assert rs.size() == 2;
-//
-//            AuditEvent ae = (AuditEvent)rs.get(0);
-//            AuditType at2 = ae.getTargetType();
-//            assert A.class.getName().equals(at2.getClassName());
-//            assert entityType.getId().equals(at2.getId());
-//            assert entityType.equals(at2);
-//
-//            ae = (AuditEvent)rs.get(1);
-//            AuditType at3 = ae.getTargetType();
-//            assert A.class.getName().equals(at3.getClassName());
-//            assert entityType.getId().equals(at3.getId());
-//            assert entityType.equals(at3);
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            Set<String> expectedTypes = new HashSet<String>();
-//            expectedTypes.add(String.class.getName());
-//            expectedTypes.add(A.class.getName());
-//
-//            A a = new A();
-//            a.setName("alice");
-//            s.save(a);
-//
-//            t.commit();
-//            s.close();
-//
-//            s = sf.openSession();
-//            t = s.beginTransaction();
-//
-//            a = new A();
-//            a.setName("alex");
-//            s.save(a);
-//
-//            t.commit();
-//            s.close();
-//
-//            List rs = HibernateAudit.query("from AuditType");
-//
-//            assert rs.size() == 2;
-//
-//            AuditType entityType = null;
-//
-//            for(Object o: rs)
-//            {
-//                AuditType at = (AuditType)o;
-//                assert expectedTypes.remove(at.getClassName());
-//
-//                if (A.class.getName().equals(at.getClassName()))
-//                {
-//                    entityType = at;
-//                }
-//            }
-//
-//            rs = HibernateAudit.query("from AuditEvent");
-//
-//            assert rs.size() == 2;
-//
-//            AuditEvent ae = (AuditEvent)rs.get(0);
-//            AuditType at2 = ae.getTargetType();
-//            assert A.class.getName().equals(at2.getClassName());
-//            assert entityType.getId().equals(at2.getId());
-//            assert entityType.equals(at2);
-//
-//            ae = (AuditEvent)rs.get(1);
-//            AuditType at3 = ae.getTargetType();
-//            assert A.class.getName().equals(at3.getClassName());
-//            assert entityType.getId().equals(at3.getId());
-//            assert entityType.equals(at3);
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testAuditType_TwoEntities() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        config.addAnnotatedClass(B.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        Set<String> expectedClassNames = new HashSet<String>();
-//        expectedClassNames.add(A.class.getName());
-//        expectedClassNames.add(B.class.getName());
-//        expectedClassNames.add(String.class.getName());
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            A a = new A();
-//            a.setName("alice");
-//            s.save(a);
-//
-//            B b = new B();
-//            b.setName("bob");
-//            s.save(b);
-//
-//            b = new B();
-//            b.setName("ben");
-//            s.save(b);
-//
-//            a = new A();
-//            a.setName("alex");
-//            s.save(a);
-//
-//            t.commit();
-//            s.close();
-//
-//            List rs = HibernateAudit.query("from AuditType");
-//
-//            assert rs.size() == 3;
-//
-//            assert expectedClassNames.remove(((AuditType)rs.get(0)).getClassName());
-//            assert expectedClassNames.remove(((AuditType)rs.get(1)).getClassName());
-//            assert expectedClassNames.remove(((AuditType)rs.get(2)).getClassName());
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testAuditField_TwoEntities_TwoTransactions() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        config.addAnnotatedClass(B.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            Set<String> expectedTypeNames = new HashSet<String>();
-//            expectedTypeNames.add(String.class.getName());
-//            expectedTypeNames.add(Integer.class.getName());
-//            expectedTypeNames.add(Date.class.getName());
-//            expectedTypeNames.add(A.class.getName());
-//            expectedTypeNames.add(B.class.getName());
-//
-//            A a = new A();
-//            a.setName("alice");
-//            a.setAge(30);
-//
-//            s.save(a);
-//
-//            B b = new B();
-//            b.setName("bob");
-//            b.setBirthDate((Date) Formats.testDateFormat.parseObject("01/01/1971"));
-//
-//            s.save(b);
-//
-//            t.commit();
-//            s.close();
-//
-//            s = sf.openSession();
-//            t = s.beginTransaction();
-//
-//            a = new A();
-//            a.setName("anna");
-//            a.setAge(31);
-//
-//            s.save(a);
-//
-//            b = new B();
-//            b.setName("ben");
-//            b.setBirthDate((Date)Formats.testDateFormat.parseObject("02/02/1972"));
-//
-//            s.save(b);
-//
-//            t.commit();
-//            s.close();
-//
-//            List types = HibernateAudit.query("from AuditType");
-//
-//            assert types.size() == 5;
-//
-//            Set<AuditType> expectedTypes = new HashSet<AuditType>();
-//
-//            for(Object o: types)
-//            {
-//                AuditType at = (AuditType)o;
-//                assert expectedTypeNames.remove(at.getClassName());
-//                expectedTypes.add(at);
-//            }
-//
-//            List fields = HibernateAudit.query("from AuditTypeField");
-//
-//            assert fields.size() == 3;
-//
-//            for(Object o: fields)
-//            {
-//                AuditTypeField field = (AuditTypeField)o;
-//                String name = field.getName();
-//                AuditType at = field.getType();
-//                String className = at.getClassName();
-//
-//                assert expectedTypes.contains(at);
-//
-//                if ("name".equals(name))
-//                {
-//                    assert String.class.getName().equals(className);
-//                }
-//                else if ("age".equals(name))
-//                {
-//                    assert Integer.class.getName().equals(className);
-//                }
-//                else if ("birthDate".equals(name))
-//                {
-//                    assert Date.class.getName().equals(className);
-//                }
-//                else
-//                {
-//                    throw new Error("unexpected field name " + name);
-//                }
-//            }
-//
-//            assert HibernateAudit.query("from AuditEvent").size() == 4;
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair");
-//
-//            assert pairs.size() == 8;
-//
-//            List<String> expectedNames = new ArrayList<String>();
-//            expectedNames.add("name");
-//            expectedNames.add("age");
-//            expectedNames.add("name");
-//            expectedNames.add("birthDate");
-//            expectedNames.add("name");
-//            expectedNames.add("age");
-//            expectedNames.add("name");
-//            expectedNames.add("birthDate");
-//
-//            List<Object> expectedValues = new ArrayList<Object>();
-//            expectedValues.add("alice");
-//            expectedValues.add(30);
-//            expectedValues.add("bob");
-//            expectedValues.add(Formats.testDateFormat.parseObject("01/01/1971"));
-//            expectedValues.add("anna");
-//            expectedValues.add(31);
-//            expectedValues.add("ben");
-//            expectedValues.add(Formats.testDateFormat.parseObject("02/02/1972"));
-//
-//            for(Object o: pairs)
-//            {
-//                AuditEventPair p = (AuditEventPair)o;
-//
-//                String name = p.getField().getName();
-//                Object value = p.getValue();
-//
-//                assert expectedNames.remove(name);
-//                assert expectedValues.remove(value);
-//            }
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testInsert_EmptyState() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            A a = new A();
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            List<AuditTransaction> transactions = HibernateAudit.getTransactions(a.getId());
-//
-//            assert transactions.size() == 1;
-//
-//            A base = new A();
-//            HibernateAudit.delta(base, a.getId(), transactions.get(0).getId());
-//
-//            assert a.getId().equals(base.getId());
-//            assert base.getName() == null;
-//            assert base.getAge() == null;
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testPrivateMutators() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(E.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            E e = new E("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(e);
-//
-//            s.getTransaction().commit();
-//
-//            List<AuditTransaction> ts = HibernateAudit.getTransactions(E.getIdFrom(e));
-//
-//            assert ts.size() == 1;
-//
-//            E base = new E();
-//            HibernateAudit.delta(base, E.getIdFrom(e), ts.get(0).getId());
-//
-//            assert E.getIdFrom(e).equals(E.getIdFrom(base));
-//            assert "alice".equals(E.getNameFrom(base));
-//
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
 
-    // coming from PostInsertStatefulSessionTest
+    @Test(enabled = true)
+    public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
 
-//    @Test(enabled = false)
-//    public void testSingleInsert() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            Long aId = a.getId();
-//
-//            List transactions = HibernateAudit.query("from AuditTransaction");
-//            assert transactions.size() == 1;
-//            AuditTransaction aTx = (AuditTransaction)transactions.get(0);
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair");
-//            assert pairs.size() == 1;
-//            AuditEventPair p = (AuditEventPair)pairs.get(0);
-//
-//            assert "alice".equals(p.getValue());
-//
-//            AuditTypeField f = p.getField();
-//            assert "name".equals(f.getName());
-//            AuditType t = f.getType();
-//            assert t.isPrimitiveType();
-//            assert String.class.equals(t.getClassInstance());
-//
-//            AuditEvent e = p.getEvent();
-//            assert aTx.equals(e.getTransaction());
-//            assert aId.equals(e.getTargetId());
-//            assert ChangeType.INSERT.equals(e.getType());
-//
-//            t = e.getTargetType();
-//            assert t.isEntityType();
-//            AuditEntityType et = (AuditEntityType)t;
-//            assert A.class.equals(et.getClassInstance());
-//            assert Long.class.equals(et.getIdClassInstance());
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testInsert_AlreadyExistingEntityType() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            // insert the entity type
-//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
-//            Session is = isf.openSession();
-//            is.beginTransaction();
-//
-//            AuditEntityType et = new AuditEntityType(Long.class, A.class);
-//            is.save(et);
-//
-//            is.getTransaction().commit();
-//            is.close();
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            List events = HibernateAudit.query("from AuditEvent");
-//            assert events.size() == 1;
-//            AuditEvent ae = (AuditEvent)events.get(0);
-//            AuditEntityType persistedEt = (AuditEntityType)ae.getTargetType();
-//
-//            assert et.equals(persistedEt);
-//
-//            List types = HibernateAudit.query("from AuditType");
-//            assert 2 == types.size();
-//
-//            assert types.remove(et);
-//
-//            AuditType t = (AuditType)types.get(0);
-//            assert t.isPrimitiveType();
-//            assert String.class.equals(t.getClassInstance());
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testInsert_AlreadyExistingPrimitiveType() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            // insert the primitive type
-//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
-//            Session is = isf.openSession();
-//            is.beginTransaction();
-//
-//            AuditType t = new AuditType();
-//            t.setClassName(String.class.getName());
-//            is.save(t);
-//
-//            is.getTransaction().commit();
-//            is.close();
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            List fields = HibernateAudit.query("from AuditTypeField");
-//            assert fields.size() == 1;
-//            AuditTypeField f = (AuditTypeField)fields.get(0);
-//            AuditType persistedT = f.getType();
-//
-//            assert t.equals(persistedT);
-//
-//            List types = HibernateAudit.query("from AuditType");
-//            assert 2 == types.size();
-//
-//            assert types.remove(t);
-//
-//            AuditEntityType et = (AuditEntityType)types.get(0);
-//            assert A.class.equals(et.getClassInstance());
-//            assert Long.class.equals(et.getIdClassInstance());
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
-//    public void testInsert_AlreadyExistingCollectionType() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(WA.class);
-//        config.addAnnotatedClass(WB.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            // insert the entity type
-//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
-//            Session is = isf.openSession();
-//            is.beginTransaction();
-//
-//            AuditCollectionType ct = new AuditCollectionType(List.class, WB.class);
-//            is.save(ct);
-//
-//            is.getTransaction().commit();
-//            is.close();
-//
-//            WA wa = new WA();
-//            WB wb = new WB();
-//            wb.setName("wbong");
-//            wa.getWbs().add(wb);
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(wa);
-//
-//            s.getTransaction().commit();
-//
-//            List events =
-//                HibernateAudit.query("from AuditEvent as ae where ae.targetId = ?", wa.getId());
-//
-//            assert events.size() == 1;
-//
-//            AuditEvent ae = (AuditEvent)events.get(0);
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
-//
-//            assert pairs.size() == 1;
-//
-//            AuditEventPair p = (AuditEventPair)pairs.get(0);
-//
-//            AuditType t = p.getField().getType();
-//
-//            assert ct.equals(t);
-//
-//            List types = HibernateAudit.query("from AuditType");
-//            assert types.size() == 4;
-//
-//            assert types.remove(ct);
-//
-//            for(Object o: types)
-//            {
-//                AuditType ts = (AuditType)o;
-//                assert ts.isEntityType() || ts.isPrimitiveType();
-//            }
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
-    // Coming from PostInsertEntityTest
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
-//    @Test(enabled = false)
-//    public void testSimpleCascade() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(C.class);
-//        config.addAnnotatedClass(D.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            C c = new C();
-//            c.setName("charlie");
-//
-//            D d = new D();
-//            d.setName("diane");
-//
-//            c.setD(d);
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            s.save(c);
-//
-//            t.commit();
-//
-//            Set<Long> expectedTargetIds = new HashSet<Long>();
-//            expectedTargetIds.add(c.getId());
-//            expectedTargetIds.add(d.getId());
-//
-//            List transactions = HibernateAudit.query("from AuditTransaction");
-//            assert transactions.size() == 1;
-//
-//            AuditTransaction at = (AuditTransaction)transactions.get(0);
-//
-//            List types = HibernateAudit.query("from AuditType");
-//            assert types.size() == 3;
-//
-//            Set<AuditType> expectedTargetTypes = new HashSet<AuditType>();
-//
-//            for(Object o: types)
-//            {
-//                AuditType type = (AuditType)o;
-//
-//                if (type.isEntityType())
-//                {
-//                    expectedTargetTypes.add(type);
-//                }
-//                else if (String.class.equals(type.getClassInstance()))
-//                {
-//                    // ok
-//                }
-//                else
-//                {
-//                    throw new Error("unexpected type " + type);
-//                }
-//            }
-//
-//            assert expectedTargetTypes.size() == 2;
-//
-//            List events = HibernateAudit.query("from AuditEvent");
-//            assert events.size() == 2;
-//
-//            for(Object o: events)
-//            {
-//                AuditEvent e = (AuditEvent)o;
-//
-//                assert at.equals(e.getTransaction());
-//                assert ChangeType.INSERT.equals(e.getType());
-//                assert expectedTargetTypes.remove(e.getTargetType());
-//                assert expectedTargetIds.remove(e.getTargetId());
-//            }
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair");
-//            assert pairs.size() == 3;
-//
-//            Set<String> expectedStringValues = new HashSet<String>();
-//            expectedStringValues.add(c.getName());
-//            expectedStringValues.add(d.getName());
-//            expectedStringValues.add(Long.toString(d.getId()));
-//
-//            for(Object o: pairs)
-//            {
-//                AuditEventPair pair = (AuditEventPair)o;
-//
-//                // TODO we're not testing pair.getValue() because at this time is not implemented
-//                assert expectedStringValues.remove(pair.getStringValue());
-//            }
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = false)
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            A a2 = new A();
+            a2.setName("alex");
+            s.save(a2);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
+
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 2;
+
+            EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getPrimitiveDeltas().size() == 1;
+            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alice".equals(pd.getValue());
+
+            ed = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getPrimitiveDeltas().size() == 1;
+            pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alex".equals(pd.getValue());
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            s.getTransaction().commit();
+            s.close();
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            A a2 = new A();
+            a2.setName("alex");
+            s.save(a2);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 2;
+
+            AuditTransaction tx = txs.get(0);
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 1;
+
+            EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getPrimitiveDeltas().size() == 1;
+            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alice".equals(pd.getValue());
+
+            tx = txs.get(1);
+            td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 1;
+
+            ed = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getPrimitiveDeltas().size() == 1;
+            pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alex".equals(pd.getValue());
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditType_TwoEntities() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+
+            B b = new B();
+            b.setName("bob");
+            s.save(b);
+
+            B b2 = new B();
+            b2.setName("ben");
+            s.save(b2);
+
+            A a2 = new A();
+            a2.setName("alex");
+            s.save(a2);
+
+            s.getTransaction().commit();
+            s.close();
+
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction at = txs.get(0);
+
+            TransactionDelta td = HibernateAudit.getDelta(at.getId());
+            assert td.getEntityDeltas().size() == 4;
+
+            EntityDelta d = null;
+
+            d = td.getEntityDelta(a.getId(), A.class.getName());
+            assert d.getPrimitiveDeltas().size() == 1;
+            assert "alice".equals(d.getPrimitiveDelta("name").getValue());
+            assert A.class.getName().equals(d.getEntityName());
+
+            d = td.getEntityDelta(b.getId(), B.class.getName());
+            assert d.getPrimitiveDeltas().size() == 1;
+            assert "bob".equals(d.getPrimitiveDelta("name").getValue());
+            assert B.class.getName().equals(d.getEntityName());
+
+            d = td.getEntityDelta(b2.getId(), B.class.getName());
+            assert d.getPrimitiveDeltas().size() == 1;
+            assert "ben".equals(d.getPrimitiveDelta("name").getValue());
+            assert B.class.getName().equals(d.getEntityName());
+
+            d = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert d.getPrimitiveDeltas().size() == 1;
+            assert "alex".equals(d.getPrimitiveDelta("name").getValue());
+            assert A.class.getName().equals(d.getEntityName());
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAuditField_TwoEntities_TwoTransactions() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            a.setAge(30);
+
+            s.save(a);
+
+            B b = new B();
+            b.setName("bob");
+            b.setBirthDate((Date)Formats.testDateFormat.parseObject("01/01/1971"));
+
+            s.save(b);
+
+            s.getTransaction().commit();
+            s.close();
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            A a2 = new A();
+            a2.setName("anna");
+
+            s.save(a2);
+
+            B b2 = new B();
+            b2.setName("ben");
+            b2.setBirthDate((Date)Formats.testDateFormat.parseObject("02/02/1972"));
+
+            s.save(b2);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 2;
+            TransactionDelta td = null;
+
+            td = HibernateAudit.getDelta(txs.get(0).getId());
+
+            EntityDelta d = null;
+
+            assert td.getEntityDeltas().size() == 2;
+            d = td.getEntityDelta(a.getId(), A.class.getName());
+            assert A.class.getName().equals(d.getEntityName());
+            assert d.getCollectionDeltas().isEmpty();
+            assert d.getPrimitiveDeltas().size() == 2;
+            assert "alice".equals(d.getPrimitiveDelta("name").getValue());
+            assert new Integer(30).equals(d.getPrimitiveDelta("age").getValue());
+
+            d = td.getEntityDelta(b.getId(), B.class.getName());
+            assert B.class.getName().equals(d.getEntityName());
+            assert d.getCollectionDeltas().isEmpty();
+            assert d.getPrimitiveDeltas().size() == 2;
+            assert "bob".equals(d.getPrimitiveDelta("name").getValue());
+            assert ((Date)Formats.testDateFormat.parseObject("01/01/1971")).
+                equals(d.getPrimitiveDelta("birthDate").getValue());
+
+            td = HibernateAudit.getDelta(txs.get(1).getId());
+
+            assert td.getEntityDeltas().size() == 2;
+            d = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert A.class.getName().equals(d.getEntityName());
+            assert d.getCollectionDeltas().isEmpty();
+            assert d.getPrimitiveDeltas().size() == 1;
+            assert "anna".equals(d.getPrimitiveDelta("name").getValue());
+
+            d = td.getEntityDelta(b2.getId(), B.class.getName());
+            assert B.class.getName().equals(d.getEntityName());
+            assert d.getCollectionDeltas().isEmpty();
+            assert d.getPrimitiveDeltas().size() == 2;
+            assert "ben".equals(d.getPrimitiveDelta("name").getValue());
+            assert ((Date)Formats.testDateFormat.parseObject("02/02/1972")).
+                equals(d.getPrimitiveDelta("birthDate").getValue());
+
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    // Tests initially developed in PostInsertEntityTest -------------------------------------------
+
+    @Test(enabled = true)
+    public void testSimpleCascade() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(C.class);
+        config.addAnnotatedClass(D.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            C c = new C();
+            c.setName("charlie");
+
+            D d = new D();
+            d.setName("diane");
+
+            c.setD(d);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+
+            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
+            assert td.getEntityDeltas().size() == 2;
+
+            EntityDelta ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+
+            assert ed.getPrimitiveDeltas().size() == 1;
+            assert "charlie".equals(ed.getPrimitiveDelta("name").getValue());
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+//    @Test(enabled = true)
 //    public void testSimpleCascade_Delta() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1213,7 +651,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testCascade_TwoTransactions_Delta() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1294,7 +732,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testCascade_TwoTransactions_MultipleEntities_Delta() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1395,7 +833,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // coming from PostInsertCollectionsTest
 
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testAddOneInCollection() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1524,7 +962,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testAddOneInCollection_Delta() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1597,7 +1035,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1670,7 +1108,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testAddTwoInCollection_Bidirectionality() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1767,7 +1205,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1863,7 +1301,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testModifyOneFromCollection() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1988,7 +1426,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -2055,7 +1493,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // coming from PostInsertTuplizerEntityTest
 
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testManyToOne_OneIsTuplizer() throws Exception
 //    {
 //        Configuration config = new Configuration();
@@ -2149,7 +1587,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-////    @Test(enabled = false) // TODO https://jira.novaordis.org/browse/HBA-81
+////    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-81
 ////    public void testMissingMutatorThatMayBeSalvagedByTuplizer() throws Exception
 ////    {
 ////        Configuration config = new Configuration();
@@ -2242,7 +1680,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 ////        }
 ////    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testManyToOne_OneIsTuplizer_Collection() throws Exception
 //    {
 //        Configuration config = new Configuration();
@@ -2356,7 +1794,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-////    @Test(enabled = false) // TODO 1.1 https://jira.novaordis.org/browse/HBA-107
+////    @Test(enabled = true) // TODO 1.1 https://jira.novaordis.org/browse/HBA-107
 ////    public void testManyToOne_BothAreTuplizers_Collection() throws Exception
 ////    {
 ////        Configuration config = new Configuration();
@@ -2481,7 +1919,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 ////        }
 ////    }
 //
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
 //    {
 //        Configuration config = new Configuration();

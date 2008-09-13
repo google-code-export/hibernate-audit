@@ -30,16 +30,19 @@ public class EntityDeltaImpl implements EntityDelta
     // the entity id
     private Serializable id;
 
+    private String entityName;
+
     // TODO can be optimized by maintaining a map, keyed on variable name
-    private Set<PrimitiveDelta> primitiveDeltas;
+    private Set<ScalarDelta> scalarDeltas;
     private Map<String, CollectionDelta> collectionDeltas;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public EntityDeltaImpl(Serializable id)
+    public EntityDeltaImpl(Serializable id, String entityName)
     {
         this.id = id;
-        primitiveDeltas = new HashSet<PrimitiveDelta>();
+        this.entityName = entityName;
+        scalarDeltas = new HashSet<ScalarDelta>();
         collectionDeltas = new HashMap<String, CollectionDelta>();
     }
 
@@ -50,9 +53,9 @@ public class EntityDeltaImpl implements EntityDelta
         return id;
     }
 
-    public Set<PrimitiveDelta> getPrimitiveDeltas()
+    public Set<ScalarDelta> getPrimitiveDeltas()
     {
-        return primitiveDeltas;
+        return scalarDeltas;
     }
 
     public Set<CollectionDelta> getCollectionDeltas()
@@ -60,9 +63,9 @@ public class EntityDeltaImpl implements EntityDelta
         return new HashSet<CollectionDelta>(collectionDeltas.values());
     }
 
-    public PrimitiveDelta getPrimitiveDelta(String name)
+    public ScalarDelta getPrimitiveDelta(String name)
     {
-        for(PrimitiveDelta p: primitiveDeltas)
+        for(ScalarDelta p: scalarDeltas)
         {
             if (p.getName().equals(name))
             {
@@ -73,17 +76,22 @@ public class EntityDeltaImpl implements EntityDelta
         return null;
     }
 
+    public String getEntityName()
+    {
+        return entityName;
+    }
+
     // Public --------------------------------------------------------------------------------------
 
     /**
-     * Not exposed in PrimitiveDelta as its usage makes sense only when creating the delta.
+     * Not exposed in ScalarDelta as its usage makes sense only when creating the delta.
      *
      * @return true if delta is successfully added, false if there's already a delta corresponding
      *         to the same primitive.
      */
-    public boolean addPrimitiveDelta(PrimitiveDelta d)
+    public boolean addPrimitiveDelta(ScalarDelta d)
     {
-        return primitiveDeltas.add(d);
+        return scalarDeltas.add(d);
     }
 
     @Override
@@ -94,7 +102,7 @@ public class EntityDeltaImpl implements EntityDelta
             return true;
         }
 
-        if (id == null)
+        if (id == null || entityName == null)
         {
             return false;
         }
@@ -105,13 +113,14 @@ public class EntityDeltaImpl implements EntityDelta
         }
 
         EntityDelta that = (EntityDelta)o;
-        return id.equals(that.getId());
+        return id.equals(that.getId()) && entityName.equals((that.getEntityName()));
     }
 
     @Override
     public int hashCode()
     {
-        return id == null ? 0 : id.hashCode();
+        return (entityName == null ? 0 : entityName.hashCode()) * 37 +
+               (id == null ? 0 : id.hashCode());
     }
 
     // Package protected ---------------------------------------------------------------------------

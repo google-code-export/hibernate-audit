@@ -69,11 +69,11 @@ public class TransactionDeltaImpl implements TransactionDelta
         return entityDeltas;
     }
 
-    public EntityDelta getEntityDelta(Serializable entityId)
+    public EntityDelta getEntityDelta(Serializable entityId, String entityName)
     {
         for(EntityDelta d: entityDeltas)
         {
-            if (d.getId().equals(entityId))
+            if (d.getId().equals(entityId) && d.getEntityName().equals(entityName))
             {
                 return d;
             }

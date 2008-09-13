@@ -33,7 +33,7 @@ import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
 import com.googlecode.hibernate.audit.delta.Deltas;
-import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.ScalarDelta;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
@@ -433,13 +433,15 @@ public class Manager
                     // entity, but case for it anyway
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
-                
+
                 Serializable id = e.getTargetId();
-                EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id);
+                AuditEntityType aet = (AuditEntityType)at;
+                String entityName = aet.getClassInstance().getName(); // TODO this will fail when we use real entityNames
+                EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id, entityName);
 
                 if (ed == null)
                 {
-                    ed = new EntityDeltaImpl(id);
+                    ed = new EntityDeltaImpl(id, entityName);
                     td.addEntityDelta(ed);
                 }
 
@@ -459,7 +461,7 @@ public class Manager
                             throw new RuntimeException("NOT YET IMPLEMENTED");
                         }
                         
-                        PrimitiveDelta pd = Deltas.createPrimitiveDelta(name, value);
+                        ScalarDelta pd = Deltas.createPrimitiveDelta(name, value);
 
                         if (!ed.addPrimitiveDelta(pd))
                         {

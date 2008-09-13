@@ -27,8 +27,11 @@ public interface TransactionDelta
     Set<EntityDelta> getEntityDeltas();
 
     /**
+     * @param entityName - the entity name. In most cases is the fully qualified class name of the
+     *        class that implements the entity, but it can also be an arbitrary string.
+     *
      * @return null if no entity delta corresponding to an entity with the given id is found. 
      */
-    EntityDelta getEntityDelta(Serializable entityId);
+    EntityDelta getEntityDelta(Serializable entityId, String entityName);
 
 }

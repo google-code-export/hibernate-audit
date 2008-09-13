@@ -10,7 +10,6 @@ import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.util.Reflections;
-import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
 import java.util.List;
@@ -257,6 +256,15 @@ public final class HibernateAudit
     }
 
     // Specialized Queries -------------------------------------------------------------------------
+
+
+    /**
+     * Returns *ALL* logged transactions. USE WITH CARE, because it may return a lot of data.
+     */
+    public static List<AuditTransaction> getTransactions() throws Exception
+    {
+        return getTransactions(null);
+    }
 
     /**
      * Specialized query.

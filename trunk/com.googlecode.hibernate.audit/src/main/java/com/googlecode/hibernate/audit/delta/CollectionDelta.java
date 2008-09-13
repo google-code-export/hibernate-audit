@@ -9,11 +9,6 @@ package com.googlecode.hibernate.audit.delta;
  *
  * $Id$
  */
-public interface CollectionDelta
+public interface CollectionDelta extends MemberVariableDelta
 {
-    /**
-    * @return the name of the class variable that holds the collection.
-     */
-    String getName();
-
 }

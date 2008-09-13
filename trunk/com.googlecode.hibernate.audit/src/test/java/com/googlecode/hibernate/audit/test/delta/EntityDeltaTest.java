@@ -2,7 +2,7 @@ package com.googlecode.hibernate.audit.test.delta;
 
 import org.testng.annotations.Test;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
-import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.ScalarDelta;
 import com.googlecode.hibernate.audit.delta.Deltas;
 
 import java.util.Set;
@@ -32,13 +32,13 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testAddPrimitiveDelta() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1));
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity");
 
-        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
+        ScalarDelta pd = Deltas.createPrimitiveDelta("a", "alice");
 
         assert ed.addPrimitiveDelta(pd);
 
-        Set<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+        Set<ScalarDelta> pds = ed.getPrimitiveDeltas();
         assert pds.size() == 1;
         assert pds.contains(pd);
 
@@ -46,12 +46,12 @@ public class EntityDeltaTest
         assert pds.size() == 1;
         assert pds.contains(pd);
 
-        PrimitiveDelta pd2 = Deltas.createPrimitiveDelta("a", "bob");
+        ScalarDelta pd2 = Deltas.createPrimitiveDelta("a", "bob");
         assert !ed.addPrimitiveDelta(pd2);
         assert pds.size() == 1;
         assert pds.contains(pd);
 
-        PrimitiveDelta pd3 = Deltas.createPrimitiveDelta("x", "xoxo");
+        ScalarDelta pd3 = Deltas.createPrimitiveDelta("x", "xoxo");
 
         assert ed.addPrimitiveDelta(pd3);
         assert pds.size() == 2;
@@ -66,4 +66,5 @@ public class EntityDeltaTest
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

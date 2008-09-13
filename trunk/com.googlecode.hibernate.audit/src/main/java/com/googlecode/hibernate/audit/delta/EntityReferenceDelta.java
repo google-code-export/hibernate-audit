@@ -9,22 +9,31 @@ package com.googlecode.hibernate.audit.delta;
  *
  * $Id$
  */
-public class Deltas
+class EntityReferenceDelta<T> extends MemberVariableDeltaSupport implements ScalarDelta<T> 
 {
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
-    public static <T> ScalarDelta<T> createPrimitiveDelta(String name, T value)
-    {
-        return new ScalarDeltaImpl<T>(name, value);
-    }
-
     // Attributes ----------------------------------------------------------------------------------
 
     // Constructors --------------------------------------------------------------------------------
 
+    // ScalarDelta implementation ------------------------------------------------------------------
+
+    public boolean isEntity()
+    {
+        return true;
+    }
+
+    public boolean isPrimitive()
+    {
+        return false;
+    }
+
     // Public --------------------------------------------------------------------------------------
+
+    // MemberVariableDelta implementation ----------------------------------------------------------
 
     // Package protected ---------------------------------------------------------------------------
 

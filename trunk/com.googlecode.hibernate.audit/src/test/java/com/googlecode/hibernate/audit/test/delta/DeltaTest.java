@@ -9,7 +9,7 @@ import com.googlecode.hibernate.audit.test.delta.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
-import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.ScalarDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -203,10 +203,10 @@ public class DeltaTest extends JTATransactionTest
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
 
-            Collection<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+            Collection<ScalarDelta> pds = ed.getPrimitiveDeltas();
             assert pds.size() == 3;
 
-            for(PrimitiveDelta pd: pds)
+            for(ScalarDelta pd: pds)
             {
                 String name = pd.getName();
                 if ("name".equals(name))

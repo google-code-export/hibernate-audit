@@ -19,12 +19,18 @@ public interface EntityDelta
      */
     Serializable getId();
 
-    Set<PrimitiveDelta> getPrimitiveDeltas();
+    Set<ScalarDelta> getPrimitiveDeltas();
     Set<CollectionDelta> getCollectionDeltas();
 
     /**
      * @return null if no primitive delta exists for this specific member variable.
      */
-    PrimitiveDelta getPrimitiveDelta(String name);
+    ScalarDelta getPrimitiveDelta(String name);
+
+    /**
+     * The name of the entity this delta corresponds to. In most cases is the fully qualified class
+     * name of the class implementing the entity, but it can also be an arbitrary string.
+     */
+    String getEntityName();
 
 }

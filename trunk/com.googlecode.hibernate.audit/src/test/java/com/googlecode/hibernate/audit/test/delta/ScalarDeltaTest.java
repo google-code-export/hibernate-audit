@@ -2,7 +2,7 @@ package com.googlecode.hibernate.audit.test.delta;
 
 import org.testng.annotations.Test;
 import com.googlecode.hibernate.audit.delta.Deltas;
-import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.ScalarDelta;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -14,7 +14,7 @@ import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
  * $Id$
  */
 @Test(sequential = true)
-public class PrimitiveDeltaTest
+public class ScalarDeltaTest
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ public class PrimitiveDeltaTest
     @Test(enabled = true)
     public void testPrimitiveDelta_String() throws Exception
     {
-        PrimitiveDelta<String> pd = Deltas.createPrimitiveDelta("a", "alice");
+        ScalarDelta<String> pd = Deltas.createPrimitiveDelta("a", "alice");
         String s = pd.getValue();
         assert "alice".equals(s);
     }
@@ -37,7 +37,7 @@ public class PrimitiveDeltaTest
     @Test(enabled = true)
     public void testPrimitiveDelta_Integer() throws Exception
     {
-        PrimitiveDelta<Integer> pd = Deltas.createPrimitiveDelta("a", new Integer(3));
+        ScalarDelta<Integer> pd = Deltas.createPrimitiveDelta("a", new Integer(3));
         Integer i = pd.getValue();
         assert new Integer(3).equals(i);
     }
@@ -45,7 +45,7 @@ public class PrimitiveDeltaTest
     @Test(enabled = true)
     public void testPrimitiveDelta_InferredType() throws Exception
     {
-        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", new Long(3));
+        ScalarDelta pd = Deltas.createPrimitiveDelta("a", new Long(3));
         assert Long.class.equals(pd.getType());
     }
 
@@ -53,7 +53,7 @@ public class PrimitiveDeltaTest
     public void testPrimitiveDelta_InferredTypeOnNull() throws Exception
     {
         String o = null;
-        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", o);
+        ScalarDelta pd = Deltas.createPrimitiveDelta("a", o);
 
         assert null == pd.getType();
     }
