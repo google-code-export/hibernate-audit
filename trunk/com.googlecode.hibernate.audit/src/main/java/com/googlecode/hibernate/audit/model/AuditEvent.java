@@ -14,8 +14,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.FetchType;
 
 import com.googlecode.hibernate.audit.delta.ChangeType;
+
+import java.util.List;
 
 
 /**
@@ -62,6 +66,10 @@ public class AuditEvent
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
     private AuditType targetType;
+
+    // the pairs are stored in the order they were initially logged in the database. TODO implement this
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+    private List<AuditEventPair> pairs;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -122,6 +130,15 @@ public class AuditEvent
     }
 
     /**
+     * The pairs are returned in the order they were initially logged in the database.
+     * TODO: ordering is not implemented yet.
+     */
+    public List<AuditEventPair> getPairs()
+    {
+        return pairs;
+    }
+
+    /**
      * Falls back to database identity.
      */
     @Override
@@ -165,6 +182,11 @@ public class AuditEvent
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    void setPairs(List<AuditEventPair> pairs)
+    {
+        this.pairs = pairs;
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

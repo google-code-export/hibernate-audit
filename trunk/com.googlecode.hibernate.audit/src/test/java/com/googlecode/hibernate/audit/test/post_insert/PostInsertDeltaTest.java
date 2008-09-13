@@ -9,9 +9,12 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.delta.EntityDelta;
+import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This is a collection of various "post-insert" use cases of leaving an audit trail and then
@@ -71,32 +74,19 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
 
-//
-//            List events = HibernateAudit.query("from AuditEvent");
-//
-//            assert transactions.size() == 1;
-//
-//            AuditEvent ae = (AuditEvent)events.get(0);
-//
-//            assert ChangeType.INSERT.equals(ae.getType());
-//            assert transactions.remove(ae.getTransaction());
-//
-//            AuditType type = ae.getTargetType();
-//            assert A.class.getName().equals(type.getClassName());
-//            assert a.getId().equals(ae.getTargetId());
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
-//
-//            assert pairs.size() == 1;
-//
-//            AuditEventPair pair = (AuditEventPair)pairs.get(0);
-//            assert "alice".equals(pair.getValue());
-//
-//            AuditTypeField field = pair.getField();
-//            assert "name".equals(field.getName());
-//
-//            type = field.getType();
-//            assert String.class.getName().equals(type.getClassName());
+            assert td.getEntityDeltas().size() == 1;
+
+            EntityDelta ed = td.getEntityDelta(a.getId());
+
+            assert a.getId().equals(ed.getId());
+            assert ed.getCollectionDeltas().isEmpty();
+
+            Set<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+            assert pds.size() == 1;
+
+            PrimitiveDelta pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alice".equals(pd.getValue());
         }
         catch(Exception e)
         {
@@ -113,198 +103,84 @@ public class PostInsertDeltaTest extends JTATransactionTest
             }
         }
     }
+    
+    @Test(enabled = true)
+    public void testSuccesiveInserts() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            A a = new A();
+            a.setName("alice");
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            s.save(a);
+            s.getTransaction().commit();
+
+            A a2 = new A();
+            a2.setName("alex");
+
+            s = sf.openSession();
+            s.beginTransaction();
+            s.save(a);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions(null);
+
+            assert txs.size() == 2;
+
+            AuditTransaction tx = txs.get(0);
+
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 1;
+
+            EntityDelta ed = td.getEntityDelta(a.getId());
+
+            assert a.getId().equals(ed.getId());
+            assert ed.getCollectionDeltas().isEmpty();
+            Set<PrimitiveDelta> pds = ed.getPrimitiveDeltas();
+            assert pds.size() == 1;
+            PrimitiveDelta pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alice".equals(pd.getValue());
+
+            tx = txs.get(1);
+            td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 1;
+
+            ed = td.getEntityDelta(a2.getId());
+            assert a2.getId().equals(ed.getId());
+            assert ed.getCollectionDeltas().isEmpty();
+            pds = ed.getPrimitiveDeltas();
+            assert pds.size() == 1;
+            pd = ed.getPrimitiveDelta("name");
+            assert String.class.equals(pd.getType());
+            assert "alex".equals(pd.getValue());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 //
-//    @Test(enabled = true)
-//    public void testSingleInsert() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Date t1 = new Date();
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            s.save(a);
-//
-//            t.commit();
-//
-//            Date t2 = new Date();
-//
-//            // make sure information was logged. Since we wipe out tables for each test, only one
-//            // audit transaction is expected to be found
-//
-//            List ts = HibernateAudit.query("from AuditTransaction");
-//
-//            assert ts.size() == 1;
-//
-//            AuditTransaction at = (AuditTransaction)ts.get(0);
-//
-//            assert at.getTimestamp().getTime() >= floorTime(t1.getTime());
-//            assert at.getTimestamp().getTime() <= t2.getTime();
-//
-//            List es = HibernateAudit.query("from AuditEvent");
-//
-//            assert ts.size() == 1;
-//
-//            AuditEvent ae = (AuditEvent)es.get(0);
-//
-//            assert ChangeType.INSERT.equals(ae.getType());
-//            assert ts.remove(ae.getTransaction());
-//
-//            AuditType aent = ae.getTargetType();
-//            assert A.class.getName().equals(aent.getClassName());
-//            assert a.getId().equals(ae.getTargetId());
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
-//
-//            assert pairs.size() == 1;
-//
-//            AuditEventPair pair = (AuditEventPair)pairs.get(0);
-//            assert "alice".equals(pair.getValue());
-//
-//            AuditTypeField field = pair.getField();
-//            assert "name".equals(field.getName());
-//
-//            AuditType type = field.getType();
-//            assert String.class.getName().equals(type.getClassName());
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = true)
-//    public void testSuccesiveInserts() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Set<Long> expectedEntityIds = new HashSet<Long>();
-//            Set<String> expectedPairValues = new HashSet<String>();
-//
-//            Date t1 = new Date();
-//
-//            A a = new A();
-//            a.setName("alice");
-//            expectedPairValues.add(a.getName());
-//
-//            Session s = sf.openSession();
-//            Transaction t = s.beginTransaction();
-//
-//            s.save(a);
-//
-//            t.commit();
-//
-//            expectedEntityIds.add(a.getId());
-//
-//            Date t2 = new Date();
-//
-//            a = new A();
-//            a.setName("alex");
-//            expectedPairValues.add(a.getName());
-//
-//            s = sf.openSession();
-//            t = s.beginTransaction();
-//
-//            s.save(a);
-//
-//            t.commit();
-//
-//            expectedEntityIds.add(a.getId());
-//
-//            Date t3 = new Date();
-//
-//            List ts = HibernateAudit.query("from AuditTransaction as a order by a.timestamp asc");
-//
-//            assert ts.size() == 2;
-//
-//            AuditTransaction at = (AuditTransaction)ts.get(0);
-//            assert at.getTimestamp().getTime() >= floorTime(t1.getTime());
-//            assert at.getTimestamp().getTime() <= t2.getTime();
-//
-//            at = (AuditTransaction)ts.get(1);
-//            assert at.getTimestamp().getTime() >= floorTime(t2.getTime());
-//            assert at.getTimestamp().getTime() <= t3.getTime();
-//
-//            List es = HibernateAudit.query("from AuditEvent");
-//
-//            assert ts.size() == 2;
-//
-//            AuditEvent ae = (AuditEvent)es.get(0);
-//            assert ChangeType.INSERT.equals(ae.getType());
-//            assert ts.remove(ae.getTransaction());
-//            AuditType aent = ae.getTargetType();
-//            assert A.class.getName().equals(aent.getClassName());
-//            assert expectedEntityIds.remove(ae.getTargetId());
-//
-//            List pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
-//
-//            assert pairs.size() == 1;
-//
-//            AuditEventPair pair = (AuditEventPair) pairs.get(0);
-//            assert "name".equals(pair.getField().getName());
-//            assert expectedPairValues.remove((String)pair.getValue());
-//
-//            ae = (AuditEvent)es.get(1);
-//            assert ChangeType.INSERT.equals(ae.getType());
-//            assert ts.remove(ae.getTransaction());
-//            aent = ae.getTargetType();
-//            assert A.class.getName().equals(aent.getClassName());
-//            assert expectedEntityIds.remove(ae.getTargetId());
-//
-//            pairs = HibernateAudit.query("from AuditEventPair as ap where ap.event = :event", ae);
-//
-//            assert pairs.size() == 1;
-//
-//            pair = (AuditEventPair)pairs.get(0);
-//            assert "name".equals(pair.getField().getName());
-//            assert expectedPairValues.remove((String)pair.getValue());
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testAuditType() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -374,7 +250,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -453,7 +329,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -541,7 +417,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testAuditType_TwoEntities() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -608,7 +484,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testAuditField_TwoEntities_TwoTransactions() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -764,7 +640,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testInsert_EmptyState() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -816,7 +692,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //        }
 //    }
 //
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testPrivateMutators() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -866,6 +742,1836 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //            }
 //        }
 //    }
+
+    // coming from PostInsertStatefulSessionTest
+
+//    @Test(enabled = false)
+//    public void testSingleInsert() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(A.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            A a = new A();
+//            a.setName("alice");
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            s.save(a);
+//
+//            s.getTransaction().commit();
+//
+//            Long aId = a.getId();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction aTx = (AuditTransaction)transactions.get(0);
+//
+//            List pairs = HibernateAudit.query("from AuditEventPair");
+//            assert pairs.size() == 1;
+//            AuditEventPair p = (AuditEventPair)pairs.get(0);
+//
+//            assert "alice".equals(p.getValue());
+//
+//            AuditTypeField f = p.getField();
+//            assert "name".equals(f.getName());
+//            AuditType t = f.getType();
+//            assert t.isPrimitiveType();
+//            assert String.class.equals(t.getClassInstance());
+//
+//            AuditEvent e = p.getEvent();
+//            assert aTx.equals(e.getTransaction());
+//            assert aId.equals(e.getTargetId());
+//            assert ChangeType.INSERT.equals(e.getType());
+//
+//            t = e.getTargetType();
+//            assert t.isEntityType();
+//            AuditEntityType et = (AuditEntityType)t;
+//            assert A.class.equals(et.getClassInstance());
+//            assert Long.class.equals(et.getIdClassInstance());
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testInsert_AlreadyExistingEntityType() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(A.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            // insert the entity type
+//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+//            Session is = isf.openSession();
+//            is.beginTransaction();
+//
+//            AuditEntityType et = new AuditEntityType(Long.class, A.class);
+//            is.save(et);
+//
+//            is.getTransaction().commit();
+//            is.close();
+//
+//            A a = new A();
+//            a.setName("alice");
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            s.save(a);
+//
+//            s.getTransaction().commit();
+//
+//            List events = HibernateAudit.query("from AuditEvent");
+//            assert events.size() == 1;
+//            AuditEvent ae = (AuditEvent)events.get(0);
+//            AuditEntityType persistedEt = (AuditEntityType)ae.getTargetType();
+//
+//            assert et.equals(persistedEt);
+//
+//            List types = HibernateAudit.query("from AuditType");
+//            assert 2 == types.size();
+//
+//            assert types.remove(et);
+//
+//            AuditType t = (AuditType)types.get(0);
+//            assert t.isPrimitiveType();
+//            assert String.class.equals(t.getClassInstance());
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testInsert_AlreadyExistingPrimitiveType() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(A.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            // insert the primitive type
+//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+//            Session is = isf.openSession();
+//            is.beginTransaction();
+//
+//            AuditType t = new AuditType();
+//            t.setClassName(String.class.getName());
+//            is.save(t);
+//
+//            is.getTransaction().commit();
+//            is.close();
+//
+//            A a = new A();
+//            a.setName("alice");
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            s.save(a);
+//
+//            s.getTransaction().commit();
+//
+//            List fields = HibernateAudit.query("from AuditTypeField");
+//            assert fields.size() == 1;
+//            AuditTypeField f = (AuditTypeField)fields.get(0);
+//            AuditType persistedT = f.getType();
+//
+//            assert t.equals(persistedT);
+//
+//            List types = HibernateAudit.query("from AuditType");
+//            assert 2 == types.size();
+//
+//            assert types.remove(t);
+//
+//            AuditEntityType et = (AuditEntityType)types.get(0);
+//            assert A.class.equals(et.getClassInstance());
+//            assert Long.class.equals(et.getIdClassInstance());
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testInsert_AlreadyExistingCollectionType() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            // insert the entity type
+//            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+//            Session is = isf.openSession();
+//            is.beginTransaction();
+//
+//            AuditCollectionType ct = new AuditCollectionType(List.class, WB.class);
+//            is.save(ct);
+//
+//            is.getTransaction().commit();
+//            is.close();
+//
+//            WA wa = new WA();
+//            WB wb = new WB();
+//            wb.setName("wbong");
+//            wa.getWbs().add(wb);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            s.save(wa);
+//
+//            s.getTransaction().commit();
+//
+//            List events =
+//                HibernateAudit.query("from AuditEvent as ae where ae.targetId = ?", wa.getId());
+//
+//            assert events.size() == 1;
+//
+//            AuditEvent ae = (AuditEvent)events.get(0);
+//
+//            List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+//
+//            assert pairs.size() == 1;
+//
+//            AuditEventPair p = (AuditEventPair)pairs.get(0);
+//
+//            AuditType t = p.getField().getType();
+//
+//            assert ct.equals(t);
+//
+//            List types = HibernateAudit.query("from AuditType");
+//            assert types.size() == 4;
+//
+//            assert types.remove(ct);
+//
+//            for(Object o: types)
+//            {
+//                AuditType ts = (AuditType)o;
+//                assert ts.isEntityType() || ts.isPrimitiveType();
+//            }
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+
+    // Coming from PostInsertEntityTest
+
+//    @Test(enabled = false)
+//    public void testSimpleCascade() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(C.class);
+//        config.addAnnotatedClass(D.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            C c = new C();
+//            c.setName("charlie");
+//
+//            D d = new D();
+//            d.setName("diane");
+//
+//            c.setD(d);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            s.save(c);
+//
+//            t.commit();
+//
+//            Set<Long> expectedTargetIds = new HashSet<Long>();
+//            expectedTargetIds.add(c.getId());
+//            expectedTargetIds.add(d.getId());
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            List types = HibernateAudit.query("from AuditType");
+//            assert types.size() == 3;
+//
+//            Set<AuditType> expectedTargetTypes = new HashSet<AuditType>();
+//
+//            for(Object o: types)
+//            {
+//                AuditType type = (AuditType)o;
+//
+//                if (type.isEntityType())
+//                {
+//                    expectedTargetTypes.add(type);
+//                }
+//                else if (String.class.equals(type.getClassInstance()))
+//                {
+//                    // ok
+//                }
+//                else
+//                {
+//                    throw new Error("unexpected type " + type);
+//                }
+//            }
+//
+//            assert expectedTargetTypes.size() == 2;
+//
+//            List events = HibernateAudit.query("from AuditEvent");
+//            assert events.size() == 2;
+//
+//            for(Object o: events)
+//            {
+//                AuditEvent e = (AuditEvent)o;
+//
+//                assert at.equals(e.getTransaction());
+//                assert ChangeType.INSERT.equals(e.getType());
+//                assert expectedTargetTypes.remove(e.getTargetType());
+//                assert expectedTargetIds.remove(e.getTargetId());
+//            }
+//
+//            List pairs = HibernateAudit.query("from AuditEventPair");
+//            assert pairs.size() == 3;
+//
+//            Set<String> expectedStringValues = new HashSet<String>();
+//            expectedStringValues.add(c.getName());
+//            expectedStringValues.add(d.getName());
+//            expectedStringValues.add(Long.toString(d.getId()));
+//
+//            for(Object o: pairs)
+//            {
+//                AuditEventPair pair = (AuditEventPair)o;
+//
+//                // TODO we're not testing pair.getValue() because at this time is not implemented
+//                assert expectedStringValues.remove(pair.getStringValue());
+//            }
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testSimpleCascade_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(C.class);
+//        config.addAnnotatedClass(D.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            C c = new C();
+//            c.setName("charlie");
+//
+//            D d = new D();
+//            d.setName("diane");
+//
+//            c.setD(d);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            s.save(c);
+//
+//            t.commit();
+//
+//            Long cId = c.getId();
+//            Long dId = d.getId();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            C cBase = new C();
+//            HibernateAudit.delta(cBase, cId, at.getId());
+//
+//            assert cId.equals(cBase.getId());
+//
+//            assert "charlie".equals(cBase.getName());
+//
+//            D recreatedD = cBase.getD();
+//            assert recreatedD != d;
+//            assert dId.equals(recreatedD.getId());
+//            assert "diane".equals(recreatedD.getName());
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testCascade_TwoTransactions_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(C.class);
+//        config.addAnnotatedClass(D.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//
+//            // transaction one
+//            s.beginTransaction();
+//
+//            D d = new D();
+//            d.setName("diane");
+//
+//            s.save(d);
+//
+//            Long dId = d.getId();
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            s = sf.openSession();
+//
+//            // transaction two
+//            s.beginTransaction();
+//
+//            // we do this to modify the order in which post-insert events are sent
+//            d = (D)s.get(D.class, dId);
+//
+//            C c = new C();
+//            c.setName("charlie");
+//            c.setD(d);
+//
+//            s.save(c);
+//
+//            s.getTransaction().commit();
+//
+//            Long cId = c.getId();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction as a order by a.id");
+//            assert transactions.size() == 2;
+//            AuditTransaction at = (AuditTransaction)transactions.get(1);
+//
+//            C cBase = new C();
+//            HibernateAudit.delta(cBase, cId, at.getId());
+//
+//            assert cId.equals(cBase.getId());
+//
+//            assert "charlie".equals(cBase.getName());
+//
+//            D recreatedD = cBase.getD();
+//            assert recreatedD != d;
+//            assert dId.equals(recreatedD.getId());
+//            assert "diane".equals(recreatedD.getName());
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testCascade_TwoTransactions_MultipleEntities_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(C.class);
+//        config.addAnnotatedClass(D.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//
+//            // transaction one
+//            s.beginTransaction();
+//
+//            D d = new D();
+//            d.setName("diane");
+//
+//            s.save(d);
+//
+//            Long dId = d.getId();
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            s = sf.openSession();
+//
+//            // transaction two
+//            s.beginTransaction();
+//
+//            // we do this to modify the order in which post-insert events are sent
+//            d = (D)s.get(D.class, dId);
+//
+//            C c = new C();
+//            c.setName("charlie");
+//            c.setD(d);
+//
+//            C c2 = new C();
+//            c2.setName("connie");
+//            c2.setD(d);
+//
+//            s.save(c);
+//            s.save(c2);
+//
+//            s.getTransaction().commit();
+//
+//            Long cId = c.getId();
+//            Long cId2 = c2.getId();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction as a order by a.id");
+//            assert transactions.size() == 2;
+//            AuditTransaction at = (AuditTransaction)transactions.get(1);
+//
+//            C cBase = new C();
+//            HibernateAudit.delta(cBase, cId, at.getId());
+//
+//            assert cId.equals(cBase.getId());
+//
+//            assert "charlie".equals(cBase.getName());
+//
+//            D recreatedD = cBase.getD();
+//            assert recreatedD != d;
+//            assert dId.equals(recreatedD.getId());
+//            assert "diane".equals(recreatedD.getName());
+//
+//            cBase = new C();
+//            HibernateAudit.delta(cBase, cId2, at.getId());
+//
+//            assert cId2.equals(cBase.getId());
+//
+//            assert "connie".equals(cBase.getName());
+//
+//            recreatedD = cBase.getD();
+//            assert recreatedD != d;
+//            assert dId.equals(recreatedD.getId());
+//            assert "diane".equals(recreatedD.getName());
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+
+    // coming from PostInsertCollectionsTest
+
+//    @Test(enabled = false)
+//    public void testAddOneInCollection() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("wasabi");
+//
+//            WB wb = new WB();
+//            wb.setName("wbang");
+//
+//            wa.getWbs().add(wb);
+//            wb.setWa(wa);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            // verify the data is in the database
+//
+//            List<Long> targetIds = new ArrayList<Long>(Arrays.asList(wa.getId(), wb.getId()));
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            List types = HibernateAudit.query("from AuditType");
+//            assert types.size() == 4;
+//
+//            Set<AuditType> expectedTargetTypes = new HashSet<AuditType>();
+//
+//            for(Object o: types)
+//            {
+//                AuditType type = (AuditType)o;
+//
+//                if (type.isEntityType())
+//                {
+//                    expectedTargetTypes.add(type);
+//                }
+//                else if (type.isCollectionType())
+//                {
+//                    AuditCollectionType ct = (AuditCollectionType)type;
+//                    assert List.class.equals(ct.getCollectionClassInstance());
+//                    assert WB.class.equals(ct.getClassInstance());
+//                }
+//                else if (String.class.equals(type.getClassInstance()))
+//                {
+//                    // ok
+//                }
+//                else
+//                {
+//                    throw new Error("unexpected type " + type);
+//                }
+//            }
+//
+//            assert expectedTargetTypes.size() == 2;
+//
+//            List events = HibernateAudit.query("from AuditEvent");
+//            assert events.size() == 2;
+//
+//            for(Object o: events)
+//            {
+//                AuditEvent e = (AuditEvent)o;
+//
+//                assert at.equals(e.getTransaction());
+//                assert ChangeType.INSERT.equals(e.getType());
+//                assert expectedTargetTypes.remove(e.getTargetType());
+//                assert targetIds.remove(e.getTargetId());
+//            }
+//
+//            List pairs = HibernateAudit.query("from AuditEventPair");
+//            assert pairs.size() == 4;
+//
+//            List<String> expectedStringValues = new ArrayList<String>(Arrays.
+//                asList(wa.getName(),
+//                       wb.getName(),
+//                       Long.toString(wa.getId()))); // the WA's id as a foreign key in WB's table.
+//
+//            for(Object o: pairs)
+//            {
+//                AuditEventPair pair = (AuditEventPair)o;
+//
+//                if (pair.isCollection())
+//                {
+//                    AuditEventCollectionPair cp = (AuditEventCollectionPair)pair;
+//                    List<Long> ids = cp.getIds();
+//
+//                    assert 1 == ids.size();
+//                    assert ids.remove(wb.getId());
+//                }
+//                else
+//                {
+//                    // TODO we're not testing pair.getValue() because at this time is not implemented
+//                    assert expectedStringValues.remove(pair.getStringValue());
+//                }
+//            }
+//
+//            assert expectedStringValues.isEmpty();
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testAddOneInCollection_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("alana");
+//
+//            WB wb = new WB();
+//            wb.setName("baja");
+//
+//            wa.getWbs().add(wb);
+//            wb.setWa(wa);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//
+//            WA base = new WA();
+//            HibernateAudit.delta(base, waId, at.getId());
+//
+//            assert waId.equals(base.getId());
+//            assert "alana".equals(wa.getName());
+//
+//            List<WB> wbs = base.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 1;
+//
+//            WB postTWb = wbs.get(0);
+//            assert postTWb != wb;
+//
+//            assert postTWb.getId().equals(wbId);
+//            assert "baja".equals(postTWb.getName());
+//
+//            assert base == postTWb.getWa();
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("alana");
+//
+//            WB wb = new WB();
+//            wb.setName("baja");
+//
+//            wa.getWbs().add(wb);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//
+//            WA base = new WA();
+//            HibernateAudit.delta(base, waId, at.getId());
+//
+//            assert waId.equals(base.getId());
+//            assert "alana".equals(wa.getName());
+//
+//            List<WB> wbs = base.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 1;
+//
+//            WB postTWb = wbs.get(0);
+//            assert postTWb != wb;
+//
+//            assert postTWb.getId().equals(wbId);
+//            assert "baja".equals(postTWb.getName());
+//
+//            // no bidirectionality
+//            assert postTWb.getWa() == null;
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testAddTwoInCollection_Bidirectionality() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("wasabi");
+//
+//            WB wb = new WB();
+//            wb.setName("wbang");
+//
+//            WB wb2 = new WB();
+//            wb2.setName("wbong");
+//
+//            wa.getWbs().add(wb);
+//            wa.getWbs().add(wb2);
+//
+//            wb.setWa(wa);
+//            wb2.setWa(wa);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//            Long wb2Id = wb2.getId();
+//            Set<Long> expectedWbIds = new HashSet<Long>();
+//            expectedWbIds.add(wbId);
+//            expectedWbIds.add(wb2Id);
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            WA baseA = new WA();
+//            HibernateAudit.delta(baseA, waId, at.getId());
+//
+//            assert waId.equals(baseA.getId());
+//            assert "wasabi".equals(wa.getName());
+//
+//            List<WB> wbs = baseA.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 2;
+//
+//            for(WB b: wbs)
+//            {
+//                assert b != wb;
+//                assert b != wb2;
+//                assert expectedWbIds.remove(b.getId());
+//                assert baseA == b.getWa();
+//                if (wb.getId().equals(b.getId()))
+//                {
+//                    assert wb.getName().equals(b.getName());
+//                }
+//                else if (wb2.getId().equals(b.getId()))
+//                {
+//                    assert wb2.getName().equals(b.getName());
+//                }
+//                else
+//                {
+//                    throw new Error("did not expect " + b.getId());
+//                }
+//            }
+//
+//            assert expectedWbIds.isEmpty();
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("wasabi");
+//
+//            WB wb = new WB();
+//            wb.setName("wbang");
+//
+//            WB wb2 = new WB();
+//            wb2.setName("wbong");
+//
+//            wa.getWbs().add(wb);
+//            wa.getWbs().add(wb2);
+//
+//            // we stop here, no bidirectionality from WB to WA
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//            Long wb2Id = wb2.getId();
+//            Set<Long> expectedWbIds = new HashSet<Long>();
+//            expectedWbIds.add(wbId);
+//            expectedWbIds.add(wb2Id);
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            WA baseA = new WA();
+//            HibernateAudit.delta(baseA, waId, at.getId());
+//
+//            assert waId.equals(baseA.getId());
+//            assert "wasabi".equals(wa.getName());
+//
+//            List<WB> wbs = baseA.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 2;
+//
+//            for(WB b: wbs)
+//            {
+//                assert b != wb;
+//                assert b != wb2;
+//                assert expectedWbIds.remove(b.getId());
+//                assert b.getWa() == null;
+//                if (wb.getId().equals(b.getId()))
+//                {
+//                    assert wb.getName().equals(b.getName());
+//                }
+//                else if (wb2.getId().equals(b.getId()))
+//                {
+//                    assert wb2.getName().equals(b.getName());
+//                }
+//                else
+//                {
+//                    throw new Error("did not expect " + b.getId());
+//                }
+//            }
+//
+//            assert expectedWbIds.isEmpty();
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testModifyOneFromCollection() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            // create the state in database, without auditing
+//            assert !HibernateAudit.isStarted();
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("wasabi");
+//
+//            WB wb = new WB();
+//            wb.setName("wbang");
+//
+//            WB wb2 = new WB();
+//            wb2.setName("wbong");
+//
+//            wa.getWbs().add(wb);
+//            wa.getWbs().add(wb2);
+//
+//            s.save(wa);
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            // load the state from the database
+//
+//            s = sf.openSession();
+//            s.beginTransaction();
+//
+//            wa = (WA)s.get(WA.class, wa.getId());
+//
+//            assert "wasabi".equals(wa.getName());
+//
+//            List<String> expected = new ArrayList<String>(Arrays.asList("wbang", "wbong"));
+//            List<WB> wbs = wa.getWbs();
+//            assert wbs.size() == 2;
+//            for(WB i: wbs)
+//            {
+//                assert expected.remove(i.getName());
+//            }
+//
+//            // enable auditing
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            WB newWb = new WB();
+//            newWb.setName("wbung");
+//            wa.getWbs().set(0, newWb);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            // "raw" access test
+//
+//            List<AuditTransaction> txs = HibernateAudit.getTransactions(wa.getId());
+//            assert txs.size() == 1;
+//
+//            AuditTransaction tx = txs.get(0);
+//
+//            List events =
+//                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+//
+//            assert events.size() == 2;
+//
+//            for(Object o: events)
+//            {
+//                AuditEvent ae = (AuditEvent)o;
+//                assert tx.equals(ae.getTransaction());
+//                ChangeType ct = ae.getType();
+//
+//                List pairs =
+//                    HibernateAudit.query("from AuditEventPair as p where p.event = :event", ae);
+//
+//                if (ChangeType.INSERT.equals(ct))
+//                {
+//                    assert newWb.getId().equals(ae.getTargetId());
+//                    assert pairs.size() == 1;
+//                    AuditEventPair p = (AuditEventPair)pairs.get(0);
+//                    assert "name".equals(p.getField().getName());
+//                    assert "wbung".equals(p.getValue());
+//                }
+//                else if (ChangeType.UPDATE.equals(ct))
+//                {
+//                    assert wa.getId().equals(ae.getTargetId());
+//                    assert pairs.size() == 1;
+//                    AuditEventCollectionPair p = (AuditEventCollectionPair)pairs.get(0);
+//                    assert "wbs".equals(p.getField().getName());
+//                    List ids = (List)p.getValue();
+//                    assert ids.size() == 2;
+//                    assert newWb.getId().equals(ids.get(0));
+//                    assert wb2.getId().equals(ids.get(1));
+//                }
+//                else
+//                {
+//                    throw new Error("invalid state");
+//                }
+//            }
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+//    @Test(enabled = false)
+//    public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            WA wa = new WA();
+//            WB wb = new WB();
+//            wa.getWbs().add(wb);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            s.save(wa);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> transactions = HibernateAudit.getTransactions(wa.getId());
+//
+//            assert transactions.size() == 1;
+//
+//            Long txId = transactions.get(0).getId();
+//
+//            WA base = new WA();
+//            HibernateAudit.delta(base, wa.getId(), txId);
+//
+//            assert wa.getId().equals(base.getId());
+//            assert base.getName() == null;
+//
+//            List<WB> wbs = wa.getWbs();
+//            assert wbs.size() == 1;
+//
+//            WB wbCopy = wbs.get(0);
+//            assert wbCopy.getId().equals(wb.getId());
+//            assert wbCopy.getName() == null;
+//            assert wbCopy.getWa() == null;
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+
+
+    // coming from PostInsertTuplizerEntityTest
+
+//    @Test(enabled = false)
+//    public void testManyToOne_OneIsTuplizer() throws Exception
+//    {
+//        Configuration config = new Configuration();
+//        config.configure(getHibernateConfigurationFileName());
+//
+//        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+//        // enough)
+//
+//        String xaMapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA' table='XA'>\n" +
+//            "        <id name='id' type='long'>\n" +
+//            "            <generator class='native'/>\n" +
+//            "        </id>\n" +
+//            "        <property name='name' type='string'/>\n" +
+//            "        <many-to-one name='xb' column='xb_id' entity-name='XB' cascade='all'/>\n" +
+//            "    </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        String xbMapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
+//            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer'/>\n" +
+//            "      <id name='id' type='long'>\n" +
+//            "         <generator class='native'/>\n" +
+//            "      </id>\n" +
+//            "      <property name='name' type='string'/>\n" +
+//            "   </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        config.addInputStream(new ByteArrayInputStream(xaMapping.getBytes()));
+//        config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
+//
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            XA xa = new XA();
+//            XB xb = new XB();
+//
+//            XBTuplizer tuplizer = new XBTuplizer();
+//            tuplizer.setPropertyValue(xb, "name", "xbone");
+//
+//            xa.setXb(xb);
+//
+//            s.save(xa);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa.getId());
+//            assert transactions.size() == 1;
+//
+//            XA base = new XA();
+//            HibernateAudit.delta(base, xa.getId(), transactions.get(0).getId());
+//
+//            XB restored = base.getXb();
+//            assert xb.getId().equals(restored.getId());
+//            assert "xbone".equals(restored.getName());
+//
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+////    @Test(enabled = false) // TODO https://jira.novaordis.org/browse/HBA-81
+////    public void testMissingMutatorThatMayBeSalvagedByTuplizer() throws Exception
+////    {
+////        Configuration config = new Configuration();
+////        config.configure(getHibernateConfigurationFileName());
+////
+////        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+////        // enough)
+////
+////        String xaMapping =
+////            "<?xml version='1.0'?>\n" +
+////            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+////            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+////            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+////            "<hibernate-mapping>\n" +
+////            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA' table='XA'>\n" +
+////            "        <id name='id' type='long'>\n" +
+////            "            <generator class='native'/>\n" +
+////            "        </id>\n" +
+////            "        <property name='name' type='string'/>\n" +
+////            "        <many-to-one name='xc' column='xc_id' entity-name='XC' cascade='all'/>\n" +
+////            "    </class>\n" +
+////            "</hibernate-mapping>";
+////
+////        String xcMapping =
+////            "<?xml version='1.0'?>\n" +
+////            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+////            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+////            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+////            "<hibernate-mapping>\n" +
+////            "   <class entity-name='XC' name='com.googlecode.hibernate.audit.test.post_insert.data.XC' table='XC'>\n" +
+////            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XCTuplizer'/>\n" +
+////            "      <id name='id' type='long'>\n" +
+////            "         <generator class='native'/>\n" +
+////            "      </id>\n" +
+////            "      <property name='name' type='string'/>\n" +
+////            "   </class>\n" +
+////            "</hibernate-mapping>";
+////
+////        config.addInputStream(new ByteArrayInputStream(xaMapping.getBytes()));
+////        config.addInputStream(new ByteArrayInputStream(xcMapping.getBytes()));
+////
+////        SessionFactoryImplementor sf = null;
+////
+////        try
+////        {
+////            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+////
+////            HibernateAudit.startRuntime(sf.getSettings());
+////            HibernateAudit.register(sf);
+////
+////            Session s = sf.openSession();
+////            s.beginTransaction();
+////
+////            XA xa = new XA();
+////            XC xc = new XC();
+////
+////            XCTuplizer tuplizer = new XCTuplizer();
+////            tuplizer.setPropertyValue(xc, "name", "xcone");
+////
+////            xa.setXc(xc);
+////
+////            s.save(xa);
+////
+////            s.getTransaction().commit();
+////            s.close();
+////
+////            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa.getId());
+////            assert transactions.size() == 1;
+////
+////            XA base = new XA();
+////            HibernateAudit.delta(base, xa.getId(), transactions.get(0).getId());
+////
+////            XC restored = base.getXc();
+////            assert xc.getId().equals(restored.getId());
+////            assert "xcone".equals(restored.getName());
+////        }
+////        catch(Exception e)
+////        {
+////            log.error("test failed unexpectedly", e);
+////            throw e;
+////        }
+////        finally
+////        {
+////            HibernateAudit.stopRuntime();
+////
+////            if (sf != null)
+////            {
+////                sf.close();
+////            }
+////        }
+////    }
+//
+//    @Test(enabled = false)
+//    public void testManyToOne_OneIsTuplizer_Collection() throws Exception
+//    {
+//        Configuration config = new Configuration();
+//        config.configure(getHibernateConfigurationFileName());
+//
+//        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+//        // enough)
+//
+//        String xa2Mapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
+//            "        <id name='id' type='long'>\n" +
+//            "            <generator class='native'/>\n" +
+//            "        </id>\n" +
+//            "        <set name='xbs' cascade='all'>\n" +
+//            "            <key column='xa_id'/>\n" +
+//            "            <one-to-many entity-name='XB'/>\n" +
+//            "        </set>\n" +
+//            "    </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        String xbMapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
+//            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer'/>\n" +
+//            "      <id name='id' type='long'>\n" +
+//            "         <generator class='native'/>\n" +
+//            "      </id>\n" +
+//            "      <property name='name' type='string'/>\n" +
+//            "   </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        config.addInputStream(new ByteArrayInputStream(xa2Mapping.getBytes()));
+//        config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
+//
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            XA2 xa2 = new XA2();
+//            XB xbone = new XB();
+//            XB xbtwo = new XB();
+//
+//            XBTuplizer tuplizer = new XBTuplizer();
+//            tuplizer.setPropertyValue(xbone, "name", "xbone");
+//            tuplizer.setPropertyValue(xbtwo, "name", "xbtwo");
+//
+//            Set<XB> xbs = xa2.getXbs();
+//            xbs.add(xbone);
+//            xbs.add(xbtwo);
+//
+//            s.save(xa2);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa2.getId());
+//            assert transactions.size() == 1;
+//
+//            XA2 base = new XA2();
+//            HibernateAudit.delta(base, xa2.getId(), transactions.get(0).getId());
+//
+//            Set<XB> restored = base.getXbs();
+//            assert restored.size() == 2;
+//
+//            for(XB xb: restored)
+//            {
+//                if (xbone.getId().equals(xb.getId()))
+//                {
+//                    assert "xbone".equals(xb.getName());
+//                }
+//                else if (xbtwo.getId().equals(xb.getId()))
+//                {
+//                    assert "xbtwo".equals(xb.getName());
+//                }
+//                else
+//                {
+//                    throw new Error("unexpected " + xb);
+//                }
+//            }
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+//
+////    @Test(enabled = false) // TODO 1.1 https://jira.novaordis.org/browse/HBA-107
+////    public void testManyToOne_BothAreTuplizers_Collection() throws Exception
+////    {
+////        Configuration config = new Configuration();
+////        config.configure(getHibernateConfigurationFileName());
+////
+////        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+////        // enough)
+////
+////        String xa3Mapping =
+////            "<?xml version='1.0'?>\n" +
+////            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+////            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+////            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+////            "<hibernate-mapping>\n" +
+////            "   <class entity-name='XA3' name='com.googlecode.hibernate.audit.test.post_insert.data.XA3' table='XA3'>\n" +
+////            "        <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XA3Tuplizer'/>\n" +
+////            "        <id name='id' type='long'>\n" +
+////            "            <generator class='native'/>\n" +
+////            "        </id>\n" +
+////            "        <set name='xbs' cascade='all'>\n" +
+////            "            <key column='xa_id'/>\n" +
+////            "            <one-to-many entity-name='XB'/>\n" +
+////            "        </set>\n" +
+////            "    </class>\n" +
+////            "</hibernate-mapping>";
+////
+////        String xbMapping =
+////            "<?xml version='1.0'?>\n" +
+////            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+////            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+////            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+////            "<hibernate-mapping>\n" +
+////            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
+////            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer'/>\n" +
+////            "      <id name='id' type='long'>\n" +
+////            "         <generator class='native'/>\n" +
+////            "      </id>\n" +
+////            "      <property name='name' type='string'/>\n" +
+////            "   </class>\n" +
+////            "</hibernate-mapping>";
+////
+////        config.addInputStream(new ByteArrayInputStream(xa3Mapping.getBytes()));
+////        config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
+////
+////        SessionFactoryImplementor sf = null;
+////
+////        try
+////        {
+////            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+////
+////            HibernateAudit.startRuntime(sf.getSettings());
+////            HibernateAudit.register(sf);
+////
+////            Session s = sf.openSession();
+////            s.beginTransaction();
+////
+////            XA3 xa3 = new XA3();
+////            XB xbone = new XB();
+////            XB xbtwo = new XB();
+////
+////            XBTuplizer xbTuplizer = new XBTuplizer();
+////            xbTuplizer.setPropertyValue(xbone, "name", "xbone");
+////            xbTuplizer.setPropertyValue(xbtwo, "name", "xbtwo");
+////
+////            Set<XB> xbs = new HashSet<XB>();
+////            xbs.add(xbone);
+////            xbs.add(xbtwo);
+////            XA3Tuplizer xa3Tuplizer = new XA3Tuplizer();
+////            xa3Tuplizer.setPropertyValue(xa3, "xbs", xbs);
+////
+////            s.save("XA3", xa3);
+////
+////            s.getTransaction().commit();
+////            s.close();
+////
+////            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa3.getId());
+////            assert transactions.size() == 1;
+////
+////            XA3 base = new XA3();
+////            HibernateAudit.delta(base, "XA3", xa3.getId(), transactions.get(0).getId());
+////
+////            assert xa3 != base;
+////            assert xa3.getId().equals(base.getId());
+////
+////            Set<XB> xbsREstored = base.getXbs();
+////            assert xbsREstored != xbs;
+////
+////            assert xbsREstored.size() == 2;
+////
+////            for(XB xb: xbsREstored)
+////            {
+////                assert xb != xbone;
+////                assert xb != xbtwo;
+////
+////                if (xbone.getId().equals(xb.getId()))
+////                {
+////                    assert "xbone".equals(xb.getName());
+////                }
+////                else if (xbtwo.getId().equals(xb.getId()))
+////                {
+////                    assert "xbtwo".equals(xb.getName());
+////                }
+////                else
+////                {
+////                    throw new Error("unexpected " + xb);
+////                }
+////            }
+////        }
+////        catch(Exception e)
+////        {
+////            log.error("test failed unexpectedly", e);
+////            throw e;
+////        }
+////        finally
+////        {
+////            HibernateAudit.stopRuntime();
+////
+////            if (sf != null)
+////            {
+////                sf.close();
+////            }
+////        }
+////    }
+//
+//    @Test(enabled = false)
+//    public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
+//    {
+//        Configuration config = new Configuration();
+//        config.configure(getHibernateConfigurationFileName());
+//
+//        // we add metadata as XML otherwise we can't simulate the condition (JPA not expressive
+//        // enough)
+//
+//        String xa2Mapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
+//            "        <id name='id' type='long'>\n" +
+//            "            <generator class='native'/>\n" +
+//            "        </id>\n" +
+//            "        <set name='xbs' cascade='all'>\n" +
+//            "            <key column='xa_id'/>\n" +
+//            "            <one-to-many entity-name='XB'/>\n" +
+//            "        </set>\n" +
+//            "    </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        String xbMapping =
+//            "<?xml version='1.0'?>\n" +
+//            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
+//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
+//            "<hibernate-mapping>\n" +
+//            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
+//            "      <tuplizer entity-mode='pojo' class='com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer'/>\n" +
+//            "      <id name='id' type='long'>\n" +
+//            "         <generator class='native'/>\n" +
+//            "      </id>\n" +
+//            "      <property name='name' type='string'/>\n" +
+//            "   </class>\n" +
+//            "</hibernate-mapping>";
+//
+//        config.addInputStream(new ByteArrayInputStream(xa2Mapping.getBytes()));
+//        config.addInputStream(new ByteArrayInputStream(xbMapping.getBytes()));
+//
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            XA2 xa2 = new XA2();
+//
+//            // empty collection
+//
+//            s.save(xa2);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> transactions = HibernateAudit.getTransactions(xa2.getId());
+//            assert transactions.size() == 1;
+//
+//            XA2 base = new XA2();
+//            HibernateAudit.delta(base, xa2.getId(), transactions.get(0).getId());
+//
+//            Set<XB> restored = base.getXbs();
+//            assert restored.isEmpty();
+//
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
+
 
     // Package protected ---------------------------------------------------------------------------
 

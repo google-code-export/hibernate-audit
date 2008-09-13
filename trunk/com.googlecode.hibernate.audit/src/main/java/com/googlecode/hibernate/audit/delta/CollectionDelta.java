@@ -6,39 +6,14 @@ package com.googlecode.hibernate.audit.delta;
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class CollectionDelta
+public interface CollectionDelta
 {
-    // Constants -----------------------------------------------------------------------------------
-
-    // Static --------------------------------------------------------------------------------------
-
-    // Attributes ----------------------------------------------------------------------------------
-
-    private String name;
-
-    // Constructors --------------------------------------------------------------------------------
-
-    public CollectionDelta(String name)
-    {
-        this.name = name;
-    }
-
-    // Public --------------------------------------------------------------------------------------
-
     /**
-     * @return the name of the collection variable this delta was recorded for.
+    * @return the name of the class variable that holds the collection.
      */
-    public String getName()
-    {
-        return name;
-    }
+    String getName();
 
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
-
-    // Inner classes -------------------------------------------------------------------------------
 }

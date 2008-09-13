@@ -1,52 +1,30 @@
 package com.googlecode.hibernate.audit.delta;
 
-import java.util.Map;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
- * Encapsulates the set of changes applied to entity state during a transaction.
- *
- * An EntityDelta instance contains complete information allowing to recreate the state of the
- * entity at the end of the transaction, given that we have access to the state of the entity as
- * persisted just before the transaction started.
- *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class EntityDelta
+public interface EntityDelta
 {
-    // Constants -----------------------------------------------------------------------------------
+    /**
+    * @return the id of the entity current current delta corresponds to.
+     */
+    Serializable getId();
 
-    // Static --------------------------------------------------------------------------------------
-
-    // Attributes ----------------------------------------------------------------------------------
-
-    // the entity id
-    private Serializable id;
-
-    private Map<String, PrimitiveDelta> primitiveDeltas;
-    private Map<String, CollectionDelta> collectionDeltas;
-
-    // Constructors --------------------------------------------------------------------------------
-
-    // Public --------------------------------------------------------------------------------------
+    Set<PrimitiveDelta> getPrimitiveDeltas();
+    Set<CollectionDelta> getCollectionDeltas();
 
     /**
-     * The corresponding entity's id.
+     * @return null if no primitive delta exists for this specific member variable.
      */
-    public Serializable getId()
-    {
-        return id;
-    }
+    PrimitiveDelta getPrimitiveDelta(String name);
 
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
-
-    // Inner classes -------------------------------------------------------------------------------
 }

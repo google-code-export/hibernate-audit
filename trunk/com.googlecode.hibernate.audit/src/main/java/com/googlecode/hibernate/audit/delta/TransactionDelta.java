@@ -26,4 +26,9 @@ public interface TransactionDelta
 
     Set<EntityDelta> getEntityDeltas();
 
+    /**
+     * @return null if no entity delta corresponding to an entity with the given id is found. 
+     */
+    EntityDelta getEntityDelta(Serializable entityId);
+
 }

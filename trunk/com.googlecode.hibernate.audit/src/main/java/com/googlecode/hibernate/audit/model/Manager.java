@@ -31,6 +31,9 @@ import java.io.Serializable;
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
+import com.googlecode.hibernate.audit.delta.Deltas;
+import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
@@ -418,232 +421,62 @@ public class Manager
                                                                atx.getLogicalGroupId(),
                                                                atx.getTimestamp(),
                                                                atx.getUser());
-
             List<AuditEvent> es = atx.getEvents();
 
-            log.debug(">>>>>>>>>>>>>>>> " + es);
+            for(AuditEvent e: es)
+            {
+                AuditType at = e.getTargetType();
 
-//
-//            // first query the type
-//            String qs = "from AuditEntityType as a where a.className = :className";
-//            Query q = is.createQuery(qs);
-//            q.setString("className", className);
-//
-//            AuditType atype = (AuditType)q.uniqueResult();
-//
-//            if (atype == null)
-//            {
-//                throw new IllegalArgumentException(
-//                    "no audit trace found for an object of type " + className);
-//            }
-//
-//            // get all events of that transaction
-//            qs = "from AuditEvent as a where a.transaction = :transaction order by a.id";
-//            q = is.createQuery(qs);
-//            q.setParameter("transaction", aTx);
-//
-//            List events = q.list();
-//
-//            if (events.isEmpty())
-//            {
-//                throw new IllegalArgumentException(
-//                    "no audit events found for " + preTransactionState +
-//                    " in transaction " + txId);
-//            }
-//
-//            // "apply" events
-//
-//            Set<EntityExpectation> entityExpectations = new HashSet<EntityExpectation>();
-//            Set<CollectionExpectation> collectionExpectations = new HashSet<CollectionExpectation>();
-//
-//            for(Object o: events)
-//            {
-//                AuditEvent ae = (AuditEvent)o;
-//                ChangeType type = ae.getType();
-//
-//                if (!ChangeType.INSERT.equals(type))
-//                {
-//                    // TODO ignore for the time being
-//                    continue;
-//                    //throw new RuntimeException("HANDLING " + ae.getType() + " NOT YET IMPLEMENTED");
-//                }
-//
-//                Long targetId = ae.getTargetId();
-//                AuditType targetType = ae.getTargetType();
-//
-//                if (!targetType.isEntityType())
-//                {
-//                    throw new RuntimeException("NOT YET IMPLEMENTED");
-//                }
-//
-//                // we're sure it's an entity, so add it to the loading row, while making sure that
-//                // if the expectation is already there, we use that one.
-//                EntityExpectation e =
-//                    new EntityExpectation(sf, targetType.getClassInstance(), targetId);
-//
-//                boolean found = false;
-//                for(EntityExpectation alreadyRegistered: entityExpectations)
-//                {
-//                    if (alreadyRegistered.equals(e))
-//                    {
-//                        alreadyRegistered.initializeDetachedInstanceIfNecessary(sf);
-//                        e = alreadyRegistered;
-//                        found = true;
-//                        break;
-//                    }
-//                }
-//
-//                if (!found)
-//                {
-//                    entityExpectations.add(e);
-//                }
-//
-//                Object detachedEntity = e.getDetachedInstance();
-//
-//                // make sure that the target of this even is actually the entity we're applying
-//                // delta on. For UPDATEs, it's possible that the event refers to a related
-//                // sub-entity
-//
-//                // TODO this section was added in a haste and probably must be removed
-//
-////                if (ChangeType.UPDATE.equals(type) &&
-////                    (!id.equals(targetId) || !atype.equals(targetType)))
-////                {
-////                    // looks like it's a sub-entity UPDATE, so find the target ...
-////                    Object target = Reflections.
-////                        find(preTransactionState, targetType.getClassInstance(), targetId);
-////
-////                    //String targetEntityName = "TROUBLE";
-////                    String targetEntityName = null;
-////
-////                    // ... and apply delta on the target
-////                    delta(target, targetEntityName, targetId, txId, sf, internalSf);
-////                    return;
-////                }
-//
-//                // insert all pairs of this event into this entity
-//                q = is.createQuery("from AuditEventPair as p where p.event = :event order by p.id");
-//                q.setParameter("event", ae);
-//
-//                List pairs = q.list();
-//
-//                for(Object o2: pairs)
-//                {
-//                    AuditEventPair p = (AuditEventPair)o2;
-//                    String name = p.getField().getName();
-//                    AuditType at = p.getField().getType();
-//
-//                    Object value = null;
-//
-//                    if (at.isEntityType())
-//                    {
-//                        Serializable entityId = at.stringToValue(p.getStringValue());
-//                        Class entityClass = at.getClassInstance();
-//
-//                        // the audit framework persisted persisted only the id of this entity,
-//                        // but we need the entire state, so we check if we find this entity on the
-//                        // list of those we need state for; if it's there, fine, use it, if not
-//                        // register it on the list, hopefully the state will come later in a
-//                        // different event
-//                        EntityExpectation ee = new EntityExpectation(entityClass, entityId);
-//
-//                        boolean expectationExists = false;
-//                        for(EntityExpectation seen : entityExpectations)
-//                        {
-//                            if (seen.equals(ee))
-//                            {
-//                                expectationExists = true;
-//                                if (seen.isFulfilled())
-//                                {
-//                                    value = seen.getDetachedInstance();
-//                                    Reflections.mutate(detachedEntity, name, value);
-//                                    break;
-//                                }
-//                                else
-//                                {
-//                                    // line this up too
-//                                    seen.addTargetEntity(detachedEntity, name);
-//                                }
-//                            }
-//                        }
-//
-//                        if (!expectationExists)
-//                        {
-//                            entityExpectations.add(ee);
-//
-//                            // give the expectation info so it can update the entity that refers the
-//                            // target of the expectation, when the expectation is eventually
-//                            // fulfilled.
-//                            ee.addTargetEntity(detachedEntity, name);
-//                        }
-//                    }
-//                    else if (at.isCollectionType())
-//                    {
-//                        AuditEventCollectionPair cp = (AuditEventCollectionPair)p;
-//                        AuditCollectionType ct = (AuditCollectionType)at;
-//                        Class collectionClass = ct.getCollectionClassInstance();
-//                        Class memberClass = ct.getClassInstance();
-//
-//                        List<Long> ids = cp.getIds();
-//
-//                        CollectionExpectation ce =
-//                            new CollectionExpectation(e, name, collectionClass, memberClass);
-//
-//                        collectionExpectations.add(ce);
-//
-//                        for(Long cmid: ids)
-//                        {
-//                            EntityExpectation cmee = new EntityExpectation(memberClass, cmid);
-//                            entityExpectations.add(cmee); // noop if the expectation is already there
-//                            ce.add(cmee);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        // primitive
-//                        value = at.stringToValue(p.getStringValue());
-//                        Reflections.mutate(detachedEntity, name, value);
-//                    }
-//                }
-//            }
-//
-//            // loop over entity expectations and make sure that all of them have been fulfilled
-//            for(EntityExpectation e: entityExpectations)
-//            {
-//                if (!e.isFulfilled())
-//                {
-//                    // the state of this entity did not change in this transaction, so the
-//                    // state is whatever the state was previously of this transaction
-//                    Object o = DeltaEngine.retrieve(e.getClassInstance(), e.getId(), txId, sf);
-//                    e.fulfill(o);
-//                }
-//            }
-//
-//            // also loop over collections and make sure that the content from all of them are
-//            // transferred to the rightful owners
-//            for(CollectionExpectation ce: collectionExpectations)
-//            {
-//                ce.transferToOwner();
-//            }
-//            Object transactionDelta = null;
-//            for(EntityExpectation e: entityExpectations)
-//            {
-//                if (e.getId().equals(id) && e.getClassInstance().equals(c))
-//                {
-//                    transactionDelta = e.getDetachedInstance();
-//                }
-//            }
-//
-//            if (transactionDelta == null)
-//            {
-//                throw new IllegalArgumentException(
-//                    "no audit trace for " + c.getName() + "[" + id + "]" );
-//            }
-//
-//            entityExpectations.clear();
-//
-//            Reflections.applyDelta(preTransactionState, transactionDelta);
+                if (!at.isEntityType())
+                {
+                    // haven't encountered yet a case where I get here something else than an
+                    // entity, but case for it anyway
+                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                }
+                
+                Serializable id = e.getTargetId();
+                EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id);
 
+                if (ed == null)
+                {
+                    ed = new EntityDeltaImpl(id);
+                    td.addEntityDelta(ed);
+                }
+
+                List<AuditEventPair> pairs = e.getPairs();
+
+                for(AuditEventPair p: pairs)
+                {
+                    AuditTypeField f = p.getField();
+                    String name = f.getName();
+                    AuditType t = f.getType();
+                    Object value = p.getValue();
+
+                    if (t.isPrimitiveType())
+                    {
+                        if (value == null)
+                        {
+                            throw new RuntimeException("NOT YET IMPLEMENTED");
+                        }
+                        
+                        PrimitiveDelta pd = Deltas.createPrimitiveDelta(name, value);
+
+                        if (!ed.addPrimitiveDelta(pd))
+                        {
+                            // an equal() primitive delta was added already
+                            throw new IllegalStateException("duplicate primitive delta " + pd);
+                        }
+                    }
+                    else if (t.isEntityType())
+                    {
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                    }
+                    else if (t.isCollectionType())
+                    {
+                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                    }
+                }
+            }
             return td;
         }
         catch(Exception e)

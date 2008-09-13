@@ -69,7 +69,32 @@ public class TransactionDeltaImpl implements TransactionDelta
         return entityDeltas;
     }
 
+    public EntityDelta getEntityDelta(Serializable entityId)
+    {
+        for(EntityDelta d: entityDeltas)
+        {
+            if (d.getId().equals(entityId))
+            {
+                return d;
+            }
+        }
+
+        return null;
+    }
+
+
     // Public --------------------------------------------------------------------------------------
+
+    /**
+     * Not exposed in TransactionDelta as its usage makes sense only when creating the delta.
+     *
+     * @return true if delta is successfully added, false if there's already a delta corresponding
+     *         to the same entity.
+     */
+    public boolean addEntityDelta(EntityDelta d)
+    {
+        return entityDeltas.add(d);
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

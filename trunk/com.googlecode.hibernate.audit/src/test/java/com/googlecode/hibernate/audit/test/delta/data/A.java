@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
+import javax.persistence.Column;
+import java.util.Date;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -27,8 +29,10 @@ public class A
     private Long id;
 
     private String name;
-
     private Integer age;
+    
+    @Column(name = "some_date")
+    private Date date;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -62,6 +66,16 @@ public class A
     public void setAge(Integer age)
     {
         this.age = age;
+    }
+
+    public Date getDate()
+    {
+        return date;
+    }
+
+    public void setDate(Date date)
+    {
+        this.date = date;
     }
 
     // Package protected ---------------------------------------------------------------------------

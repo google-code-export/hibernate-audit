@@ -1,51 +1,29 @@
 package com.googlecode.hibernate.audit.delta;
 
 /**
+ * An instance of this type is created with Deltas.createPrimitiveType(...);
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class PrimitiveDelta
+public interface PrimitiveDelta<T>
 {
-    // Constants -----------------------------------------------------------------------------------
+    /**
+    * @return the name of the class variable that holds the primitive.
+     */
+    String getName();
 
-    // Static --------------------------------------------------------------------------------------
-
-    // Attributes ----------------------------------------------------------------------------------
-
-    private String name;
-    private Object value;
-
-    // Constructors --------------------------------------------------------------------------------
-
-    public PrimitiveDelta(String name, Object value)
-    {
-        this.name = name;
-        this.value = value;
-    }
-
-    // Public --------------------------------------------------------------------------------------
+    T getValue();
 
     /**
-     * @return the name of the primitive (variable) this delta was recorded for.
+     * @return the actual instance of the parameterized type, at runtime, or null if the type
+     *         cannot determined (the primitive value is null).
      */
-    public String getName()
-    {
-        return name;
-    }
+    Class getType();
 
-    public Object getValue()
-    {
-        return value;
-    }
-
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
-
-    // Inner classes -------------------------------------------------------------------------------
 }
