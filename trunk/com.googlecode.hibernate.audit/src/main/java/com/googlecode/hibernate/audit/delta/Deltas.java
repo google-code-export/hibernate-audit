@@ -17,7 +17,7 @@ public class Deltas
 
     public static <T> ScalarDelta<T> createPrimitiveDelta(String name, T value)
     {
-        return new ScalarDeltaImpl<T>(name, value);
+        return new PrimitiveDelta(name, value);
     }
 
     // Attributes ----------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ package com.googlecode.hibernate.audit.delta;
  *
  * @version <tt>$Revision$</tt>
  */
-class ScalarDeltaImpl<T> implements ScalarDelta<T>
+class PrimitiveDelta<T> extends MemberVariableDeltaSupport implements ScalarDelta<T>
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,25 +15,27 @@ class ScalarDeltaImpl<T> implements ScalarDelta<T>
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private String name;
     private T value;
 
     // Constructors --------------------------------------------------------------------------------
 
-    ScalarDeltaImpl(String name, T value)
+    PrimitiveDelta(String name, T value)
     {
-        this.name = name;
+        setName(name);
         this.value = value;
     }
 
-    // MemberVariableDelta implementation ----------------------------------------------------------
+    // ScalarDelta implementation ------------------------------------------------------------------
 
-    public String getName()
+    public boolean isEntity()
     {
-        return name;
+        return false;
     }
 
-    // ScalarDelta implementation ------------------------------------------------------------------
+    public boolean isPrimitive()
+    {
+        return true;
+    }
 
     public T getValue()
     {
@@ -60,7 +62,7 @@ class ScalarDeltaImpl<T> implements ScalarDelta<T>
             return true;
         }
 
-        if (name == null)
+        if (getName() == null)
         {
             return false;
         }
@@ -72,13 +74,13 @@ class ScalarDeltaImpl<T> implements ScalarDelta<T>
 
         ScalarDelta that = (ScalarDelta)o;
 
-        return name.equals(that.getName());
+        return getName().equals(that.getName());
     }
 
     @Override
     public int hashCode()
     {
-        return name == null ? 0 : name.hashCode();
+        return getName() == null ? 0 : getName().hashCode();
     }
 
     // Package protected ---------------------------------------------------------------------------
