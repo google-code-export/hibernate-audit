@@ -53,7 +53,12 @@ public class EntityDeltaImpl implements EntityDelta
         return id;
     }
 
-    public Set<ScalarDelta> getPrimitiveDeltas()
+    public String getEntityName()
+    {
+        return entityName;
+    }
+
+    public Set<ScalarDelta> getScalarDeltas()
     {
         return scalarDeltas;
     }
@@ -63,7 +68,7 @@ public class EntityDeltaImpl implements EntityDelta
         return new HashSet<CollectionDelta>(collectionDeltas.values());
     }
 
-    public ScalarDelta getPrimitiveDelta(String name)
+    public ScalarDelta getScalarDelta(String name)
     {
         for(ScalarDelta p: scalarDeltas)
         {
@@ -76,22 +81,50 @@ public class EntityDeltaImpl implements EntityDelta
         return null;
     }
 
-    public String getEntityName()
+    public PrimitiveDelta getPrimitiveDelta(String name)
     {
-        return entityName;
+        for(ScalarDelta p: scalarDeltas)
+        {
+            if (p.getName().equals(name) && p.isPrimitive())
+            {
+                return (PrimitiveDelta)p;
+            }
+        }
+
+        return null;
+    }
+
+    public EntityReferenceDelta getEntityReferenceDelta(String name)
+    {
+        for(ScalarDelta p: scalarDeltas)
+        {
+            if (p.getName().equals(name) && p.isEntityReference())
+            {
+                return (EntityReferenceDelta)p;
+            }
+        }
+
+        return null;
     }
 
     // Public --------------------------------------------------------------------------------------
 
     /**
-     * Not exposed in ScalarDelta as its usage makes sense only when creating the delta.
+     * Not exposed in EntityDelta as its usage makes sense only when creating the delta.
      *
      * @return true if delta is successfully added, false if there's already a delta corresponding
-     *         to the same primitive.
+     *         to the same member variable.
      */
-    public boolean addPrimitiveDelta(ScalarDelta d)
+    public boolean addMemberVariableDelta(MemberVariableDelta d)
     {
-        return scalarDeltas.add(d);
+        if (d instanceof ScalarDelta)
+        {
+            return scalarDeltas.add((ScalarDelta)d);
+        }
+        else
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
     }
 
     @Override

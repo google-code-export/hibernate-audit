@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.delta;
 
+import java.io.Serializable;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -9,37 +11,18 @@ package com.googlecode.hibernate.audit.delta;
  *
  * $Id$
  */
-class EntityReferenceDelta<T> extends MemberVariableDeltaSupport implements ScalarDelta<T> 
+public interface EntityReferenceDelta extends ScalarDelta
 {
-    // Constants -----------------------------------------------------------------------------------
+    /**
+     * @return the id of referred entity.
+     */
+    Serializable getId();
 
-    // Static --------------------------------------------------------------------------------------
 
-    // Attributes ----------------------------------------------------------------------------------
-
-    // Constructors --------------------------------------------------------------------------------
-
-    // ScalarDelta implementation ------------------------------------------------------------------
-
-    public boolean isEntity()
-    {
-        return true;
-    }
-
-    public boolean isPrimitive()
-    {
-        return false;
-    }
-
-    // Public --------------------------------------------------------------------------------------
-
-    // MemberVariableDelta implementation ----------------------------------------------------------
-
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
-
-    // Inner classes -------------------------------------------------------------------------------
+    /**
+     * @return the name of referred entity. In most cases, is the fully qualified class name of the
+     *         entity class, but can also be an arbitrary string that uniquely identifies the entity
+     *         type.
+     */
+    String getEntityName();
 }

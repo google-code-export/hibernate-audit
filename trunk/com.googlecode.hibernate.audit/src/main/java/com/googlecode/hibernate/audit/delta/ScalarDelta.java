@@ -15,15 +15,7 @@ package com.googlecode.hibernate.audit.delta;
  */
 public interface ScalarDelta<T> extends MemberVariableDelta
 {
-    boolean isEntity();
+    boolean isEntityReference();
     boolean isPrimitive();
-
-    T getValue();
-
-    /**
-     * @return the actual instance of the parameterized type, at runtime, or null if the type
-     *         cannot determined (the primitive value is null).
-     */
-    Class getType();
 
 }

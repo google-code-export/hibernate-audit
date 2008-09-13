@@ -77,6 +77,9 @@ public class AuditEntityType extends AuditType
     @Transient
     private Class idClassInstance;
 
+    @Transient
+    private String entityName;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -148,6 +151,16 @@ public class AuditEntityType extends AuditType
         }
 
         return idClassInstance;
+    }
+
+    public String getEntityName()
+    {
+        // TODO broken implementaion, it only works with FQCN, not arbitrary entity names
+        if (entityName == null)
+        {
+            inferEntityName();
+        }
+        return entityName;
     }
 
     @Override
@@ -228,6 +241,18 @@ public class AuditEntityType extends AuditType
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    private void inferEntityName()
+    {
+        Class c = getClassInstance();
+
+        if (c == null)
+        {
+            entityName = null;
+        }
+
+        entityName = c.getName();
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 }

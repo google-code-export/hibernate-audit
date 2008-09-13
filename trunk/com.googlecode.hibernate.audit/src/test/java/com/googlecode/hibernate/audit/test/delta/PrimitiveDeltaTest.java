@@ -2,7 +2,7 @@ package com.googlecode.hibernate.audit.test.delta;
 
 import org.testng.annotations.Test;
 import com.googlecode.hibernate.audit.delta.Deltas;
-import com.googlecode.hibernate.audit.delta.ScalarDelta;
+import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -14,7 +14,7 @@ import com.googlecode.hibernate.audit.delta.ScalarDelta;
  * $Id$
  */
 @Test(sequential = true)
-public class ScalarDeltaTest
+public class PrimitiveDeltaTest
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,33 +29,42 @@ public class ScalarDeltaTest
     @Test(enabled = true)
     public void testPrimitiveDelta_String() throws Exception
     {
-        ScalarDelta<String> pd = Deltas.createPrimitiveDelta("a", "alice");
+        PrimitiveDelta<String> pd = Deltas.createPrimitiveDelta("a", "alice");
         String s = pd.getValue();
         assert "alice".equals(s);
+        assert pd.isPrimitive();
+        assert !pd.isEntityReference();
     }
 
     @Test(enabled = true)
     public void testPrimitiveDelta_Integer() throws Exception
     {
-        ScalarDelta<Integer> pd = Deltas.createPrimitiveDelta("a", new Integer(3));
+        PrimitiveDelta<Integer> pd = Deltas.createPrimitiveDelta("a", new Integer(3));
         Integer i = pd.getValue();
         assert new Integer(3).equals(i);
+        assert pd.isPrimitive();
+        assert !pd.isEntityReference();
     }
 
     @Test(enabled = true)
     public void testPrimitiveDelta_InferredType() throws Exception
     {
-        ScalarDelta pd = Deltas.createPrimitiveDelta("a", new Long(3));
+        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", new Long(3));
         assert Long.class.equals(pd.getType());
+        assert pd.isPrimitive();
+        assert !pd.isEntityReference();
     }
 
     @Test(enabled = true)
     public void testPrimitiveDelta_InferredTypeOnNull() throws Exception
     {
         String o = null;
-        ScalarDelta pd = Deltas.createPrimitiveDelta("a", o);
+        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", o);
 
         assert null == pd.getType();
+
+        assert pd.isPrimitive();
+        assert !pd.isEntityReference();
     }
 
     // Package protected ---------------------------------------------------------------------------

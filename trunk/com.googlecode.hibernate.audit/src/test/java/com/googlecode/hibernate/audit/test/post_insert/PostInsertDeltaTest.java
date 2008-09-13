@@ -15,6 +15,8 @@ import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.delta.ScalarDelta;
+import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
+import com.googlecode.hibernate.audit.delta.EntityReferenceDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -88,10 +90,11 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
 
-            Set<ScalarDelta> pds = ed.getPrimitiveDeltas();
+            Set<ScalarDelta> pds = ed.getScalarDeltas();
             assert pds.size() == 1;
 
-            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            ScalarDelta sd = ed.getScalarDelta("name");
+            PrimitiveDelta pd = (PrimitiveDelta)sd;
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
         }
@@ -156,9 +159,10 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
-            Set<ScalarDelta> pds = ed.getPrimitiveDeltas();
+            Set<ScalarDelta> pds = ed.getScalarDeltas();
             assert pds.size() == 1;
-            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            ScalarDelta sd = ed.getScalarDelta("name");
+            PrimitiveDelta pd = (PrimitiveDelta)sd;
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
 
@@ -170,9 +174,9 @@ public class PostInsertDeltaTest extends JTATransactionTest
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
             assert a2.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
-            pds = ed.getPrimitiveDeltas();
+            pds = ed.getScalarDeltas();
             assert pds.size() == 1;
-            pd = ed.getPrimitiveDelta("name");
+            pd = (PrimitiveDelta)ed.getScalarDelta("name");
             assert String.class.equals(pd.getType());
             assert "alex".equals(pd.getValue());
         }
@@ -225,15 +229,16 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
             assert ed.getCollectionDeltas().isEmpty();
-            assert ed.getPrimitiveDeltas().size() == 1;
-            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            assert ed.getScalarDeltas().size() == 1;
+            ScalarDelta sd = ed.getScalarDelta("name");
+            PrimitiveDelta pd = (PrimitiveDelta)sd;
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
 
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
             assert ed.getCollectionDeltas().isEmpty();
-            assert ed.getPrimitiveDeltas().size() == 1;
-            pd = ed.getPrimitiveDelta("name");
+            assert ed.getScalarDeltas().size() == 1;
+            pd = (PrimitiveDelta)ed.getScalarDelta("name");
             assert String.class.equals(pd.getType());
             assert "alex".equals(pd.getValue());
         }
@@ -298,8 +303,9 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
             assert ed.getCollectionDeltas().isEmpty();
-            assert ed.getPrimitiveDeltas().size() == 1;
-            ScalarDelta pd = ed.getPrimitiveDelta("name");
+            assert ed.getScalarDeltas().size() == 1;
+            ScalarDelta sd = ed.getScalarDelta("name");
+            PrimitiveDelta pd = (PrimitiveDelta)sd;
             assert String.class.equals(pd.getType());
             assert "alice".equals(pd.getValue());
 
@@ -310,8 +316,8 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
             assert ed.getCollectionDeltas().isEmpty();
-            assert ed.getPrimitiveDeltas().size() == 1;
-            pd = ed.getPrimitiveDelta("name");
+            assert ed.getScalarDeltas().size() == 1;
+            pd = (PrimitiveDelta)ed.getScalarDelta("name");
             assert String.class.equals(pd.getType());
             assert "alex".equals(pd.getValue());
         }
@@ -380,23 +386,23 @@ public class PostInsertDeltaTest extends JTATransactionTest
             EntityDelta d = null;
 
             d = td.getEntityDelta(a.getId(), A.class.getName());
-            assert d.getPrimitiveDeltas().size() == 1;
-            assert "alice".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 1;
+            assert "alice".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert A.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(b.getId(), B.class.getName());
-            assert d.getPrimitiveDeltas().size() == 1;
-            assert "bob".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 1;
+            assert "bob".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert B.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(b2.getId(), B.class.getName());
-            assert d.getPrimitiveDeltas().size() == 1;
-            assert "ben".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 1;
+            assert "ben".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert B.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(a2.getId(), A.class.getName());
-            assert d.getPrimitiveDeltas().size() == 1;
-            assert "alex".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 1;
+            assert "alex".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert A.class.getName().equals(d.getEntityName());
         }
         catch(Exception e)
@@ -478,17 +484,17 @@ public class PostInsertDeltaTest extends JTATransactionTest
             d = td.getEntityDelta(a.getId(), A.class.getName());
             assert A.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
-            assert d.getPrimitiveDeltas().size() == 2;
-            assert "alice".equals(d.getPrimitiveDelta("name").getValue());
-            assert new Integer(30).equals(d.getPrimitiveDelta("age").getValue());
+            assert d.getScalarDeltas().size() == 2;
+            assert "alice".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
+            assert new Integer(30).equals(((PrimitiveDelta)d.getScalarDelta("age")).getValue());
 
             d = td.getEntityDelta(b.getId(), B.class.getName());
             assert B.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
-            assert d.getPrimitiveDeltas().size() == 2;
-            assert "bob".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 2;
+            assert "bob".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert ((Date)Formats.testDateFormat.parseObject("01/01/1971")).
-                equals(d.getPrimitiveDelta("birthDate").getValue());
+                equals(((PrimitiveDelta)d.getScalarDelta("birthDate")).getValue());
 
             td = HibernateAudit.getDelta(txs.get(1).getId());
 
@@ -496,16 +502,16 @@ public class PostInsertDeltaTest extends JTATransactionTest
             d = td.getEntityDelta(a2.getId(), A.class.getName());
             assert A.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
-            assert d.getPrimitiveDeltas().size() == 1;
-            assert "anna".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 1;
+            assert "anna".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
 
             d = td.getEntityDelta(b2.getId(), B.class.getName());
             assert B.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
-            assert d.getPrimitiveDeltas().size() == 2;
-            assert "ben".equals(d.getPrimitiveDelta("name").getValue());
+            assert d.getScalarDeltas().size() == 2;
+            assert "ben".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert ((Date)Formats.testDateFormat.parseObject("02/02/1972")).
-                equals(d.getPrimitiveDelta("birthDate").getValue());
+                equals(((PrimitiveDelta)d.getScalarDelta("birthDate")).getValue());
 
         }
         catch(Exception e)
@@ -559,15 +565,26 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
 
-            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(c.getId(), C.class.getName());
             assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getScalarDeltas().size() == 2;
 
-            assert ed.getPrimitiveDeltas().size() == 1;
             assert "charlie".equals(ed.getPrimitiveDelta("name").getValue());
+
+            EntityReferenceDelta erd = ed.getEntityReferenceDelta("d");
+            assert d.getId().equals(erd.getId());
+            assert D.class.getName().equals(erd.getEntityName());
+
+            ed = td.getEntityDelta(d.getId(), D.class.getName());
+            assert ed.getCollectionDeltas().isEmpty();
+            assert ed.getScalarDeltas().size() == 1;
+
+            assert "diane".equals(ed.getPrimitiveDelta("name").getValue());
         }
         catch(Exception e)
         {

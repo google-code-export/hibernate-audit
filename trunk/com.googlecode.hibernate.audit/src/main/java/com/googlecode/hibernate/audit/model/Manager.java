@@ -33,7 +33,7 @@ import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
 import com.googlecode.hibernate.audit.delta.Deltas;
-import com.googlecode.hibernate.audit.delta.ScalarDelta;
+import com.googlecode.hibernate.audit.delta.MemberVariableDelta;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
@@ -454,6 +454,8 @@ public class Manager
                     AuditType t = f.getType();
                     Object value = p.getValue();
 
+                    MemberVariableDelta mvd = null;
+
                     if (t.isPrimitiveType())
                     {
                         if (value == null)
@@ -461,21 +463,24 @@ public class Manager
                             throw new RuntimeException("NOT YET IMPLEMENTED");
                         }
                         
-                        ScalarDelta pd = Deltas.createPrimitiveDelta(name, value);
-
-                        if (!ed.addPrimitiveDelta(pd))
-                        {
-                            // an equal() primitive delta was added already
-                            throw new IllegalStateException("duplicate primitive delta " + pd);
-                        }
+                        mvd = Deltas.createPrimitiveDelta(name, value);
                     }
                     else if (t.isEntityType())
                     {
-                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                        AuditEntityType ret = (AuditEntityType)t;
+                        String referredEntityName = ret.getEntityName();
+                        Serializable refid = (Serializable)value;
+                        mvd = Deltas.createEntityReferenceDelta(name, refid, referredEntityName);
                     }
                     else if (t.isCollectionType())
                     {
                         throw new RuntimeException("NOT YET IMPLEMENTED");
+                    }
+
+                    if (!ed.addMemberVariableDelta(mvd))
+                    {
+                        // an equal() member variable delta was added already
+                        throw new IllegalStateException("duplicate member variable delta " + mvd);
                     }
                 }
             }

@@ -9,7 +9,7 @@ package com.googlecode.hibernate.audit.delta;
  *
  * $Id$
  */
-public abstract class MemberVariableDeltaSupport implements MemberVariableDelta
+abstract class MemberVariableDeltaSupport implements MemberVariableDelta
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,6 +29,35 @@ public abstract class MemberVariableDeltaSupport implements MemberVariableDelta
     }
 
     // Public --------------------------------------------------------------------------------------
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+
+        if (getName() == null)
+        {
+            return false;
+        }
+
+        if (!(o instanceof MemberVariableDelta))
+        {
+            return false;
+        }
+
+        MemberVariableDelta that = (MemberVariableDelta)o;
+
+        return name.equals(that.getName());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return name == null ? 0 : name.hashCode();
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

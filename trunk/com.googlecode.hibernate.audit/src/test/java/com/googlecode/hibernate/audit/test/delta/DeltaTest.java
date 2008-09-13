@@ -10,6 +10,7 @@ import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.delta.ScalarDelta;
+import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -144,7 +145,7 @@ public class DeltaTest extends JTATransactionTest
             EntityDelta ed = eds.iterator().next();
 
             assert a.getId().equals(ed.getId());
-            assert ed.getPrimitiveDeltas().isEmpty();
+            assert ed.getScalarDeltas().isEmpty();
             assert ed.getCollectionDeltas().isEmpty();
         }
         finally
@@ -203,11 +204,12 @@ public class DeltaTest extends JTATransactionTest
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
 
-            Collection<ScalarDelta> pds = ed.getPrimitiveDeltas();
-            assert pds.size() == 3;
+            Collection<ScalarDelta> sds = ed.getScalarDeltas();
+            assert sds.size() == 3;
 
-            for(ScalarDelta pd: pds)
+            for(ScalarDelta sd: sds)
             {
+                PrimitiveDelta pd = (PrimitiveDelta)sd;
                 String name = pd.getName();
                 if ("name".equals(name))
                 {
