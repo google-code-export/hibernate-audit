@@ -35,6 +35,7 @@ import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
 import com.googlecode.hibernate.audit.delta.Deltas;
 import com.googlecode.hibernate.audit.delta.MemberVariableDelta;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
@@ -439,10 +440,11 @@ public class Manager
                 AuditEntityType aet = (AuditEntityType)at;
                 String entityName = aet.getClassInstance().getName(); // TODO this will fail when we use real entityNames
                 EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id, entityName);
+                ChangeType ct = e.getType();
 
                 if (ed == null)
                 {
-                    ed = new EntityDeltaImpl(id, entityName);
+                    ed = new EntityDeltaImpl(id, entityName, ct);
                     td.addEntityDelta(ed);
                 }
 
@@ -459,11 +461,6 @@ public class Manager
 
                     if (t.isPrimitiveType())
                     {
-                        if (value == null)
-                        {
-                            throw new RuntimeException("NOT YET IMPLEMENTED");
-                        }
-                        
                         mvd = Deltas.createPrimitiveDelta(name, value);
                     }
                     else if (t.isEntityType())
@@ -475,8 +472,8 @@ public class Manager
                     }
                     else if (t.isCollectionType())
                     {
-                        AuditCollectionType ct = (AuditCollectionType)t;
-                        String memberEntityName = ct.getMemberEntityName();
+                        AuditCollectionType act = (AuditCollectionType)t;
+                        String memberEntityName = act.getMemberEntityName();
 
                         // possibly we lose ordering information, TODO analyze this
                         Collection<Serializable> ids = new HashSet<Serializable>();

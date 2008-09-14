@@ -27,8 +27,8 @@ public class EntityDeltaImpl implements EntityDelta
 
     // the entity id
     private Serializable id;
-
     private String entityName;
+    private ChangeType ct;
 
     // TODO can be optimized by maintaining a map, keyed on variable name
     private Set<ScalarDelta> scalarDeltas;
@@ -36,10 +36,11 @@ public class EntityDeltaImpl implements EntityDelta
 
     // Constructors --------------------------------------------------------------------------------
 
-    public EntityDeltaImpl(Serializable id, String entityName)
+    public EntityDeltaImpl(Serializable id, String entityName, ChangeType ct)
     {
         this.id = id;
         this.entityName = entityName;
+        this.ct = ct;
         scalarDeltas = new HashSet<ScalarDelta>();
         collectionDeltas = new HashSet<CollectionDelta>();
     }
@@ -54,6 +55,11 @@ public class EntityDeltaImpl implements EntityDelta
     public String getEntityName()
     {
         return entityName;
+    }
+
+    public ChangeType getChangeType()
+    {
+        return ct;
     }
 
     public Set<ScalarDelta> getScalarDeltas()
@@ -169,6 +175,12 @@ public class EntityDeltaImpl implements EntityDelta
     {
         return (entityName == null ? 0 : entityName.hashCode()) * 37 +
                (id == null ? 0 : id.hashCode());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "EntityDelta[" + entityName + "][" + id + "][" + ct + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

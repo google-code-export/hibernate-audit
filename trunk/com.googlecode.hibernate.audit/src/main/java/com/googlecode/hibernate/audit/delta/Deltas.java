@@ -18,7 +18,11 @@ public class Deltas
 
     // Static --------------------------------------------------------------------------------------
 
-    public static <T> PrimitiveDeltaImpl<T> createPrimitiveDelta(String name, T value)
+    /**
+     * @param value can be null, in which case the delta is equivalent with "remove previous value".
+     *        If value is null, returned PrimitiveDelta instance returns a null type.
+     */
+    public static <T> PrimitiveDelta<T> createPrimitiveDelta(String name, T value)
     {
         return new PrimitiveDeltaImpl<T>(name, value);
     }

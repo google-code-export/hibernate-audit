@@ -34,7 +34,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testAddPrimitiveDelta() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity");
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
 
         ScalarDelta pd = Deltas.createPrimitiveDelta("a", "alice");
 
@@ -64,7 +64,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testAddPrimitiveAndEntityReferenceDelta() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity");
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
 
         PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
         EntityReferenceDelta erd = Deltas.

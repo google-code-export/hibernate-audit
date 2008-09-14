@@ -117,7 +117,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             c.entityId = pie.getId();
             c.entity = pie.getEntity();
             c.persister = pie.getPersister();
-
         }
         else if (e instanceof PostUpdateEvent)
         {

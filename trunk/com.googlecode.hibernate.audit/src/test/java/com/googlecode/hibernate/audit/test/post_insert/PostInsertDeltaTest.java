@@ -25,6 +25,7 @@ import com.googlecode.hibernate.audit.delta.ScalarDelta;
 import com.googlecode.hibernate.audit.delta.PrimitiveDelta;
 import com.googlecode.hibernate.audit.delta.EntityReferenceDelta;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -100,6 +101,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert a.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
+            assert ChangeType.INSERT.equals(ed.getChangeType());
 
             Set<ScalarDelta> pds = ed.getScalarDeltas();
             assert pds.size() == 1;
@@ -169,6 +171,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
 
             assert a.getId().equals(ed.getId());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             Set<ScalarDelta> pds = ed.getScalarDeltas();
             assert pds.size() == 1;
@@ -183,6 +186,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert a2.getId().equals(ed.getId());
             assert ed.getCollectionDeltas().isEmpty();
             pds = ed.getScalarDeltas();
@@ -239,6 +243,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             ScalarDelta sd = ed.getScalarDelta("name");
@@ -247,6 +252,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert "alice".equals(pd.getValue());
 
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             pd = (PrimitiveDelta)ed.getScalarDelta("name");
@@ -313,6 +319,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             ScalarDelta sd = ed.getScalarDelta("name");
@@ -326,6 +333,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             ed = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             pd = (PrimitiveDelta)ed.getScalarDelta("name");
@@ -397,21 +405,25 @@ public class PostInsertDeltaTest extends JTATransactionTest
             EntityDelta d = null;
 
             d = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert d.getScalarDeltas().size() == 1;
             assert "alice".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert A.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(b.getId(), B.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert d.getScalarDeltas().size() == 1;
             assert "bob".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert B.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(b2.getId(), B.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert d.getScalarDeltas().size() == 1;
             assert "ben".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert B.class.getName().equals(d.getEntityName());
 
             d = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert d.getScalarDeltas().size() == 1;
             assert "alex".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
             assert A.class.getName().equals(d.getEntityName());
@@ -493,6 +505,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert td.getEntityDeltas().size() == 2;
             d = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert A.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
             assert d.getScalarDeltas().size() == 2;
@@ -500,6 +513,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert new Integer(30).equals(((PrimitiveDelta)d.getScalarDelta("age")).getValue());
 
             d = td.getEntityDelta(b.getId(), B.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert B.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
             assert d.getScalarDeltas().size() == 2;
@@ -511,12 +525,14 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             assert td.getEntityDeltas().size() == 2;
             d = td.getEntityDelta(a2.getId(), A.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert A.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
             assert d.getScalarDeltas().size() == 1;
             assert "anna".equals(((PrimitiveDelta)d.getScalarDelta("name")).getValue());
 
             d = td.getEntityDelta(b2.getId(), B.class.getName());
+            assert ChangeType.INSERT.equals(d.getChangeType());
             assert B.class.getName().equals(d.getEntityName());
             assert d.getCollectionDeltas().isEmpty();
             assert d.getScalarDeltas().size() == 2;
@@ -582,6 +598,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
 
@@ -592,6 +609,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert D.class.getName().equals(erd.getEntityName());
 
             ed = td.getEntityDelta(d.getId(), D.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
 
@@ -666,6 +684,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             EntityDelta ed = td.getEntityDelta(d.getId(), D.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
 
@@ -677,6 +696,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
 
@@ -759,6 +779,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             EntityDelta ed = td.getEntityDelta(d.getId(), D.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
 
@@ -770,6 +791,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
             assert "charlie".equals(ed.getPrimitiveDelta("name").getValue());
@@ -778,6 +800,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert D.class.getName().equals(erd.getEntityName());
 
             ed = td.getEntityDelta(c2.getId(), C.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
             assert "connie".equals(ed.getPrimitiveDelta("name").getValue());
@@ -843,6 +866,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 1;
             assert "wasabi".equals(ed.getPrimitiveDelta("name").getValue());
             assert ed.getCollectionDeltas().size() == 1;
@@ -854,6 +878,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
 
             ed = td.getEntityDelta(wb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
 
@@ -918,6 +943,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 1;
             assert "alana".equals(ed.getPrimitiveDelta("name").getValue());
             assert ed.getCollectionDeltas().size() == 1;
@@ -929,6 +955,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
 
             ed = td.getEntityDelta(wb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
 
@@ -997,6 +1024,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 3;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 1;
             assert "wasabi".equals(ed.getPrimitiveDelta("name").getValue());
             assert ed.getCollectionDeltas().size() == 1;
@@ -1008,6 +1036,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert ids.contains(wb2.getId());
 
             ed = td.getEntityDelta(wb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
             assert "wbang".equals(ed.getPrimitiveDelta("name").getValue());
@@ -1016,6 +1045,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert wa.getId().equals(erd.getId());
 
             ed = td.getEntityDelta(wb2.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 2;
             assert "wbong".equals(ed.getPrimitiveDelta("name").getValue());
@@ -1084,6 +1114,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 3;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 1;
             assert "wasabi".equals(ed.getPrimitiveDelta("name").getValue());
             assert ed.getCollectionDeltas().size() == 1;
@@ -1095,11 +1126,13 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert ids.contains(wb2.getId());
 
             ed = td.getEntityDelta(wb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             assert "wbang".equals(ed.getPrimitiveDelta("name").getValue());
 
             ed = td.getEntityDelta(wb2.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             assert "wbong".equals(ed.getPrimitiveDelta("name").getValue());
@@ -1184,6 +1217,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.UPDATE.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 0;
             assert ed.getCollectionDeltas().size() == 1;
             CollectionDelta cd = ed.getCollectionDelta("wbs");
@@ -1194,6 +1228,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert ids.contains(newWb.getId());
 
             ed = td.getEntityDelta(newWb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             assert "wbung".equals(ed.getPrimitiveDelta("name").getValue());
@@ -1250,6 +1285,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().isEmpty();
             assert ed.getCollectionDeltas().size() == 1;
             CollectionDelta cd = ed.getCollectionDelta("wbs");
@@ -1259,6 +1295,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert ids.contains(wb.getId());
 
             ed = td.getEntityDelta(wb.getId(), WB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().isEmpty();
         }
@@ -1355,6 +1392,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 2;
 
             EntityDelta ed = td.getEntityDelta(xa.getId(), XA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().size() == 1;
             assert ed.getCollectionDeltas().isEmpty();
 
@@ -1369,6 +1407,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             // TODO this test is faked, fix it when addressing HBA-80
             //ed = td.getEntityDelta(xb.getId(), "XB");
             ed = td.getEntityDelta(xb.getId(), XB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
@@ -1472,6 +1511,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 3;
 
             EntityDelta ed = td.getEntityDelta(xa2.getId(), XA2.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().isEmpty();
             assert ed.getCollectionDeltas().size() == 1;
 
@@ -1488,6 +1528,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             // TODO this test is faked, fix it when addressing HBA-80
             //ed = td.getEntityDelta(xbone.getId(), "XB");
             ed = td.getEntityDelta(xbone.getId(), XB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
 
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
@@ -1496,6 +1537,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             // TODO this test is faked, fix it when addressing HBA-80
             //ed = td.getEntityDelta(xbtwo.getId(), "XB");
             ed = td.getEntityDelta(xbtwo.getId(), XB.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
 
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
@@ -1591,6 +1633,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             assert td.getEntityDeltas().size() == 1;
 
             EntityDelta ed = td.getEntityDelta(xa2.getId(), XA2.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
             assert ed.getScalarDeltas().isEmpty();
             assert ed.getCollectionDeltas().isEmpty();
         }

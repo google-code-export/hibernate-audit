@@ -53,6 +53,7 @@ public class PrimitiveDeltaTest
         assert Long.class.equals(pd.getType());
         assert pd.isPrimitive();
         assert !pd.isEntityReference();
+        assert new Long(3).equals(pd.getValue());
     }
 
     @Test(enabled = true)
@@ -65,6 +66,7 @@ public class PrimitiveDeltaTest
 
         assert pd.isPrimitive();
         assert !pd.isEntityReference();
+        assert null == pd.getValue();
     }
 
     // Package protected ---------------------------------------------------------------------------

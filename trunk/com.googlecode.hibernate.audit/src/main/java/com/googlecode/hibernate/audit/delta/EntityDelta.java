@@ -25,6 +25,8 @@ public interface EntityDelta
      */
     String getEntityName();
 
+    ChangeType getChangeType();
+
     Set<ScalarDelta> getScalarDeltas();
 
     Set<CollectionDelta> getCollectionDeltas();

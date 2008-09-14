@@ -36,7 +36,7 @@ public class TransactionDeltaTest
 
         assert td.getEntityDeltas().isEmpty();
 
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity");
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity", null);
 
         assert td.addEntityDelta(ed);
 
@@ -48,32 +48,32 @@ public class TransactionDeltaTest
         assert !td.addEntityDelta(ed);
         assert eds.size() == 1;
 
-        EntityDeltaImpl ed2 = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity");
+        EntityDeltaImpl ed2 = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity", null);
 
         assert !td.addEntityDelta(ed2);
         assert eds.size() == 1;
 
-        EntityDeltaImpl ed3 = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2");
+        EntityDeltaImpl ed3 = new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2", null);
 
         assert td.addEntityDelta(ed3);
         assert eds.size() == 2;
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity"));
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2"));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2", null));
 
-        EntityDeltaImpl ed4 = new EntityDeltaImpl(new Long(4), "dot.com.MockEntity");
+        EntityDeltaImpl ed4 = new EntityDeltaImpl(new Long(4), "dot.com.MockEntity", null);
         assert td.addEntityDelta(ed4);
         assert eds.size() == 3;
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity"));
-        assert eds.contains(new EntityDeltaImpl(new Long(4), "dot.com.MockEntity"));
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2"));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(4), "dot.com.MockEntity", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2", null));
 
-        EntityDeltaImpl ed5 = new EntityDeltaImpl(new Long(5), "dot.com.MockEntity3");
+        EntityDeltaImpl ed5 = new EntityDeltaImpl(new Long(5), "dot.com.MockEntity3", null);
         assert td.addEntityDelta(ed5);
         assert eds.size() == 4;
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity"));
-        assert eds.contains(new EntityDeltaImpl(new Long(4), "dot.com.MockEntity"));
-        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2"));
-        assert eds.contains(new EntityDeltaImpl(new Long(5), "dot.com.MockEntity3"));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(4), "dot.com.MockEntity", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(2), "dot.com.MockEntity2", null));
+        assert eds.contains(new EntityDeltaImpl(new Long(5), "dot.com.MockEntity3", null));
     }
 
     // Package protected ---------------------------------------------------------------------------

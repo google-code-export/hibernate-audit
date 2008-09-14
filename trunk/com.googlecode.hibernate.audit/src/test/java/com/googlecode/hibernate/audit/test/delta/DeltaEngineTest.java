@@ -15,19 +15,16 @@ import com.googlecode.hibernate.audit.test.delta.data.D;
 import com.googlecode.hibernate.audit.test.delta.data.C;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.delta_deprecated.ChangeDeprecated;
-import com.googlecode.hibernate.audit.util.Entity;
+import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.delta.EntityDelta;
+import com.googlecode.hibernate.audit.delta.CollectionDelta;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
 import java.io.Serializable;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.PrintWriter;
 
 /**
  * Tests the runtime API
@@ -618,43 +615,37 @@ public class DeltaEngineTest extends JTATransactionTest
             s.save(c);
             s.getTransaction().commit();
 
-            List<AuditTransaction> transactions =
-                HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
 
-            assert transactions.size() == 1;
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
 
-            AuditTransaction tx = transactions.get(0);
+            assert td.getEntityDeltas().size() == 3;
 
-            DeltaDeprecated delta = HibernateAudit.getDeltaDeprecated(tx.getId(), c.getId());
+            EntityDelta ed = null;
+            ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "cex".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(7).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().size() == 1;
+            CollectionDelta cd = ed.getCollectionDelta("ds");
+            assert D.class.getName().equals(cd.getMemberEntityName());
+            assert cd.getIds().size() == 2;
+            assert cd.getIds().contains(done.getId());
+            assert cd.getIds().contains(dtwo.getId());
 
-            Set<Entity> entities = delta.getEntities();
+            ed = td.getEntityDelta(done.getId(), D.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "done".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(8).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().isEmpty();
 
-            assert entities.size() == 3;
-
-            for(Entity e: entities)
-            {
-                List<ChangeDeprecated> changes = delta.getChanges(e);
-
-                if(new Entity(c.getId(), c.getClass()).equals(e))
-                {
-                    assert changes.size() == 3;
-                }
-                else if(new Entity(done.getId(), done.getClass()).equals(e))
-                {
-                    assert changes.size() == 2;
-                }
-                else if(new Entity(dtwo.getId(), dtwo.getClass()).equals(e))
-                {
-                    assert changes.size() == 2;
-                }
-                else
-                {
-                    throw new Error("unexpected entity " + e);
-                }
-            }
-
-            StringBuffer sb = new StringBuffer();
-            DeltaDeprecated.render(sb, delta);
+            ed = td.getEntityDelta(dtwo.getId(), D.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "dtwo".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(9).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().isEmpty();
 
             s.beginTransaction();
 
@@ -670,46 +661,31 @@ public class DeltaEngineTest extends JTATransactionTest
 
             s.getTransaction().commit();
 
-            transactions = HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            txs = HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            assert txs.size() == 2;
+            tx = txs.get(1);
 
-            assert transactions.size() == 2;
+            td = HibernateAudit.getDelta(tx.getId());
 
-            tx = transactions.get(1);
+            assert td.getEntityDeltas().size() == 3;
 
-            delta = HibernateAudit.getDeltaDeprecated(tx.getId(), c.getId());
+            ed = td.getEntityDelta(c.getId(), C.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "cex2".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(17).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().isEmpty();
 
-            entities = delta.getEntities();
+            ed = td.getEntityDelta(done.getId(), D.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "done2".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(18).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().isEmpty();
 
-            assert entities.size() == 3;
-
-            for(Entity e: entities)
-            {
-                List<ChangeDeprecated> changes = delta.getChanges(e);
-
-                if(new Entity(c.getId(), c.getClass()).equals(e))
-                {
-                    assert changes.size() == 2;
-                }
-                else if(new Entity(done.getId(), done.getClass()).equals(e))
-                {
-                    assert changes.size() == 2;
-                }
-                else if(new Entity(dtwo.getId(), dtwo.getClass()).equals(e))
-                {
-                    assert changes.size() == 2;
-                }
-                else
-                {
-                    throw new Error("unexpected entity " + e);
-                }
-            }
-
-            DeltaDeprecated.render(sb, delta);
-            FileWriter fw = new FileWriter(new File("C:\\tmp\\elta.html"));
-            PrintWriter pw = new PrintWriter(fw);
-            pw.close();
-            fw.close();
-
+            ed = td.getEntityDelta(dtwo.getId(), D.class.getName());
+            assert ed.getScalarDeltas().size() == 2;
+            assert "dtwo2".equals(ed.getPrimitiveDelta("s").getValue());
+            assert new Integer(19).equals(ed.getPrimitiveDelta("i").getValue());
+            assert ed.getCollectionDeltas().isEmpty();
         }
         finally
         {
@@ -721,7 +697,6 @@ public class DeltaEngineTest extends JTATransactionTest
             }
         }
     }
-
 
     // Package protected ---------------------------------------------------------------------------
 
