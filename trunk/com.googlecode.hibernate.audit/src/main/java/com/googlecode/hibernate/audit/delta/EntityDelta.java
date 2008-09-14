@@ -26,6 +26,7 @@ public interface EntityDelta
     String getEntityName();
 
     Set<ScalarDelta> getScalarDeltas();
+
     Set<CollectionDelta> getCollectionDeltas();
 
     /**
@@ -39,7 +40,12 @@ public interface EntityDelta
     PrimitiveDelta getPrimitiveDelta(String name);
 
     /**
-     * @return null if no entity feference delta exists for this specific member variable.
+     * @return null if no entity reference delta exists for this specific member variable.
      */
     EntityReferenceDelta getEntityReferenceDelta(String name);
+
+    /**
+     * @return null if no collection delta exists for this specific member variable.
+     */
+    CollectionDelta getCollectionDelta(String name);
 }

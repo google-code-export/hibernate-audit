@@ -231,6 +231,8 @@ public class AuditTransaction implements Synchronization
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
      * TODO BAD signature
      *
+     * Also, may be changed when refactoring for HBA-80
+     *
      * Returns the corresponding AuditType (AuditCollectionType, AuditEntityType, etc), making a
      * database insert if the underlying class (or classes) were not persised in the database yet.
      */

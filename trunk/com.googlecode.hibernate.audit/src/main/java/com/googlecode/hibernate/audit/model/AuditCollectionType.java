@@ -78,6 +78,9 @@ public class AuditCollectionType extends AuditType
     @Transient
     private Class collectionClassInstance;
 
+    @Transient
+    private String memberEntityName;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -135,6 +138,16 @@ public class AuditCollectionType extends AuditType
         return collectionClassInstance;
     }
 
+    public String getMemberEntityName()
+    {
+        // TODO broken implementaion, it only works with FQCN, not arbitrary entity names
+        if (memberEntityName == null)
+        {
+            inferMemberEntityName();
+        }
+        return memberEntityName;
+    }
+
     @Override
     public boolean isPrimitiveType()
     {
@@ -177,4 +190,16 @@ public class AuditCollectionType extends AuditType
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+    private void inferMemberEntityName()
+    {
+        Class c = getClassInstance();
+
+        if (c == null)
+        {
+            memberEntityName = null;
+        }
+
+        memberEntityName = c.getName();
+    }
 }

@@ -1,7 +1,5 @@
 package com.googlecode.hibernate.audit.delta;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.io.Serializable;
@@ -34,7 +32,7 @@ public class EntityDeltaImpl implements EntityDelta
 
     // TODO can be optimized by maintaining a map, keyed on variable name
     private Set<ScalarDelta> scalarDeltas;
-    private Map<String, CollectionDelta> collectionDeltas;
+    private Set<CollectionDelta> collectionDeltas;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -43,7 +41,7 @@ public class EntityDeltaImpl implements EntityDelta
         this.id = id;
         this.entityName = entityName;
         scalarDeltas = new HashSet<ScalarDelta>();
-        collectionDeltas = new HashMap<String, CollectionDelta>();
+        collectionDeltas = new HashSet<CollectionDelta>();
     }
 
     // EntityDelta implementation ------------------------------------------------------------------
@@ -65,7 +63,7 @@ public class EntityDeltaImpl implements EntityDelta
 
     public Set<CollectionDelta> getCollectionDeltas()
     {
-        return new HashSet<CollectionDelta>(collectionDeltas.values());
+        return collectionDeltas;
     }
 
     public ScalarDelta getScalarDelta(String name)
@@ -107,6 +105,19 @@ public class EntityDeltaImpl implements EntityDelta
         return null;
     }
 
+    public CollectionDelta getCollectionDelta(String name)
+    {
+        for(CollectionDelta c: collectionDeltas)
+        {
+            if (c.getName().equals(name))
+            {
+                return c;
+            }
+        }
+
+        return null;
+    }
+
     // Public --------------------------------------------------------------------------------------
 
     /**
@@ -121,9 +132,13 @@ public class EntityDeltaImpl implements EntityDelta
         {
             return scalarDeltas.add((ScalarDelta)d);
         }
+        else if (d instanceof CollectionDelta)
+        {
+            return collectionDeltas.add((CollectionDelta)d);
+        }
         else
         {
-            throw new RuntimeException("NOT YET IMPLEMENTED");
+            throw new IllegalArgumentException("unknown delta type " + d);
         }
     }
 

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Collection;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -474,7 +475,21 @@ public class Manager
                     }
                     else if (t.isCollectionType())
                     {
-                        throw new RuntimeException("NOT YET IMPLEMENTED");
+                        AuditCollectionType ct = (AuditCollectionType)t;
+                        String memberEntityName = ct.getMemberEntityName();
+
+                        // possibly we lose ordering information, TODO analyze this
+                        Collection<Serializable> ids = new HashSet<Serializable>();
+                        Collection c = (Collection)value;
+                        for(Object o: c)
+                        {
+                            if (!ids.add((Serializable)o))
+                            {
+                                throw new IllegalStateException("duplicate id in collection: " + o);
+                            }
+                        }
+
+                        mvd = Deltas.createCollectionDelta(name, memberEntityName, ids);
                     }
 
                     if (!ed.addMemberVariableDelta(mvd))

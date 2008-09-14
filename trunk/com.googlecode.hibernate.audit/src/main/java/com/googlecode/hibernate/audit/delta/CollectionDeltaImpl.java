@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.audit.delta;
 
+import java.io.Serializable;
+import java.util.Collection;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -7,7 +10,7 @@ package com.googlecode.hibernate.audit.delta;
  *
  * @version <tt>$Revision$</tt>
  */
-class CollectionDeltaImpl extends MemberVariableDeltaSupport
+class CollectionDeltaImpl extends MemberVariableDeltaSupport implements CollectionDelta
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,11 +18,28 @@ class CollectionDeltaImpl extends MemberVariableDeltaSupport
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String memberEntityName;
+    private Collection<Serializable> ids;
+
     // Constructors --------------------------------------------------------------------------------
 
-    public CollectionDeltaImpl(String name)
+    public CollectionDeltaImpl(String name, String memberEntityName, Collection<Serializable> ids)
     {
         setName(name);
+        this.memberEntityName = memberEntityName;
+        this.ids = ids;
+    }
+
+    // CollectionDelta implementation --------------------------------------------------------------
+
+    public String getMemberEntityName()
+    {
+        return memberEntityName;
+    }
+
+    public Collection<Serializable> getIds()
+    {
+        return ids;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -31,4 +51,5 @@ class CollectionDeltaImpl extends MemberVariableDeltaSupport
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

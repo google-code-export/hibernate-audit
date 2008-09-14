@@ -148,6 +148,13 @@ public class PostInsertAuditEventListener
                     ids.add(mid);
                 }
 
+                if (ids.isEmpty())
+                {
+                    // this is an insert event, inserting an empty collection is a noop, don't
+                    // record in audit trail
+                    continue;
+                }
+
                 Type memberType = collectionType.getElementType(sf);
                 Class memberClass = memberType.getReturnedClass();
                 if (Map.class.equals(memberClass))
