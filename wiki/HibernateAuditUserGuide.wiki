@@ -14,6 +14,11 @@ HibernateAudit.enable(SessionFactory auditedSessionFactory)
 
 Describe HibernateAuditException and handling (transaction behavior, etc).
 
+If anything unbecoming happens inside an audit listener, the following are guaranteed:
+ # the current transaction is rolled back
+ # a HibernateAuditException bubbles up
+ # the HibernateAuditException contains the Throwable instance that caused it all as cause.
+
 =Implementation Details=
 
 Collection directionality information is not maintained in the original model, so that's why we introduced the AUDIT_EVENT_PAIR_COLLECTION table. 
