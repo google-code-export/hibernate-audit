@@ -49,7 +49,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSingleInsert() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -119,7 +119,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_AlreadyExistingEntityType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -187,7 +187,7 @@ public class PostInsertStatefulSessionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_AlreadyExistingPrimitiveType() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

@@ -57,47 +57,10 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Protected -----------------------------------------------------------------------------------
 
-    protected Manager getManager()
-    {
-        return manager;
-    }
-
-    /**
-     * Creates in-memory instance of the audit transaction the current event occured in scope of
-     * and perform all necessary associations (with the thread, register synchronizations, etc.).
-     * No unnecessary creation occurs if the audit transaction instance already exists.
-     */
-    protected AuditTransaction createAuditTransaction(EventSource auditedSession)
-    {
-        Transaction ht = auditedSession.getTransaction();
-        AuditTransaction at = Manager.getCurrentAuditTransaction();
-
-        if (at != null)
-        {
-            // already logged
-            if (ht != at.getTransaction())
-            {
-                throw new IllegalStateException("other transaction");
-            }
-            
-            return at;
-        }
-
-        Manager m = HibernateAudit.getManager();
-        Principal p = m.getPrincipal();
-        SessionFactory isf = m.getSessionFactory();
-        at = new AuditTransaction(ht, p, isf);
-        Manager.setCurrentAuditTransaction(at);
-
-        log.debug(this + " created");
-
-        return at;
-    }
-
     /**
      * Extracts all sorts of useful information out of the event and wrap them together as an
      * EventContext instance, and also log the audit transaction and the audit event into the
-     * audit log. 
+     * audit log.
      *
      * @param e - this method only gets entity events (PostInsertEvent, PostUpdateEvent, etc).
      *        Anything else is a programming error and it will be signaled with an
@@ -191,6 +154,43 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         {
             throw new IllegalArgumentException("unsupported event type " + e);
         }
+    }
+
+    protected Manager getManager()
+    {
+        return manager;
+    }
+
+    /**
+     * Creates in-memory instance of the audit transaction the current event occured in scope of
+     * and perform all necessary associations (with the thread, register synchronizations, etc.).
+     * No unnecessary creation occurs if the audit transaction instance already exists.
+     */
+    protected AuditTransaction createAuditTransaction(EventSource auditedSession)
+    {
+        Transaction ht = auditedSession.getTransaction();
+        AuditTransaction at = Manager.getCurrentAuditTransaction();
+
+        if (at != null)
+        {
+            // already logged
+            if (ht != at.getTransaction())
+            {
+                throw new IllegalStateException("other transaction");
+            }
+            
+            return at;
+        }
+
+        Manager m = HibernateAudit.getManager();
+        Principal p = m.getPrincipal();
+        SessionFactory isf = m.getSessionFactory();
+        at = new AuditTransaction(ht, p, isf);
+        Manager.setCurrentAuditTransaction(at);
+
+        log.debug(this + " created");
+
+        return at;
     }
 
     // Private -------------------------------------------------------------------------------------

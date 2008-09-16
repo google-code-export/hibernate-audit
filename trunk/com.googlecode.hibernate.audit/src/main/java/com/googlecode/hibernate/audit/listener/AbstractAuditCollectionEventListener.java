@@ -7,8 +7,10 @@ import org.hibernate.event.AbstractEvent;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.CollectionEntry;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
+import org.hibernate.type.EntityType;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditCollectionType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
@@ -53,37 +55,49 @@ class AbstractAuditCollectionEventListener extends AbstractAuditEventListener
 
     void handleCollectionEvent(AbstractCollectionEvent ace)
     {
-        EventContext ec = createAndLogEventContext(ace);
-        
+        EventContext ctx = createAndLogEventContext(ace);
+
+        // figure out collection type
         PersistentCollection c = ace.getCollection();
-        CollectionEntry ce = ec.session.getPersistenceContext().getCollectionEntry(c);
+        CollectionEntry ce = ctx.session.getPersistenceContext().getCollectionEntry(c);
         CollectionPersister cp = ce.getLoadedPersister();
         CollectionType ct = cp.getCollectionType();
         Class cc = Hibernate.collectionTypeToClass(ct);
-        Type et = ct.getElementType(ec.factory);
-        Class elemc = et.getReturnedClass();
-        AuditCollectionType ft = (AuditCollectionType)ec.auditTransaction.getAuditType(cc, elemc);
+
+        // figure out element type
+        Type et = ct.getElementType(ctx.factory);
+
+        if (!(et instanceof EntityType))
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
+
+        EntityType eet = (EntityType)et;
+        String een = eet.getAssociatedEntityName();
+        EntityPersister eep = ctx.factory.getEntityPersister(een);
+        Class eec = Hibernate.guessEntityClass(eet, eep, ctx.mode);
+
+        AuditCollectionType ft = (AuditCollectionType)ctx.auditTransaction.getAuditType(cc, eec);
         String role = cp.getRole();
         String fn = Hibernate.roleToVariableName(role);
-        AuditTypeField f = ec.auditTransaction.getAuditTypeField(fn, ft);
+        AuditTypeField f = ctx.auditTransaction.getAuditTypeField(fn, ft);
 
         AuditEventCollectionPair pair = new AuditEventCollectionPair();
-        pair.setEvent(ec.auditEvent);
+        pair.setEvent(ctx.auditEvent);
         pair.setField(f);
 
         List<Long> ids = new ArrayList<Long>();
         for(Iterator i = c.entries(cp); i.hasNext(); )
         {
             Object entry = i.next();
-            Long id = (Long)ec.session.getIdentifier(entry);
+            Long id = (Long)ctx.session.getIdentifier(entry);
             ids.add(id);
         }
 
         pair.setIds(ids);
 
-        ec.auditTransaction.log(pair);
+        ctx.auditTransaction.log(pair);
     }
-
 
     // Protected -----------------------------------------------------------------------------------
 

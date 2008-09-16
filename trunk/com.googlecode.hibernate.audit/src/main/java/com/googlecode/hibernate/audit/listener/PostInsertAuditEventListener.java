@@ -3,11 +3,10 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.collection.PersistentCollection;
-import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
+import org.hibernate.type.EntityType;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
@@ -19,7 +18,6 @@ import com.googlecode.hibernate.audit.util.Hibernate;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -54,15 +52,15 @@ public class PostInsertAuditEventListener
     {
         log.debug(this + ".onPostInsert(...)");
 
-        EventContext ec = createAndLogEventContext(event);
+        EventContext ctx = createAndLogEventContext(event);
 
         // TODO maybe there's no need to iterate over *all* properties, maybe the state contains
         //      only the new properties, look at how onPostUpdate() was implemented and possibly
         //      refactor this implementation as well
         
-        for (String name : ec.persister.getPropertyNames())
+        for (String name : ctx.persister.getPropertyNames())
         {
-            Object value = ec.persister.getPropertyValue(ec.entity, name, ec.mode);
+            Object value = ctx.persister.getPropertyValue(ctx.entity, name, ctx.mode);
 
             if (value == null)
             {
@@ -71,80 +69,46 @@ public class PostInsertAuditEventListener
                 continue;
             }
 
-            SessionFactoryImpl sf = (SessionFactoryImpl)ec.session.getSessionFactory();
-            Type hibernateType = ec.persister.getPropertyType(name);
+            Type hibernateType = ctx.persister.getPropertyType(name);
 
             AuditType auditType = null;
             AuditEventPair pair = null;
 
             if (hibernateType.isEntityType())
             {
-                if (!hibernateType.isAssociationType())
-                {
-                    throw new RuntimeException("NOT YET IMPLEMENTED");
-                }
-
-                // TODO Refactor this into something more palatable
-                String entityName = ec.session.getEntityName(value);
-                EntityPersister assocdEntityPersister = sf.getEntityPersister(entityName);
-
-                // TODO verify if the following assumption is true:
-                // the entity mode is a session characteristic, so using the previously determined
-                // entity mode everywhere associated entity mode is needed
-
-                Class entityClass = hibernateType.getReturnedClass();
-
-                if (Map.class.equals(entityClass))
-                {
-                    // this is what Hibernate returns when it cannot figure out the class,
-                    // most likley due to the fact that audited application uses entity names and
-                    // custom tuplizers
-                    EntityTuplizer t =
-                        assocdEntityPersister.getEntityMetamodel().getTuplizer(ec.mode);
-                    entityClass = t.getMappedClass();
-                }
-
-                Class idClass = assocdEntityPersister.getIdentifierType().getReturnedClass();
-                auditType = ec.auditTransaction.getAuditType(entityClass, idClass);
-                value = assocdEntityPersister.getIdentifier(value, ec.mode);
+                EntityType et = (EntityType)hibernateType;
+                String en = et.getAssociatedEntityName();
+                EntityPersister ep = ctx.factory.getEntityPersister(en);
+                Class ec = Hibernate.guessEntityClass(et, ep, ctx.mode);
+                Class idc = ep.getIdentifierType().getReturnedClass();
+                auditType = ctx.auditTransaction.getAuditType(ec, idc);
+                value = ep.getIdentifier(value, ctx.mode);
                 pair = new AuditEventPair();
             }
             else if (hibernateType.isCollectionType())
             {
-                // figure out the member type and class
-                CollectionType collectionType = (CollectionType)hibernateType;
-                Class collectionClass = Hibernate.collectionTypeToClass(collectionType);
+                // figure out collection type
+                CollectionType ct = (CollectionType)hibernateType;
+                Class cc = Hibernate.collectionTypeToClass(ct);
+
+                // figure out element type
+                Type et = ct.getElementType(ctx.factory);
+
+                if (!(et instanceof EntityType))
+                {
+                    throw new RuntimeException("NOT YET IMPLEMENTED");
+                }
+
+                EntityType eet = (EntityType)et;
+                String een = eet.getAssociatedEntityName();
+                EntityPersister eep = ctx.factory.getEntityPersister(een);
+                Class eec = Hibernate.guessEntityClass(eet, eep, ctx.mode);
 
                 Collection collection = (Collection)((PersistentCollection)value).getValue();
-
                 List<Long> ids = new ArrayList<Long>();
-                EntityPersister memberEntityPersister = null;
-                String memberEntityName = null;
-
-                // TODO iterating over the members of the collection to figure out the type is not
-                //      a good idea. The mechanism breaks when faced with empty collections.
                 for(Object o: collection)
                 {
-                    String s = ec.session.getEntityName(o);
-
-                    if (memberEntityName == null)
-                    {
-                        memberEntityName = s;
-                    }
-                    else if (!memberEntityName.equals(s))
-                    {
-                        throw new IllegalStateException("Heterogeneous collection: " +
-                                                        memberEntityName + ", " + s);
-                    }
-
-                    if (memberEntityPersister == null)
-                    {
-                        memberEntityPersister = sf.getEntityPersister(memberEntityName);
-                    }
-
-                    // the entity mode is a session characteristic, so using the previously
-                    // determined entity mode (TODO: verify this is really true)
-                    Long mid  = (Long)memberEntityPersister.getIdentifier(o, ec.mode);
+                    Long mid  = (Long)eep.getIdentifier(o, ctx.mode);
                     ids.add(mid);
                 }
 
@@ -155,43 +119,22 @@ public class PostInsertAuditEventListener
                     continue;
                 }
 
-                Type memberType = collectionType.getElementType(sf);
-                Class memberClass = memberType.getReturnedClass();
-                if (Map.class.equals(memberClass))
-                {
-                    // this is what Hibernate returns when it cannot figure out the class,
-                    // most likley due to the fact that audited application uses entity names and
-                    // custom tuplizers
-                    if (memberEntityPersister != null)
-                    {
-                        EntityTuplizer t =
-                            memberEntityPersister.getEntityMetamodel().getTuplizer(ec.mode);
-                        memberClass = t.getMappedClass();
-                    }
-                    else
-                    {
-                        // this means the collection was empty and we couldn't determine the
-                        // member's persister - this look to me like a hack, review TODO
-                        memberClass = Object.class;
-                    }
-                }
-
-                auditType = ec.auditTransaction.getAuditType(collectionClass, memberClass);
+                auditType = ctx.auditTransaction.getAuditType(cc, eec);
                 pair = new AuditEventCollectionPair();
                 ((AuditEventCollectionPair)pair).setIds(ids);
                 value = null;
             }
             else
             {
-                auditType = ec.auditTransaction.getAuditType(hibernateType.getReturnedClass());
+                auditType = ctx.auditTransaction.getAuditType(hibernateType.getReturnedClass());
                 pair = new AuditEventPair();
             }
 
-            AuditTypeField f = ec.auditTransaction.getAuditTypeField(name, auditType);
+            AuditTypeField f = ctx.auditTransaction.getAuditTypeField(name, auditType);
 
             pair.setField(f);
             pair.setValue(value);
-            pair.setEvent(ec.auditEvent);
+            pair.setEvent(ctx.auditEvent);
 
             if (hibernateType.isComponentType())
             {
@@ -201,7 +144,7 @@ public class PostInsertAuditEventListener
                 //throw new RuntimeException("NOT YET IMPLEMENTED");
             }
 
-            ec.auditTransaction.log(pair);
+            ctx.auditTransaction.log(pair);
         }
     }
 

@@ -1482,7 +1482,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true) // TODO This will stop failing when https://jira.novaordis.org/browse/HBA-80 is fixed
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer_Collection() throws Exception
     {
         Configuration config = new Configuration();

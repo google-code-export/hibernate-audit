@@ -3,12 +3,15 @@ package com.googlecode.hibernate.audit.util;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.BagType;
 import org.hibernate.type.SetType;
+import org.hibernate.type.EntityType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.tuple.Tuplizer;
+import org.hibernate.tuple.entity.EntityTuplizer;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -72,6 +75,21 @@ public class Hibernate
         }
 
         return name;
+    }
+
+    public static Class guessEntityClass(EntityType et, EntityPersister ep, EntityMode em)
+    {
+        Class entityClass = et.getReturnedClass();
+
+        if (Map.class.equals(entityClass))
+        {
+            // this is what Hibernate returns when it cannot figure out the class, most likley due
+            // to the fact that audited application uses entity names and custom tuplizers
+            EntityTuplizer t = ep.getEntityMetamodel().getTuplizer(em);
+            entityClass = t.getMappedClass();
+        }
+
+        return entityClass;
     }
 
     public static String roleToVariableName(String role)
