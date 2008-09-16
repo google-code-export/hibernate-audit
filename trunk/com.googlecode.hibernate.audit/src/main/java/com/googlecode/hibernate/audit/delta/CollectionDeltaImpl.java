@@ -44,6 +44,12 @@ class CollectionDeltaImpl extends MemberVariableDeltaSupport implements Collecti
 
     // Public --------------------------------------------------------------------------------------
 
+    @Override
+    public String toString()
+    {
+        return getName() + "[Collection][" + memberEntityName + "]=" + ids;
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------

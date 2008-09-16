@@ -36,6 +36,7 @@ import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
 import com.googlecode.hibernate.audit.delta.Deltas;
 import com.googlecode.hibernate.audit.delta.MemberVariableDelta;
 import com.googlecode.hibernate.audit.delta.ChangeType;
+import com.googlecode.hibernate.audit.delta.CollectionDelta;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
@@ -447,6 +448,11 @@ public class Manager
                     ed = new EntityDeltaImpl(id, entityName, ct);
                     td.addEntityDelta(ed);
                 }
+                else if (ChangeType.INSERT.equals(ct))
+                {
+                    // 'INSERT' always overwrites an 'UPDATE' as event type
+                    ed.setChangeType(ChangeType.INSERT);
+                }
 
                 List<AuditEventPair> pairs = e.getPairs();
 
@@ -478,6 +484,13 @@ public class Manager
                         // possibly we lose ordering information, TODO analyze this
                         Collection<Serializable> ids = new HashSet<Serializable>();
                         Collection c = (Collection)value;
+
+                        if (c.isEmpty() && ed.isInsert())
+                        {
+                            // ingore empty collections on INSERT
+                            continue;
+                        }
+
                         for(Object o: c)
                         {
                             if (!ids.add((Serializable)o))
@@ -491,8 +504,51 @@ public class Manager
 
                     if (!ed.addMemberVariableDelta(mvd))
                     {
-                        // an equal() member variable delta was added already
-                        throw new IllegalStateException("duplicate member variable delta " + mvd);
+                        // sometimes hibernate sends generated duplicate collection events (INSERT,
+                        // and then UPDATE). As long the deltas are identical, not a big deal. Don't
+                        // accept duplicate, though, for anything else than collections
+
+                        if (!t.isCollectionType())
+                        {
+                            // an equal() member variable delta was added already
+                            throw new IllegalStateException("duplicate delta " + mvd);
+                        }
+
+                        // TODO this is fishy, why would we ever have to deal with this?
+
+                        // we're collection, check if the deltas are identical
+                        CollectionDelta existingCd = ed.getCollectionDelta(name);
+
+                        String existingMemberEntityName = existingCd.getMemberEntityName();
+                        String newMemberEntityName = ((CollectionDelta)mvd).getMemberEntityName();
+
+                        if (!existingMemberEntityName.equals(newMemberEntityName))
+                        {
+                            throw new IllegalStateException(
+                                "inconsistent collection delta update, non-matching " +
+                                "member entity name (" + existingMemberEntityName + ", " +
+                                newMemberEntityName);
+                        }
+
+                        Collection<Serializable> existingIds = existingCd.getIds();
+                        Collection<Serializable> newIds = ((CollectionDelta)mvd).getIds();
+
+                        if (existingIds.size() != newIds.size())
+                        {
+                            throw new IllegalStateException(
+                                "inconsistent collection delta update, non-matching sizes (" +
+                                existingIds.size() + ", " + newIds.size());
+                        }
+
+                        for(Serializable s: existingIds)
+                        {
+                            if (!newIds.contains(s))
+                            {
+                                throw new IllegalStateException(
+                                    "inconsistent collection delta update, non-matching content (" +
+                                    existingIds + ", " + newIds);
+                            }
+                        }
                     }
                 }
             }

@@ -62,6 +62,21 @@ public class EntityDeltaImpl implements EntityDelta
         return ct;
     }
 
+    public boolean isInsert()
+    {
+        return ChangeType.INSERT.equals(ct);
+    }
+
+    public boolean isUpdate()
+    {
+        return ChangeType.UPDATE.equals(ct);
+    }
+
+    public boolean isDelete()
+    {
+        return ChangeType.DELETE.equals(ct);
+    }
+
     public Set<ScalarDelta> getScalarDeltas()
     {
         return scalarDeltas;
@@ -146,6 +161,11 @@ public class EntityDeltaImpl implements EntityDelta
         {
             throw new IllegalArgumentException("unknown delta type " + d);
         }
+    }
+
+    public void setChangeType(ChangeType ct)
+    {
+        this.ct = ct;
     }
 
     @Override

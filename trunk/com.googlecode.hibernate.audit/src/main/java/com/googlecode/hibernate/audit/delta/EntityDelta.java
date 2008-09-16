@@ -27,6 +27,25 @@ public interface EntityDelta
 
     ChangeType getChangeType();
 
+    /**
+     * Convenience method, simplification of getChangeType().
+     * @see EntityDelta#getChangeType()
+     */
+    boolean isInsert();
+
+    /**
+     * Convenience method, simplification of getChangeType().
+     * @see EntityDelta#getChangeType()
+     */
+    boolean isUpdate();
+
+    /**
+     * Convenience method, simplification of getChangeType().
+     * @see EntityDelta#getChangeType()
+     */
+    boolean isDelete();
+
+
     Set<ScalarDelta> getScalarDeltas();
 
     Set<CollectionDelta> getCollectionDeltas();

@@ -827,6 +827,59 @@ public class PostInsertDeltaTest extends JTATransactionTest
     // Tests initially developed in PostInsertCollectionsTest --------------------------------------
 
     @Test(enabled = true)
+    public void testInsert_EmptyCollection() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            WA wa = new WA();
+            s.save(wa);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
+
+            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+
+            assert td.getEntityDeltas().size() == 1;
+
+            EntityDelta ed = td.getEntityDelta(wa.getId(), WA.class.getName());
+            assert ChangeType.INSERT.equals(ed.getChangeType());
+            assert ed.getScalarDeltas().isEmpty();
+            assert ed.getCollectionDeltas().isEmpty();
+        }
+        catch(Exception e)
+        {
+            log.error("test failed unexpectedly", e);
+            throw e;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1429,7 +1482,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = true) // TODO This will stop failing when https://jira.novaordis.org/browse/HBA-80 is fixed
     public void testManyToOne_OneIsTuplizer_Collection() throws Exception
     {
         Configuration config = new Configuration();

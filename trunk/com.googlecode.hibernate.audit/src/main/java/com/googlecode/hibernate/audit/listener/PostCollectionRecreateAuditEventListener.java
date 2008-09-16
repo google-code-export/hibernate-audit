@@ -1,7 +1,7 @@
 package com.googlecode.hibernate.audit.listener;
 
-import org.hibernate.event.PostCollectionUpdateEventListener;
-import org.hibernate.event.PostCollectionUpdateEvent;
+import org.hibernate.event.PostCollectionRecreateEventListener;
+import org.hibernate.event.PostCollectionRecreateEvent;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 
@@ -14,12 +14,12 @@ import com.googlecode.hibernate.audit.model.Manager;
  *
  * $Id$
  */
-public class PostCollectionUpdateAuditEventListener
-    extends AbstractAuditCollectionEventListener implements PostCollectionUpdateEventListener
+public class PostCollectionRecreateAuditEventListener
+    extends AbstractAuditCollectionEventListener implements PostCollectionRecreateEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(PostCollectionUpdateAuditEventListener.class);
+    private static final Logger log = Logger.getLogger(PostCollectionRecreateAuditEventListener.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -27,16 +27,16 @@ public class PostCollectionUpdateAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
-    public PostCollectionUpdateAuditEventListener(Manager m)
+    public PostCollectionRecreateAuditEventListener(Manager m)
     {
         super(m);
     }
 
     // PostInsertEventListener implementation ------------------------------------------------------
 
-    public void onPostUpdateCollection(PostCollectionUpdateEvent event)
+    public void onPostRecreateCollection(PostCollectionRecreateEvent event)
     {
-        log.debug(this + ".onPostUpdateCollection(...)");
+        log.debug(this + ".onPostRecreateCollection(...)");
         handleCollectionEvent(event);
     }
 
@@ -45,7 +45,7 @@ public class PostCollectionUpdateAuditEventListener
     @Override
     public String toString()
     {
-        return "PostCollectionUpdateAuditEventListener[" +
+        return "PostCollectionRecreateAuditEventListener[" +
                Integer.toHexString(System.identityHashCode(this)) + "]";
     }
 

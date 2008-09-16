@@ -10,7 +10,6 @@ import org.hibernate.event.EventSource;
 import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostUpdateEvent;
-import org.hibernate.event.PostCollectionUpdateEvent;
 import org.hibernate.event.PostDeleteEvent;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
@@ -109,47 +108,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     {
         EventContext c = new EventContext();
 
-        if (e instanceof PostInsertEvent)
-        {
-            PostInsertEvent pie = (PostInsertEvent)e;
-            c.changeType = ChangeType.INSERT;
-            c.session = pie.getSession();
-            c.entityId = pie.getId();
-            c.entity = pie.getEntity();
-            c.persister = pie.getPersister();
-        }
-        else if (e instanceof PostUpdateEvent)
-        {
-            PostUpdateEvent pue = (PostUpdateEvent)e;
-            c.changeType = ChangeType.UPDATE;
-            c.session = pue.getSession();
-            c.entityId = pue.getId();
-            c.entity = pue.getEntity();
-            c.persister = pue.getPersister();
-        }
-        else if (e instanceof PostCollectionUpdateEvent)
-        {
-            PostCollectionUpdateEvent pcue = (PostCollectionUpdateEvent)e;
-            c.changeType = ChangeType.UPDATE;
-            c.session = pcue.getSession();
-            c.entityId = pcue.getAffectedOwnerIdOrNull();
-            c.entity = pcue.getAffectedOwnerOrNull();
-            c.entityName = pcue.getAffectedOwnerEntityName();
-            c.persister = c.session.getEntityPersister(c.entityName, c.entity);
-        }
-        else if (e instanceof PostDeleteEvent)
-        {
-            PostDeleteEvent pde = (PostDeleteEvent)e;
-            c.changeType = ChangeType.DELETE;
-            c.session = pde.getSession();
-            c.entityId = pde.getId();
-            c.entity = pde.getEntity();
-            c.persister = pde.getPersister();
-        }
-        else
-        {
-            throw new IllegalArgumentException("unsupported event type " + e);
-        }
+        populateEventContextWithEventSpecificInfo(c, e);
 
         c.factory = c.session.getFactory();
         c.entityIdClass = c.entityId.getClass();
@@ -199,6 +158,41 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         return c;
     }
 
+    protected void populateEventContextWithEventSpecificInfo(EventContext c, AbstractEvent e)
+    {
+        if (e instanceof PostInsertEvent)
+        {
+            PostInsertEvent pie = (PostInsertEvent)e;
+            c.changeType = ChangeType.INSERT;
+            c.session = pie.getSession();
+            c.entityId = pie.getId();
+            c.entity = pie.getEntity();
+            c.persister = pie.getPersister();
+        }
+        else if (e instanceof PostUpdateEvent)
+        {
+            PostUpdateEvent pue = (PostUpdateEvent)e;
+            c.changeType = ChangeType.UPDATE;
+            c.session = pue.getSession();
+            c.entityId = pue.getId();
+            c.entity = pue.getEntity();
+            c.persister = pue.getPersister();
+        }
+        else if (e instanceof PostDeleteEvent)
+        {
+            PostDeleteEvent pde = (PostDeleteEvent)e;
+            c.changeType = ChangeType.DELETE;
+            c.session = pde.getSession();
+            c.entityId = pde.getId();
+            c.entity = pde.getEntity();
+            c.persister = pde.getPersister();
+        }
+        else
+        {
+            throw new IllegalArgumentException("unsupported event type " + e);
+        }
+    }
+
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
@@ -206,7 +200,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     /**
      * Visible only to AbstractAuditEventListener subclasses.
      */
-    protected class EventContext {
+    protected class EventContext
+    {
         SessionFactoryImplementor factory;
         EventSource session;
 

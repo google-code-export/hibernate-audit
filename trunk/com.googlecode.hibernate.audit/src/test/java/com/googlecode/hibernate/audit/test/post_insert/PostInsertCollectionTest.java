@@ -49,6 +49,125 @@ public class PostInsertCollectionTest extends JTATransactionTest
     // Public --------------------------------------------------------------------------------------
 
     @Test(enabled = true)
+    public void testPostInsert_EmptyCollection() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            WA wa = new WA();
+
+            s.save(wa);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
+
+            List list = HibernateAudit.query("from AuditEvent as e where e.transaction = ?", tx);
+            assert list.size() == 2;
+
+            AuditEvent ae = (AuditEvent)list.get(0);
+            assert (ChangeType.INSERT.equals(ae.getType()));
+            assert wa.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+            assert pairs.isEmpty();
+
+            ae = (AuditEvent)list.get(1);
+            assert (ChangeType.UPDATE.equals(ae.getType()));
+            assert wa.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+            assert pairs.size() == 1;
+
+            AuditEventCollectionPair aecp = (AuditEventCollectionPair)pairs.get(0);
+            assert aecp.getIds().isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testPostInsert_EmptyCollection2() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(WA.class);
+        config.addAnnotatedClass(WB.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            WA wa = new WA();
+            wa.setWbs(new ArrayList<WB>());
+
+            s.save(wa);
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction tx = txs.get(0);
+
+            List list = HibernateAudit.query("from AuditEvent as e where e.transaction = ?", tx);
+            assert list.size() == 2;
+
+            AuditEvent ae = (AuditEvent)list.get(0);
+            assert (ChangeType.INSERT.equals(ae.getType()));
+            assert wa.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+            assert pairs.isEmpty();
+
+            ae = (AuditEvent)list.get(1);
+            assert (ChangeType.UPDATE.equals(ae.getType()));
+            assert wa.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+            assert pairs.size() == 1;
+
+            AuditEventCollectionPair aecp = (AuditEventCollectionPair)pairs.get(0);
+            assert aecp.getIds().isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -80,9 +199,6 @@ public class PostInsertCollectionTest extends JTATransactionTest
             t.commit();
 
             // verify the data is in the database
-
-            List<Long> targetIds = new ArrayList<Long>(Arrays.asList(wa.getId(), wb.getId()));
-
             List transactions = HibernateAudit.query("from AuditTransaction");
             assert transactions.size() == 1;
 
@@ -120,48 +236,68 @@ public class PostInsertCollectionTest extends JTATransactionTest
             assert expectedTargetTypes.size() == 2;
 
             List events = HibernateAudit.query("from AuditEvent");
-            assert events.size() == 2;
+            assert events.size() == 3; // two INSERTS, one UPDATE
 
             for(Object o: events)
             {
                 AuditEvent e = (AuditEvent)o;
-
                 assert at.equals(e.getTransaction());
-                assert ChangeType.INSERT.equals(e.getType());
-                assert expectedTargetTypes.remove(e.getTargetType());
-                assert targetIds.remove(e.getTargetId());
-            }
+                assert expectedTargetTypes.contains(e.getTargetType());
 
-            List pairs = HibernateAudit.query("from AuditEventPair");
-            assert pairs.size() == 4;
-
-            List<String> expectedStringValues = new ArrayList<String>(Arrays.
-                asList(wa.getName(),
-                       wb.getName(),
-                       Long.toString(wa.getId()))); // the WA's id as a foreign key in WB's table.
-
-            for(Object o: pairs)
-            {
-                AuditEventPair pair = (AuditEventPair)o;
-
-                if (pair.isCollection())
+                List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", e);
+                Long id = e.getTargetId();
+                if (wa.getId().equals(id))
                 {
-                    AuditEventCollectionPair cp = (AuditEventCollectionPair)pair;
-                    List<Long> ids = cp.getIds();
+                    if (ChangeType.INSERT.equals(e.getType()))
+                    {
+                        assert pairs.size() == 2;
 
-                    assert 1 == ids.size();
-                    assert ids.remove(wb.getId());
+                        for(Object o2: pairs)
+                        {
+                            if (o2 instanceof AuditEventCollectionPair)
+                            {
+                                AuditEventCollectionPair cp = (AuditEventCollectionPair)o2;
+                                List<Long> ids = cp.getIds();
+                                assert ids.size() == 1;
+                                assert ids.contains(wb.getId());
+                            }
+                            else
+                            {
+                                AuditEventPair p = (AuditEventPair)o2;
+                                assert "wasabi".equals(p.getValue());
+                            }
+                        }
+
+                    }
+                    else if (ChangeType.UPDATE.equals(e.getType()))
+                    {
+                        assert pairs.size() == 1;
+                        AuditEventCollectionPair cp = (AuditEventCollectionPair)pairs.get(0);
+                        List<Long> ids = cp.getIds();
+                        assert ids.size() == 1;
+                        assert ids.contains(wb.getId());
+                    }
+                    else
+                    {
+                        throw new Error("unexpected type " + e.getType());
+                    }
+                }
+                else if (wb.getId().equals(id))
+                {
+                    assert ChangeType.INSERT.equals(e.getType());
+                    assert pairs.size() == 2;
+
+                    for(Object o2: pairs)
+                    {
+                        AuditEventPair p = (AuditEventPair)o2;
+                        assert "wbang".equals(p.getValue()) || wa.getId().equals(p.getValue());
+                    }
                 }
                 else
                 {
-                    // TODO we're not testing pair.getValue() because at this time is not implemented
-                    assert expectedStringValues.remove(pair.getStringValue());
+                    throw new Error("unexpected id " + id);
                 }
             }
-
-            assert expectedStringValues.isEmpty();
-
-            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -170,79 +306,8 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
         finally
         {
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
-
-    @Test(enabled = true)
-    public void testAddOneInCollection_Delta() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(WA.class);
-        config.addAnnotatedClass(WB.class);
-        SessionFactoryImplementor sf = null;
-
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            Session s = sf.openSession();
-            Transaction t = s.beginTransaction();
-
-            WA wa = new WA();
-            wa.setName("alana");
-
-            WB wb = new WB();
-            wb.setName("baja");
-
-            wa.getWbs().add(wb);
-            wb.setWa(wa);
-
-            s.save(wa);
-            t.commit();
-
-            List transactions = HibernateAudit.query("from AuditTransaction");
-            assert transactions.size() == 1;
-            AuditTransaction at = (AuditTransaction)transactions.get(0);
-
-            Long waId = wa.getId();
-            Long wbId = wb.getId();
-
-            WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId());
-
-            assert waId.equals(base.getId());
-            assert "alana".equals(wa.getName());
-
-            List<WB> wbs = base.getWbs();
-            assert !wa.getWbs().equals(wbs);
-
-            assert wbs.size() == 1;
-
-            WB postTWb = wbs.get(0);
-            assert postTWb != wb;
-
-            assert postTWb.getId().equals(wbId);
-            assert "baja".equals(postTWb.getName());
-
-            assert base == postTWb.getWa();
-
             HibernateAudit.stopRuntime();
-        }
-        catch(Exception e)
-        {
-            log.error("test failed unexpectedly", e);
-            throw e;
-        }
-        finally
-        {
+
             if (sf != null)
             {
                 sf.close();
@@ -250,78 +315,151 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
-    public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(WA.class);
-        config.addAnnotatedClass(WB.class);
-        SessionFactoryImplementor sf = null;
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-107
+//    public void testAddOneInCollection_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("alana");
+//
+//            WB wb = new WB();
+//            wb.setName("baja");
+//
+//            wa.getWbs().add(wb);
+//            wb.setWa(wa);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//
+//            WA base = new WA();
+//            HibernateAudit.delta(base, waId, at.getId());
+//
+//            assert waId.equals(base.getId());
+//            assert "alana".equals(wa.getName());
+//
+//            List<WB> wbs = base.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 1;
+//
+//            WB postTWb = wbs.get(0);
+//            assert postTWb != wb;
+//
+//            assert postTWb.getId().equals(wbId);
+//            assert "baja".equals(postTWb.getName());
+//
+//            assert base == postTWb.getWa();
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
 
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            Session s = sf.openSession();
-            Transaction t = s.beginTransaction();
-
-            WA wa = new WA();
-            wa.setName("alana");
-
-            WB wb = new WB();
-            wb.setName("baja");
-
-            wa.getWbs().add(wb);
-
-            s.save(wa);
-            t.commit();
-
-            List transactions = HibernateAudit.query("from AuditTransaction");
-            assert transactions.size() == 1;
-            AuditTransaction at = (AuditTransaction)transactions.get(0);
-
-            Long waId = wa.getId();
-            Long wbId = wb.getId();
-
-            WA base = new WA();
-            HibernateAudit.delta(base, waId, at.getId());
-
-            assert waId.equals(base.getId());
-            assert "alana".equals(wa.getName());
-
-            List<WB> wbs = base.getWbs();
-            assert !wa.getWbs().equals(wbs);
-
-            assert wbs.size() == 1;
-
-            WB postTWb = wbs.get(0);
-            assert postTWb != wb;
-
-            assert postTWb.getId().equals(wbId);
-            assert "baja".equals(postTWb.getName());
-
-            // no bidirectionality
-            assert postTWb.getWa() == null;
-
-            HibernateAudit.stopRuntime();
-        }
-        catch(Exception e)
-        {
-            log.error("test failed unexpectedly", e);
-            throw e;
-        }
-        finally
-        {
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-107
+//    public void testAddOneInCollection_NoBidirectionality_Delta() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(WA.class);
+//        config.addAnnotatedClass(WB.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            Transaction t = s.beginTransaction();
+//
+//            WA wa = new WA();
+//            wa.setName("alana");
+//
+//            WB wb = new WB();
+//            wb.setName("baja");
+//
+//            wa.getWbs().add(wb);
+//
+//            s.save(wa);
+//            t.commit();
+//
+//            List transactions = HibernateAudit.query("from AuditTransaction");
+//            assert transactions.size() == 1;
+//            AuditTransaction at = (AuditTransaction)transactions.get(0);
+//
+//            Long waId = wa.getId();
+//            Long wbId = wb.getId();
+//
+//            WA base = new WA();
+//            HibernateAudit.delta(base, waId, at.getId());
+//
+//            assert waId.equals(base.getId());
+//            assert "alana".equals(wa.getName());
+//
+//            List<WB> wbs = base.getWbs();
+//            assert !wa.getWbs().equals(wbs);
+//
+//            assert wbs.size() == 1;
+//
+//            WB postTWb = wbs.get(0);
+//            assert postTWb != wb;
+//
+//            assert postTWb.getId().equals(wbId);
+//            assert "baja".equals(postTWb.getName());
+//
+//            // no bidirectionality
+//            assert postTWb.getWa() == null;
+//
+//            HibernateAudit.stopRuntime();
+//        }
+//        catch(Exception e)
+//        {
+//            log.error("test failed unexpectedly", e);
+//            throw e;
+//        }
+//        finally
+//        {
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
 
     @Test(enabled = true)
     public void testAddTwoInCollection_Bidirectionality() throws Exception
@@ -499,8 +637,6 @@ public class PostInsertCollectionTest extends JTATransactionTest
             }
 
             assert expectedWbIds.isEmpty();
-
-            HibernateAudit.stopRuntime();
         }
         catch(Exception e)
         {
@@ -509,6 +645,8 @@ public class PostInsertCollectionTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.stopRuntime();
+
             if (sf != null)
             {
                 sf.close();
@@ -704,7 +842,6 @@ public class PostInsertCollectionTest extends JTATransactionTest
             }
         }
     }
-
 
     // Package protected ---------------------------------------------------------------------------
 

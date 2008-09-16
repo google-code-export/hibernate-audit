@@ -22,6 +22,7 @@ import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * A set of post-update tests that look directly into the database and check raw deltas.
@@ -444,6 +445,68 @@ public class PostUpdateRawTest extends JTATransactionTest
     // Collection Updates --------------------------------------------------------------------------
 
     @Test(enabled = true)
+    public void testPostUpdate_EmptyCollection() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(CUni.class);
+        config.addAnnotatedClass(DUni.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            CUni c = new CUni();
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+
+            CUni crecovered = (CUni)s.get(CUni.class, c.getId());
+            crecovered.setDs(new ArrayList<DUni>());
+
+            s.update(crecovered);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 2;
+            AuditTransaction tx = txs.get(1);
+
+            List list = HibernateAudit.query("from AuditEvent as e where e.transaction = ?", tx);
+            assert list.size() == 1;
+
+            AuditEvent ae = (AuditEvent)list.get(0);
+            assert (ChangeType.UPDATE.equals(ae.getType()));
+            assert c.getId().equals(ae.getTargetId());
+
+            List pairs = HibernateAudit.query("from AuditEventPair as p where p.event = ?", ae);
+            assert pairs.size() == 1;
+
+            AuditEventCollectionPair aecp = (AuditEventCollectionPair)pairs.get(0);
+            assert aecp.getIds().isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+
+    @Test(enabled = true)
     public void testPostUpdate_EmptyCollection_AddOne() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -483,18 +546,6 @@ public class PostUpdateRawTest extends JTATransactionTest
 
             AuditTransaction tx = txs.get(1);
 
-            List events =
-                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
-
-            assert events.size() == 1;
-
-            // Just one INSERT, no UPDATE
-
-            AuditEvent ae = (AuditEvent)events.get(0);
-            assert ChangeType.INSERT.equals(ae.getType());
-            assert tx.equals(ae.getTransaction());
-            assert d.getId().equals(ae.getTargetId());
-
             List types = HibernateAudit.query("from AuditEntityType");
             assert types.size() == 2;
 
@@ -514,10 +565,37 @@ public class PostUpdateRawTest extends JTATransactionTest
 
             }
 
+            List events =
+                HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
+
+            assert events.size() == 2;
+
+            // one INSERT and one UPDATE from recreating the collection
+
+            AuditEvent ae = (AuditEvent)events.get(0);
+            assert ChangeType.INSERT.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert d.getId().equals(ae.getTargetId());
+
             List pairs = HibernateAudit.
                 query("from AuditEventPair as p where p.event = :event", ae);
 
             assert pairs.size() == 0; // no fields in for the new D instance
+
+            ae = (AuditEvent)events.get(1);
+            assert ChangeType.UPDATE.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert c.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventCollectionPair aecp = (AuditEventCollectionPair)pairs.get(0);
+            Collection<Long> ids = aecp.getIds();
+
+            assert ids.size() == 1;
+            assert ids.contains(d.getId());
         }
         finally
         {
@@ -597,8 +675,8 @@ public class PostUpdateRawTest extends JTATransactionTest
             List events =
                 HibernateAudit.query("from AuditEvent as e where e.transaction = :tx", tx);
 
-            // two INSERTs, no UPDATE
-            assert events.size() == 2;
+            // two INSERTs, one UPDATE
+            assert events.size() == 3;
 
             AuditEvent ae = (AuditEvent)events.get(0);
             assert ChangeType.INSERT.equals(ae.getType());
@@ -626,6 +704,23 @@ public class PostUpdateRawTest extends JTATransactionTest
             assert Integer.class.equals(f.getType().getClassInstance());
             assert new Integer(7).equals(p.getValue());
             assert "7".equals(p.getStringValue());
+
+            ae = (AuditEvent)events.get(2);
+            assert ChangeType.UPDATE.equals(ae.getType());
+            assert tx.equals(ae.getTransaction());
+            assert c.getId().equals(ae.getTargetId());
+
+            pairs = HibernateAudit.query("from AuditEventPair as p where p.event = :event", ae);
+
+            assert pairs.size() == 1;
+
+            AuditEventCollectionPair aecp = (AuditEventCollectionPair)pairs.get(0);
+            Collection<Long> ids = aecp.getIds();
+
+            assert ids.size() == 2;
+            assert ids.contains(done.getId());
+            assert ids.contains(dtwo.getId());
+
         }
         finally
         {
