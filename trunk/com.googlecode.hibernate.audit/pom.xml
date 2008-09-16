@@ -12,7 +12,7 @@
            Releases should follow an Alpha/Beta/CR/GA/SP naming convention.
            See https://jira.novaordis.org/browse/HBA-14.
         -->
-        <version>r233</version>
+        <version>r235</version>
 	</parent>
 
 	<artifactId>hba</artifactId>
