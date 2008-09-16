@@ -10,6 +10,9 @@ Call
 HibernateAudit.enable(SessionFactory auditedSessionFactory)
 }}}
 
+=Error Handling=
+
+Describe HibernateAuditException and handling (transaction behavior, etc).
 
 =Implementation Details=
 
