@@ -8,7 +8,6 @@ import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
-import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
@@ -350,69 +349,6 @@ public final class HibernateAudit
         }
 
         return m.getDelta(txId);
-    }
-
-    /**
-     * @param txId - the id of the transaction that introduced the delta.
-     * @param lgId - the id of the logical group. If null, all delta information is returned.
-     *
-     * @return the delta or null, if no delta information was found for this particular combination
-     *         of transaction/logical group.
-     */
-    public static DeltaDeprecated getDeltaDeprecated(Long txId, Serializable lgId) throws Exception
-    {
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
-
-        return m.getDeltaDeprecated(txId, lgId);
-    }
-
-    /**
-     * @param base - the intial state of the object to apply transactional delta to.
-     */
-    public static void delta(Object base, Long txId) throws Exception
-    {
-        delta(base, null, txId);
-    }
-
-    /**
-     * @param base - the intial state of the object to apply transactional delta to.
-     */
-    public static void delta(Object base, Serializable id, Long txId) throws Exception
-    {
-        delta(base, null, id, txId);
-    }
-
-    /**
-     * @param base - the intial state of the object to apply transactional delta to.
-     * @param entityName - the entityName corresponding to the base instance. If null, base's class
-     *        will be used.
-     */
-    public static void delta(Object base, String entityName, Serializable id, Long txId)
-        throws Exception
-    {
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
-
-        m.delta(base, entityName, id, txId);
     }
 
     // Others --------------------------------------------------------------------------------------

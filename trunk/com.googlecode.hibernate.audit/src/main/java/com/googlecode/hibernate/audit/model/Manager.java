@@ -12,7 +12,6 @@ import org.hibernate.Session;
 import org.hibernate.Query;
 import org.hibernate.Transaction;
 import org.hibernate.engine.SessionFactoryImplementor;
-import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.event.EventListeners;
 import org.hibernate.event.EventSource;
 
@@ -37,8 +36,6 @@ import com.googlecode.hibernate.audit.delta.Deltas;
 import com.googlecode.hibernate.audit.delta.MemberVariableDelta;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
-import com.googlecode.hibernate.audit.delta_deprecated.DeltaDeprecated;
-import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -591,72 +588,60 @@ public class Manager
         }
     }
 
-    /**
-     * @param txId - the id of the transaction that introduced the delta.
-     * @param lgId - the id of the logical group. If null, all delta information is returned.
-     *
-     * @return the delta or null, if no delta information was found for this particular combination
-     *         of transaction/logical group.
-     */
-    public DeltaDeprecated getDeltaDeprecated(Long txId, Serializable lgId) throws Exception
-    {
-        return DeltaEngine.getDelta(txId, lgId, isf);
-    }
-
-    /**
-     * @param base - the intial state of the object to apply transactional delta to.
-     */
-    public void delta(Object base, Serializable id, Long txId) throws Exception
-    {
-        delta(base, null, id, txId);
-    }
-
-    /**
-     * @param base - the intial state of the object to apply transactional delta to.
-     * @param entityName - the entityName corresponding to the base instance. If null, base's class
-     *        will be used.
-     */
-    public void delta(Object base, String entityName, Serializable id, Long txId) throws Exception
-    {
-        checkStarted();
-        
-        Class c = null;
-
-        if (entityName == null)
-        {
-            c = base.getClass();
-        }
-
-        SessionFactoryImpl sfi = null;
-
-        // pick up a registered session factory to provide metadata
-        for(SessionFactoryImpl i: getAuditedSessionFactories())
-        {
-            ClassMetadata cm =
-                entityName != null ? i.getClassMetadata(entityName) : i.getClassMetadata(c);
-
-            if (cm != null)
-            {
-                if (sfi != null)
-                {
-                    throw new Exception(
-                        "NOT YET IMPLEMENTED: more than one SessionFactory maintains " +
-                        (entityName != null ? entityName : c.getName()) + " metadata");
-                }
-
-                sfi = i;
-            }
-        }
-
-        if (sfi == null)
-        {
-            throw new IllegalStateException(
-                "no registered session factory maintains metadata on " +
-                (entityName != null ? entityName : c.getName()));
-        }
-
-        DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
-    }
+//    /**
+//     * @param base - the intial state of the object to apply transactional delta to.
+//     */
+//    public void delta(Object base, Serializable id, Long txId) throws Exception
+//    {
+//        delta(base, null, id, txId);
+//    }
+//
+//    /**
+//     * @param base - the intial state of the object to apply transactional delta to.
+//     * @param entityName - the entityName corresponding to the base instance. If null, base's class
+//     *        will be used.
+//     */
+//    public void delta(Object base, String entityName, Serializable id, Long txId) throws Exception
+//    {
+//        checkStarted();
+//
+//        Class c = null;
+//
+//        if (entityName == null)
+//        {
+//            c = base.getClass();
+//        }
+//
+//        SessionFactoryImpl sfi = null;
+//
+//        // pick up a registered session factory to provide metadata
+//        for(SessionFactoryImpl i: getAuditedSessionFactories())
+//        {
+//            ClassMetadata cm =
+//                entityName != null ? i.getClassMetadata(entityName) : i.getClassMetadata(c);
+//
+//            if (cm != null)
+//            {
+//                if (sfi != null)
+//                {
+//                    throw new Exception(
+//                        "NOT YET IMPLEMENTED: more than one SessionFactory maintains " +
+//                        (entityName != null ? entityName : c.getName()) + " metadata");
+//                }
+//
+//                sfi = i;
+//            }
+//        }
+//
+//        if (sfi == null)
+//        {
+//            throw new IllegalStateException(
+//                "no registered session factory maintains metadata on " +
+//                (entityName != null ? entityName : c.getName()));
+//        }
+//
+//        DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
+//    }
 
     /**
      * @return null if it cannot figure it out.
