@@ -2,8 +2,10 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostCollectionRecreateEventListener;
 import org.hibernate.event.PostCollectionRecreateEvent;
+import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -36,8 +38,25 @@ public class PostCollectionRecreateAuditEventListener
 
     public void onPostRecreateCollection(PostCollectionRecreateEvent event)
     {
-        log.debug(this + ".onPostRecreateCollection(...)");
-        handleCollectionEvent(event);
+        try
+        {
+            log.debug(this + ".onPostRecreateCollection(" + event + ")");
+            logCollectionEvent(event);
+        }
+        catch(Throwable t)
+        {
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
+
+            throw new HibernateAuditException("failed to log post-collection-recreate event", t);
+        }
     }
 
     // Public --------------------------------------------------------------------------------------

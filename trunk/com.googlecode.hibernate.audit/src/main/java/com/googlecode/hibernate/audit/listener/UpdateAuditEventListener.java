@@ -3,7 +3,10 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.SaveOrUpdateEventListener;
 import org.hibernate.event.SaveOrUpdateEvent;
 import org.hibernate.HibernateException;
+import org.hibernate.Transaction;
+import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -18,6 +21,8 @@ public class UpdateAuditEventListener
     extends AbstractAuditEventListener implements SaveOrUpdateEventListener
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(SaveOrUpdateAuditEventListener.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -34,8 +39,26 @@ public class UpdateAuditEventListener
 
     public void onSaveOrUpdate(SaveOrUpdateEvent event) throws HibernateException
     {
-        // this will create an audit transaction and properly register the synchronizations
-        createAuditTransaction(event.getSession());
+        try
+        {
+            // this will create an audit transaction and properly register the synchronizations
+            createAuditTransaction(event.getSession());
+        }
+        catch(Throwable t)
+        {
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
+
+            throw new HibernateAuditException("failed to start audit transaction on update event",
+                                              t);
+        }
     }
 
     // Public --------------------------------------------------------------------------------------

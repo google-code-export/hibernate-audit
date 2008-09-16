@@ -35,17 +35,18 @@ public class ListenersTest
     {
         Set<String> types = Listeners.getAuditedEventTypes();
 
-        assert types.size() == 10;
+        assert types.size() == 8;
+
         assert types.contains("post-insert");
-        assert types.contains("save-update");
-        assert types.contains("save");
-        assert types.contains("post-delete");
-        assert types.contains("flush");
-        assert types.contains("flush-entity");
         assert types.contains("post-update");
-        assert types.contains("update");
+        assert types.contains("post-delete");
         assert types.contains("post-collection-update");
         assert types.contains("post-collection-recreate");
+
+        assert types.contains("save");
+        assert types.contains("update");
+        assert types.contains("save-update");
+
         assert !types.contains("abstract");
 
         log.debug("done");

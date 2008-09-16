@@ -2,8 +2,10 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostDeleteEvent;
+import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -36,13 +38,28 @@ public class PostDeleteAuditEventListener
 
     public void onPostDelete(PostDeleteEvent event)
     {
-        log.debug(this + ".onPostUpdate(...)");
+        try
+        {
+            log.debug(this + ".onPostDelete(" + event + ")");
+            createAndLogEventContext(event);
 
-        createAndLogEventContext(event);
+            // no need for an audit pair
+            // Object[] ds = event.getDeletedState();
+        }
+        catch(Throwable t)
+        {
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
 
-        // no need for an audit pair
-
-//        Object[] ds = event.getDeletedState();
+            throw new HibernateAuditException("failed to log post-delete event", t);
+        }
     }
 
     // Public --------------------------------------------------------------------------------------

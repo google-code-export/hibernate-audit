@@ -1,11 +1,8 @@
-package com.googlecode.hibernate.audit.listener;
-
-import org.hibernate.event.FlushEventListener;
-import org.hibernate.event.FlushEvent;
-import org.hibernate.HibernateException;
-import com.googlecode.hibernate.audit.model.Manager;
+package com.googlecode.hibernate.audit;
 
 /**
+ * Exception thrown by listeners if somethings goes wrong, internally.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -14,8 +11,7 @@ import com.googlecode.hibernate.audit.model.Manager;
  *
  * $Id$
  */
-public class FlushAuditEventListener
-    extends AbstractAuditEventListener implements FlushEventListener
+public class HibernateAuditException extends RuntimeException
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -25,26 +21,27 @@ public class FlushAuditEventListener
 
     // Constructors --------------------------------------------------------------------------------
 
-    public FlushAuditEventListener(Manager m)
+    public HibernateAuditException()
     {
-        super(m);
+        super();
     }
 
-    // SaveOrUpdateEventListener implementation ----------------------------------------------------
-
-    public void onFlush(FlushEvent event) throws HibernateException
+    public HibernateAuditException(String message)
     {
-        //log.debug(this + ".onFlush(...)");
+        super(message);
+    }
+
+    public HibernateAuditException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
+    public HibernateAuditException(Throwable cause)
+    {
+        super(cause);
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return "FlushAuditEventListener[" +
-               Integer.toHexString(System.identityHashCode(this)) + "]";
-    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -53,5 +50,4 @@ public class FlushAuditEventListener
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

@@ -3,11 +3,13 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.type.Type;
+import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -40,8 +42,44 @@ public class PostUpdateAuditEventListener
 
     public void onPostUpdate(PostUpdateEvent event)
     {
-        log.debug(this + ".onPostUpdate(...)");
+        try
+        {
+            log.debug(this + ".onPostUpdate(" + event + ")");
+            log(event);
+        }
+        catch(Throwable t)
+        {
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
 
+            throw new HibernateAuditException("failed to log post-update event", t);
+        }
+    }
+
+    // Public --------------------------------------------------------------------------------------
+
+    @Override
+    public String toString()
+    {
+        return "PostUpdateAuditEventListener[" +
+               Integer.toHexString(System.identityHashCode(this)) + "]";
+    }
+
+    // Package protected ---------------------------------------------------------------------------
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
+
+    private void log(PostUpdateEvent event)
+    {
         EventContext ec = createAndLogEventContext(event);
 
         Object[] state = event.getState();
@@ -73,7 +111,7 @@ public class PostUpdateAuditEventListener
                 // nothing really happened here, nothing changes, exit ...
                 continue;
             }
-            
+
             if (type.isEntityType())
             {
                 throw new RuntimeException("ENTITY MEMBER CHANGED, NOT YET IMPLEMENTED");
@@ -88,21 +126,6 @@ public class PostUpdateAuditEventListener
             ec.auditTransaction.log(pair);
         }
     }
-
-    // Public --------------------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return "PostUpdateAuditEventListener[" +
-               Integer.toHexString(System.identityHashCode(this)) + "]";
-    }
-
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 

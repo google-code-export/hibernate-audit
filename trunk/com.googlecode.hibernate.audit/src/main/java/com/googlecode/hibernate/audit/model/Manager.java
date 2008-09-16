@@ -690,9 +690,9 @@ public class Manager
 
     // Private -------------------------------------------------------------------------------------
 
-    private void installAuditListeners(SessionFactoryImpl sf) throws Exception
+    private void installAuditListeners(SessionFactoryImpl asf) throws Exception
     {
-        EventListeners els = sf.getEventListeners();
+        EventListeners els = asf.getEventListeners();
 
         // at this stage, we should not have any registered audit listeners, but trust and verify
         for(String eventType: Listeners.ALL_EVENT_TYPES)
@@ -711,27 +711,16 @@ public class Manager
 
         Set<String> eventTypes = Listeners.getAuditedEventTypes();
 
-        for(String auditEventType: eventTypes)
+        for(String auditedEventType: eventTypes)
         {
-            Method getter = Listeners.getEventListenersGetter(auditEventType);
-            Method setter = Listeners.getEventListenersSetter(auditEventType);
-
-            // we expect a listener array here, anything else would be invalid state
-            Object[] listeners = (Object[])getter.invoke(els);
-            Class hibernateListenerInteface = els.getListenerClassFor(auditEventType);
-            Object[] newListeners =
-                (Object[]) Array.newInstance(hibernateListenerInteface, listeners.length + 1);
-            System.arraycopy(listeners, 0, newListeners, 0, listeners.length);
-
-            Class c = Listeners.getAuditEventListenerClass(auditEventType);
+            Class c = Listeners.getAuditEventListenerClass(auditedEventType);
             Constructor ctor = c.getConstructor(Manager.class);
             AuditEventListener ael = (AuditEventListener)ctor.newInstance(this);
 
-            newListeners[newListeners.length - 1] = ael;
-            setter.invoke(els, ((Object)newListeners));
+            Listeners.installAuditEventListener(asf, auditedEventType, ael);
         }
 
-        log.debug(this + " installed audit listeners " + eventTypes + " on " + sf);
+        log.debug(this + " installed audit listeners " + eventTypes + " on " + asf);
     }
 
     private void uninstallAuditListeners(SessionFactoryImpl sf) throws Exception

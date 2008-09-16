@@ -7,6 +7,7 @@ import org.hibernate.collection.PersistentCollection;
 import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.EntityType;
+import org.hibernate.Transaction;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
@@ -14,6 +15,7 @@ import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.util.Hibernate;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,14 +52,50 @@ public class PostInsertAuditEventListener
 
     public void onPostInsert(PostInsertEvent event)
     {
-        log.debug(this + ".onPostInsert(...)");
+        try
+        {
+            log.debug(this + ".onPostInsert(" + event + ")");
+            log(event);
+        }
+        catch(Throwable t)
+        {
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
 
+            throw new HibernateAuditException("failed to log post-insert event", t);
+        }
+    }
+
+    // Public --------------------------------------------------------------------------------------
+
+    @Override
+    public String toString()
+    {
+        return "PostInsertAuditEventListener[" +
+               Integer.toHexString(System.identityHashCode(this)) + "]";
+    }
+
+    // Package protected ---------------------------------------------------------------------------
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
+
+    private void log(PostInsertEvent event)
+    {
         EventContext ctx = createAndLogEventContext(event);
 
         // TODO maybe there's no need to iterate over *all* properties, maybe the state contains
         //      only the new properties, look at how onPostUpdate() was implemented and possibly
         //      refactor this implementation as well
-        
+
         for (String name : ctx.persister.getPropertyNames())
         {
             Object value = ctx.persister.getPropertyValue(ctx.entity, name, ctx.mode);
@@ -147,21 +185,6 @@ public class PostInsertAuditEventListener
             ctx.auditTransaction.log(pair);
         }
     }
-
-    // Public --------------------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return "PostInsertAuditEventListener[" +
-               Integer.toHexString(System.identityHashCode(this)) + "]";
-    }
-
-    // Package protected ---------------------------------------------------------------------------
-
-    // Protected -----------------------------------------------------------------------------------
-
-    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 

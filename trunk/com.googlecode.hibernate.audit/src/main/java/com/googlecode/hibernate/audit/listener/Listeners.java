@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.apache.log4j.Logger;
 import org.hibernate.event.EventListeners;
+import org.hibernate.impl.SessionFactoryImpl;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Array;
 
 /**
  * Event listener manipulation utilities.
@@ -219,7 +221,8 @@ public class Listeners
     }
 
     /**
-     * Returns an AuditEventListener subtype.
+     * Given the string representation of an audited event type, the method returns the
+     * corresponding AuditEventListener subtype.
      *
      * @return null if there's no such audit event type
      */
@@ -238,6 +241,32 @@ public class Listeners
         }
 
         return h.auditListenerClass;
+    }
+
+    /**
+     * @param asf - the session factory to install the listener on (the "audited" session factory).
+     * @param auditedEventType - one of the audit event types, as returned by
+     *        Listeners.getAuditedEventTypes() ("post-insert", "post-update", etc.).
+     * @param listener the listener instance to install.
+     */
+    public static void installAuditEventListener(SessionFactoryImpl asf,
+                                                 String auditedEventType,
+                                                 AuditEventListener listener) throws Exception
+    {
+        EventListeners els = asf.getEventListeners();
+
+        Method getter = Listeners.getEventListenersGetter(auditedEventType);
+        Method setter = Listeners.getEventListenersSetter(auditedEventType);
+
+        // we expect a listener array here, anything else would be invalid state
+        Object[] listeners = (Object[])getter.invoke(els);
+        Class hibernateListenerInteface = els.getListenerClassFor(auditedEventType);
+        Object[] newListeners =
+            (Object[]) Array.newInstance(hibernateListenerInteface, listeners.length + 1);
+        System.arraycopy(listeners, 0, newListeners, 0, listeners.length);
+
+        newListeners[newListeners.length - 1] = listener;
+        setter.invoke(els, ((Object)newListeners));
     }
 
     // Attributes ----------------------------------------------------------------------------------

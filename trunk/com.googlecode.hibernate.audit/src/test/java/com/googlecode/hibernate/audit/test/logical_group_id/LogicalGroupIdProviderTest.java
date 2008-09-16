@@ -10,6 +10,7 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 
@@ -210,10 +211,13 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
                 s.getTransaction().commit();
                 throw new Error("should've failed");
             }
-            catch(IllegalStateException e)
+            catch(HibernateAuditException e)
             {
-                log.debug(">>> " + e.getMessage());
-                s.getTransaction().rollback();
+                Throwable cause = e.getCause();
+                assert cause instanceof IllegalStateException;
+                log.debug(">>> " + cause.getMessage());
+
+                // transaction already rolled back
             }
         }
         finally
