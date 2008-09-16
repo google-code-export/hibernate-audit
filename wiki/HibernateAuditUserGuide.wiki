@@ -19,6 +19,8 @@ If anything unbecoming happens inside an audit listener, the following are guara
  # a HibernateAuditException bubbles up
  # the HibernateAuditException contains the Throwable instance that caused it all (accessible via getCause()).
 
+See https://jira.novaordis.org/browse/HBA-78
+
 =Implementation Details=
 
 Collection directionality information is not maintained in the original model, so that's why we introduced the AUDIT_EVENT_PAIR_COLLECTION table. 
