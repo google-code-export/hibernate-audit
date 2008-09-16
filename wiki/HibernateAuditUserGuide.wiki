@@ -17,7 +17,7 @@ Describe HibernateAuditException and handling (transaction behavior, etc).
 If anything unbecoming happens inside an audit listener, the following are guaranteed:
  # the current transaction is rolled back
  # a HibernateAuditException bubbles up
- # the HibernateAuditException contains the Throwable instance that caused it all as cause.
+ # the HibernateAuditException contains the Throwable instance that caused it all (accessible via getCause()).
 
 =Implementation Details=
 
