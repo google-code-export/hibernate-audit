@@ -4,6 +4,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.Session;
 import org.hibernate.Query;
+import org.hibernate.NonUniqueResultException;
+import org.apache.log4j.Logger;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -31,6 +33,8 @@ import javax.persistence.JoinColumn;
 public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(AuditTypeField.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -65,7 +69,16 @@ public class AuditTypeField
         q.setString("name", name);
         q.setParameter("type", type);
 
-        AuditTypeField persistedType = (AuditTypeField)q.uniqueResult();
+        AuditTypeField persistedType = null;
+        try
+        {
+            persistedType = (AuditTypeField)q.uniqueResult();
+        }
+        catch(NonUniqueResultException nure)
+        {
+            log.error("non unique result for field name '" + name + "', type " + type);
+            throw nure;
+        }
 
         if (persistedType != null || !create)
         {

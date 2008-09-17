@@ -279,14 +279,15 @@ public final class HibernateAudit
         List result = null;
         if (entityId == null)
         {
-            String qs = "from AuditTransaction";
+            String qs = "from AuditTransaction as t order by t.id";
             result = query(qs);
         }
         else
         {
             String qs =
                 "from AuditTransaction as t, AuditEvent as e " +
-                "where e.transaction = t and e.targetId = :entityId";
+                "where e.transaction = t and e.targetId = :entityId order by t.id";
+
             result = query(qs, entityId);
         }
 
@@ -321,7 +322,7 @@ public final class HibernateAudit
     public static List<AuditTransaction> getTransactionsByLogicalGroup(Serializable lgId)
         throws Exception
     {
-        String qs = "from AuditTransaction as t where t.logicalGroupId = :lgId";
+        String qs = "from AuditTransaction as t where t.logicalGroupId = :lgId order by t.id";
         return query(qs, lgId);
     }
 

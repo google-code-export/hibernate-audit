@@ -257,6 +257,10 @@ public class AuditTransaction implements Synchronization
      */
     public AuditType getAuditType(Class c)
     {
+        if (Collection.class.isAssignableFrom(c))
+        {
+            throw new IllegalArgumentException("illegal usage: " + c);
+        }
         return AuditType.getInstanceFromDatabase(c, true, session);
     }
 

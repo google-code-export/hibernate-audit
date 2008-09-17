@@ -3,13 +3,16 @@ package com.googlecode.hibernate.audit.listener;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.type.Type;
+import org.hibernate.type.EntityType;
 import org.hibernate.Transaction;
+import org.hibernate.persister.entity.EntityPersister;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.HibernateAuditException;
+import com.googlecode.hibernate.audit.util.Hibernate;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -80,12 +83,12 @@ public class PostUpdateAuditEventListener
 
     private void log(PostUpdateEvent event)
     {
-        EventContext ec = createAndLogEventContext(event);
+        EventContext ctx = createAndLogEventContext(event);
 
         Object[] state = event.getState();
         Object[] oldState = event.getOldState();
-        String[] names = ec.persister.getPropertyNames();
-        Type[] types = ec.persister.getPropertyTypes();
+        String[] names = ctx.persister.getPropertyNames();
+        Type[] types = ctx.persister.getPropertyTypes();
 
         for(int i = 0; i < state.length; i++)
         {
@@ -99,12 +102,21 @@ public class PostUpdateAuditEventListener
 
             if (type.isComponentType())
             {
-                throw new RuntimeException("NOT YET IMPLEMENTED");
+                // let it pass TODO HBA-32
+                // throw new RuntimeException("NOT YET IMPLEMENTED");
+                continue;
             }
 
             String name = names[i];
             Object current = state[i];
             Object old = oldState[i];
+
+            if (type.isEntityType())
+            {
+                // we're dealing with entities here, then the "values" are actually their ids
+                current = current == null ? null : ctx.session.getIdentifier(current);
+                old = old == null ? null : ctx.session.getIdentifier(old);
+            }
 
             if (current == null && old == null || current != null && current.equals(old))
             {
@@ -112,18 +124,28 @@ public class PostUpdateAuditEventListener
                 continue;
             }
 
+            AuditEventPair pair = new AuditEventPair();
+            AuditType fieldType = null;
+
             if (type.isEntityType())
             {
-                throw new RuntimeException("ENTITY MEMBER CHANGED, NOT YET IMPLEMENTED");
+                EntityType et = (EntityType)type;
+                String en = et.getAssociatedEntityName();
+                EntityPersister ep = ctx.factory.getEntityPersister(en);
+                Class ec = Hibernate.guessEntityClass(et, ep, ctx.mode);
+                Class idc = ep.getIdentifierType().getReturnedClass();
+                fieldType = ctx.auditTransaction.getAuditType(ec, idc);
+            }
+            else
+            {
+                fieldType = ctx.auditTransaction.getAuditType(type.getReturnedClass());
             }
 
-            AuditEventPair pair = new AuditEventPair();
-            AuditType fieldType = ec.auditTransaction.getAuditType(type.getReturnedClass());
-            AuditTypeField f = ec.auditTransaction.getAuditTypeField(name, fieldType);
+            AuditTypeField f = ctx.auditTransaction.getAuditTypeField(name, fieldType);
             pair.setField(f);
             pair.setValue(current);
-            pair.setEvent(ec.auditEvent);
-            ec.auditTransaction.log(pair);
+            pair.setEvent(ctx.auditEvent);
+            ctx.auditTransaction.log(pair);
         }
     }
 
