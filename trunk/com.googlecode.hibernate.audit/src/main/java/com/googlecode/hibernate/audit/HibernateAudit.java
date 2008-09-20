@@ -40,6 +40,11 @@ public final class HibernateAudit
     private static Manager manager;
     private static Object lock = new Object();
 
+    public static final String getVersion()
+    {
+        return "2";
+    }
+
     /**
      * Starts the Hibernate Audit runtime (creates a valid manager). Upon successful method
      * completion, the Hibernate Audit runtime is started and ready to acceept SessionFactory.
