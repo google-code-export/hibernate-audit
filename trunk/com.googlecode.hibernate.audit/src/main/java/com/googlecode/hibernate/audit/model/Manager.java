@@ -36,6 +36,7 @@ import com.googlecode.hibernate.audit.delta.Deltas;
 import com.googlecode.hibernate.audit.delta.MemberVariableDelta;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
+import com.googlecode.hibernate.audit.delta.EntityReferenceDelta;
 import com.googlecode.hibernate.audit.util.QueryParameters;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
@@ -501,50 +502,64 @@ public class Manager
 
                     if (!ed.addMemberVariableDelta(mvd))
                     {
-                        // sometimes hibernate sends generated duplicate collection events (INSERT,
-                        // and then UPDATE). As long the deltas are identical, not a big deal. Don't
-                        // accept duplicate, though, for anything else than collections
+                        // sometimes hibernate sends generated duplicate collection events (INSERT
+                        // followed by UPDATE). As long the deltas are identical, not a big deal
 
-                        if (!t.isCollectionType())
+                        // TODO this is fishy, why would we ever have to deal with this? Research
+
+                        if (t.isEntityType())
+                        {
+                            EntityReferenceDelta crt = (EntityReferenceDelta)ed.getScalarDelta(name);
+                            EntityReferenceDelta challenger = (EntityReferenceDelta)mvd;
+
+                            if (!crt.getEntityName().equals(challenger.getEntityName()) ||
+                                !crt.getId().equals(challenger.getId()))
+                            {
+                                throw new IllegalStateException(
+                                    "inconsistent entity reference delta update, non-matching " +
+                                    "content (" + crt + ", " + challenger);
+                            }
+                        }
+                        else if (t.isCollectionType())
+                        {
+                            // we're collection, check if the deltas are identical
+                            CollectionDelta existingCd = ed.getCollectionDelta(name);
+
+                            String existingMemberEntityName = existingCd.getMemberEntityName();
+                            String newMemberEntityName = ((CollectionDelta)mvd).getMemberEntityName();
+
+                            if (!existingMemberEntityName.equals(newMemberEntityName))
+                            {
+                                throw new IllegalStateException(
+                                    "inconsistent collection delta update, non-matching " +
+                                    "member entity name (" + existingMemberEntityName + ", " +
+                                    newMemberEntityName);
+                            }
+
+                            Collection<Serializable> existingIds = existingCd.getIds();
+                            Collection<Serializable> newIds = ((CollectionDelta)mvd).getIds();
+
+                            if (existingIds.size() != newIds.size())
+                            {
+                                throw new IllegalStateException(
+                                    "inconsistent collection delta update, non-matching sizes (" +
+                                    existingIds.size() + ", " + newIds.size());
+                            }
+
+                            for(Serializable s: existingIds)
+                            {
+                                if (!newIds.contains(s))
+                                {
+                                    throw new IllegalStateException(
+                                        "inconsistent collection delta update, non-matching content (" +
+                                        existingIds + ", " + newIds);
+                                }
+                            }
+                        }
+                        else
                         {
                             // an equal() member variable delta was added already
                             throw new IllegalStateException("duplicate delta " + mvd);
-                        }
-
-                        // TODO this is fishy, why would we ever have to deal with this?
-
-                        // we're collection, check if the deltas are identical
-                        CollectionDelta existingCd = ed.getCollectionDelta(name);
-
-                        String existingMemberEntityName = existingCd.getMemberEntityName();
-                        String newMemberEntityName = ((CollectionDelta)mvd).getMemberEntityName();
-
-                        if (!existingMemberEntityName.equals(newMemberEntityName))
-                        {
-                            throw new IllegalStateException(
-                                "inconsistent collection delta update, non-matching " +
-                                "member entity name (" + existingMemberEntityName + ", " +
-                                newMemberEntityName);
-                        }
-
-                        Collection<Serializable> existingIds = existingCd.getIds();
-                        Collection<Serializable> newIds = ((CollectionDelta)mvd).getIds();
-
-                        if (existingIds.size() != newIds.size())
-                        {
-                            throw new IllegalStateException(
-                                "inconsistent collection delta update, non-matching sizes (" +
-                                existingIds.size() + ", " + newIds.size());
-                        }
-
-                        for(Serializable s: existingIds)
-                        {
-                            if (!newIds.contains(s))
-                            {
-                                throw new IllegalStateException(
-                                    "inconsistent collection delta update, non-matching content (" +
-                                    existingIds + ", " + newIds);
-                            }
                         }
                     }
                 }

@@ -53,6 +53,12 @@ class EntityReferenceDeltaImpl extends MemberVariableDeltaSupport implements Ent
         return entityName;
     }
 
+    @Override
+    public String toString()
+    {
+        return getName() + "[" + entityName + "(" + id + ")]";
+    }
+
     // Public --------------------------------------------------------------------------------------
 
     // MemberVariableDelta implementation ----------------------------------------------------------
