@@ -470,9 +470,10 @@ public class Manager
                     else if (t.isEntityType())
                     {
                         AuditEntityType ret = (AuditEntityType)t;
-                        String referredEntityName = ret.getEntityName();
                         Serializable refid = (Serializable)value;
-                        mvd = Deltas.createEntityReferenceDelta(name, refid, referredEntityName);
+                        mvd = Deltas.createEntityReferenceDelta(name, refid,
+                                                                ret.getEntityName(),
+                                                                ret.getClassInstance());
                     }
                     else if (t.isCollectionType())
                     {

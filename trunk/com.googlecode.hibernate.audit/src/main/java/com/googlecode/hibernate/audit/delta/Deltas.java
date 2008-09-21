@@ -29,9 +29,10 @@ public class Deltas
 
     public static EntityReferenceDelta createEntityReferenceDelta(String name,
                                                                   Serializable id,
-                                                                  String entityName)
+                                                                  String entityName,
+                                                                  Class entityClass)
     {
-        return new EntityReferenceDeltaImpl(name, id, entityName);
+        return new EntityReferenceDeltaImpl(name, id, entityName, entityClass);
     }
 
     public static CollectionDelta createCollectionDelta(String name,

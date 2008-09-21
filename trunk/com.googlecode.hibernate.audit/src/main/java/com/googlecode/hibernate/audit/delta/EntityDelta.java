@@ -45,8 +45,9 @@ public interface EntityDelta
      */
     boolean isDelete();
 
-
     Set<ScalarDelta> getScalarDeltas();
+    Set<PrimitiveDelta> getPrimitiveDeltas();
+    Set<EntityReferenceDelta> getEntityReferenceDeltas();
 
     Set<CollectionDelta> getCollectionDeltas();
 

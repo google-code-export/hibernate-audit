@@ -25,4 +25,6 @@ public interface EntityReferenceDelta extends ScalarDelta
      *         type.
      */
     String getEntityName();
+
+    Class getEntityClass();
 }

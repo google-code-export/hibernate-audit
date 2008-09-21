@@ -68,7 +68,7 @@ public class EntityDeltaTest
 
         PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
         EntityReferenceDelta erd = Deltas.
-            createEntityReferenceDelta("b", new Long(2), "MockEntity2");
+            createEntityReferenceDelta("b", new Long(2), "MockEntity2", null);
 
         assert ed.addMemberVariableDelta(pd);
         assert ed.addMemberVariableDelta(erd);
@@ -92,6 +92,46 @@ public class EntityDeltaTest
         assert "b".equals(erdd.getName());
         assert new Long(2).equals(erdd.getId());
         assert "MockEntity2".equals(erdd.getEntityName());
+    }
+
+    @Test(enabled = true)
+    public void testGetPrimitiveDeltas() throws Exception
+    {
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+
+        EntityReferenceDelta erd = Deltas.createEntityReferenceDelta("x", new Long(2), "e", null);
+        assert ed.addMemberVariableDelta(erd);
+
+        assert ed.getPrimitiveDeltas().isEmpty();
+
+        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
+
+        assert ed.addMemberVariableDelta(pd);
+        assert ed.getPrimitiveDeltas().size() == 1;
+
+        PrimitiveDelta pdr = ed.getPrimitiveDeltas().iterator().next();
+        assert "a".equals(pdr.getName());
+        assert "alice".equals(pdr.getValue());
+    }
+
+    @Test(enabled = true)
+    public void testGetEntityReferenceDeltas() throws Exception
+    {
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+
+        PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
+        assert ed.addMemberVariableDelta(pd);
+
+        assert ed.getEntityReferenceDeltas().isEmpty();
+
+        EntityReferenceDelta erd = Deltas.createEntityReferenceDelta("x", new Long(2), "e", null);
+        assert ed.addMemberVariableDelta(erd);
+
+        assert ed.getEntityReferenceDeltas().size() == 1;
+
+        EntityReferenceDelta erdr = ed.getEntityReferenceDeltas().iterator().next();
+        assert "x".equals(erdr.getName());
+        assert new Long(2).equals(erdr.getId());
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -11,6 +11,8 @@ import java.io.Serializable;
  * entity at the end of the transaction, given that we have access to the state of the entity as
  * persisted just before the transaction started.
  *
+ * TODO implementation needs optimization.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -80,6 +82,38 @@ public class EntityDeltaImpl implements EntityDelta
     public Set<ScalarDelta> getScalarDeltas()
     {
         return scalarDeltas;
+    }
+
+    public Set<PrimitiveDelta> getPrimitiveDeltas()
+    {
+        // TODO can be optimized
+        Set<PrimitiveDelta> result = new HashSet<PrimitiveDelta>();
+
+        for(ScalarDelta d: scalarDeltas)
+        {
+            if (d instanceof PrimitiveDelta)
+            {
+                result.add((PrimitiveDelta)d);
+            }
+        }
+
+        return result;
+    }
+
+    public Set<EntityReferenceDelta> getEntityReferenceDeltas()
+    {
+        // TODO can be optimized
+        Set<EntityReferenceDelta> result = new HashSet<EntityReferenceDelta>();
+
+        for(ScalarDelta d: scalarDeltas)
+        {
+            if (d instanceof EntityReferenceDelta)
+            {
+                result.add((EntityReferenceDelta)d);
+            }
+        }
+
+        return result;
     }
 
     public Set<CollectionDelta> getCollectionDeltas()

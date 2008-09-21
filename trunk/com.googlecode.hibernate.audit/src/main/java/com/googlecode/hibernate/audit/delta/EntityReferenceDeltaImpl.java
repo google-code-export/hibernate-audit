@@ -21,14 +21,16 @@ class EntityReferenceDeltaImpl extends MemberVariableDeltaSupport implements Ent
 
     private Serializable id;
     private String entityName;
+    private Class entityClass;
 
     // Constructors --------------------------------------------------------------------------------
 
-    EntityReferenceDeltaImpl(String name, Serializable id, String entityName)
+    EntityReferenceDeltaImpl(String name, Serializable id, String entityName, Class entityClass)
     {
         setName(name);
         this.id = id;
         this.entityName = entityName;
+        this.entityClass = entityClass;
     }
 
     // ScalarDelta implementation ------------------------------------------------------------------
@@ -51,6 +53,11 @@ class EntityReferenceDeltaImpl extends MemberVariableDeltaSupport implements Ent
     public String getEntityName()
     {
         return entityName;
+    }
+
+    public Class getEntityClass()
+    {
+        return entityClass;
     }
 
     @Override
