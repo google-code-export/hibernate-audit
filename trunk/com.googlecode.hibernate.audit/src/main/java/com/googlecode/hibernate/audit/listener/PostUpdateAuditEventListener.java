@@ -52,6 +52,8 @@ public class PostUpdateAuditEventListener
         }
         catch(Throwable t)
         {
+            log.error("failed to log post-update event", t);
+
             try
             {
                 Transaction tx = event.getSession().getTransaction();

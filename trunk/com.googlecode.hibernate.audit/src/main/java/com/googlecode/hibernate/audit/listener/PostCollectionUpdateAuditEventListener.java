@@ -45,6 +45,8 @@ public class PostCollectionUpdateAuditEventListener
         }
         catch(Throwable t)
         {
+            log.error("failed to log post-collection-update event", t);
+
             try
             {
                 Transaction tx = event.getSession().getTransaction();

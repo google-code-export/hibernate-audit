@@ -6,7 +6,6 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.F;
 import com.googlecode.hibernate.audit.test.post_insert.data.G;
 import com.googlecode.hibernate.audit.HibernateAudit;

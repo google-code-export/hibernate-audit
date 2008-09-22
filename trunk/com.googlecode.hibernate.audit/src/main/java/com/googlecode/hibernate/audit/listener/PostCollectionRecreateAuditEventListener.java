@@ -45,6 +45,7 @@ public class PostCollectionRecreateAuditEventListener
         }
         catch(Throwable t)
         {
+            log.error("failed to log post-collection-recreate event", t);
             try
             {
                 Transaction tx = event.getSession().getTransaction();

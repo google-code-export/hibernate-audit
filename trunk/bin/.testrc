@@ -47,3 +47,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=PrimitiveDeltaTest
 #TARGET_CLASS=PostInsertListenerRuntimeFailureTest
 #TARGET_CLASS=PostUpdateListenerRuntimeFailureTest
+TARGET_CLASS=TransactionFilterTest

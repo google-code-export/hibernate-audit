@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
+import java.util.Date;
 import java.io.Serializable;
 
 /**
@@ -327,8 +328,47 @@ public final class HibernateAudit
     public static List<AuditTransaction> getTransactionsByLogicalGroup(Serializable lgId)
         throws Exception
     {
-        String qs = "from AuditTransaction as t where t.logicalGroupId = :lgId order by t.id";
-        return query(qs, lgId);
+        return getTransactionsByLogicalGroup(lgId, null);
+    }
+
+    /**
+     * Specialized query.
+     *
+     * TODO add tests.
+     *
+     * @return the list of transactions that have been applied to entities belonging to the
+     *         specified logical group, satisfying the filter.
+     */
+    public static List<AuditTransaction> getTransactionsByLogicalGroup(Serializable lgId,
+                                                                       TransactionFilter filter)
+        throws Exception
+    {
+        Date from = null;
+        Date to = null;
+        String user = null;
+        String entityName = null;
+        String memberVariableName = null;
+
+        if (filter != null)
+        {
+            from = filter.getFromDate();
+            to = filter.getToDate();
+            user = filter.getUser();
+            entityName = filter.getEntityName();
+            memberVariableName = filter.getMemberVariableName();
+        }
+
+        from = from == null ? new Date(0) : from;
+        to = to == null ? new Date(Long.MAX_VALUE) : to;
+
+        String qs =
+            "from AuditTransaction as t " +
+            "where t.logicalGroupId = :lgId and " +
+            "t.timestamp >= :from and " +
+            "t.timestamp <= :to " +
+            "order by t.id";
+        
+        return query(qs, lgId, from, to);
     }
 
     // Delta functions -----------------------------------------------------------------------------

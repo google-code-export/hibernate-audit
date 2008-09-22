@@ -59,6 +59,8 @@ public class PostInsertAuditEventListener
         }
         catch(Throwable t)
         {
+            log.error("failed to log post-insert event", t);
+
             try
             {
                 Transaction tx = event.getSession().getTransaction();

@@ -48,6 +48,8 @@ public class PostDeleteAuditEventListener
         }
         catch(Throwable t)
         {
+            log.error("failed to log post-delete event", t);
+
             try
             {
                 Transaction tx = event.getSession().getTransaction();
