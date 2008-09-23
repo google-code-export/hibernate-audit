@@ -139,6 +139,36 @@ public class AuditTypeTest extends AuditTypeTestBase
     }
 
     @Test(enabled = true)
+    public void testStringToValue_CustomType_UseValueOfWithPriority() throws Exception
+    {
+        AuditType t = new AuditType();
+        t.setClassName(CustomType2.class.getName());
+
+        CustomType2 ct = (CustomType2)t.stringToValue("123");
+        assert new CustomType2(123).equals(ct);
+    }
+
+    @Test(enabled = true)
+    public void testStringToValue_NonConvertibleCustomType_UseValueOfWithPriority()
+        throws Exception
+    {
+        AuditType t = new AuditType();
+        t.setClassName(CustomType2.class.getName());
+
+        try
+        {
+            t.stringToValue("this won't convert into an int");
+            throw new Error("should've failed");
+        }
+        catch(RuntimeException e)
+        {
+            Throwable thro = e.getCause();
+            assert thro instanceof NumberFormatException;
+            log.debug(">>>>>> " + e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

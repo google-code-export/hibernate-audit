@@ -18,6 +18,7 @@ import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -276,6 +277,25 @@ public class AuditType
             }
         }
 
+        try
+        {
+            Method m = classInstance.getMethod("valueOf", String.class);
+            return (Serializable)m.invoke(null, s);
+        }
+        catch(InvocationTargetException e)
+        {
+            // we found the method, conversion failed, bail out
+            Throwable t = e.getCause();
+            throw new RuntimeException(
+                "don't know to convert string to " + classInstance.getName() + " with valueOf()", t);
+        }
+        catch(Exception e)
+        {
+            log.debug("failed to obtain value from string using valueOf() via reflection", e);
+        }
+
+        // give it one more chance, try parse...()
+
         String parseMethodName = classInstance.getName();
         parseMethodName = parseMethodName.substring(parseMethodName.lastIndexOf('.') + 1);
         parseMethodName = "parse" + parseMethodName;
@@ -287,7 +307,7 @@ public class AuditType
         }
         catch(Exception e)
         {
-            log.debug("failed to obtain value from string via reflection", e);
+            log.debug("failed to obtain value from string using parse...() via reflection", e);
         }
 
         throw new RuntimeException("don't know to convert string to " + classInstance.getName());
