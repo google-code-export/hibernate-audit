@@ -83,7 +83,7 @@ public class TransactionFilterTest extends JTATransactionTest
             s.getTransaction().commit();
 
             TransactionFilter f =
-                new TransactionFilter(new Date(0), new Date(Long.MAX_VALUE), null, null, null);
+                new TransactionFilter(new Date(0), new Date(Long.MAX_VALUE));
 
             List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 1;
@@ -110,7 +110,7 @@ public class TransactionFilterTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testFilterDate_Intervals() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -171,14 +171,14 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test (infinty - t1]
 
-            TransactionFilter f = new TransactionFilter(null, t1, null, null, null);
+            TransactionFilter f = new TransactionFilter(null, t1);
 
             List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.isEmpty();
 
             // test (infinty - t2]
 
-            f = new TransactionFilter(null, t2, null, null, null);
+            f = new TransactionFilter(null, t2);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 1;
@@ -191,7 +191,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t1 - t2]
 
-            f = new TransactionFilter(t1, t2, null, null, null);
+            f = new TransactionFilter(t1, t2);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 1;
@@ -204,7 +204,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t2 - t3]
 
-            f = new TransactionFilter(t2, t3, null, null, null);
+            f = new TransactionFilter(t2, t3);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 1;
@@ -218,7 +218,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t1 - t3]
 
-            f = new TransactionFilter(t1, t3, null, null, null);
+            f = new TransactionFilter(t1, t3);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 2;
@@ -239,7 +239,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t1 - infinity)
 
-            f = new TransactionFilter(t1, null, null, null, null);
+            f = new TransactionFilter(t1, null);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 2;
@@ -260,7 +260,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t2 - infinity)
 
-            f = new TransactionFilter(t2, null, null, null, null);
+            f = new TransactionFilter(t2, null);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.size() == 1;
@@ -274,7 +274,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test [t3 - infinity)
 
-            f = new TransactionFilter(t3, null, null, null, null);
+            f = new TransactionFilter(t3, null);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
             assert txs.isEmpty();
@@ -301,16 +301,71 @@ public class TransactionFilterTest extends JTATransactionTest
         throw new NotYetImplementedException();
     }
 
-    @Test(enabled = false)
-    public void testFilterEntityName() throws Exception
+    @Test(enabled = true)
+    public void testFilterAuditEntityTypeId() throws Exception
     {
-        throw new NotYetImplementedException();
-    }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
 
-    @Test(enabled = false)
-    public void testFilterEntityNameAndMemberVariableName() throws Exception
-    {
-        throw new NotYetImplementedException();
+        final Long currentLG = new Long(7);
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+            {
+                public Serializable getLogicalGroupId(EventSource es,
+                                                      Serializable id,
+                                                      Object entity)
+                {
+                    // constant logical group
+                    return currentLG;
+                }
+            });
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            a.setName("alice");
+            s.save(a);
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+            B b = new B();
+            b.setName("bob");
+            s.save(b);
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+            A a2 = new A();
+            a2.setName("anna");
+            B b2 = new B();
+            b2.setName("ben");
+            s.save(a2);
+            s.save(b2);
+            s.getTransaction().commit();
+
+            TransactionFilter f =
+                new TransactionFilter(null, null, null, new Long(3857398753l), null);
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
+            assert txs.isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------
