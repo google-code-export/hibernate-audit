@@ -8,7 +8,7 @@
     <groupId>hba</groupId>
     <artifactId>hba</artifactId>
     <packaging>jar</packaging>
-    <version>r249</version>
+    <version>r253</version>
     <name>HBA</name>
     <url>http://code.google.com/p/hibernate-audit/</url>
     <description>A Hibernate audit framework</description>
