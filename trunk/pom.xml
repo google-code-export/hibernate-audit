@@ -7,7 +7,7 @@
 
 
 
-    <version>r254</version>
+    <version>r255</version>
 
 
     
@@ -25,7 +25,7 @@
     <distributionManagement>
         <repository>
             <id>yomba</id>
-            <url>scp://${yomba.repository.server}:${yomba.repository.path}</url>
+            <url>${yomba.repository.url}</url>
         </repository>
     </distributionManagement>
 
