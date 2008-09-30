@@ -2,6 +2,8 @@
 #
 # Convenience script to expedite installation into a remote maven repository.
 #
+# Deprecated: rendered obsolete by configuring maven itself to do the deployment.
+#
 # @Author: Ovidiu Feodorov <ovidiu@feodorov.com>
 #
 

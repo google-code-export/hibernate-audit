@@ -4,11 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+
+
+
+    <version>r254</version>
+
+
     
     <groupId>hba</groupId>
     <artifactId>hba</artifactId>
     <packaging>jar</packaging>
-    <version>r253</version>
     <name>HBA</name>
     <url>http://code.google.com/p/hibernate-audit/</url>
     <description>A Hibernate audit framework</description>
@@ -16,6 +21,13 @@
     <prerequisites>
         <maven>2.0.8</maven>
     </prerequisites>
+
+    <distributionManagement>
+        <repository>
+            <id>yomba</id>
+            <url>scp://${yomba.repository.server}:${yomba.repository.path}</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <resources>
@@ -103,6 +115,15 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh-external</artifactId>
+                <version>1.0-alpha-5</version>
+            </extension>
+        </extensions>
+
     </build>
 
     <dependencies>
