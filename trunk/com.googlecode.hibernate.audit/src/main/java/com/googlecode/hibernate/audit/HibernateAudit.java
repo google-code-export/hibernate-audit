@@ -346,29 +346,60 @@ public final class HibernateAudit
         Date from = null;
         Date to = null;
         String user = null;
-        String entityName = null;
-        String memberVariableName = null;
+        Long entityTypeId = null;
 
         if (filter != null)
         {
             from = filter.getFromDate();
             to = filter.getToDate();
             user = filter.getUser();
-            entityName = filter.getEntityName();
-            memberVariableName = filter.getMemberVariableName();
+            entityTypeId = filter.getAuditEntityTypeId();
         }
 
         from = from == null ? new Date(0) : from;
         to = to == null ? new Date(Long.MAX_VALUE) : to;
 
-        String qs =
-            "from AuditTransaction as t " +
-            "where t.logicalGroupId = :lgId and " +
-            "t.timestamp >= :from and " +
-            "t.timestamp <= :to " +
-            "order by t.id";
-        
-        return query(qs, lgId, from, to);
+        if (entityTypeId == null)
+        {
+            String qs =
+                "from AuditTransaction as t " +
+                "where t.logicalGroupId = :lgId and " +
+                "t.timestamp >= :from and " +
+                "t.timestamp <= :to " +
+                "order by t.id";
+
+            return query(qs, lgId, from, to);
+        }
+        else
+        {
+            String qs =
+                "from AuditTransaction as tx, AuditEvent as e, AuditEntityType as t " +
+                "where tx.logicalGroupId = :lgId and " +
+                "e.transaction = tx and " +
+                "e.targetType = t and " +
+                "t.id = :entityTypeId " +
+                "order by tx.id";
+
+            List result = query(qs, lgId, entityTypeId);
+
+            if (result.size() == 0)
+            {
+                return Collections.emptyList();
+            }
+
+            List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
+            for(Object o: result)
+            {
+                AuditTransaction at = (AuditTransaction)((Object[])o)[0];
+
+                if (!ts.contains(at))
+                {
+                    ts.add(at);
+                }
+            }
+
+            return ts;
+        }
     }
 
     // Delta functions -----------------------------------------------------------------------------
