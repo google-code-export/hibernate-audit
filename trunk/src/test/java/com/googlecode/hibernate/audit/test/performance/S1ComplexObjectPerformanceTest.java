@@ -6,9 +6,9 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.test.performance.data.Root;
-import com.googlecode.hibernate.audit.test.performance.data.LevelOne;
-import com.googlecode.hibernate.audit.test.performance.data.LevelTwo;
+import com.googlecode.hibernate.audit.test.performance.data.s1.Root;
+import com.googlecode.hibernate.audit.test.performance.data.s1.LevelOne;
+import com.googlecode.hibernate.audit.test.performance.data.s1.LevelTwo;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 import java.util.Date;
@@ -25,11 +25,11 @@ import java.util.ArrayList;
  * $Id$
  */
 @Test(sequential = true)
-public class ComplexObjectPerformanceTest extends JTATransactionTest
+public class S1ComplexObjectPerformanceTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(ComplexObjectPerformanceTest.class);
+    private static final Logger log = Logger.getLogger(S1ComplexObjectPerformanceTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ public class ComplexObjectPerformanceTest extends JTATransactionTest
 
     // Constructors --------------------------------------------------------------------------------
 
-    public ComplexObjectPerformanceTest()
+    public S1ComplexObjectPerformanceTest()
     {
         results = new ArrayList<Result>();
     }

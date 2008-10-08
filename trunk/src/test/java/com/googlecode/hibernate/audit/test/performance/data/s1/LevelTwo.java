@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.performance.data;
+package com.googlecode.hibernate.audit.test.performance.data.s1;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
