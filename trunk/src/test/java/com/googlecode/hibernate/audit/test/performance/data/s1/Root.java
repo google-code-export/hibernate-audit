@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.performance.data.s1;
 
+import com.googlecode.hibernate.audit.test.performance.Util;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -34,7 +36,7 @@ public class Root
         for(int i = 0; i < 10; i ++)
         {
             Method m = Root.class.getMethod("setS" + i, String.class);
-            m.invoke(result, LevelTwo.randomString(stringLength));
+            m.invoke(result, Util.randomString(stringLength));
 
             m = Root.class.getMethod("setLevelTwo" + i, LevelTwo.class);
             LevelTwo lt = LevelTwo.random(stringLength);

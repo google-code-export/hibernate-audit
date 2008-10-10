@@ -46,7 +46,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFilterDate() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -110,7 +110,7 @@ public class TransactionFilterTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFilterDate_Intervals() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -295,7 +295,7 @@ public class TransactionFilterTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFilterUser() throws Exception
     {
         throw new NotYetImplementedException();

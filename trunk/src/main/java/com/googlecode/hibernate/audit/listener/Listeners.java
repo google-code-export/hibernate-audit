@@ -1,24 +1,19 @@
 package com.googlecode.hibernate.audit.listener;
 
-import org.apache.log4j.Logger;
 import org.hibernate.event.EventListeners;
 import org.hibernate.impl.SessionFactoryImpl;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Enumeration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.jar.JarFile;
-import java.util.jar.JarEntry;
-import java.security.ProtectionDomain;
-import java.security.CodeSource;
-import java.net.URL;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
+
+import com.googlecode.hibernate.audit.util.packinsp.PackageInspector;
+import com.googlecode.hibernate.audit.util.packinsp.Filter;
 
 /**
  * Event listener manipulation utilities.
@@ -34,8 +29,6 @@ import java.lang.reflect.Array;
 public class Listeners
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(Listeners.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -85,11 +78,6 @@ public class Listeners
 
     private static Map<String, TypeHolder> auditedEventTypes;
 
-    private static final AuditedEventTypesUpdatingFilenameFilter auditedEventTypesUpdater =
-        new AuditedEventTypesUpdatingFilenameFilter();
-
-    private static String packageName;
-
     /**
      * @return all audited event types, determined based on the static list of avaliable audit
      *         listeners. The string representation of an event type is the one used by
@@ -111,62 +99,38 @@ public class Listeners
             {
                 auditedEventTypes = new HashMap<String, TypeHolder>();
 
-                ProtectionDomain pd = Listeners.class.getProtectionDomain();
-                CodeSource cs = pd.getCodeSource();
-                URL url = cs.getLocation();
-                String protocol = url.getProtocol();
-
-                if ("file".equals(protocol))
+                PackageInspector pi = new PackageInspector(Listeners.class);
+                pi.inspect(new Filter()
                 {
-                    File base = new File(url.getFile());
-
-                    if (packageName == null)
+                    public boolean accept(Class c)
                     {
-                        packageName = Listeners.class.getName();
-                        packageName = packageName.substring(0, packageName.lastIndexOf("."));
-                    }
-                    
-                    String relativePath = packageName.replace('.', '/');
-                    relativePath += "/";
+                        int mods = c.getModifiers();
 
-                    if (base.isDirectory())
-                    {
-                        new File(base, relativePath).listFiles(auditedEventTypesUpdater);
-                    }
-                    else
-                    {
-                        // we only know to handle jar files so far, not that we would ever need
-                        // something else, presumably
-
-                        JarFile jarFile = new JarFile(base);
-
-                        log.debug("looking in " + jarFile.getName());
-
-                        for(Enumeration<JarEntry> ents = jarFile.entries(); ents.hasMoreElements();)
+                        if (Modifier.isAbstract(mods))
                         {
-                            JarEntry je = ents.nextElement();
-                            String name = je.getName();
-                            if (!name.startsWith(relativePath))
-                            {
-                                continue;
-                            }
-
-                            name = name.substring(relativePath.length());
-
-                            if (name.indexOf("/") != -1)
-                            {
-                                // we don't look in subdirectories
-                                continue;
-                            }
-
-                            auditedEventTypesUpdater.accept(null, name);
+                            return false;
                         }
+
+                        String name = c.getName();
+                        name = name.substring(name.lastIndexOf('.') + 1);
+
+                        if (name.startsWith("Abstract"))
+                        {
+                            return false;
+                        }
+
+                        String eventType = classNameToHibernateEventType(name);
+
+                        if (eventType == null)
+                        {
+                            return false;
+                        }
+
+                        auditedEventTypes.put(eventType, new TypeHolder(eventType, c));
+                        return false; // we don't accumulate classes in inspect()'s result, we
+                                      // already have them in auditedEventTypes
                     }
-                }
-                else
-                {
-                    throw new IllegalStateException("don't know how to handle " + url);
-                }
+                });
             }
 
             return auditedEventTypes.keySet();
@@ -384,53 +348,6 @@ public class Listeners
 
 
     // Inner classes -------------------------------------------------------------------------------
-
-    private static class AuditedEventTypesUpdatingFilenameFilter implements FilenameFilter
-    {
-        public boolean accept(File dir, String name)
-        {
-            if (auditedEventTypes == null)
-            {
-                return false;
-            }
-
-            int i = name.indexOf(".class");
-
-            if (i == -1)
-            {
-                return false;
-            }
-
-            name = name.substring(0, i);
-
-            if (name.startsWith("Abstract"))
-            {
-                // ignore
-                return false;
-            }
-
-            String eventType = classNameToHibernateEventType(name);
-            if (eventType != null)
-            {
-                String fullyQualifiedClassName = packageName + "." + name;
-
-                try
-                {
-                    Class c = Class.forName(fullyQualifiedClassName);
-                    auditedEventTypes.put(eventType, new TypeHolder(eventType, c));
-                    return true;
-                }
-                catch(Exception e)
-                {
-                    // trouble loading the class
-                    log.error("cannot find " + fullyQualifiedClassName, e);
-                    return false;
-                }
-            }
-
-            return false;
-        }
-    }
 
     private static class TypeHolder
     {

@@ -1,11 +1,12 @@
 package com.googlecode.hibernate.audit.test.performance.data.s1;
 
+import com.googlecode.hibernate.audit.test.performance.Util;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
-import java.util.Random;
 import java.lang.reflect.Method;
 
 /**
@@ -23,20 +24,6 @@ public class LevelTwo
 
     // Static --------------------------------------------------------------------------------------
 
-    private static Random random = new Random(System.currentTimeMillis());
-
-    public static String randomString(int stringLength)
-    {
-        String s = "";
-
-        for(int j = 0; j < stringLength; j ++)
-        {
-            s += (char)(65 + random.nextInt(26));
-        }
-
-        return s;
-    }
-
     public static LevelTwo random(int stringLength) throws Exception
     {
         LevelTwo result = new LevelTwo();
@@ -44,7 +31,7 @@ public class LevelTwo
         for(int i = 0; i < 10; i ++)
         {
             Method m = LevelTwo.class.getMethod("setS" + i, String.class);
-            m.invoke(result, randomString(stringLength));
+            m.invoke(result, Util.randomString(stringLength));
         }
 
         return result;

@@ -1,11 +1,7 @@
-package com.googlecode.hibernate.audit.test.performance;
-
-import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
-import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
+package com.googlecode.hibernate.audit.test.performance.data.s2;
 
 /**
- *@author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
  *
@@ -13,12 +9,9 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
  *
  * $Id$
  */
-@Test(sequential = true)
-public class ManyTypesPerformanceTest extends JTATransactionTest
+public class TypicalScenario implements Scenario
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(ManyTypesPerformanceTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -26,21 +19,21 @@ public class ManyTypesPerformanceTest extends JTATransactionTest
 
     // Constructors --------------------------------------------------------------------------------
 
-    public ManyTypesPerformanceTest()
+    // Scenario implementation ---------------------------------------------------------------------
+
+    public int getPPerDCount()
     {
+        return 2;
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    @Test(enabled = true)
-    public void testPerformanceManyTypes() throws Exception
-    {
-    }
 
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    // Inner classes -------------------------------------------------------------------------------
 
 }

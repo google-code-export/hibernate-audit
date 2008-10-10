@@ -34,7 +34,7 @@ import java.util.Iterator;
  *
  * $Id$
  */
-class AbstractAuditCollectionEventListener extends AbstractAuditEventListener
+abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
