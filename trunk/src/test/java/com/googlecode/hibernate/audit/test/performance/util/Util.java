@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.performance;
+package com.googlecode.hibernate.audit.test.performance.util;
 
 import java.util.Random;
 import java.util.Date;

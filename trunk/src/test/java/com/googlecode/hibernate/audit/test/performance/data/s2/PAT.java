@@ -1,5 +1,8 @@
 package com.googlecode.hibernate.audit.test.performance.data.s2;
 
+import javax.persistence.Entity;
+import javax.persistence.DiscriminatorValue;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -9,7 +12,9 @@ package com.googlecode.hibernate.audit.test.performance.data.s2;
  *
  * $Id$
  */
-public class TypicalScenario implements Scenario
+@Entity
+@DiscriminatorValue("PAT")
+public class PAT extends R
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,46 +24,9 @@ public class TypicalScenario implements Scenario
 
     // Constructors --------------------------------------------------------------------------------
 
-    // Scenario implementation ---------------------------------------------------------------------
-
-    public int getPPerDCount()
+    public PAT(int i)
     {
-        return 2;
-    }
-
-    public int getEPerPCount()
-    {
-        return 1;
-    }
-
-    public int getEXPerPCount()
-    {
-        return 7;
-    }
-
-    public int getLPerPCount()
-    {
-        return 3;
-    }
-
-    public int getAPerPCount()
-    {
-        return 3;
-    }
-
-    public int getCLCPerPCount()
-    {
-        return 1;
-    }
-
-    public int getPPPerPCount()
-    {
-        return 3;
-    }
-
-    public int getPAPerPCount()
-    {
-        return 2;
+        super(i);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -70,5 +38,4 @@ public class TypicalScenario implements Scenario
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
-
 }

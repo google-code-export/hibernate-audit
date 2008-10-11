@@ -12,7 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import com.googlecode.hibernate.audit.test.performance.Util;
+import com.googlecode.hibernate.audit.test.performance.util.Util;
 import com.googlecode.hibernate.audit.util.packinsp.PackageInspector;
 import com.googlecode.hibernate.audit.util.packinsp.Filter;
 
@@ -36,7 +36,7 @@ public class RRepository
     private Map<Class, List<R>> cache;
     private int size;
     private String packageName;
-    private Set<Class> rTypes;
+    private Set<Class> rClasses;
 
 
     // Constructors --------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ public class RRepository
 
         packageName = getClass().getPackage().getName();
         
-        rTypes = new PackageInspector(getClass()).inspect(new Filter()
+        rClasses = new PackageInspector(getClass()).inspect(new Filter()
         {
             public boolean accept(Class c)
             {
@@ -72,7 +72,7 @@ public class RRepository
 
             for(int i = 0; i < size; i ++)
             {
-                for(Class c: rTypes)
+                for(Class c: rClasses)
                 {
                     Constructor ctor = c.getConstructor(Integer.TYPE);
                     R r = (R)ctor.newInstance(i);
@@ -185,6 +185,11 @@ public class RRepository
 
             m.invoke(o, r);
         }
+    }
+
+    public Set<Class> getRClasses()
+    {
+        return rClasses;
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.performance.data.s1;
+package com.googlecode.hibernate.audit.test.performance.data.s2;
 
 import com.googlecode.hibernate.audit.test.performance.util.Util;
 
@@ -6,8 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToOne;
-import java.lang.reflect.Method;
+import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -17,24 +17,20 @@ import java.lang.reflect.Method;
  * $Id$
  */
 @Entity
-@Table(name = "LEVEL_TWO")
-public class LevelTwo
+@Table(name = "WTI")
+public class WTI
 {
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
-    public static LevelTwo random(int stringLength) throws Exception
+    public static WTI create(P p) throws Exception
     {
-        LevelTwo result = new LevelTwo();
+        WTI wti = new WTI();
+        Util.fillPrimitives(wti);
+        wti.setP(p);
 
-        for(int i = 0; i < 10; i ++)
-        {
-            Method m = LevelTwo.class.getMethod("setS" + i, String.class);
-            m.invoke(result, Util.randomString(stringLength));
-        }
-
-        return result;
+        return wti;
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -43,23 +39,19 @@ public class LevelTwo
     @GeneratedValue
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    private P p;
+
     private String s0;
     private String s1;
     private String s2;
     private String s3;
     private String s4;
     private String s5;
-    private String s6;
-    private String s7;
-    private String s8;
-    private String s9;
-
-    @ManyToOne
-    private LevelOne levelOne;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public LevelTwo()
+    WTI()
     {
     }
 
@@ -73,6 +65,16 @@ public class LevelTwo
     public void setId(Long id)
     {
         this.id = id;
+    }
+
+    public P getP()
+    {
+        return p;
+    }
+
+    public void setP(P p)
+    {
+        this.p = p;
     }
 
     public String getS0()
@@ -133,74 +135,6 @@ public class LevelTwo
     public void setS5(String s5)
     {
         this.s5 = s5;
-    }
-
-    public String getS6()
-    {
-        return s6;
-    }
-
-    public void setS6(String s6)
-    {
-        this.s6 = s6;
-    }
-
-    public String getS7()
-    {
-        return s7;
-    }
-
-    public void setS7(String s7)
-    {
-        this.s7 = s7;
-    }
-
-    public String getS8()
-    {
-        return s8;
-    }
-
-    public void setS8(String s8)
-    {
-        this.s8 = s8;
-    }
-
-    public String getS9()
-    {
-        return s9;
-    }
-
-    public void setS9(String s9)
-    {
-        this.s9 = s9;
-    }
-
-    public LevelOne getLevelOne()
-    {
-        return levelOne;
-    }
-
-    public void setLevelOne(LevelOne levelOne)
-    {
-        this.levelOne = levelOne;
-    }
-
-    @Override
-    public String toString()
-    {
-        return
-            "LevelTwo [" + id + "]\n" +
-            "         " + s0 + "\n" +
-            "         " + s1 + "\n" +
-            "         " + s2 + "\n" +
-            "         " + s3 + "\n" +
-            "         " + s4 + "\n" +
-            "         " + s5 + "\n" +
-            "         " + s6 + "\n" +
-            "         " + s7 + "\n" +
-            "         " + s8+ "\n" +
-            "         " + s9;
-
     }
 
     // Package protected ---------------------------------------------------------------------------

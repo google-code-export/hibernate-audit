@@ -7,9 +7,8 @@ import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
-import javax.persistence.CascadeType;
 import javax.persistence.FetchType;
-import java.util.Date;
+import javax.persistence.CascadeType;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -19,26 +18,32 @@ import java.util.Date;
  * $Id$
  */
 @Entity
-@Table(name = "DP")
-public class DP
+@Table(name = "AP")
+public class AP
 {
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
-    public static DP create(Scenario s, RRepository rRepository, D d) throws Exception
+    public static AP create(Scenario s, RRepository rRepository, P p) throws Exception
     {
-        DP dp = new DP();
+        AP ap = new AP();
 
-        Util.fillPrimitives(dp);
-        rRepository.fillReferences(dp);
+        Util.fillPrimitives(ap);
+        rRepository.fillReferences(ap);
 
-        dp.setD(d);
+        ap.setP(p);
 
-        P p = P.create(s, rRepository, dp);
-        dp.setP(p);
+        ////////////
+        ////////////
+        //////////// INCOMPLETE
+        ////////////
+        ////////////
+        
+//        A a = A.create(s, rRepository, ap);
+//        ap.setA(a);
 
-        return dp;
+        return ap;
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -46,17 +51,6 @@ public class DP
     @Id
     @GeneratedValue
     private Long id;
-
-    private Integer i0;
-
-    private Date d0;
-    private Date d1;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private DPR dpr;
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private D d;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private P p;
@@ -75,46 +69,6 @@ public class DP
         this.id = id;
     }
 
-    public Integer getI0()
-    {
-        return i0;
-    }
-
-    public void setI0(Integer i0)
-    {
-        this.i0 = i0;
-    }
-
-    public Date getD0()
-    {
-        return d0;
-    }
-
-    public void setD0(Date d0)
-    {
-        this.d0 = d0;
-    }
-
-    public Date getD1()
-    {
-        return d1;
-    }
-
-    public void setD1(Date d1)
-    {
-        this.d1 = d1;
-    }
-
-    public D getD()
-    {
-        return d;
-    }
-
-    public void setD(D d)
-    {
-        this.d = d;
-    }
-
     public P getP()
     {
         return p;
@@ -123,16 +77,6 @@ public class DP
     public void setP(P p)
     {
         this.p = p;
-    }
-
-    public DPR getDpr()
-    {
-        return dpr;
-    }
-
-    public void setDpr(DPR dpr)
-    {
-        this.dpr = dpr;
     }
 
     // Package protected ---------------------------------------------------------------------------

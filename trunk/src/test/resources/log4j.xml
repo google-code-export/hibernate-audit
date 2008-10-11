@@ -12,7 +12,7 @@
 	</appender>
 
 	<logger name="com.googlecode.hibernate.audit">
-		<level value="debug" />
+		<level value="INFO" />
 	</logger>
 
     <logger name="com.googlecode.hibernate.audit.test.mock.jca.InterceptedConnection">
@@ -22,7 +22,6 @@
     <logger name="com.googlecode.hibernate.audit.test.mock">
         <level value="INFO"/>
     </logger>
-
 
     <root>
 		<priority value="error" />

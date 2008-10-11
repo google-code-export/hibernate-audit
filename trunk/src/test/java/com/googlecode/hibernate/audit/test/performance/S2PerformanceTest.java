@@ -7,21 +7,17 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.performance.data.s2.D;
-import com.googlecode.hibernate.audit.test.performance.data.s2.P;
-import com.googlecode.hibernate.audit.test.performance.data.s2.MT;
-import com.googlecode.hibernate.audit.test.performance.data.s2.MD;
-import com.googlecode.hibernate.audit.test.performance.data.s2.CS;
-import com.googlecode.hibernate.audit.test.performance.data.s2.DPR;
-import com.googlecode.hibernate.audit.test.performance.data.s2.CRD;
-import com.googlecode.hibernate.audit.test.performance.data.s2.MDL;
-import com.googlecode.hibernate.audit.test.performance.data.s2.DP;
-import com.googlecode.hibernate.audit.test.performance.data.s2.R;
 import com.googlecode.hibernate.audit.test.performance.data.s2.RRepository;
-import com.googlecode.hibernate.audit.test.performance.data.s2.Scenario;
 import com.googlecode.hibernate.audit.test.performance.data.s2.TypicalScenario;
+import com.googlecode.hibernate.audit.test.performance.util.Series;
+import com.googlecode.hibernate.audit.test.performance.util.Run;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.util.packinsp.PackageInspector;
+import com.googlecode.hibernate.audit.util.packinsp.Filter;
 
-import java.util.Date;
+import javax.persistence.Entity;
+import java.util.Set;
+import java.lang.annotation.Annotation;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -54,56 +50,74 @@ public class S2PerformanceTest extends JTATransactionTest
     @Test(enabled = true)
     public void test() throws Exception
     {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(D.class);
-//        config.addAnnotatedClass(P.class);
-//        config.addAnnotatedClass(CRD.class);
-//        config.addAnnotatedClass(CS.class);
-//        config.addAnnotatedClass(DP.class);
-//        config.addAnnotatedClass(DPR.class);
-//        config.addAnnotatedClass(MD.class);
-//        config.addAnnotatedClass(MDL.class);
-//        config.addAnnotatedClass(MT.class);
-//        config.addAnnotatedClass(R.class);
-//
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            RRepository rRepository = new RRepository(10);
-//            rRepository.populate(sf, true);
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-////            HibernateAudit.startRuntime(sf.getSettings());
-////            HibernateAudit.register(sf);
-//
-//            Scenario ts = new TypicalScenario();
-//
-//            D d = D.create(ts, rRepository);
-//
-//            Date t1 = new Date();
-//
-//            s.save(d);
-//            s.getTransaction().commit();
-//
-//            Date t2 = new Date();
-//
-//            s.close();
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+
+        Set<Class> entities = new PackageInspector(D.class).inspect(new Filter()
+        {
+            public boolean accept(Class c)
+            {
+                for(Annotation a: c.getAnnotations())
+                {
+                    if (a.annotationType().equals(Entity.class))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        for(Class c: entities)
+        {
+            config.addAnnotatedClass(c);
+        }
+
+        SessionFactoryImplementor sf = null;
+
+        Series series = new Series(20);
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            RRepository rRepository = new RRepository(10);
+            rRepository.populate(sf, true);
+
+            System.setProperty("hba.show_sql", "false");
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            for(Run run: series.getRuns())
+            {
+                Session s = sf.openSession();
+                s.beginTransaction();
+
+                D d = D.create(new TypicalScenario(), rRepository);
+
+                run.startClock();
+
+                s.save(d);
+                s.getTransaction().commit();
+
+                run.stopClock();
+
+                s.close();
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+
+        series.printStatistics(false);
+
     }
 
     // Package protected ---------------------------------------------------------------------------

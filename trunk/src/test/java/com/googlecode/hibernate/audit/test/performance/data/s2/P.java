@@ -1,6 +1,6 @@
 package com.googlecode.hibernate.audit.test.performance.data.s2;
 
-import com.googlecode.hibernate.audit.test.performance.Util;
+import com.googlecode.hibernate.audit.test.performance.util.Util;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -10,6 +10,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.ManyToOne;
 import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,19 +30,70 @@ public class P
 
     // Static --------------------------------------------------------------------------------------
 
-    public static P create(Scenario s, RRepository rRepository, DP dp) throws Exception
+    public static P create(Scenario s, RRepository rr, DP dp) throws Exception
     {
         P p = new P();
 
-        Util.fillPrimitives(dp);
-        rRepository.fillReferences(dp);
+        Util.fillPrimitives(p);
+        rr.fillReferences(p);
 
         p.getDps().add(dp);
+
+        for(int i = 0; i < s.getEPerPCount(); i++)
+        {
+            E e = E.create(s, rr, p);
+            p.getEs().add(e);
+        }
+
+        for(int i = 0; i < s.getEXPerPCount(); i++)
+        {
+            EX ex = EX.create(s, rr, p);
+            p.getExs().add(ex);
+        }
+
+        for(int i = 0; i < s.getLPerPCount(); i++)
+        {
+            L l = L.create(s, rr, p);
+            p.getLs().add(l);
+        }
+
+        for(int i = 0; i < s.getAPerPCount(); i++)
+        {
+            AP ap = AP.create(s, rr, p);
+            p.getAps().add(ap);
+        }
+
+        for(int i = 0; i < s.getCLCPerPCount(); i++)
+        {
+            CLC clc = CLC.create(s, rr, p);
+            p.getClcs().add(clc);
+        }
+
+        WTI wti = WTI.create(p);
+        p.setWti(wti);
+
+        for(int i = 0; i < s.getPPPerPCount(); i++)
+        {
+            PP pp = PP.create(rr, p);
+            p.getPps().add(pp);
+        }
+
+        for(int i = 0; i < s.getPAPerPCount(); i++)
+        {
+            PA pa = PA.create(s, rr, p);
+            p.getPas().add(pa);
+        }
 
         return p;
     }
 
     // Attributes ----------------------------------------------------------------------------------
+
+    ////////////
+    ////////////
+    //////////// INCOMPLETE EORP missing
+    ////////////
+    ////////////
 
     @Id
     @GeneratedValue
@@ -72,7 +124,7 @@ public class P
     private String s19;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private PT pt;
+    private PAT pat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private GIT git;
@@ -87,16 +139,58 @@ public class P
     private PCC pcc;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    private NP np;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private NS ns;
 
     @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
     private List<DP> dps;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<E> es;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<EX> exs;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<L> ls;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<AP> aps;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<CLC> clcs;
+
+    @OneToMany(mappedBy = "ptwo", cascade = CascadeType.ALL)
+    private List<PR> prtwos;
+
+    @OneToMany(mappedBy = "pone", cascade = CascadeType.ALL)
+    private List<PR> prones;
+
+    @OneToOne(mappedBy = "p", cascade = CascadeType.ALL)
+    private WTI wti;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<PP> pps;
+
+    @OneToMany(mappedBy = "p", cascade = CascadeType.ALL)
+    private List<PA> pas;
 
     // Constructors --------------------------------------------------------------------------------
 
     P()
     {
         dps = new ArrayList<DP>();
+        es = new ArrayList<E>();
+        exs = new ArrayList<EX>();
+        ls = new ArrayList<L>();
+        aps = new ArrayList<AP>();
+        clcs = new ArrayList<CLC>();
+        prones = new ArrayList<PR>();
+        prtwos = new ArrayList<PR>();
+        pps = new ArrayList<PP>();
+        pas = new ArrayList<PA>();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -341,14 +435,14 @@ public class P
         this.dps = dps;
     }
 
-    public PT getPt()
+    public PAT getPat()
     {
-        return pt;
+        return pat;
     }
 
-    public void setPt(PT pt)
+    public void setPat(PAT pat)
     {
-        this.pt = pt;
+        this.pat = pat;
     }
 
     public GIT getGit()
@@ -391,6 +485,16 @@ public class P
         this.pcc = pcc;
     }
 
+    public NP getNp()
+    {
+        return np;
+    }
+
+    public void setNp(NP np)
+    {
+        this.np = np;
+    }
+
     public NS getNs()
     {
         return ns;
@@ -399,6 +503,106 @@ public class P
     public void setNs(NS ns)
     {
         this.ns = ns;
+    }
+
+    public List<E> getEs()
+    {
+        return es;
+    }
+
+    public void setEs(List<E> es)
+    {
+        this.es = es;
+    }
+
+    public List<EX> getExs()
+    {
+        return exs;
+    }
+
+    public void setExs(List<EX> exs)
+    {
+        this.exs = exs;
+    }
+
+    public List<L> getLs()
+    {
+        return ls;
+    }
+
+    public void setLs(List<L> ls)
+    {
+        this.ls = ls;
+    }
+
+    public List<AP> getAps()
+    {
+        return aps;
+    }
+
+    public void setAps(List<AP> aps)
+    {
+        this.aps = aps;
+    }
+
+    public List<CLC> getClcs()
+    {
+        return clcs;
+    }
+
+    public void setClcs(List<CLC> clcs)
+    {
+        this.clcs = clcs;
+    }
+
+    public List<PR> getPrones()
+    {
+        return prones;
+    }
+
+    public void setPrones(List<PR> prones)
+    {
+        this.prones = prones;
+    }
+
+    public List<PR> getPrtwos()
+    {
+        return prtwos;
+    }
+
+    public void setPrtwos(List<PR> prtwos)
+    {
+        this.prtwos = prtwos;
+    }
+
+    public WTI getWti()
+    {
+        return wti;
+    }
+
+    public void setWti(WTI wti)
+    {
+        this.wti = wti;
+    }
+
+    public List<PP> getPps()
+    {
+        return pps;
+    }
+
+    public void setPps(List<PP> pps)
+    {
+        this.pps = pps;
+    }
+
+    public List<PA> getPas()
+    {
+        return pas;
+    }
+
+    public void setPas(List<PA> pas)
+    {
+        this.pas = pas;
     }
 
     // Package protected ---------------------------------------------------------------------------

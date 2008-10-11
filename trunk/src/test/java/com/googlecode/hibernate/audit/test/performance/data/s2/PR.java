@@ -9,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.CascadeType;
 import javax.persistence.FetchType;
-import java.util.Date;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -19,26 +18,24 @@ import java.util.Date;
  * $Id$
  */
 @Entity
-@Table(name = "DP")
-public class DP
+@Table(name = "PR")
+public class PR
 {
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
 
-    public static DP create(Scenario s, RRepository rRepository, D d) throws Exception
+    public static PR create(RRepository rRepository, P pone, P ptwo) throws Exception
     {
-        DP dp = new DP();
+        PR pr = new PR();
 
-        Util.fillPrimitives(dp);
-        rRepository.fillReferences(dp);
+        Util.fillPrimitives(pr);
+        rRepository.fillReferences(pr);
 
-        dp.setD(d);
+        pr.setPone(pone);
+        pr.setPtwo(ptwo);
 
-        P p = P.create(s, rRepository, dp);
-        dp.setP(p);
-
-        return dp;
+        return pr;
     }
 
     // Attributes ----------------------------------------------------------------------------------
@@ -47,19 +44,11 @@ public class DP
     @GeneratedValue
     private Long id;
 
-    private Integer i0;
-
-    private Date d0;
-    private Date d1;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private DPR dpr;
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private P pone;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private D d;
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private P p;
+    private P ptwo;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -75,64 +64,24 @@ public class DP
         this.id = id;
     }
 
-    public Integer getI0()
+    public P getPone()
     {
-        return i0;
+        return pone;
     }
 
-    public void setI0(Integer i0)
+    public void setPone(P pone)
     {
-        this.i0 = i0;
+        this.pone = pone;
     }
 
-    public Date getD0()
+    public P getPtwo()
     {
-        return d0;
+        return ptwo;
     }
 
-    public void setD0(Date d0)
+    public void setPtwo(P ptwo)
     {
-        this.d0 = d0;
-    }
-
-    public Date getD1()
-    {
-        return d1;
-    }
-
-    public void setD1(Date d1)
-    {
-        this.d1 = d1;
-    }
-
-    public D getD()
-    {
-        return d;
-    }
-
-    public void setD(D d)
-    {
-        this.d = d;
-    }
-
-    public P getP()
-    {
-        return p;
-    }
-
-    public void setP(P p)
-    {
-        this.p = p;
-    }
-
-    public DPR getDpr()
-    {
-        return dpr;
-    }
-
-    public void setDpr(DPR dpr)
-    {
-        this.dpr = dpr;
+        this.ptwo = ptwo;
     }
 
     // Package protected ---------------------------------------------------------------------------

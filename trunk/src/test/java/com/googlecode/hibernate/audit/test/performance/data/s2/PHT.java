@@ -13,8 +13,8 @@ import javax.persistence.DiscriminatorValue;
  * $Id$
  */
 @Entity
-@DiscriminatorValue("PT")
-public class PT extends R
+@DiscriminatorValue("PHT")
+public class PHT extends R
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ public class PT extends R
 
     // Constructors --------------------------------------------------------------------------------
 
-    public PT(int i)
+    public PHT(int i)
     {
         super(i);
     }
