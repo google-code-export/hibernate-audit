@@ -231,6 +231,7 @@ public class AuditTransaction implements Synchronization
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
      * TODO BAD signature
+     * TODO https://jira.novaordis.org/browse/HBA-122
      *
      * Also, may be changed when refactoring for HBA-80
      *
@@ -252,6 +253,7 @@ public class AuditTransaction implements Synchronization
 
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
+     * TODO https://jira.novaordis.org/browse/HBA-122
      *
      * Returns the corresponding AuditType, making a database insert if the underlying class (or
      * classes) were not persised in the database yet.
@@ -268,6 +270,7 @@ public class AuditTransaction implements Synchronization
     /**
      * TODO must refactor this, it doesn't belong here, and also the implementation is bad
      * TODO BAD signature
+     * TODO https://jira.novaordis.org/browse/HBA-122
      *
      * Returns the corresponding AuditTypeField, making a database insert if the underlying class
      * was not persised in the database yet.
