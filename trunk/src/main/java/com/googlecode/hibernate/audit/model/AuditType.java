@@ -3,10 +3,11 @@ package com.googlecode.hibernate.audit.model;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -37,7 +38,13 @@ import java.io.Serializable;
 @Entity
 @Table(name = "AUDIT_CLASS")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_SEQ")
+@GenericGenerator(name = "audit-type-seqhilo-generator",
+                  strategy = "seqhilo",
+                  parameters =
+                  {
+                      @Parameter(name = "sequence", value = "AUDIT_CLASS_SEQ"),
+                      @Parameter(name = "max_lo", value = "1000")
+                  })
 @DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("P")
 public class AuditType
@@ -96,7 +103,7 @@ public class AuditType
 
     @Id
     @Column(name = "AUDIT_CLASS_ID", columnDefinition="NUMBER(30, 0)")
-    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit-type-seqhilo-generator")
     private Long id;
 
     @Column(name = "CLASS_NAME", nullable = false)

@@ -35,7 +35,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "AUDIT_TRANSACTION")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_TRANSACTION_SEQ")
+@SequenceGenerator(name = "audit-transaction-seq-generator", sequenceName = "AUDIT_TRANSACTION_SEQ")
 public class AuditTransaction implements Synchronization
 {
     // Constants -----------------------------------------------------------------------------------
@@ -48,7 +48,8 @@ public class AuditTransaction implements Synchronization
 
     @Id
     @Column(name = "AUDIT_TRANSACTION_ID", columnDefinition="NUMBER(30, 0)")
-    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, 
+                    generator = "audit-transaction-seq-generator")
     private Long id;
 
     @Column(name = "TRANSACTION_TMSTP", nullable = false)

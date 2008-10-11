@@ -2,6 +2,8 @@ package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.hibernate.Session;
 import org.hibernate.Query;
 import org.hibernate.NonUniqueResultException;
@@ -9,7 +11,6 @@ import org.apache.log4j.Logger;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -29,7 +30,13 @@ import javax.persistence.JoinColumn;
  */
 @Entity
 @Table(name = "AUDIT_CLASS_FIELD")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_CLASS_FIELD_SEQ")
+@GenericGenerator(name = "audit-type-field-seqhilo-generator",
+                  strategy = "seqhilo",
+                  parameters =
+                  {
+                      @Parameter(name = "sequence", value = "AUDIT_CLASS_FIELD_SEQ"),
+                      @Parameter(name = "max_lo", value = "1000")
+                  })
 public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------
@@ -97,7 +104,8 @@ public class AuditTypeField
 
     @Id
     @Column(name = "AUDIT_CLASS_FIELD_ID", columnDefinition="NUMBER(30, 0)")
-    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "audit-type-field-seqhilo-generator")
     private Long id;
 
     @ManyToOne(optional = false)

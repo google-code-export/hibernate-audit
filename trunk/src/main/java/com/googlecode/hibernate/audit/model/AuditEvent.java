@@ -2,10 +2,11 @@ package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -35,7 +36,13 @@ import java.util.List;
  */
 @Entity
 @Table(name = "AUDIT_EVENT")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_SEQ")
+@GenericGenerator(name = "audit-event-seqhilo-generator",
+                  strategy = "seqhilo",
+                  parameters =
+                  {
+                      @Parameter(name = "sequence", value = "AUDIT_EVENT_SEQ"),
+                      @Parameter(name = "max_lo", value = "10000")
+                  })
 public class AuditEvent
 {
     // Constants -----------------------------------------------------------------------------------
@@ -46,7 +53,7 @@ public class AuditEvent
 
     @Id
     @Column(name = "AUDIT_EVENT_ID", columnDefinition="NUMBER(30, 0)")
-    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit-event-seqhilo-generator")
     private Long id;
 
     @ManyToOne(optional = false)

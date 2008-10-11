@@ -2,10 +2,11 @@ package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -32,7 +33,13 @@ import javax.persistence.DiscriminatorValue;
  */
 @Entity
 @Table(name = "AUDIT_EVENT_PAIR")
-@SequenceGenerator(name = "sequence", sequenceName = "AUDIT_EVENT_PAIR_SEQ")
+@GenericGenerator(name = "audit-event-pair-seqhilo-generator",
+                  strategy = "seqhilo",
+                  parameters =
+                  {
+                      @Parameter(name = "sequence", value = "AUDIT_EVENT_PAIR_SEQ"),
+                      @Parameter(name = "max_lo", value = "10000")
+                  })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "IS_COLLECTION", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("N")
@@ -46,7 +53,8 @@ public class AuditEventPair
 
     @Id
     @Column(name = "AUDIT_EVENT_PAIR_ID", columnDefinition="NUMBER(30, 0)")
-    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "audit-event-pair-seqhilo-generator")
     private Long id;
 
     @ManyToOne(optional = false)
