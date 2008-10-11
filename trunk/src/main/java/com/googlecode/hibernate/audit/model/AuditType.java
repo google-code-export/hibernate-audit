@@ -47,6 +47,7 @@ import java.io.Serializable;
                   })
 @DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("P")
+//@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class AuditType
 {
     // Constants -----------------------------------------------------------------------------------
