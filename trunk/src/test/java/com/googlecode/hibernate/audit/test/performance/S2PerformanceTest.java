@@ -1,7 +1,6 @@
 package com.googlecode.hibernate.audit.test.performance;
 
 import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
@@ -33,8 +32,6 @@ public class S2PerformanceTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(S2PerformanceTest.class);
-
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
@@ -48,7 +45,7 @@ public class S2PerformanceTest extends JTATransactionTest
     // Public --------------------------------------------------------------------------------------
 
     @Test(enabled = true)
-    public void test() throws Exception
+    public void performanceTest() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -76,7 +73,7 @@ public class S2PerformanceTest extends JTATransactionTest
 
         SessionFactoryImplementor sf = null;
 
-        Series series = new Series(20);
+        Series series = new Series(1);
 
         try
         {
@@ -85,7 +82,9 @@ public class S2PerformanceTest extends JTATransactionTest
             RRepository rRepository = new RRepository(10);
             rRepository.populate(sf, true);
 
-            System.setProperty("hba.show_sql", "false");
+            System.setProperty("hba.show_sql", "true");
+            System.setProperty("hba.jdbc.batch_size", "500");
+
             HibernateAudit.startRuntime(sf.getSettings());
             HibernateAudit.register(sf);
 
@@ -117,7 +116,6 @@ public class S2PerformanceTest extends JTATransactionTest
         }
 
         series.printStatistics(false);
-
     }
 
     // Package protected ---------------------------------------------------------------------------

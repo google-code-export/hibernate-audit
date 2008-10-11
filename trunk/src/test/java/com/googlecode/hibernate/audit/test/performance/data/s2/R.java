@@ -11,6 +11,8 @@ import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Transient;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.GenerationType;
 import java.util.Date;
 
 /**
@@ -26,6 +28,7 @@ import java.util.Date;
 @Table(name = "R")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "DISCRIMINATOR", discriminatorType = DiscriminatorType.STRING)
+@SequenceGenerator(name = "sequence", sequenceName = "R_SEQUENCE", allocationSize = 50)
 public abstract class R
 {
     // Constants -----------------------------------------------------------------------------------
@@ -35,7 +38,7 @@ public abstract class R
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "sequence", strategy = GenerationType.AUTO)
     private Long id;
 
     @Transient

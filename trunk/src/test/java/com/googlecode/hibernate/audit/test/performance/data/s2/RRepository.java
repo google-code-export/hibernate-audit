@@ -17,6 +17,8 @@ import com.googlecode.hibernate.audit.util.packinsp.PackageInspector;
 import com.googlecode.hibernate.audit.util.packinsp.Filter;
 
 /**
+ * A simulator of reference data repository.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
