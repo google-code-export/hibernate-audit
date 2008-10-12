@@ -411,7 +411,31 @@ public class MockJTATransaction implements Transaction
 
     public void setRollbackOnly() throws IllegalStateException, SystemException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        log.debug(this + " setting rollback only");
+
+        switch (status)
+        {
+            case Status.STATUS_ACTIVE:
+            case Status.STATUS_PREPARING:
+            case Status.STATUS_PREPARED:
+                status = Status.STATUS_MARKED_ROLLBACK;
+                // fall through ...
+            case Status.STATUS_MARKED_ROLLBACK:
+            case Status.STATUS_ROLLING_BACK:
+                return;
+            case Status.STATUS_COMMITTING:
+                throw new IllegalStateException(this + " already started committing");
+            case Status.STATUS_COMMITTED:
+                throw new IllegalStateException(this + " already committed");
+            case Status.STATUS_ROLLEDBACK:
+                throw new IllegalStateException(this + " already rolled back");
+            case Status.STATUS_NO_TRANSACTION:
+                throw new IllegalStateException("no transaction " + this);
+            case Status.STATUS_UNKNOWN:
+                throw new IllegalStateException("unknown state for " + this);
+            default:
+                throw new IllegalStateException("illegal status " + status + " for " + this);
+        }
     }
 
     // Public --------------------------------------------------------------------------------------

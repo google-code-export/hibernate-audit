@@ -66,7 +66,7 @@ public class MockUserTransaction implements UserTransaction
 
     public void setRollbackOnly() throws IllegalStateException, SystemException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        tm.setRollbackOnly();
     }
 
     public int getStatus() throws SystemException

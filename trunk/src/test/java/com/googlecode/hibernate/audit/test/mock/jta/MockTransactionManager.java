@@ -148,20 +148,20 @@ public class MockTransactionManager implements TransactionManager
 
     public void rollback() throws IllegalStateException, SecurityException, SystemException
     {
-        MockJTATransaction t = currentTransaction.get();
+        MockJTATransaction current = currentTransaction.get();
 
-        if (t == null)
+        if (current == null)
         {
             throw new IllegalStateException("current thread not associated with a transaction");
         }
 
         try
         {
-            t.rollback();
+            current.rollback();
         }
         catch(Exception e)
         {
-            log.error("commit failed unexpectedly", e);
+            log.error("rollback failed unexpectedly", e);
             throw new IllegalStateException("failed to rollback transaction");
         }
         finally
@@ -172,7 +172,22 @@ public class MockTransactionManager implements TransactionManager
 
     public void setRollbackOnly() throws IllegalStateException, SystemException
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        MockJTATransaction current = currentTransaction.get();
+
+        if (current == null)
+        {
+            throw new IllegalStateException("current thread not associated with a transaction");
+        }
+
+        try
+        {
+            current.setRollbackOnly();
+        }
+        catch(Exception e)
+        {
+            log.error("setRollbackOnly failed unexpectedly", e);
+            throw new IllegalStateException("failed to set RollbackOnly transaction");
+        }
     }
 
     public void setTransactionTimeout(int i) throws SystemException

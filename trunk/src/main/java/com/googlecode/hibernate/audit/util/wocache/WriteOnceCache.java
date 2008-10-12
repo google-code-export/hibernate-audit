@@ -58,9 +58,9 @@ public class WriteOnceCache<P>
      * in the database, reads it and stores it in cache. If the instance is not present in the
      * database, it creates it.
      *
-     * TODO rollback behavior on exception.
-     *
      * TODO better API  https://jira.novaordis.org/browse/HBA-125
+     *
+     * TODO rollback behavior on exception.
      *
      * @throws Exception - if an exception occurs during the process of creation in the database of
      *         the instance corresponding to the given key.
@@ -70,7 +70,7 @@ public class WriteOnceCache<P>
     {
         Key key = cacheQuery.getKey();
 
-        // TODO how I make sure type is P
+        // will hold the main lock until we get the instance from the database, if necessary
 
         synchronized(cache)
         {
@@ -83,27 +83,22 @@ public class WriteOnceCache<P>
             }
 
             misses ++;
-        }
 
-        // TODO what happens if other thread places antoher instance in cache now?
+            // not in cache, look in the database and get it from there
 
-        // not in cache, look in the database and get it from there
+            StatelessSession ss = null;
+            boolean failure = false;
 
-        StatelessSession ss = null;
-        boolean failure = false;
-
-        try
-        {
-            ss = sf.openStatelessSession();
-
-            Criteria c = cacheQuery.generateCriteria(ss);
-
-            // TODO make sure I don't enroll in the current transaction
-            ss.beginTransaction();
-
-            // TODO what happens if I have more than one
-            synchronized(cache)
+            try
             {
+                ss = sf.openStatelessSession();
+
+                Criteria c = cacheQuery.generateCriteria(ss);
+
+                // if a JTA transaction already started, we enroll here ...
+                ss.beginTransaction();
+
+                // TODO what happens if I have more than one
                 P o = (P)c.uniqueResult();
 
                 if (o != null)
@@ -120,27 +115,34 @@ public class WriteOnceCache<P>
                 cache.put(key, newInstance);
                 return newInstance;
             }
-        }
-        catch(Throwable t)
-        {
-            log.error(t);
-            failure = true;
-            throw new Exception("", t);
-        }
-        finally
-        {
-            if (failure)
+            catch(Throwable t)
             {
-                ss.getTransaction().rollback();
-            }
-            else
-            {
-                ss.getTransaction().commit();
-            }
+                failure = true;
 
-            if (ss != null)
+                // we double-log because the thrown exception may be swallowed
+                // if a rollback failure happens
+
+                String msg =
+                    "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
+                    " from/to database: " + t.getMessage();
+                log.error(msg, t);
+                throw new Exception(msg, t);
+            }
+            finally
             {
-                ss.close();
+                if (failure)
+                {
+                    ss.getTransaction().rollback();
+                }
+                else
+                {
+                    ss.getTransaction().commit();
+                }
+
+                if (ss != null)
+                {
+                    ss.close();
+                }
             }
         }
     }
