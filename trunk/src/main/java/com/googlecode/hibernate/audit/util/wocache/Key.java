@@ -22,7 +22,7 @@ import java.util.Iterator;
  *
  * $Id$
  */
-class Key
+public class Key
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ class Key
                 }
 
                 values.add(o);
+                nameExpected = true;
             }
         }
 

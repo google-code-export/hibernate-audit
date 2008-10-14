@@ -83,7 +83,7 @@ public class PostUpdateAuditEventListener
 
     // Private -------------------------------------------------------------------------------------
 
-    private void log(PostUpdateEvent event)
+    private void log(PostUpdateEvent event) throws Exception
     {
         EventContext ctx = createAndLogEventContext(event);
 

@@ -53,7 +53,7 @@ abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventLi
 
     // Package protected ---------------------------------------------------------------------------
 
-    void logCollectionEvent(AbstractCollectionEvent ace)
+    void logCollectionEvent(AbstractCollectionEvent ace) throws Exception
     {
         EventContext ctx = createAndLogEventContext(ace);
 

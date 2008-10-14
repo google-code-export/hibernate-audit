@@ -29,6 +29,7 @@ public class CacheQuery<P>
 
     private Class type;
     private Key key;
+    private InstanceFactory<P> factory;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -37,13 +38,23 @@ public class CacheQuery<P>
      */
     public CacheQuery(Class type, Object ... nameValuePairs)
     {
-        this.type = type;
+        this(type, null, nameValuePairs);
+    }
+
+    /**
+     * @exception IllegalArgumentException for unconsistent name/value pairs
+     */
+    public CacheQuery(Class type, InstanceFactory<P> factory, Object ... nameValuePairs)
+    {
         this.key = new Key(nameValuePairs);
 
         if (key.isEmpty())
         {
             throw new IllegalArgumentException("no name/value pairs specified");
         }
+
+        this.type = type;
+        this.factory = factory;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -72,6 +83,11 @@ public class CacheQuery<P>
 
     public P createInstanceMatchingQuery() throws Exception
     {
+        if (factory != null)
+        {
+            return factory.createInstance(key);
+        }
+
         Object o = type.newInstance();
 
         for(Iterator<String> i = key.names(); i.hasNext(); )

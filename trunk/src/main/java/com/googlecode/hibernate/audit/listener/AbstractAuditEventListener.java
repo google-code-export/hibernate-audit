@@ -67,7 +67,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
      *        IllegalArgumentException. Interesting how PostInsertEvent, PostUpdateEvent don't have
      *        a common base class that would allow access to entity ...
      */
-    protected EventContext createAndLogEventContext(AbstractEvent e)
+    protected EventContext createAndLogEventContext(AbstractEvent e) throws Exception
     {
         EventContext c = new EventContext();
 

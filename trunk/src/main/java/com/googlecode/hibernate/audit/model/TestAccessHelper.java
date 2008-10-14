@@ -26,12 +26,13 @@ public class TestAccessHelper
         return AuditType.getInstanceFromDatabase(c, create, s);
     }
 
+    @Deprecated
     public static AuditEntityType AuditEntityType_getInstanceFromDatabase(Class c,
                                                                           Class c2,
                                                                           boolean create,
                                                                           Session s)
     {
-        return AuditEntityType.getInstanceFromDatabase(c, c2, create, s);
+        throw new RuntimeException("DEPRECATED TEST");
     }
 
     public static AuditCollectionType AuditCollectionType_getInstanceFromDatabase(Class c,

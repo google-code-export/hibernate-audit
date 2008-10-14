@@ -38,6 +38,9 @@ import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
 import com.googlecode.hibernate.audit.delta.EntityReferenceDelta;
 import com.googlecode.hibernate.audit.util.QueryParameters;
+import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
+import com.googlecode.hibernate.audit.util.wocache.InstanceFactory;
+import com.googlecode.hibernate.audit.util.wocache.Key;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
@@ -104,6 +107,9 @@ public class Manager
     // a non-null session factory signifies that this manager instance is started
     private SessionFactoryImpl isf;
 
+    private WriteOnceCache<AuditEntityType> entityTypeCache;
+    private InstanceFactory<AuditEntityType> entityTypeInstanceFactory;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -115,6 +121,7 @@ public class Manager
     {
         sessionFactoryHolders = new HashMap<SessionFactoryImpl, SessionFactoryHolder>();
         this.settings = settings;
+
         log.debug(this + " created");
     }
 
@@ -142,6 +149,31 @@ public class Manager
         }
 
         isf = (SessionFactoryImpl)config.buildSessionFactory();
+        entityTypeCache= new WriteOnceCache<AuditEntityType>(isf);
+        entityTypeInstanceFactory = new InstanceFactory<AuditEntityType>()
+        {
+            public AuditEntityType createInstance(Key key)
+            {
+                String cn = (String)key.getValue("className");
+
+                if (cn == null)
+                {
+                    throw new IllegalArgumentException("missing entity class name");
+                }
+
+                String icn = (String)key.getValue("idClassName");
+
+                if (icn == null)
+                {
+                    throw new IllegalArgumentException("missing id class name");
+                }
+
+                AuditEntityType result = new AuditEntityType();
+                result.setClassName(cn);
+                result.setIdClassName(icn);
+                return result;
+            }
+        };
 
         log.debug(this + " started");
     }
@@ -163,6 +195,8 @@ public class Manager
 
         settings = null;
         securityInformationProvider = null;
+        entityTypeCache.clear();
+        entityTypeCache = null;
         isf.close();
         isf = null;
 
@@ -353,6 +387,16 @@ public class Manager
     public SessionFactoryImpl getSessionFactory()
     {
         return isf;
+    }
+
+    public WriteOnceCache<AuditEntityType> getEntityTypeCache()
+    {
+        return entityTypeCache;
+    }
+
+    public InstanceFactory<AuditEntityType> getEntityTypeInstanceFactory()
+    {
+        return entityTypeInstanceFactory;
     }
 
     public List query(String query, Object... args) throws Exception

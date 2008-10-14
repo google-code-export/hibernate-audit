@@ -1,7 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.Query;
 
 import javax.persistence.Transient;
 import javax.persistence.Entity;
@@ -46,7 +46,8 @@ public class AuditEntityType extends AuditType
      *
      * @return the persisted type (or null)
      */
-    static AuditEntityType getInstanceFromDatabase(Class entityClass, 
+    @Deprecated
+    static AuditEntityType getInstanceFromDatabase(Class entityClass,
                                                    Class idClass,
                                                    boolean create,
                                                    Session session)

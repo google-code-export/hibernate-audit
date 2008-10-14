@@ -90,7 +90,7 @@ public class PostInsertAuditEventListener
 
     // Private -------------------------------------------------------------------------------------
 
-    private void log(PostInsertEvent event)
+    private void log(PostInsertEvent event) throws Exception
     {
         EventContext ctx = createAndLogEventContext(event);
 

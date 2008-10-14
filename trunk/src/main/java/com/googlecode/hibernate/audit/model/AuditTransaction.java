@@ -24,6 +24,10 @@ import java.util.List;
 import java.security.Principal;
 import java.io.Serializable;
 
+import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
+import com.googlecode.hibernate.audit.util.wocache.InstanceFactory;
+import com.googlecode.hibernate.audit.HibernateAudit;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -80,7 +84,13 @@ public class AuditTransaction implements Synchronization
     @Transient
     private Session session;
 
-    // Constructors --------------------------------------------------------------------------------
+    @Transient
+    private WriteOnceCache<AuditEntityType> entityTypeCache;
+
+    @Transient
+    InstanceFactory<AuditEntityType> entityTypeInstanceFactory;
+
+        // Constructors --------------------------------------------------------------------------------
 
     AuditTransaction()
     {
@@ -103,6 +113,10 @@ public class AuditTransaction implements Synchronization
         {
             this.user = principal.getName();
         }
+
+        Manager m = HibernateAudit.getManager();
+        entityTypeCache = m.getEntityTypeCache();
+        entityTypeInstanceFactory = m.getEntityTypeInstanceFactory();
 
         // persist in the context of the audited session, if no dedicated session is available, or
         // in the context of the dedicated session, if available. TODO: for the time being we
@@ -239,6 +253,7 @@ public class AuditTransaction implements Synchronization
      * database insert if the underlying class (or classes) were not persised in the database yet.
      */
     public AuditType getAuditType(Class collectionOrEntityClass, Class memberOrIdClass)
+        throws Exception
     {
         if (Collection.class.isAssignableFrom(collectionOrEntityClass))
         {
@@ -249,6 +264,12 @@ public class AuditTransaction implements Synchronization
         // it's an entity
         return AuditEntityType.
             getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
+
+            // TO_DO_WO
+//        return entityTypeCache.get(new CacheQuery<AuditEntityType>(
+//            AuditEntityType.class, entityTypeInstanceFactory,
+//            "className", collectionOrEntityClass.getName(),
+//            "idClassName", memberOrIdClass.getName()));
     }
 
     /**
