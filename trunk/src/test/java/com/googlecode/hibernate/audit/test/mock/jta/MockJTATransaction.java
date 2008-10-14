@@ -84,29 +84,30 @@ public class MockJTATransaction implements Transaction
     {
         log.debug(this + " committing");
 
-        if (status != Status.STATUS_ACTIVE)
-        {
-            throw new RuntimeException("NOT YET IMPLEMENTED");
-        }
+        int preCommitStatus = status;
 
-        // call beforeCompletion() on all synchronizations
-        // see https://jira.novaordis.org/browse/HBA-37
-//        List<Synchronization> synchronizationsCopy =
+        if (status == Status.STATUS_ACTIVE)
+        {
+            // call beforeCompletion() on all synchronizations
+
+            // see https://jira.novaordis.org/browse/HBA-37
+//            List<Synchronization> synchronizationsCopy =
 //            new ArrayList<Synchronization>(synchronizations);
 
-        for(Synchronization s: synchronizations)
-        {
-            try
+            for(Synchronization s: synchronizations)
             {
-                log.debug(this + " calling beforeCompletion() on " + s);
-                s.beforeCompletion();
-            }
-            catch (Throwable t)
-            {
-                log.error("beforeCompletion() failed on " + s, t);
+                try
+                {
+                    log.debug(this + " calling beforeCompletion() on " + s);
+                    s.beforeCompletion();
+                }
+                catch (Throwable t)
+                {
+                    log.error("beforeCompletion() failed on " + s, t);
 
-                status = Status.STATUS_MARKED_ROLLBACK;
-                break;
+                    status = Status.STATUS_MARKED_ROLLBACK;
+                    break;
+                }
             }
         }
 
@@ -204,7 +205,11 @@ public class MockJTATransaction implements Transaction
             }
         }
 
-        if (status != Status.STATUS_COMMITTED)
+        if (preCommitStatus == Status.STATUS_MARKED_ROLLBACK)
+        {
+            throw new RollbackException("transaction already marked for rollback");
+        }
+        else if (status != Status.STATUS_COMMITTED)
         {
             throw new RollbackException("transaction failed with status " +
                                         JTAUtil.statusToString(status));

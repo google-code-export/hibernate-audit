@@ -112,6 +112,11 @@ public class MockTransactionManager implements TransactionManager
         {
             t.commit();
         }
+        catch(RollbackException re)
+        {
+            // just bubble up
+            throw re;
+        }
         catch(Exception e)
         {
             log.error("commit failed unexpectedly", e);
