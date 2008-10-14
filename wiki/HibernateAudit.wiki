@@ -66,4 +66,4 @@ Both persistence units are configured in the main `pom.xml`.
  * 08/21/08 1.0.0.Alpha7 144/1/0/11
 
 ==Latest Test Snapshot==
-10/09/08 231/4/0/0
+10/14/08 238/4/0/0
