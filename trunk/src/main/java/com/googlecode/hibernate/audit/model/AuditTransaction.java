@@ -26,6 +26,7 @@ import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
 import com.googlecode.hibernate.audit.util.wocache.InstanceFactory;
+import com.googlecode.hibernate.audit.util.wocache.CacheQuery;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 /**
@@ -261,15 +262,10 @@ public class AuditTransaction implements Synchronization
                 getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
         }
 
-        // it's an entity
-        return AuditEntityType.
-            getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
-
-            // TO_DO_WO
-//        return entityTypeCache.get(new CacheQuery<AuditEntityType>(
-//            AuditEntityType.class, entityTypeInstanceFactory,
-//            "className", collectionOrEntityClass.getName(),
-//            "idClassName", memberOrIdClass.getName()));
+        return entityTypeCache.get(new CacheQuery<AuditEntityType>(
+            AuditEntityType.class, entityTypeInstanceFactory,
+            "className", collectionOrEntityClass.getName(),
+            "idClassName", memberOrIdClass.getName()));
     }
 
     /**

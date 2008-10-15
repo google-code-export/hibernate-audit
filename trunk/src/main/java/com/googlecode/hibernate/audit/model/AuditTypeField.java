@@ -99,7 +99,6 @@ public class AuditTypeField
         return persistedType;
     }
 
-
     // Attributes ----------------------------------------------------------------------------------
 
     @Id

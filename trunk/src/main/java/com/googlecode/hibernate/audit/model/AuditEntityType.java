@@ -1,8 +1,5 @@
 package com.googlecode.hibernate.audit.model;
 
-import org.hibernate.Session;
-import org.hibernate.Query;
-
 import javax.persistence.Transient;
 import javax.persistence.Entity;
 import javax.persistence.DiscriminatorValue;
@@ -29,46 +26,6 @@ public class AuditEntityType extends AuditType
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
-
-    /**
-     * DO NOT access from outside package and DO NOT relax the access restrictions!
-     *
-     * Returns a persistent instance of given type from the database. If "create" is set to false
-     * and the type does not exist in the database, the method returns null. If "create" is set to
-     * true and the type does not exist in the database, it is persisted, and then returned.
-     *
-     * @param entityClass - the entity type.
-     * @param idClass - disregarded while querying, only used if creation is necessary.
-     *
-     * @param session - the hibernate session to be used to interact with the database. It is
-     *        assumed that a transaction is already started, and it will be committed outside
-     *        the scope of this method.
-     *
-     * @return the persisted type (or null)
-     */
-    @Deprecated
-    static AuditEntityType getInstanceFromDatabase(Class entityClass,
-                                                   Class idClass,
-                                                   boolean create,
-                                                   Session session)
-    {
-        checkTransaction(session);
-
-        String qs = "from AuditEntityType as e where e.className  = :className";
-        Query q = session.createQuery(qs);
-        q.setString("className", entityClass.getName());
-
-        AuditEntityType persistedType = (AuditEntityType)q.uniqueResult();
-
-        if (persistedType != null || !create)
-        {
-            return persistedType;
-        }
-
-        persistedType = new AuditEntityType(idClass, entityClass);
-        session.save(persistedType);
-        return persistedType;
-    }
 
     // Attributes ----------------------------------------------------------------------------------
 
