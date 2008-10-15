@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit.util.wocache;
 
 import org.hibernate.Criteria;
 import org.hibernate.StatelessSession;
+import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.Iterator;
@@ -72,12 +73,14 @@ public class CacheQuery<P>
     public Criteria generateCriteria(StatelessSession s)
     {
         Criteria c = s.createCriteria(type);
-        for(Iterator<String> i = key.names(); i.hasNext(); )
-        {
-            String name = i.next();
-            c.add(Restrictions.eq(name, key.getValue(name)));
-        }
+        fillCriteria(c);
+        return c;
+    }
 
+    public Criteria generateCriteria(Session s)
+    {
+        Criteria c = s.createCriteria(type);
+        fillCriteria(c);
         return c;
     }
 
@@ -104,6 +107,15 @@ public class CacheQuery<P>
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    private void fillCriteria(Criteria c)
+    {
+        for(Iterator<String> i = key.names(); i.hasNext(); )
+        {
+            String name = i.next();
+            c.add(Restrictions.eq(name, key.getValue(name)));
+        }
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 }

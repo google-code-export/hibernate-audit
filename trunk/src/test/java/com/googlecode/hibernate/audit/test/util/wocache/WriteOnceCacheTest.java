@@ -47,9 +47,11 @@ public class WriteOnceCacheTest extends JTATransactionTest
     /**
      * This test checks behavior if the object doesn't exist in the database and also if it exists.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoEnclosingTransaction_SuccessfulDatabaseInsert() throws Exception
     {
+        log.debug("testNoEnclosingTransaction_SuccessfulDatabaseInsert");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -78,20 +80,10 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             a = (A)cache.get(new CacheQuery<A>(A.class, "s", "blah"));
 
-            // TODO counters broken https://jira.novaordis.org/browse/HBA-128
-//            assert 0 == cache.getHitCount();
-//            assert 1 == cache.getMissCount();
-//            assert 0 == cache.getDatabaseInsertionCount();
-
             assert id.equals(a.getId());
             assert "blah".equals(a.getS());
 
             a = (A)cache.get(new CacheQuery<A>(A.class, "s", "blah"));
-
-            // TODO counters broken https://jira.novaordis.org/browse/HBA-128
-//            assert 1 == cache.getHitCount();
-//            assert 1 == cache.getMissCount();
-//            assert 0 == cache.getDatabaseInsertionCount();
 
             assert id.equals(a.getId());
             assert "blah".equals(a.getS());
@@ -109,9 +101,11 @@ public class WriteOnceCacheTest extends JTATransactionTest
         ic.close();
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNoEnclosingTransaction_DatabaseFailure_Duplicates() throws Exception
     {
+        log.debug("testNoEnclosingTransaction_DatabaseFailure_Duplicates");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -157,21 +151,12 @@ public class WriteOnceCacheTest extends JTATransactionTest
                 log.debug(">>> " + e.getMessage());
             }
 
-            assert 0 == cache.getLoad();
-
             // make sure we still have two 'alices'
             s = sf.openSession();
             s.beginTransaction();
             assert s.createQuery("from A where s = 'alice'").list().size() == 2;
             s.getTransaction().commit();
             s.close();
-        }
-        catch(Exception e)
-        {
-            if (s != null && s.getTransaction() != null)
-            {
-                s.getTransaction().rollback();
-            }
         }
         finally
         {
@@ -189,7 +174,7 @@ public class WriteOnceCacheTest extends JTATransactionTest
     /**
      * This test checks behavior if the object doesn't exist in the database and also if it exists.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnclosingJTATransaction_SuccessfulDatabaseInsert() throws Throwable
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -214,8 +199,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             assert "alice".equals(ca.getS());
             assert ca.getI() == null;
 
-            assert cache.getLoad() == 1;
-
             // make sure we still have an active transaction going on
             assert ((SessionImpl)s).isTransactionInProgress();
 
@@ -230,8 +213,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             assert id.equals(ca.getId());
             assert "alice".equals(ca.getS());
             assert ca.getI() == null;
-
-            assert cache.getLoad() == 1;
 
             // make sure write-only is not in the database yet, probe from a different thread not
             // to interfere with the on-going transaction
@@ -309,7 +290,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             assert "alice".equals(ca.getS());
             assert ca.getI() == null;
 
-            assert cache.getLoad() == 1;
         }
         catch(Exception e)
         {
@@ -327,9 +307,12 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
     }
 
+    // https://jira.novaordis.org/browse/HBA-127
     @Test(enabled = true)
     public void testEnclosingJTATransaction_InTransactionVisibility() throws Throwable
     {
+        log.debug("testEnclosingJTATransaction_InTransactionVisibility");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -368,13 +351,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             s.getTransaction().commit();
             s.close();
         }
-        catch(Exception e)
-        {
-            if (s != null && s.getTransaction() != null)
-            {
-                 s.getTransaction().rollback();
-            }
-        }
         finally
         {
             if (sf != null)
@@ -384,9 +360,11 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnclosingJTATransaction_EnclosingTransactionRollback() throws Throwable
     {
+        log.debug("testEnclosingJTATransaction_EnclosingTransactionRollback");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -399,7 +377,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             s = sf.openSession();
 
-            // we start an enclosing JTA transaction
             s.beginTransaction();
 
             WriteOnceCache<A> cache = new WriteOnceCache<A>(sf);
@@ -411,8 +388,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             assert id != null;
             assert "alice".equals(ca.getS());
             assert ca.getI() == null;
-
-            assert cache.getLoad() == 1;
 
             // make sure we still have an active transaction going on
             assert ((SessionImpl)s).isTransactionInProgress();
@@ -430,14 +405,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             // and so the cache ...
             assert null == cache.getFromCacheOnly(cQuery);
-            assert cache.getLoad() == 0;
-        }
-        catch(Exception e)
-        {
-            if (s != null && s.getTransaction() != null)
-            {
-                s.getTransaction().rollback();
-            }
         }
         finally
         {
@@ -448,9 +415,11 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnclosingJTATransaction_DatabaseFailureOnWriteOnce() throws Exception
     {
+        log.debug("testEnclosingJTATransaction_DatabaseFailureOnWriteOnce");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -500,18 +469,9 @@ public class WriteOnceCacheTest extends JTATransactionTest
                 }
             }
 
-            assert cache.getLoad() == 0;
-
             s.beginTransaction();
             assert s.createQuery("from A where s = 'alice'").list().size() == 2;
             s.getTransaction().commit();
-        }
-        catch(Exception e)
-        {
-            if (s != null && s.getTransaction() != null)
-            {
-                s.getTransaction().rollback();
-            }
         }
         finally
         {
@@ -525,28 +485,30 @@ public class WriteOnceCacheTest extends JTATransactionTest
 //    /**
 //     * This test checks behavior if the object doesn't exist in the database and also if it exists.
 //     */
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-34
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-34
 //    public void testEnclosingLocalTransaction_SuccessfulDatabaseInsert() throws Exception
 //    {
 //        throw new Exception("NOT YET IMPLEMENTED");
 //    }
 //
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-34
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-34
 //    public void testEnclosingLocalTransaction_EnclosingTransactionRollback() throws Exception
 //    {
 //        throw new Exception("NOT YET IMPLEMENTED");
 //    }
 //
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-34
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-34
 //    public void testEnclosingLocalTransaction_DatabaseFailureOnWriteOnce() throws Exception
 //    {
 //        throw new Exception("NOT YET IMPLEMENTED");
 //    }
 //
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnclosingJTATransaction_Insure_ReadCommitted_Commit() throws Throwable
     {
+        log.debug("testEnclosingJTATransaction_Insure_ReadCommitted_Commit");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
@@ -582,7 +544,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
                         Long id = ca.getId();
                         assert  id != null;
                         assert "alice".equals(ca.getS());
-                        assert cache.getLoad() == 1;
 
                         // tell the main thread that the cache was hit
                         step1.countDown();
@@ -633,8 +594,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             assert cache.getFromCacheOnly(cQuery) == null;
             
-            assert cache.getLoad() == 0;
-
             // commit the other transaction
             step2.countDown();
 
@@ -645,8 +604,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             Long id = ca.getId();
             assert id != null;
             assert "alice".equals(ca.getS());
-
-            assert cache.getLoad() == 1;
 
             s.getTransaction().commit();
 
@@ -674,7 +631,7 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnclosingJTATransaction_Insure_ReadCommitted_Rollback() throws Throwable
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -712,8 +669,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
                         Long id = ca.getId();
                         assert  id != null;
                         assert "alice".equals(ca.getS());
-
-                        assert cache.getLoad() == 1;
 
                         // tell the main thread that the cache was hit
                         step1.countDown();
@@ -764,8 +719,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             assert cache.getFromCacheOnly(cQuery) == null;
 
-            assert cache.getLoad() == 0;
-
             // rollback the other transaction
             step2.countDown();
 
@@ -773,8 +726,6 @@ public class WriteOnceCacheTest extends JTATransactionTest
             step3.await();
 
             assert cache.getFromCacheOnly(cQuery) == null;
-
-            assert cache.getLoad() == 1;
 
             s.getTransaction().commit();
 
@@ -806,7 +757,7 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
     }
 
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-129
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-129
 //    public void testEnclosingJTATransaction_ConcurrentWriteCollision() throws Throwable
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
@@ -939,14 +890,14 @@ public class WriteOnceCacheTest extends JTATransactionTest
 //        }
 //    }
     
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-129
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-129
 //    public void testNoEnclosingTransaction_ConcurrentWriteCollision() throws Exception
 //    {
 //        throw new Exception("NOT YET IMPLEMENTED");
 //    }
 //
 
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-34,
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-34,
 //                                https://jira.novaordis.org/browse/HBA-129
 //    public void testEnclosingLocalTransaction_ConcurrentWriteCollision() throws Exception
 //    {

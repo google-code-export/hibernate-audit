@@ -3,6 +3,7 @@ package com.googlecode.hibernate.audit.util.wocache;
 import org.hibernate.SessionFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
+import org.hibernate.StatelessSession;
 import org.hibernate.impl.StatelessSessionImpl;
 import org.apache.log4j.Logger;
 
@@ -82,7 +83,10 @@ public class WriteOnceCache<P>
 
             // not in cache, look in the database and get it from there
 
-            StatelessSessionImpl ss = null; // StatelessSession doesn't have isTransactionInProgress()
+            // we don't use the intuitive StatelessSession because we need access to
+            // isTransactionInProgress() and StatelessSession doesn't expose it
+            StatelessSessionImpl ss = null;
+
             boolean failure = false;
             boolean weStartedTransaction = false;
             Transaction tx = null;
@@ -100,7 +104,7 @@ public class WriteOnceCache<P>
 
                 tx = ss.beginTransaction();
 
-                WriteOnceCacheSynchronization sync = new WriteOnceCacheSynchronization(key);
+                WriteOnceCacheSynchronization sync = new WriteOnceCacheSynchronization(key, ss);
                 tx.registerSynchronization(sync);
 
                 Criteria c = cacheQuery.generateCriteria(ss);
@@ -115,9 +119,13 @@ public class WriteOnceCache<P>
                 }
 
                 // not in the database
-
                 P newInstance = cacheQuery.createMatchingInstance();
                 ss.insert(newInstance);
+
+                // can't configure StatelessSession not to use batching, so I have to manually
+                // execute the batch, otherwise I run into https://jira.novaordis.org/browse/HBA-127
+                ss.getBatcher().executeBatch();
+
                 sync.setValue(newInstance);
                 return newInstance;
             }
@@ -125,8 +133,8 @@ public class WriteOnceCache<P>
             {
                 failure = true;
 
-                // we double-log because the thrown exception may be swallowed
-                // if a rollback failure happens
+                // we double-log because the thrown exception may be swallowed if a rollback failure
+                // happens
 
                 String msg =
                     "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
@@ -147,8 +155,7 @@ public class WriteOnceCache<P>
                     tx.commit();
                 }
 
-                // DO NOT close the stateless session, otherwise the enclosing commit (if the case)
-                // will fail
+                // session will be closed in synchronization, DO NOT close it here
             }
         }
     }
@@ -178,17 +185,6 @@ public class WriteOnceCache<P>
         }
     }
 
-    /**
-     * @return current cache load
-     */
-    public int getLoad()
-    {
-        synchronized(cache)
-        {
-            return cache.size();
-        }
-    }
-
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
@@ -199,12 +195,14 @@ public class WriteOnceCache<P>
 
     private class WriteOnceCacheSynchronization implements Synchronization
     {
+        private StatelessSession ss;
         private Key key;
         private P value;
 
-        private WriteOnceCacheSynchronization(Key key)
+        private WriteOnceCacheSynchronization(Key key, StatelessSession ss)
         {
             this.key = key;
+            this.ss = ss;
         }
 
         public void beforeCompletion()
@@ -226,6 +224,15 @@ public class WriteOnceCache<P>
                 {
                     cache.put(key, value);
                 }
+            }
+
+            try
+            {
+                ss.close();
+            }
+            catch(Throwable t)
+            {
+                log.warn("failed to close stateless session " + ss, t);
             }
         }
 

@@ -389,12 +389,42 @@ public class MockJTATransaction implements Transaction
             catch(XAException e)
             {
                 log.error("end() failed on " + r, e);
-
                 status = Status.STATUS_MARKED_ROLLBACK;
             }
         }
 
         resourcesEnded = true;
+
+        // rollback all resources
+
+        status = Status.STATUS_ROLLING_BACK;
+
+        for(MockResource r: resources)
+        {
+            try
+            {
+                r.rollback();
+            }
+            catch(XAException e)
+            {
+                log.error("rollback() failed on " + r, e);
+
+//                if (e.errorCode == XAException.XA_HEURRB ||
+//                    e.errorCode == XAException.XA_HEURRB ||
+//                    e.errorCode == XAException.XA_HEURRB ||
+//                    e.errorCode == XAException.XA_HEURRB)
+//                {
+//                     throw new RuntimeException("HEURISTICS NOT YET IMPLEMENTED");
+//                }
+
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+
+            }
+            catch(Throwable t)
+            {
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+            }
+        }
 
         // call afterCompletion() on all synchronizations
 

@@ -31,6 +31,8 @@ public class MockResource
     private ResourceState state;
     private XAResource xaResource;
     private MockResource sameResourceManager;
+
+    // the Xid of this resource (branch)
     private Xid branchXid;
     private MockJTATransaction owner;
 
