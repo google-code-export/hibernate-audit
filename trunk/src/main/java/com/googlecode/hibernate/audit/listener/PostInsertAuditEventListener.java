@@ -121,7 +121,7 @@ public class PostInsertAuditEventListener
                 EntityPersister ep = ctx.factory.getEntityPersister(en);
                 Class ec = Hibernate.guessEntityClass(et, ep, ctx.mode);
                 Class idc = ep.getIdentifierType().getReturnedClass();
-                auditType = ctx.auditTransaction.getAuditType(ec, idc);
+                auditType = typeCache.getAuditEntityType(idc, ec);
                 value = ep.getIdentifier(value, ctx.mode);
                 pair = new AuditEventPair();
             }
@@ -159,18 +159,18 @@ public class PostInsertAuditEventListener
                     continue;
                 }
 
-                auditType = ctx.auditTransaction.getAuditType(cc, eec);
+                auditType = typeCache.getAuditCollectionType(cc, eec);
                 pair = new AuditEventCollectionPair();
                 ((AuditEventCollectionPair)pair).setIds(ids);
                 value = null;
             }
             else
             {
-                auditType = ctx.auditTransaction.getAuditType(hibernateType.getReturnedClass());
+                auditType = typeCache.getAuditPrimitiveType(hibernateType.getReturnedClass());
                 pair = new AuditEventPair();
             }
 
-            AuditTypeField f = ctx.auditTransaction.getAuditTypeField(name, auditType);
+            AuditTypeField f = typeCache.getAuditTypeField(name, auditType);
 
             pair.setField(f);
             pair.setValue(value);

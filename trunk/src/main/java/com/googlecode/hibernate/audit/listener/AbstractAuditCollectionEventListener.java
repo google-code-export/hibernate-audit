@@ -77,10 +77,10 @@ abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventLi
         EntityPersister eep = ctx.factory.getEntityPersister(een);
         Class eec = Hibernate.guessEntityClass(eet, eep, ctx.mode);
 
-        AuditCollectionType ft = (AuditCollectionType)ctx.auditTransaction.getAuditType(cc, eec);
+        AuditCollectionType ft = typeCache.getAuditCollectionType(cc, eec);
         String role = cp.getRole();
         String fn = Hibernate.roleToVariableName(role);
-        AuditTypeField f = ctx.auditTransaction.getAuditTypeField(fn, ft);
+        AuditTypeField f = typeCache.getAuditTypeField(fn, ft);
 
         AuditEventCollectionPair pair = new AuditEventCollectionPair();
         pair.setEvent(ctx.auditEvent);

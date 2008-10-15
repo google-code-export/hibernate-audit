@@ -38,9 +38,6 @@ import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
 import com.googlecode.hibernate.audit.delta.EntityReferenceDelta;
 import com.googlecode.hibernate.audit.util.QueryParameters;
-import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
-import com.googlecode.hibernate.audit.util.wocache.InstanceFactory;
-import com.googlecode.hibernate.audit.util.wocache.Key;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 import com.googlecode.hibernate.audit.security.SecurityInformationProviderFactory;
@@ -107,8 +104,7 @@ public class Manager
     // a non-null session factory signifies that this manager instance is started
     private SessionFactoryImpl isf;
 
-    private WriteOnceCache<AuditEntityType> entityTypeCache;
-    private InstanceFactory<AuditEntityType> entityTypeInstanceFactory;
+    private TypeCache typeCache;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -149,31 +145,8 @@ public class Manager
         }
 
         isf = (SessionFactoryImpl)config.buildSessionFactory();
-        entityTypeCache= new WriteOnceCache<AuditEntityType>(isf);
-        entityTypeInstanceFactory = new InstanceFactory<AuditEntityType>()
-        {
-            public AuditEntityType createInstance(Key key)
-            {
-                String cn = (String)key.getValue("className");
 
-                if (cn == null)
-                {
-                    throw new IllegalArgumentException("missing entity class name");
-                }
-
-                String icn = (String)key.getValue("idClassName");
-
-                if (icn == null)
-                {
-                    throw new IllegalArgumentException("missing id class name");
-                }
-
-                AuditEntityType result = new AuditEntityType();
-                result.setClassName(cn);
-                result.setIdClassName(icn);
-                return result;
-            }
-        };
+        typeCache = new TypeCache(isf);
 
         log.debug(this + " started");
     }
@@ -195,8 +168,8 @@ public class Manager
 
         settings = null;
         securityInformationProvider = null;
-        entityTypeCache.clear();
-        entityTypeCache = null;
+        typeCache.clear();
+        typeCache = null;
         isf.close();
         isf = null;
 
@@ -389,14 +362,9 @@ public class Manager
         return isf;
     }
 
-    public WriteOnceCache<AuditEntityType> getEntityTypeCache()
+    public TypeCache getTypeCache()
     {
-        return entityTypeCache;
-    }
-
-    public InstanceFactory<AuditEntityType> getEntityTypeInstanceFactory()
-    {
-        return entityTypeInstanceFactory;
+        return typeCache;
     }
 
     public List query(String query, Object... args) throws Exception
@@ -647,61 +615,6 @@ public class Manager
             }
         }
     }
-
-//    /**
-//     * @param base - the intial state of the object to apply transactional delta to.
-//     */
-//    public void delta(Object base, Serializable id, Long txId) throws Exception
-//    {
-//        delta(base, null, id, txId);
-//    }
-//
-//    /**
-//     * @param base - the intial state of the object to apply transactional delta to.
-//     * @param entityName - the entityName corresponding to the base instance. If null, base's class
-//     *        will be used.
-//     */
-//    public void delta(Object base, String entityName, Serializable id, Long txId) throws Exception
-//    {
-//        checkStarted();
-//
-//        Class c = null;
-//
-//        if (entityName == null)
-//        {
-//            c = base.getClass();
-//        }
-//
-//        SessionFactoryImpl sfi = null;
-//
-//        // pick up a registered session factory to provide metadata
-//        for(SessionFactoryImpl i: getAuditedSessionFactories())
-//        {
-//            ClassMetadata cm =
-//                entityName != null ? i.getClassMetadata(entityName) : i.getClassMetadata(c);
-//
-//            if (cm != null)
-//            {
-//                if (sfi != null)
-//                {
-//                    throw new Exception(
-//                        "NOT YET IMPLEMENTED: more than one SessionFactory maintains " +
-//                        (entityName != null ? entityName : c.getName()) + " metadata");
-//                }
-//
-//                sfi = i;
-//            }
-//        }
-//
-//        if (sfi == null)
-//        {
-//            throw new IllegalStateException(
-//                "no registered session factory maintains metadata on " +
-//                (entityName != null ? entityName : c.getName()));
-//        }
-//
-//        DeltaEngine.delta(base, entityName, id, txId, sfi, isf);
-//    }
 
     /**
      * @return null if it cannot figure it out.

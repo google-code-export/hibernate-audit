@@ -4,10 +4,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
-import org.hibernate.Session;
-import org.hibernate.Query;
-import org.hibernate.NonUniqueResultException;
-import org.apache.log4j.Logger;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -41,63 +37,7 @@ public class AuditTypeField
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(AuditTypeField.class);
-
     // Static --------------------------------------------------------------------------------------
-
-    protected static void checkTransaction(Session s) throws IllegalStateException
-    {
-        if (s.getTransaction() == null || !s.getTransaction().isActive())
-        {
-            throw new IllegalStateException("No active transaction found, bailing out");
-        }
-    }
-
-    /**
-     * DO NOT access from outside package and DO NOT relax the access restrictions!
-     *
-     * Returns a persistent instance of given field from the database. If "create" is set to false
-     * and the field does not exist in the database, the method returns null. If "create" is set to
-     * true and the field does not exist in the database, it is persisted, and then returned.
-     *
-     * @param session - the hibernate session to be used to interact with the database.
-     *        It is assumed that a transaction is already started, and it will be committed outside
-     *        the scope of this method.
-     *
-     * @return the persisted type (or null)
-     */
-    static AuditTypeField getInstanceFromDatabase(String name, AuditType type,
-                                                  boolean create, Session session)
-    {
-        checkTransaction(session);
-
-        String qs = "from AuditTypeField as f where f.name  = :name and f.type = :type";
-        Query q = session.createQuery(qs);
-        q.setString("name", name);
-        q.setParameter("type", type);
-
-        AuditTypeField persistedType = null;
-        try
-        {
-            persistedType = (AuditTypeField)q.uniqueResult();
-        }
-        catch(NonUniqueResultException nure)
-        {
-            log.error("non unique result for field name '" + name + "', type " + type);
-            throw nure;
-        }
-
-        if (persistedType != null || !create)
-        {
-            return persistedType;
-        }
-
-        persistedType = new AuditTypeField();
-        persistedType.setName(name);
-        persistedType.setType(type);
-        session.save(persistedType);
-        return persistedType;
-    }
 
     // Attributes ----------------------------------------------------------------------------------
 

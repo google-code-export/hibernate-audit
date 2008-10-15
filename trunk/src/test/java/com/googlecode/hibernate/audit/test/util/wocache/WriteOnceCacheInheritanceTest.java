@@ -40,6 +40,8 @@ public class WriteOnceCacheInheritanceTest extends JTATransactionTest
     @Test(enabled = true)
     public void testCacheBaseClass() throws Exception
     {
+        log.debug("testCacheBaseClass");
+
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(B.class);
@@ -70,7 +72,6 @@ public class WriteOnceCacheInheritanceTest extends JTATransactionTest
             B b2 = cache.get(query);
             assert b.getId().equals(b2.getId());
             assert "X".equals(b2.getBs());
-
 
             s.beginTransaction();
             B db = (B)s.createQuery("from B").uniqueResult();
@@ -211,7 +212,6 @@ public class WriteOnceCacheInheritanceTest extends JTATransactionTest
             }
         }
     }
-
 
     // Package protected ---------------------------------------------------------------------------
 

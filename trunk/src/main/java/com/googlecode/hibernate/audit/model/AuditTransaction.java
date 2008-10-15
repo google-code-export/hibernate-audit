@@ -19,15 +19,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.FetchType;
 import javax.transaction.Synchronization;
 import java.util.Date;
-import java.util.Collection;
 import java.util.List;
 import java.security.Principal;
 import java.io.Serializable;
-
-import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
-import com.googlecode.hibernate.audit.util.wocache.InstanceFactory;
-import com.googlecode.hibernate.audit.util.wocache.CacheQuery;
-import com.googlecode.hibernate.audit.HibernateAudit;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -85,13 +79,7 @@ public class AuditTransaction implements Synchronization
     @Transient
     private Session session;
 
-    @Transient
-    private WriteOnceCache<AuditEntityType> entityTypeCache;
-
-    @Transient
-    InstanceFactory<AuditEntityType> entityTypeInstanceFactory;
-
-        // Constructors --------------------------------------------------------------------------------
+    // Constructors --------------------------------------------------------------------------------
 
     AuditTransaction()
     {
@@ -114,10 +102,6 @@ public class AuditTransaction implements Synchronization
         {
             this.user = principal.getName();
         }
-
-        Manager m = HibernateAudit.getManager();
-        entityTypeCache = m.getEntityTypeCache();
-        entityTypeInstanceFactory = m.getEntityTypeInstanceFactory();
 
         // persist in the context of the audited session, if no dedicated session is available, or
         // in the context of the dedicated session, if available. TODO: for the time being we
@@ -225,7 +209,8 @@ public class AuditTransaction implements Synchronization
      */
     public void log(AuditEvent event)
     {
-        session.save(event);
+        // TODO https://jira.novaordis.org/browse/HBA-132
+        session.merge(event);
         log.debug(this + " logged " + event);
     }
 
@@ -239,64 +224,9 @@ public class AuditTransaction implements Synchronization
             throw new IllegalArgumentException("orphan name/value pair " + pair);
         }
 
-        session.save(pair);
+        // TODO https://jira.novaordis.org/browse/HBA-132
+        session.merge(pair);
         log.debug(this + " logged " + pair);
-    }
-
-    /**
-     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
-     * TODO BAD signature
-     * TODO https://jira.novaordis.org/browse/HBA-122
-     *
-     * Also, may be changed when refactoring for HBA-80
-     *
-     * Returns the corresponding AuditType (AuditCollectionType, AuditEntityType, etc), making a
-     * database insert if the underlying class (or classes) were not persised in the database yet.
-     */
-    public AuditType getAuditType(Class collectionOrEntityClass, Class memberOrIdClass)
-        throws Exception
-    {
-        if (Collection.class.isAssignableFrom(collectionOrEntityClass))
-        {
-            return AuditCollectionType.
-                getInstanceFromDatabase(collectionOrEntityClass, memberOrIdClass, true, session);
-        }
-
-        return entityTypeCache.get(new CacheQuery<AuditEntityType>(
-            AuditEntityType.class, entityTypeInstanceFactory,
-            "className", collectionOrEntityClass.getName(),
-            "idClassName", memberOrIdClass.getName()));
-    }
-
-    /**
-     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
-     * TODO https://jira.novaordis.org/browse/HBA-122
-     *
-     * Returns the corresponding AuditType, making a database insert if the underlying class (or
-     * classes) were not persised in the database yet.
-     */
-    public AuditType getAuditType(Class c)
-    {
-        if (Collection.class.isAssignableFrom(c))
-        {
-            throw new IllegalArgumentException("illegal usage: " + c);
-        }
-        return AuditType.getInstanceFromDatabase(c, true, session);
-    }
-
-    /**
-     * TODO must refactor this, it doesn't belong here, and also the implementation is bad
-     * TODO BAD signature
-     * TODO https://jira.novaordis.org/browse/HBA-122
-     *
-     * Returns the corresponding AuditTypeField, making a database insert if the underlying class
-     * was not persised in the database yet.
-     *
-     * @param type - the type this fields belongs to.
-     */
-    public AuditTypeField getAuditTypeField(String name, AuditType type)
-    {
-        return AuditTypeField.getInstanceFromDatabase(name, type, true, session);
     }
 
     /**

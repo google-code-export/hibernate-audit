@@ -1,8 +1,6 @@
 package com.googlecode.hibernate.audit.model;
 
 import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.hibernate.Session;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -58,47 +56,6 @@ public class AuditType
         new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
 
     // Static --------------------------------------------------------------------------------------
-
-    protected static void checkTransaction(Session s) throws IllegalStateException
-    {
-        if (s.getTransaction() == null || !s.getTransaction().isActive())
-        {
-            throw new IllegalStateException("No active transaction found, bailing out");
-        }
-    }
-
-    /**
-     * DO NOT access from outside package and DO NOT relax the access restrictions!
-     *
-     * Returns a persistent instance of given type from the database. If "create" is set to false
-     * and the type does not exist in the database, the method returns null. If "create" is set to
-     * true and the type does not exist in the database, it is persisted, and then returned.
-     *
-     * @param session - the hibernate session to be used to interact with the database.
-     *        It is assumed that a transaction is already started, and it will be committed outside
-     *        the scope of this method.
-     *
-     * @return the persisted type (or null)
-     */
-    static AuditType getInstanceFromDatabase(Class c, boolean create, Session session)
-    {
-        checkTransaction(session);
-
-        String qs = "from AuditType as a where a.className  = :className";
-        Query q = session.createQuery(qs);
-        q.setString("className", c.getName());
-
-        AuditType persistedType = (AuditType)q.uniqueResult();
-
-        if (persistedType != null || !create)
-        {
-            return persistedType;
-        }
-
-        persistedType = new AuditType(c);
-        session.save(persistedType);
-        return persistedType;
-    }
 
     // Attributes ----------------------------------------------------------------------------------
 

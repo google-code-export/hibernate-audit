@@ -1,8 +1,5 @@
 package com.googlecode.hibernate.audit.model;
 
-import org.hibernate.Query;
-import org.hibernate.Session;
-
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 import javax.persistence.DiscriminatorValue;
@@ -29,46 +26,6 @@ public class AuditCollectionType extends AuditType
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------
-
-    /**
-     * DO NOT access from outside package and DO NOT relax the access restrictions!
-     *
-     * Returns a persistent instance of given type from the database. If "create" is set to false
-     * and the type does not exist in the database, the method returns null. If "create" is set to
-     * true and the type does not exist in the database, it is persisted, and then returned.
-     *
-     * @param session - the hibernate session to be used to interact with the database. It is
-     *        assumed that a transaction is already started, and it will be committed outside
-     *        the scope of this method.
-     *
-     * @return the persisted type (or null)
-     */
-    static AuditCollectionType getInstanceFromDatabase(Class collectionClass,
-                                                       Class memberClass,
-                                                       boolean create,
-                                                       Session session)
-    {
-        checkTransaction(session);
-
-        String qs =
-            "from AuditCollectionType as e where " +
-            "e.className  = :memberClass and e.collectionClassName = :collectionClassName";
-
-        Query q = session.createQuery(qs);
-        q.setString("memberClass", memberClass.getName());
-        q.setString("collectionClassName", collectionClass.getName());
-
-        AuditCollectionType persistedType = (AuditCollectionType)q.uniqueResult();
-
-        if (persistedType != null || !create)
-        {
-            return persistedType;
-        }
-
-        persistedType = new AuditCollectionType(collectionClass, memberClass);
-        session.save(persistedType);
-        return persistedType;
-    }
 
     // Attributes ----------------------------------------------------------------------------------
 

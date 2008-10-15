@@ -136,14 +136,14 @@ public class PostUpdateAuditEventListener
                 EntityPersister ep = ctx.factory.getEntityPersister(en);
                 Class ec = Hibernate.guessEntityClass(et, ep, ctx.mode);
                 Class idc = ep.getIdentifierType().getReturnedClass();
-                fieldType = ctx.auditTransaction.getAuditType(ec, idc);
+                fieldType = typeCache.getAuditEntityType(idc, ec);
             }
             else
             {
-                fieldType = ctx.auditTransaction.getAuditType(type.getReturnedClass());
+                fieldType = typeCache.getAuditPrimitiveType(type.getReturnedClass());
             }
 
-            AuditTypeField f = ctx.auditTransaction.getAuditTypeField(name, fieldType);
+            AuditTypeField f = typeCache.getAuditTypeField(name, fieldType);
             pair.setField(f);
             pair.setValue(current);
             pair.setEvent(ctx.auditEvent);

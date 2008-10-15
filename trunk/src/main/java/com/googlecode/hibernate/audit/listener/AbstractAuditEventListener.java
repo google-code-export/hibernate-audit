@@ -15,6 +15,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 
@@ -40,13 +41,15 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private Manager manager;
+    protected Manager manager;
+    protected TypeCache typeCache;
 
     // Constructors --------------------------------------------------------------------------------
 
     protected AbstractAuditEventListener(Manager manager)
     {
         this.manager = manager;
+        this.typeCache = manager.getTypeCache();
     }
 
     // AuditEventListener implementation -----------------------------------------------------------
@@ -96,8 +99,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
                 ", new: " + newLGId);
         }
 
-        c.auditEntityType = (AuditEntityType)c.
-            auditTransaction.getAuditType(c.entityClass, c.entityIdClass);
+        c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);
 
         // TODO currently we only support Long as ids, we may need to generalize this
         if (!(c.entityId instanceof Long))
@@ -154,11 +156,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         {
             throw new IllegalArgumentException("unsupported event type " + e);
         }
-    }
-
-    protected Manager getManager()
-    {
-        return manager;
     }
 
     /**
