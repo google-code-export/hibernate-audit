@@ -81,7 +81,7 @@ public class CacheQuery<P>
         return c;
     }
 
-    public P createInstanceMatchingQuery() throws Exception
+    public P createMatchingInstance() throws Exception
     {
         if (factory != null)
         {

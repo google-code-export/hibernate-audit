@@ -42,10 +42,6 @@ public class WriteOnceCache<P>
     private SessionFactory sf;
     private Map<Key, P> cache;
 
-    private long hits;
-    private long misses;
-    private long insertions;
-
     // Constructors --------------------------------------------------------------------------------
 
     public WriteOnceCache(SessionFactory sf)
@@ -81,11 +77,8 @@ public class WriteOnceCache<P>
 
             if (result != null)
             {
-                hits ++;
                 return result;
             }
-
-            misses ++;
 
             // not in cache, look in the database and get it from there
 
@@ -123,7 +116,7 @@ public class WriteOnceCache<P>
 
                 // not in the database
 
-                P newInstance = cacheQuery.createInstanceMatchingQuery();
+                P newInstance = cacheQuery.createMatchingInstance();
                 ss.insert(newInstance);
                 sync.setValue(newInstance);
                 return newInstance;
@@ -173,48 +166,16 @@ public class WriteOnceCache<P>
 
         synchronized(cache)
         {
-            P result = cache.get(key);
-
-            if (result == null)
-            {
-                misses ++;
-            }
-            else
-            {
-                hits ++;
-            }
-
-            return result;
+            return cache.get(key);
         }
     }
 
-    /**
-     * It also resets all counters.
-     */
     public void clear()
     {
         synchronized(cache)
         {
             cache.clear();
-            hits = 0;
-            misses = 0;
-            insertions = 0;
         }
-    }
-
-    public long getHitCount()
-    {
-        return hits;
-    }
-
-    public long getMissCount()
-    {
-        return misses;
-    }
-
-    public long getDatabaseInsertionCount()
-    {
-        return insertions;
     }
 
     /**
@@ -264,7 +225,6 @@ public class WriteOnceCache<P>
                 synchronized(cache)
                 {
                     cache.put(key, value);
-                    insertions ++;
                 }
             }
         }
