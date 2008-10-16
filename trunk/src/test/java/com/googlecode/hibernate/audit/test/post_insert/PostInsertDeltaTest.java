@@ -17,6 +17,7 @@ import com.googlecode.hibernate.audit.test.post_insert.data.XA;
 import com.googlecode.hibernate.audit.test.post_insert.data.XB;
 import com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer;
 import com.googlecode.hibernate.audit.test.post_insert.data.XA2;
+import com.googlecode.hibernate.audit.test.post_insert.data.H;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -1709,7 +1710,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-132
      */
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_TypeCache() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1726,7 +1727,6 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             A a = new A();
             a.setName("x");
-            a.setAge(30);
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -1737,16 +1737,74 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
-            AuditTransaction tx = txs.get(0);
-
-            TransactionDelta td = HibernateAudit.getDelta(tx.getId());
+            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
             assert td.getEntityDeltas().size() == 1;
             EntityDelta ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ed != null;
+
+            // now use already cached types and fields
+
+            s = sf.openSession();
+            s.beginTransaction();
+            a = new A();
+            a.setName("y");
+            s.save(a);
+            s.getTransaction().commit();
+            s.close();
+
+            txs = HibernateAudit.getTransactions();
+            assert txs.size() == 2;
+            td = HibernateAudit.getDelta(txs.get(1).getId());
+            assert td.getEntityDeltas().size() == 1;
+            ed = td.getEntityDelta(a.getId(), A.class.getName());
+            assert ed != null;
         }
-        catch(Exception e)
+        finally
         {
-            log.error("test failed unexpectedly", e);
-            throw e;
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    /**
+     * https://jira.novaordis.org/browse/HBA-132
+     */
+    @Test(enabled = true)
+    public void testInsert_TypeCache_NonUniqueException() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(H.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            H h = new H();
+            h.setS0("s0");
+            h.setS1("s0");
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            s.save(h);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
+            assert td.getEntityDeltas().size() == 1;
+            EntityDelta ed = td.getEntityDelta(h.getId(), H.class.getName());
+            assert ed != null;
         }
         finally
         {

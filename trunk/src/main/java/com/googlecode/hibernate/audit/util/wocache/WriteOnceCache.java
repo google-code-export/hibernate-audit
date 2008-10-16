@@ -4,11 +4,14 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
+import org.hibernate.transaction.JTATransaction;
 import org.hibernate.impl.StatelessSessionImpl;
+import org.hibernate.impl.SessionFactoryImpl;
 import org.apache.log4j.Logger;
 
 import javax.transaction.Synchronization;
 import javax.transaction.Status;
+import javax.transaction.TransactionManager;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -40,15 +43,30 @@ public class WriteOnceCache<P>
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private SessionFactory sf;
-    private Map<Key, P> cache;
+    private SessionFactoryImpl sf;
+
+    // only contains <b>committed<b> instances, for in-flight transaction-associated instances
+    // look in synchronizations
+    private Map<Key, P> committedCache;
+
+    // TODO will only work in JTA environment for the time being,
+    //      see https://jira.novaordis.org/browse/HBA-134
+    private Map<javax.transaction.Transaction, PerTransactionCache> perTxCache;
+
+    private Object instanceLock;
 
     // Constructors --------------------------------------------------------------------------------
 
     public WriteOnceCache(SessionFactory sf)
     {
-        this.sf = sf;
-        cache = new HashMap<Key, P>();
+        // TODO will throw a ClassCastException if not a SessionFactoryImpl, need to cast it
+        //      in order to get a hold of TransactionmManager,
+        //      see https://jira.novaordis.org/browse/HBA-134
+        this.sf = (SessionFactoryImpl)sf;
+
+        committedCache = new HashMap<Key, P>();
+        perTxCache = new HashMap<javax.transaction.Transaction, PerTransactionCache>();
+        instanceLock = new Object();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -72,28 +90,25 @@ public class WriteOnceCache<P>
 
         // will hold the main lock until we get the instance from the database, if necessary
 
-        synchronized(cache)
+        synchronized(instanceLock)
         {
-            P result = cache.get(key);  // TODO reentrance is broken
+            P result = committedCache.get(key);  // TODO reentrance is broken
 
             if (result != null)
             {
                 return result;
             }
 
-            // not in cache, look in the database and get it from there
-
-            // we don't use the intuitive StatelessSession because we need access to
-            // isTransactionInProgress() and StatelessSession doesn't expose it
-            StatelessSessionImpl ss = null;
-
+            Transaction tx = null;
             boolean failure = false;
             boolean weStartedTransaction = false;
-            Transaction tx = null;
+            javax.transaction.Transaction jtaTx = null;
 
             try
             {
-                ss = (StatelessSessionImpl)sf.openStatelessSession();
+                // we don't use the intuitive StatelessSession because we need access to
+                // isTransactionInProgress() and StatelessSession doesn't expose it
+                StatelessSessionImpl ss = (StatelessSessionImpl)sf.openStatelessSession();
 
                 // if no transaction was already started, write down the information that we are
                 // starting it and start it, otherwise join ...
@@ -103,19 +118,40 @@ public class WriteOnceCache<P>
                 }
 
                 tx = ss.beginTransaction();
+                jtaTx = getUnderlyingTransaction(tx);
 
-                WriteOnceCacheSynchronization sync = new WriteOnceCacheSynchronization(key, ss);
-                tx.registerSynchronization(sync);
+                // not in committed cache, next look in transaction-associated syncronization (if
+                // any) and try to get it from there first
+
+                PerTransactionCache txCache = perTxCache.get(jtaTx);
+
+                if (txCache == null)
+                {
+                    txCache = new PerTransactionCache(ss);
+                    tx.registerSynchronization(txCache);
+                    perTxCache.put(jtaTx, txCache);
+                }
+                else
+                {
+                    result = txCache.get(key);
+
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
+                // not in any transaction-associated synchronization, look in the database and get
+                // it from there
 
                 Criteria c = cacheQuery.generateCriteria(ss);
 
-                P o = (P)c.uniqueResult(); // more than one record with identical keys will throw
-                                           // an exception
-
-                if (o != null)
+                P dbValue = (P)c.uniqueResult(); // more than one record with identical keys will
+                                                 // throw an exception
+                if (dbValue != null)
                 {
-                    sync.setValue(o);
-                    return o;
+                    txCache.put(key, dbValue);
+                    return dbValue;
                 }
 
                 // not in the database
@@ -126,7 +162,7 @@ public class WriteOnceCache<P>
                 // execute the batch, otherwise I run into https://jira.novaordis.org/browse/HBA-127
                 ss.getBatcher().executeBatch();
 
-                sync.setValue(newInstance);
+                txCache.put(key, newInstance);
                 return newInstance;
             }
             catch(Throwable t)
@@ -171,17 +207,17 @@ public class WriteOnceCache<P>
     {
         Key key = cacheQuery.getKey();
 
-        synchronized(cache)
+        synchronized(committedCache)
         {
-            return cache.get(key);
+            return committedCache.get(key);
         }
     }
 
     public void clear()
     {
-        synchronized(cache)
+        synchronized(committedCache)
         {
-            cache.clear();
+            committedCache.clear();
         }
     }
 
@@ -191,19 +227,51 @@ public class WriteOnceCache<P>
 
     // Private -------------------------------------------------------------------------------------
 
+    // TODO this is a hack give access to underlying transaction, won't work anywhere else but
+    //      a JTA environment, see https://jira.novaordis.org/browse/HBA-134
+    private javax.transaction.Transaction getUnderlyingTransaction(Transaction hibernateTx)
+        throws WriteOnceCacheException
+    {
+        if (!(hibernateTx instanceof JTATransaction))
+        {
+            throw new RuntimeException(
+                "NOT A JTA ENVIRONMENT, NOT YET IMPLEMENTED, " +
+                "SEE https://jira.novaordis.org/browse/HBA-134");
+        }
+
+        try
+        {
+            TransactionManager tm = sf.getTransactionManager();
+            javax.transaction.Transaction jtaTx = tm.getTransaction();
+
+            if (jtaTx == null)
+            {
+                throw new IllegalStateException("null JTA transaction");
+            }
+
+            return jtaTx;
+        }
+        catch(Exception e)
+        {
+            throw new WriteOnceCacheException(
+                "failed to get underlying JTA transaction: " + e.getMessage(), e);
+        }
+    }
+
     // Inner classes -------------------------------------------------------------------------------
 
-    private class WriteOnceCacheSynchronization implements Synchronization
+    private class PerTransactionCache implements Synchronization
     {
         private StatelessSession ss;
-        private Key key;
-        private P value;
+        private Map<Key, P> cache;
 
-        private WriteOnceCacheSynchronization(Key key, StatelessSession ss)
+        private PerTransactionCache(StatelessSession ss)
         {
-            this.key = key;
             this.ss = ss;
+            this.cache = new HashMap<Key, P>();
         }
+
+        // Synchronization implementation ----------------------------------------------------------
 
         public void beforeCompletion()
         {
@@ -212,33 +280,61 @@ public class WriteOnceCache<P>
 
         public void afterCompletion(int i)
         {
-            if (i == Status.STATUS_COMMITTED)
-            {
-                if (value == null)
-                {
-                    throw new IllegalStateException(
-                        "write once cache synchronization not properly set up, null value");
-                }
-
-                synchronized(cache)
-                {
-                    cache.put(key, value);
-                }
-            }
-
             try
             {
-                ss.close();
+                if (i == Status.STATUS_COMMITTED)
+                {
+                    synchronized(committedCache)
+                    {
+                        committedCache.putAll(cache);
+                    }
+                }
+
+                try
+                {
+                    ss.close();
+                }
+                catch(Throwable t)
+                {
+                    log.warn("failed to close stateless session " + ss, t);
+                }
             }
-            catch(Throwable t)
+            finally
             {
-                log.warn("failed to close stateless session " + ss, t);
+                synchronized(instanceLock)
+                {
+                    javax.transaction.Transaction key = null;
+
+                    for(Map.Entry<javax.transaction.Transaction, PerTransactionCache> me:
+                        perTxCache.entrySet())
+                    {
+                        if (this == me.getValue())
+                        {
+                            key = me.getKey();
+                            break;
+                        }
+                    }
+
+                    if (key != null)
+                    {
+                        perTxCache.remove(key);
+                    }
+                }
             }
         }
 
-        private void setValue(P value)
+        // Private ---------------------------------------------------------------------------------
+
+        private P get(Key key)
         {
-            this.value = value;
+            // no need for syncrhonization, as accessed from synchronized block
+            return cache.get(key);
+        }
+
+        private void put(Key k, P v)
+        {
+            // no need for syncrhonization, as accessed from synchronized block
+            cache.put(k, v);
         }
     }
 }

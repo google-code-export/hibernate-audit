@@ -204,8 +204,9 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             // re-enter the cache on the same thread/same transaction
 
-            // TODO reentrance is broken https://jira.novaordis.org/browse/HBA-130, uncomment this
-            //ca = cache.get(new CacheQuery<A>(A.class, "s", "alice"));
+            A ca2 = cache.get(new CacheQuery<A>(A.class, "s", "alice"));
+
+            assert ca == ca2;
 
             // make sure we still have an active transaction going on
             assert ((SessionImpl)s).isTransactionInProgress();
@@ -903,6 +904,120 @@ public class WriteOnceCacheTest extends JTATransactionTest
 //    {
 //        throw new Exception("NOT YET IMPLEMENTED");
 //    }
+
+    // https://jira.novaordis.org/browse/HBA-133
+    @Test(enabled = true)
+    public void testSameJTATransaction_SameEntityTwice() throws Throwable
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            s = sf.openSession();
+
+            s.beginTransaction();
+
+            WriteOnceCache<A> cache = new WriteOnceCache<A>(sf);
+
+            CacheQuery<A> cQuery = new CacheQuery<A>(A.class, "s", "alice");
+            A ca = cache.get(cQuery);
+
+            Long id = ca.getId();
+            assert id != null;
+            assert "alice".equals(ca.getS());
+
+            // run the same query again, same transaction, we should get the same object instance
+
+            A ca2 = cache.get(cQuery);
+
+            assert ca == ca2;
+
+            s.getTransaction().commit();
+
+            A ca3 = cache.get(cQuery);
+
+            assert ca == ca3;
+            assert ca == ca2;
+            
+            s.close();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-34
+//    public void testSameLocalTransaction_SameEntityTwice() throws Throwable
+//    {
+//        throw new Exception("NOT YET IMPLEMENTED");
+//    }
+
+    @Test(enabled = true)
+    public void testSameJTATransaction_DifferentEntitiesTwice() throws Throwable
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            s = sf.openSession();
+
+            s.beginTransaction();
+
+            WriteOnceCache<A> cache = new WriteOnceCache<A>(sf);
+
+            A ca0 = cache.get(new CacheQuery<A>(A.class, "s", "alice"));
+            A ca1 = cache.get(new CacheQuery<A>(A.class, "s", "anna", "i", 31));
+
+            Long id0 = ca0.getId();
+            assert id0 != null;
+            assert "alice".equals(ca0.getS());
+
+            Long id1 = ca1.getId();
+            assert id1 != null;
+            assert "anna".equals(ca1.getS());
+
+            // run the same query again, same transaction, we should get the same object instance
+
+            A ca2 = cache.get(new CacheQuery<A>(A.class, "s", "alice"));
+            A ca3 = cache.get(new CacheQuery<A>(A.class, "s", "anna", "i", 31));
+
+            assert ca0 == ca2;
+            assert ca1 == ca3;
+
+            s.getTransaction().commit();
+
+            A ca4 = cache.get(new CacheQuery<A>(A.class, "s", "alice"));
+            A ca5 = cache.get(new CacheQuery<A>(A.class, "s", "anna", "i", 31));
+
+            assert ca4 == ca0;
+            assert ca5 == ca1;
+
+            s.close();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

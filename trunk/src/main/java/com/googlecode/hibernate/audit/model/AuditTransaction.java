@@ -2,7 +2,11 @@ package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.Transaction;
 import org.hibernate.SessionFactory;
-import org.hibernate.Session;
+import org.hibernate.LockMode;
+import org.hibernate.EntityMode;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.impl.SessionImpl;
+import org.hibernate.engine.EntityKey;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Entity;
@@ -77,7 +81,7 @@ public class AuditTransaction implements Synchronization
      * The session used to persist this transaction and all related audit elements.
      */
     @Transient
-    private Session session;
+    private SessionImpl internalSession;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -103,14 +107,10 @@ public class AuditTransaction implements Synchronization
             this.user = principal.getName();
         }
 
-        // persist in the context of the audited session, if no dedicated session is available, or
-        // in the context of the dedicated session, if available. TODO: for the time being we
-        // operate under the assumption that no dedicated session is available
-
-        session = internalSessionFactory.openSession();
+        internalSession = (SessionImpl)internalSessionFactory.openSession();
 
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
-        session.beginTransaction();
+        internalSession.beginTransaction();
 
         log.debug(this + " registering itself as synchronization on " + this.hibernateTransaction);
         this.hibernateTransaction.registerSynchronization(this);
@@ -125,11 +125,11 @@ public class AuditTransaction implements Synchronization
         // see https://jira.novaordis.org/browse/HBA-37
         try
         {
-            session.getTransaction().commit();
+            internalSession.getTransaction().commit();
             log.debug(this + " committed");
 
-            session.close();
-            session = null;
+            internalSession.close();
+            internalSession = null;
         }
         finally
         {
@@ -206,11 +206,16 @@ public class AuditTransaction implements Synchronization
      * Write an event on persistent storage, in the context of this transaction. This method may
      * seem redundant, as log(AuditEventPair) will also write the parent event, via cascade. However
      * there are cases when events do not generate any pairs, so we need this method. See HBA-74.
+     *
+     * Hence, it doesn't make sense to recursively descend into the event to find
      */
     public void log(AuditEvent event)
     {
-        // TODO https://jira.novaordis.org/browse/HBA-132
-        session.merge(event);
+        // the targetType is already in the write-once cache
+        AuditType type = event.getTargetType();
+        internalSession.lock(type, LockMode.NONE);
+        
+        internalSession.save(event);
         log.debug(this + " logged " + event);
     }
 
@@ -224,8 +229,32 @@ public class AuditTransaction implements Synchronization
             throw new IllegalArgumentException("orphan name/value pair " + pair);
         }
 
-        // TODO https://jira.novaordis.org/browse/HBA-132
-        session.merge(pair);
+        // the field is already in the write-once cache, so lock it and its type
+        AuditTypeField field = pair.getField();
+        internalSession.lock(field, LockMode.NONE);
+
+        // check whether the type hasn't been locked yet, it happens in case of entities with
+        // multiple fields of same type
+        AuditType type = field.getType();
+
+        // TODO both these this can be optimized, save look-ups, as mode, persister don't change
+        EntityPersister pers = internalSession.getEntityPersister(AuditType.class.getName(), type);
+        EntityMode mode = internalSession.getEntityMode();
+        EntityKey key = new EntityKey(type.getId(), pers, mode);
+
+        if (internalSession.getPersistenceContext().getEntity(key) == null)
+        {
+            try
+            {
+                internalSession.lock(type, LockMode.NONE);
+            }
+            catch(Exception e)
+            {
+                log.debug(e);
+            }
+        }
+
+        internalSession.save(pair);
         log.debug(this + " logged " + pair);
     }
 
