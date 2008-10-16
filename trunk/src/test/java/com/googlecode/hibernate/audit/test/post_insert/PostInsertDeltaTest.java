@@ -65,7 +65,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertTest -------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_NullProperty() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -128,7 +128,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
     
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -207,7 +207,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -276,7 +276,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -357,7 +357,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -445,7 +445,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAuditField_TwoEntities_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -560,7 +560,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertEntityTest -------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSimpleCascade() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -632,7 +632,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testCascade_TwoTransactions_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -722,7 +722,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testCascade_TwoTransactions_MultipleEntities_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -827,7 +827,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertCollectionsTest --------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_EmptyCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -880,7 +880,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -958,7 +958,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddOneInCollection_NoBidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1032,7 +1032,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddTwoInCollection_Bidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1123,7 +1123,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1207,7 +1207,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1303,7 +1303,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1371,7 +1371,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertTuplizerEntityTest -----------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer() throws Exception
     {
         Configuration config = new Configuration();
@@ -1483,7 +1483,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer_Collection() throws Exception
     {
         Configuration config = new Configuration();
@@ -1613,7 +1613,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
     {
         Configuration config = new Configuration();
@@ -1710,7 +1710,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-132
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testInsert_TypeCache() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
