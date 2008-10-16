@@ -73,7 +73,7 @@ public class S2PerformanceTest extends JTATransactionTest
 
         SessionFactoryImplementor sf = null;
 
-        Series series = new Series(1);
+        Series series = new Series(20);
 
         try
         {
@@ -82,7 +82,7 @@ public class S2PerformanceTest extends JTATransactionTest
             RRepository rRepository = new RRepository(10);
             rRepository.populate(sf, true);
 
-            System.setProperty("hba.show_sql", "true");
+            System.setProperty("hba.show_sql", "false");
             System.setProperty("hba.jdbc.batch_size", "500");
 
             HibernateAudit.startRuntime(sf.getSettings());
