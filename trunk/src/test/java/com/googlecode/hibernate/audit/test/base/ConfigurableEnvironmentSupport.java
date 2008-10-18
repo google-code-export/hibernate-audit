@@ -221,6 +221,8 @@ public abstract class ConfigurableEnvironmentSupport
     {
         log.info("starting JTA environment");
 
+        //System.getProperties().setProperty("oracle.net.READ_TIMEOUT", "5000");
+
         // configure "JCA"
         MockJTAAwareDataSource ds = new MockJTAAwareDataSource(connectionDriverClassName,
                                                                connectionUrl,

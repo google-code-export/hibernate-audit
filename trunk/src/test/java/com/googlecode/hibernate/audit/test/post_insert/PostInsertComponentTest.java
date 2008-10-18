@@ -77,11 +77,8 @@ public class PostInsertComponentTest extends JTATransactionTest
             assert txs.size() == 1;
             AuditTransaction tx = txs.get(0);
 
-
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
-            assert td.getEntityDeltas().size() == 1;
-
-
+            assert td.getEntityDeltas().size() == 1; // TODO https://jira.novaordis.org/browse/HBA-32
         }
         finally
         {

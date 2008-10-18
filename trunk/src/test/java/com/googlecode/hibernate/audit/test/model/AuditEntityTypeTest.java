@@ -2,9 +2,15 @@ package com.googlecode.hibernate.audit.test.model;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.model.base.AuditTypeTestBase;
 import com.googlecode.hibernate.audit.test.model.data.A;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.TypeCache;
+import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.HibernateAudit;
 
 import java.lang.reflect.Method;
 
@@ -77,195 +83,139 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
     @Test(enabled = true)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
-        throw new Exception("DEPRECATED, CONVERT");
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
-//
-//            // DO NOT begin transaction
-//
-//            try
-//            {
-//                TestAccessHelper.AuditType_getInstanceFromDatabase(Integer.class, false, s);
-//            }
-//            catch(IllegalStateException e)
-//            {
-//                log.debug(e.getMessage());
-//            }
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            HibernateAudit.getManager().getSessionFactory().openSession();
+
+            // DO NOT begin transaction
+
+            TypeCache tc = HibernateAudit.getManager().getTypeCache();
+            AuditEntityType at = tc.getAuditEntityType(ExoticIdType.class, EntityType.class);
+            assert at.getId() != null;
+            assert EntityType.class.equals(at.getClassInstance());
+            assert ExoticIdType.class.equals(at.getIdClassInstance());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
-    public void testPersistence_NoTypeInDatabase_DontCreate() throws Exception
+    public void testPersistence_NoTypeInDatabase_Create_MessWithInternalSession() throws Exception
     {
-        throw new Exception("DEPRECATED, CONVERT");
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
-//            s.beginTransaction();
-//
-//            AuditEntityType at = TestAccessHelper.
-//                AuditEntityType_getInstanceFromDatabase(EntityType.class, null, false, s);
-//
-//            assert at == null;
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-    }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
 
-    @Test(enabled = true)
-    public void testPersistence_NoTypeInDatabase_Create() throws Exception
-    {
-        throw new Exception("DEPRECATED, CONVERT");
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
-//            s.beginTransaction();
-//
-//            AuditEntityType et = TestAccessHelper.
-//                AuditEntityType_getInstanceFromDatabase(EntityType.class, Long.class, true, s);
-//
-//            assert !et.isPrimitiveType();
-//            assert et.isEntityType();
-//            assert !et.isCollectionType();
-//
-//            assert et.getId() != null;
-//            assert EntityType.class.equals(et.getClassInstance());
-//            assert Long.class.equals(et.getIdClassInstance());
-//
-//            log.debug(et);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Manager m = HibernateAudit.getManager();
+            Session is = m.getSessionFactory().openSession();
+            is.beginTransaction();
+
+            AuditEntityType at =
+                m.getTypeCache().getAuditEntityType(ExoticIdType.class, EntityType.class);
+
+            assert !at.isPrimitiveType();
+            assert at.isEntityType();
+            assert !at.isCollectionType();
+            assert at.getId() != null;
+            assert EntityType.class.equals(at.getClassInstance());
+            assert ExoticIdType.class.equals(at.getIdClassInstance());
+
+            is.getTransaction().commit();
+            is.close();
+
+            // make sure it's in the database
+            is = m.getSessionFactory().openSession();
+            is.beginTransaction();
+            AuditEntityType dt =
+                (AuditEntityType)is.createQuery("from AuditEntityType").uniqueResult();
+            is.getTransaction().commit();
+            is.close();
+
+            assert at.getId().equals(dt.getId());
+            assert EntityType.class.equals(at.getClassInstance());
+            assert ExoticIdType.class.equals(at.getIdClassInstance());
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     @Test(enabled = true)
     public void testPersistence_TypeAlreadyInDatabase() throws Exception
     {
-        throw new Exception("DEPRECATED, CONVERT");
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            Session s = HibernateAudit.getManager().getSessionFactory().openSession();
-//            s.beginTransaction();
-//
-//            AuditEntityType et = TestAccessHelper.
-//                AuditEntityType_getInstanceFromDatabase(EntityType.class, Long.class, true, s);
-//
-//            assert et != null;
-//
-//            s.getTransaction().commit();
-//            s.beginTransaction();
-//
-//            et = TestAccessHelper.
-//                AuditEntityType_getInstanceFromDatabase(EntityType.class, null, false, s);
-//
-//            assert !et.isPrimitiveType();
-//            assert et.isEntityType();
-//            assert !et.isCollectionType();
-//
-//            assert et.getId() != null;
-//            assert EntityType.class.equals(et.getClassInstance());
-//            assert Long.class.equals(et.getIdClassInstance());
-//
-//            log.debug(et);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//        }
-//        catch(Exception e)
-//        {
-//            log.error("test failed unexpectedly", e);
-//            throw e;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+            Manager m = HibernateAudit.getManager();
+
+            Session is = m.getSessionFactory().openSession();
+            is.beginTransaction();
+            AuditEntityType at = new AuditEntityType(ExoticIdType.class, EntityType.class);
+            is.save(at);
+            is.getTransaction().commit();
+            is.close();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            AuditEntityType ct =
+                m.getTypeCache().getAuditEntityType(ExoticIdType.class, EntityType.class);
+
+            assert !ct.isPrimitiveType();
+            assert ct.isEntityType();
+            assert !ct.isCollectionType();
+            assert at.getId().equals(ct.getId());
+            assert EntityType.class.equals(ct.getClassInstance());
+            assert ExoticIdType.class.equals(ct.getIdClassInstance());
+
+            s.getTransaction().commit();
+            s.close();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -293,6 +243,10 @@ public class AuditEntityTypeTest extends AuditTypeTestBase
     }
 
     private class RandomType
+    {
+    }
+
+    private class ExoticIdType
     {
     }
 

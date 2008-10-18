@@ -48,6 +48,14 @@ while [ "$1" != "" ]; do
         clean="clean"
         shift
         continue;
+    elif [ "$1" = "-jconsole" ]; then
+        if [ "$DEBUG_OPTS" = "" ]; then
+            DEBUG_OPTS="-Dcom.sun.management.jmxremote"
+        else
+            DEBUG_OPTS="$DEBUG_OPTS -Dcom.sun.management.jmxremote"
+        fi
+        shift
+        continue;
     else
         echo "Error, unknown switch: $1"
         exit 1
