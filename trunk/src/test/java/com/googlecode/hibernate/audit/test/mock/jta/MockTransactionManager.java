@@ -11,6 +11,9 @@ import javax.transaction.HeuristicRollbackException;
 import javax.transaction.Transaction;
 import javax.transaction.InvalidTransactionException;
 import javax.transaction.Status;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
 
 /**
  * A mock transaction manager lookup used for JTA tests.
@@ -55,12 +58,14 @@ public class MockTransactionManager implements TransactionManager
     // Attributes ----------------------------------------------------------------------------------
 
     private ThreadLocal<MockJTATransaction> currentTransaction;
+    private Set<Transaction> knownTransactions;
 
     // Constructors --------------------------------------------------------------------------------
 
     private MockTransactionManager()
     {
         currentTransaction = new ThreadLocal<MockJTATransaction>();
+        knownTransactions = Collections.synchronizedSet(new HashSet<Transaction>());
     }
 
     // TransactionManager implementation -----------------------------------------------------------
@@ -75,6 +80,7 @@ public class MockTransactionManager implements TransactionManager
         }
 
         t = new MockJTATransaction(this);
+        knownTransactions.add(t);
         currentTransaction.set(t);
     }
 
@@ -101,16 +107,16 @@ public class MockTransactionManager implements TransactionManager
         throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
                SecurityException, IllegalStateException, SystemException
     {
-        MockJTATransaction t = currentTransaction.get();
+        MockJTATransaction current = currentTransaction.get();
 
-        if (t == null)
+        if (current == null)
         {
             throw new IllegalStateException("current thread not associated with a transaction");
         }
 
         try
         {
-            t.commit();
+            current.commit();
         }
         catch(RollbackException re)
         {
@@ -125,6 +131,7 @@ public class MockTransactionManager implements TransactionManager
         finally
         {
             currentTransaction.set(null);
+            knownTransactions.remove(current);
         }
     }
 
@@ -172,6 +179,7 @@ public class MockTransactionManager implements TransactionManager
         finally
         {
             currentTransaction.set(null);
+            knownTransactions.remove(current);
         }
     }
 
@@ -215,6 +223,19 @@ public class MockTransactionManager implements TransactionManager
     public void stop() throws Exception
     {
         log.debug(this + " stopped");
+    }
+
+    /**
+     * Will return the transaction itself, or null if the transaction is not known.
+     */
+    Object getTransactionIdentifier(Transaction tx)
+    {
+        if (knownTransactions.contains(tx))
+        {
+            return tx;
+        }
+
+        return null;
     }
 
     // Package protected ---------------------------------------------------------------------------

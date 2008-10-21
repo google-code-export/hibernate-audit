@@ -171,9 +171,12 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         if (at != null)
         {
             // already logged
-            if (ht != at.getTransaction())
+            Transaction aht = at.getTransaction();
+            if (ht != aht)
             {
-                throw new IllegalStateException("other transaction");
+                throw new IllegalStateException(
+                    "Hibernate audit thinks that active transaction is " + aht + ", while " +
+                    "the event was generated within the bounds of " + ht);
             }
             
             return at;

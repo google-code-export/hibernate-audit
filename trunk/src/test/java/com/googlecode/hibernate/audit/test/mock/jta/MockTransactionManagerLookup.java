@@ -40,9 +40,9 @@ public class MockTransactionManagerLookup implements TransactionManagerLookup
         return MockUserTransaction.DEFAULT_USER_TRANSACTION_JNDI_NAME;
     }
 
-    public Object getTransactionIdentifier(Transaction transaction)
+    public Object getTransactionIdentifier(Transaction tx)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        return MockTransactionManager.getInstance().getTransactionIdentifier(tx);
     }
 
     // Public --------------------------------------------------------------------------------------
