@@ -92,7 +92,7 @@ public class WriteOnceCache<P>
 
         synchronized(instanceLock)
         {
-            P result = committedCache.get(key);  // TODO reentrance is broken
+            P result = committedCache.get(key);
 
             if (result != null)
             {
