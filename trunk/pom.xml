@@ -168,6 +168,18 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -237,6 +249,15 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.6</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!--
+                    Need this to test the secondary persistence unit with a database other than Oracle.
+                -->
+                <groupId>javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>3.4.GA</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
