@@ -74,7 +74,7 @@ public class MockTransactionManager implements TransactionManager
             throw new RuntimeException("NOT YET IMPLEMENTED");
         }
 
-        t = new MockJTATransaction();
+        t = new MockJTATransaction(this);
         currentTransaction.set(t);
     }
 
@@ -218,6 +218,20 @@ public class MockTransactionManager implements TransactionManager
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    /**
+     * Must be used only by MockJTATransaction having commit() called upon themselves directly.
+     * They invoke this method to clean threadlocal of themselves.
+     */
+    void clearCurrentTransaction(MockJTATransaction me) throws SystemException
+    {
+        if (getTransaction() != me)
+        {
+            throw new IllegalArgumentException(me + " is not the current transaction");
+        }
+
+        currentTransaction.set(null);
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

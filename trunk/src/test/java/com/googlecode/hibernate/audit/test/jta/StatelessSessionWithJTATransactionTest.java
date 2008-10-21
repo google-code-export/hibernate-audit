@@ -37,138 +37,138 @@ public class StatelessSessionWithJTATransactionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-//    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-138
-//    public void testSingleInsert() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        InitialContext ic = null;
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            // start a JTA transaction
-//            ic = new InitialContext();
-//            String utJNDIName = getUserTransactionJNDIName();
-//            UserTransaction ut = (UserTransaction)ic.lookup(utJNDIName);
-//            ut.begin();
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.getCurrentSession();
-//
-//            assert Status.STATUS_ACTIVE == ut.getStatus();
-//
-//            s.save(a);
-//
-//            ut.commit();
-//
-//            List ts = HibernateAudit.query("from AuditTransaction");
-//            assert ts.size() == 1;
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//
-//            if (ic != null)
-//            {
-//                ic.close();
-//            }
-//        }
-//    }
+    @Test(enabled = true)
+    public void testSingleInsert() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        InitialContext ic = null;
+        SessionFactoryImplementor sf = null;
 
-//    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-138
-//    public void testTwoInsertsTwoTransactions() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        InitialContext ic = null;
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            // start JTA transaction 1
-//            ic = new InitialContext();
-//            String utJNDIName = getUserTransactionJNDIName();
-//            UserTransaction ut = (UserTransaction)ic.lookup(utJNDIName);
-//            ut.begin();
-//
-//            Session s = sf.getCurrentSession();
-//
-//            A a = new A();
-//            a.setName("alice");
-//            log.debug("saving " + a);
-//            s.save(a);
-//
-//            a = new A();
-//            a.setName("alex");
-//            log.debug("saving " + a);
-//            s.save(a);
-//
-//            log.debug("commit");
-//
-//            ut.commit();
-//
-//            log.debug("commit successful");
-//
-//            // start JTA transaction 2
-//            ut.begin();
-//
-//            s = sf.getCurrentSession();
-//
-//            a = new A();
-//            a.setName("albert");
-//            s.save(a);
-//
-//            a = new A();
-//            a.setName("ana");
-//            s.save(a);
-//
-//            log.debug("commit 2");
-//
-//            ut.commit();
-//
-//            log.debug("commit 2 successful");
-//
-//            List ts = HibernateAudit.query("from AuditTransaction");
-//            assert ts.size() == 2;
-//
-//            ts = HibernateAudit.query("from AuditEventPair");
-//            assert ts.size() == 4;
-//
-//            HibernateAudit.stopRuntime();
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//
-//            if (ic != null)
-//            {
-//                ic.close();
-//            }
-//        }
-//    }
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            // start a JTA transaction
+            ic = new InitialContext();
+            String utJNDIName = getUserTransactionJNDIName();
+            UserTransaction ut = (UserTransaction)ic.lookup(utJNDIName);
+            ut.begin();
+
+            A a = new A();
+            a.setName("alice");
+
+            Session s = sf.getCurrentSession();
+
+            assert Status.STATUS_ACTIVE == ut.getStatus();
+
+            s.save(a);
+
+            ut.commit();
+
+            List ts = HibernateAudit.query("from AuditTransaction");
+            assert ts.size() == 1;
+
+            HibernateAudit.stopRuntime();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+
+            if (ic != null)
+            {
+                ic.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testTwoInsertsTwoTransactions() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        InitialContext ic = null;
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            // start JTA transaction 1
+            ic = new InitialContext();
+            String utJNDIName = getUserTransactionJNDIName();
+            UserTransaction ut = (UserTransaction)ic.lookup(utJNDIName);
+            ut.begin();
+
+            Session s = sf.getCurrentSession();
+
+            A a = new A();
+            a.setName("alice");
+            log.debug("saving " + a);
+            s.save(a);
+
+            a = new A();
+            a.setName("alex");
+            log.debug("saving " + a);
+            s.save(a);
+
+            log.debug("commit");
+
+            ut.commit();
+
+            log.debug("commit successful");
+
+            // start JTA transaction 2
+            ut.begin();
+
+            s = sf.getCurrentSession();
+
+            a = new A();
+            a.setName("albert");
+            s.save(a);
+
+            a = new A();
+            a.setName("ana");
+            s.save(a);
+
+            log.debug("commit 2");
+
+            ut.commit();
+
+            log.debug("commit 2 successful");
+
+            List ts = HibernateAudit.query("from AuditTransaction");
+            assert ts.size() == 2;
+
+            ts = HibernateAudit.query("from AuditEventPair");
+            assert ts.size() == 4;
+
+            HibernateAudit.stopRuntime();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+
+            if (ic != null)
+            {
+                ic.close();
+            }
+        }
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

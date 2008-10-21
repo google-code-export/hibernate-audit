@@ -48,15 +48,18 @@ public class MockJTATransaction implements Transaction
     private Xid xid;
     private long lastBranchId;
 
+    private MockTransactionManager tm;
+
     // Constructors --------------------------------------------------------------------------------
 
-    public MockJTATransaction()
+    public MockJTATransaction(MockTransactionManager tm)
     {
         status = Status.STATUS_ACTIVE;
         synchronizations = new ArrayList<Synchronization>();
         resources = new ArrayList<MockResource>();
         xid = XidFactory.createNewXid();
         lastBranchId = 0;
+        this.tm = tm;
     }
 
     // Transaction implementation ------------------------------------------------------------------
@@ -88,25 +91,32 @@ public class MockJTATransaction implements Transaction
 
         if (status == Status.STATUS_ACTIVE)
         {
-            // call beforeCompletion() on all synchronizations
+            // call beforeCompletion() on all synchronizations. We do not iterate, but scan the
+            // list the old fashioned way, because during beforeCompletion() execution new
+            // synchronizations may be added and if we use an iterator we run into
+            // ConcurrentModificationException. See https://jira.novaordis.org/browse/HBA-138.
+            // Also see https://jira.novaordis.org/browse/HBA-37, even we solved that by registering
+            // synchronizations in advance.
 
-            // see https://jira.novaordis.org/browse/HBA-37
-//            List<Synchronization> synchronizationsCopy =
-//            new ArrayList<Synchronization>(synchronizations);
-
-            for(Synchronization s: synchronizations)
+            synchronized(this)
             {
-                try
+                for(int i = 0; i < synchronizations.size(); i++)
                 {
-                    log.debug(this + " calling beforeCompletion() on " + s);
-                    s.beforeCompletion();
-                }
-                catch (Throwable t)
-                {
-                    log.error("beforeCompletion() failed on " + s, t);
+                    Synchronization s = synchronizations.get(i);
 
-                    status = Status.STATUS_MARKED_ROLLBACK;
-                    break;
+                    log.debug(this + " calling beforeCompletion() on " + s);
+
+                    try
+                    {
+                        s.beforeCompletion();
+                    }
+                    catch (Throwable t)
+                    {
+                        log.error("beforeCompletion() failed on " + s, t);
+
+                        status = Status.STATUS_MARKED_ROLLBACK;
+                        break;
+                    }
                 }
             }
         }
@@ -190,7 +200,10 @@ public class MockJTATransaction implements Transaction
             status = Status.STATUS_ROLLEDBACK;
         }
 
-        // call afterCompletion() on all synchronizations
+        // call afterCompletion() on all synchronizations. Unlike beforeCompletion(), we don't allow
+        // new synchronizations to be added in afterCompletion(), so we can iterate using an
+        // iterator, we want to be notified of ConcurrentModificationException, if occurs. See
+        // the above "beforeCompletion()" comment.
 
         for(Synchronization s: synchronizations)
         {
@@ -216,6 +229,8 @@ public class MockJTATransaction implements Transaction
         }
 
         status = Status.STATUS_NO_TRANSACTION;
+
+        tm.clearCurrentTransaction(this);
 
     }
 

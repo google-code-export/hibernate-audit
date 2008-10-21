@@ -62,9 +62,10 @@ public class WriteOnceCacheAndTransactionsTest extends JTATransactionTest
 
         try
         {
-             sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             final WriteOnceCache<A> woCache = new WriteOnceCache<A>(sf);
+            final Long[] id = new Long[1];
 
             ic = new InitialContext();
             tm = (TransactionManager)ic.lookup(getTransactionManagerJNDIName());
@@ -80,7 +81,8 @@ public class WriteOnceCacheAndTransactionsTest extends JTATransactionTest
 
                     try
                     {
-                        woCache.get(new CacheQuery<A>(A.class, "s", "alice"));
+                        A a = woCache.get(new CacheQuery<A>(A.class, "s", "alice"));
+                        id[0] = a.getId();
                     }
                     catch(Exception e)
                     {
@@ -95,6 +97,16 @@ public class WriteOnceCacheAndTransactionsTest extends JTATransactionTest
             });
 
             tx.commit();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = (A)s.createQuery("from A").uniqueResult();
+            assert id[0].equals(a.getId());
+            assert "alice".equals(a.getS());
+
+            s.getTransaction().commit();
+            s.close();
         }
         finally
         {
@@ -102,13 +114,18 @@ public class WriteOnceCacheAndTransactionsTest extends JTATransactionTest
             {
                 ic.close();
             }
+
+            if (sf != null)
+            {
+                sf.close();
+            }
         }
     }
 
     /**
      * See https://jira.novaordis.org/browse/HBA-138
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSynchronizationConcurrentModificationException_UserTransaction()
         throws Exception
     {
@@ -162,7 +179,7 @@ public class WriteOnceCacheAndTransactionsTest extends JTATransactionTest
     /**
      * See https://jira.novaordis.org/browse/HBA-138
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testSynchronizationConcurrentModificationException_HibernateTransaction()
         throws Exception
     {
