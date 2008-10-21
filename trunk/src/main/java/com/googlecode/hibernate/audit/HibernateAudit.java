@@ -7,7 +7,7 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
-import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 

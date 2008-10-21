@@ -11,10 +11,10 @@ import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.TransactionFilter;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.util.NotYetImplementedException;
-import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.Date;

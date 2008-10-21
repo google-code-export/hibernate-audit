@@ -29,6 +29,7 @@ import java.security.Principal;
 import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;

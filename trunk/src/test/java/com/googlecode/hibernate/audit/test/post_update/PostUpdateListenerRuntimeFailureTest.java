@@ -10,7 +10,7 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.HibernateAuditException;
-import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 
 import java.io.Serializable;
 

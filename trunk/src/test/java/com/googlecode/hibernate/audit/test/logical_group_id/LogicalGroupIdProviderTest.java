@@ -11,8 +11,8 @@ import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.HibernateAuditException;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
 
 import java.util.List;
 import java.util.Random;

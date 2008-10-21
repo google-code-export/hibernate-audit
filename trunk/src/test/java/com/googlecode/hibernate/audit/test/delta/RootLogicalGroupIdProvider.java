@@ -1,6 +1,6 @@
 package com.googlecode.hibernate.audit.test.delta;
 
-import com.googlecode.hibernate.audit.model.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;

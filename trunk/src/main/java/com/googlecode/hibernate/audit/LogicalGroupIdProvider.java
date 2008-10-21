@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.model;
+package com.googlecode.hibernate.audit;
 
 import org.hibernate.event.EventSource;
 
