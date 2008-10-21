@@ -4,6 +4,7 @@ import org.hibernate.transaction.TransactionManagerLookup;
 import org.hibernate.HibernateException;
 
 import javax.transaction.TransactionManager;
+import javax.transaction.Transaction;
 import java.util.Properties;
 
 /**
@@ -40,6 +41,11 @@ public class SyntheticTransactionManagerLookup implements TransactionManagerLook
     public String getUserTransactionName()
     {
         return userTransactionName;
+    }
+
+    public Object getTransactionIdentifier(Transaction transaction)
+    {
+        throw new RuntimeException("NOT YET IMPLEMENTED");
     }
 
     // Public --------------------------------------------------------------------------------------

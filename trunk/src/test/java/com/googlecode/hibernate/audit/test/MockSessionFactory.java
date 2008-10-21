@@ -24,7 +24,7 @@ import org.hibernate.stat.StatisticsImplementor;
 import org.hibernate.stat.Statistics;
 import org.hibernate.cache.QueryCache;
 import org.hibernate.cache.UpdateTimestampsCache;
-import org.hibernate.cache.Cache;
+import org.hibernate.cache.Region;
 import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.type.Type;
 import org.hibernate.dialect.Dialect;
@@ -135,7 +135,7 @@ class MockSessionFactory implements SessionFactoryImplementor
         throw new RuntimeException("NOT YET IMPLEMENTED");
     }
 
-    public Cache getSecondLevelCacheRegion(String regionName) {
+    public Region getSecondLevelCacheRegion(String regionName) {
         throw new RuntimeException("NOT YET IMPLEMENTED");
     }
 

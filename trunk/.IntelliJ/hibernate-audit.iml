@@ -9,10 +9,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="hibernate-3.2.6.ga" level="project" />
+    <orderEntry type="library" name="hibernate" level="project" />
     <orderEntry type="library" name="log4j-1.2.14" level="project" />
     <orderEntry type="library" name="testng-5.7-jdk15" level="project" />
-    <orderEntry type="library" name="jta-1.0.1B" level="project" />
+    <orderEntry type="library" name="jta" level="project" />
     <orderEntry type="library" name="persistence-api-1.0" level="project" />
     <orderEntry type="library" exported="" name="hibernate-annotations-3.3.0.ga" level="project" />
     <orderEntry type="library" name="jboss-jca" level="project" />

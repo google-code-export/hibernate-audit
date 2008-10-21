@@ -405,13 +405,13 @@
     </option>
   </component>
   <component name="libraryTable">
-    <library name="hibernate-3.2.6.ga">
+    <library name="hibernate">
       <CLASSES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/hibernate/hibernate/3.2.6.ga/hibernate-3.2.6.ga.jar!/" />
+        <root url="jar://C:/work/hibernate-3.3.1.GA/hibernate3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$HIBERNATE_HOME$/src" />
+        <root url="file://C:/work/hibernate-3.3.1.GA/project/core/src/main/java" />
       </SOURCES>
     </library>
     <library name="log4j-1.2.14">
@@ -430,9 +430,9 @@
         <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15-src.jar!/" />
       </SOURCES>
     </library>
-    <library name="jta-1.0.1B">
+    <library name="jta">
       <CLASSES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/javax/transaction/jta/1.0.1B/jta-1.0.1B.jar!/" />
+        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/javax/transaction/jta/1.1/jta-1.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
@@ -473,8 +473,6 @@
     <option name="COPY_FORMS_RUNTIME_TO_OUTPUT" value="true" />
     <option name="DEFAULT_LAYOUT_MANAGER" value="GridLayoutManager" />
   </component>
-  <UsedPathMacros>
-    <macro name="HIBERNATE_HOME" />
-  </UsedPathMacros>
+  <UsedPathMacros />
 </project>
 

@@ -4,6 +4,7 @@ import org.hibernate.transaction.TransactionManagerLookup;
 import org.hibernate.HibernateException;
 
 import javax.transaction.TransactionManager;
+import javax.transaction.Transaction;
 import java.util.Properties;
 
 /**
@@ -37,6 +38,11 @@ public class MockTransactionManagerLookup implements TransactionManagerLookup
     public String getUserTransactionName()
     {
         return MockUserTransaction.DEFAULT_USER_TRANSACTION_JNDI_NAME;
+    }
+
+    public Object getTransactionIdentifier(Transaction transaction)
+    {
+        throw new RuntimeException("NOT YET IMPLEMENTED");
     }
 
     // Public --------------------------------------------------------------------------------------
