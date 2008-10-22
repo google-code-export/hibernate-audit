@@ -211,10 +211,9 @@ public class AuditTransaction implements Synchronization
      */
     public void log(AuditEvent event)
     {
-        // the targetType is already in the write-once cache
         AuditType type = event.getTargetType();
-        internalSession.lock(type, LockMode.NONE);
-        
+        lockTypeToPersistenceContext(type);
+
         internalSession.save(event);
         log.debug(this + " logged " + event);
     }
@@ -233,26 +232,8 @@ public class AuditTransaction implements Synchronization
         AuditTypeField field = pair.getField();
         internalSession.lock(field, LockMode.NONE);
 
-        // check whether the type hasn't been locked yet, it happens in case of entities with
-        // multiple fields of same type
         AuditType type = field.getType();
-
-        // TODO both these this can be optimized, save look-ups, as mode, persister don't change
-        EntityPersister pers = internalSession.getEntityPersister(AuditType.class.getName(), type);
-        EntityMode mode = internalSession.getEntityMode();
-        EntityKey key = new EntityKey(type.getId(), pers, mode);
-
-        if (internalSession.getPersistenceContext().getEntity(key) == null)
-        {
-            try
-            {
-                internalSession.lock(type, LockMode.NONE);
-            }
-            catch(Exception e)
-            {
-                log.debug(e);
-            }
-        }
+        lockTypeToPersistenceContext(type);
 
         internalSession.save(pair);
         log.debug(this + " logged " + pair);
@@ -309,6 +290,45 @@ public class AuditTransaction implements Synchronization
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    private void lockTypeToPersistenceContext(AuditType at)
+    {
+        // check whether the type hasn't been locked yet, it happens in case of entities with
+        // multiple fields of same type or other similar cases
+
+        // TODO both these this can be optimized, save look-ups, as mode, persister don't change
+        EntityPersister pers = internalSession.getEntityPersister(AuditType.class.getName(), at);
+        EntityMode mode = internalSession.getEntityMode();
+        EntityKey key = new EntityKey(at.getId(), pers, mode);
+
+        Object persistenceCtxTypeInstance = internalSession.getPersistenceContext().getEntity(key);
+
+        if (persistenceCtxTypeInstance == null)
+        {
+            // entity not in persistence context, safe to lock
+
+            try
+            {
+                internalSession.lock(at, LockMode.NONE);
+                return;
+            }
+            catch(Exception e)
+            {
+                throw new IllegalStateException("could not lock type " + at, e);
+            }
+        }
+
+        // something in persistence context, must be identical instance, otherwise we have
+        // invalid state
+
+        if (persistenceCtxTypeInstance != at)
+        {
+            // fail early, it'll fail later anyway
+            throw new IllegalStateException(
+                "instance corresponding to type " + at + " already in internal persistence " +
+                "context: " + persistenceCtxTypeInstance);
+        }
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 
