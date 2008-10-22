@@ -37,8 +37,11 @@ public class TypeCacheTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
+    /**
+     * https://jira.novaordis.org/browse/HBA-149
+     */
     @Test(enabled = true)
-    public void test() throws Exception
+    public void testPersistenceContextCollision() throws Exception
     {
         log.debug("test");
 
@@ -56,6 +59,8 @@ public class TypeCacheTest extends JTATransactionTest
             HibernateAudit.startRuntime(sf.getSettings());
             HibernateAudit.register(sf);
 
+            // first, write a type and a fileld in the database via the write-once cache
+
             s = sf.openSession();
             s.beginTransaction();
 
@@ -66,6 +71,14 @@ public class TypeCacheTest extends JTATransactionTest
             s.save(a);
 
             s.getTransaction().commit();
+
+            // we have the type "B" and the field "B.b" in the database
+
+            // now clear the type cache to force it to reload
+
+            HibernateAudit.getManager().getTypeCache().clear();
+
+            // reload the cache again
 
             s = sf.openSession();
             s.beginTransaction();

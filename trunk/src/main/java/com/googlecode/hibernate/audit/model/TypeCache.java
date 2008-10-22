@@ -109,7 +109,13 @@ public class TypeCache
         CacheQuery<AuditTypeField> cq =
             new CacheQuery<AuditTypeField>(AuditTypeField.class, fif,
                                            "name", fieldName, "type", fieldType);
-        return fields.get(cq);
+
+        AuditTypeField field = fields.get(cq);
+
+        // restore instance integrity, see https://jira.novaordis.org/browse/HBA-149
+        field.setType(fieldType);
+
+        return field;
     }
 
     public void clear()
