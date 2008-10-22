@@ -4,16 +4,16 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
-import org.hibernate.transaction.JTATransaction;
 import org.hibernate.impl.StatelessSessionImpl;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.apache.log4j.Logger;
 
 import javax.transaction.Synchronization;
 import javax.transaction.Status;
-import javax.transaction.TransactionManager;
 import java.util.Map;
 import java.util.HashMap;
+
+import com.googlecode.hibernate.audit.util.Hibernate;
 
 /**
  * A process-level upfront cache for write once instances. The implementation will only work for
@@ -118,7 +118,7 @@ public class WriteOnceCache<P>
                 }
 
                 tx = ss.beginTransaction();
-                jtaTx = getUnderlyingTransaction(tx);
+                jtaTx = Hibernate.getUnderlyingTransaction(sf, tx);
 
                 // not in committed cache, next look in transaction-associated syncronization (if
                 // any) and try to get it from there first
@@ -226,37 +226,6 @@ public class WriteOnceCache<P>
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
-
-    // TODO this is a hack give access to underlying transaction, won't work anywhere else but
-    //      a JTA environment, see https://jira.novaordis.org/browse/HBA-134
-    private javax.transaction.Transaction getUnderlyingTransaction(Transaction hibernateTx)
-        throws WriteOnceCacheException
-    {
-        if (!(hibernateTx instanceof JTATransaction))
-        {
-            throw new RuntimeException(
-                "NOT A JTA ENVIRONMENT, NOT YET IMPLEMENTED, " +
-                "SEE https://jira.novaordis.org/browse/HBA-134");
-        }
-
-        try
-        {
-            TransactionManager tm = sf.getTransactionManager();
-            javax.transaction.Transaction jtaTx = tm.getTransaction();
-
-            if (jtaTx == null)
-            {
-                throw new IllegalStateException("null JTA transaction");
-            }
-
-            return jtaTx;
-        }
-        catch(Exception e)
-        {
-            throw new WriteOnceCacheException(
-                "failed to get underlying JTA transaction: " + e.getMessage(), e);
-        }
-    }
 
     // Inner classes -------------------------------------------------------------------------------
 

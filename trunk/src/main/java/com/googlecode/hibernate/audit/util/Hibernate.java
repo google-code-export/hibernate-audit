@@ -6,9 +6,13 @@ import org.hibernate.type.SetType;
 import org.hibernate.type.EntityType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
+import org.hibernate.Transaction;
+import org.hibernate.impl.SessionFactoryImpl;
+import org.hibernate.transaction.JTATransaction;
 import org.hibernate.tuple.Tuplizer;
 import org.hibernate.tuple.entity.EntityTuplizer;
 
+import javax.transaction.TransactionManager;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -102,6 +106,34 @@ public class Hibernate
         }
 
         return role.substring(i + 1);
+    }
+
+    /**
+     * TODO this is a hack give access to underlying transaction, won't work anywhere else but a
+     * JTA environment.
+     *
+     * See https://jira.novaordis.org/browse/HBA-134
+     */
+    public static javax.transaction.Transaction getUnderlyingTransaction(SessionFactoryImpl sf, 
+                                                                         Transaction hibernateTx)
+        throws Exception
+    {
+        if (!(hibernateTx instanceof JTATransaction))
+        {
+            throw new RuntimeException(
+                "NOT A JTA ENVIRONMENT, NOT YET IMPLEMENTED, " +
+                "SEE https://jira.novaordis.org/browse/HBA-134");
+        }
+
+        TransactionManager tm = sf.getTransactionManager();
+        javax.transaction.Transaction jtaTx = tm.getTransaction();
+
+        if (jtaTx == null)
+        {
+            throw new IllegalStateException("null JTA transaction");
+        }
+
+        return jtaTx;
     }
 
     // Attributes ----------------------------------------------------------------------------------

@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.Transaction;
 import org.hibernate.SessionFactory;
 import org.hibernate.EntityMode;
+import org.hibernate.impl.SessionFactoryImpl;
+import org.hibernate.transaction.JTATransaction;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.event.EventSource;
@@ -17,6 +19,7 @@ import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 
 import java.security.Principal;
@@ -172,7 +175,31 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         {
             // already logged
             Transaction aht = at.getTransaction();
-            if (ht != aht)
+            if (ht instanceof JTATransaction && aht instanceof JTATransaction)
+            {
+                // it is possible to have different instances of JTATransaction while the underlying
+                // javax.transaction.Transaction is the same. Unfortunately, Hibernate doesn't allow
+                // us to get the underlying transaction from the JTATransaction instance, so we have
+                // to do this:
+                javax.transaction.Transaction crtJtaTx = null, eventJtaTx = null;
+                try
+                {
+                    SessionFactoryImpl sf = (SessionFactoryImpl)auditedSession.getSessionFactory();
+                    crtJtaTx = Hibernate.getUnderlyingTransaction(sf, aht);
+                    eventJtaTx = Hibernate.getUnderlyingTransaction(sf, ht);
+                }
+                catch(Exception e)
+                {
+                    log.warn("failed to get underlying JTA transaction", e);
+                }
+
+                if (crtJtaTx == null || !crtJtaTx.equals(eventJtaTx))
+                {
+                    throw new IllegalStateException(
+                        "underlying JTA transactions don't match:  " + crtJtaTx + ", " + eventJtaTx);
+                }
+            }
+            else if (ht != aht)
             {
                 throw new IllegalStateException(
                     "Hibernate audit thinks that active transaction is " + aht + ", while " +
