@@ -152,7 +152,7 @@ public class AuditEntityType extends AuditType
         if (!idClassInstance.isInstance(o))
         {
             throw new IllegalArgumentException("the argument cannot be an id for " +
-                                               classInstance.getName());
+                                               idClassInstance.getName());
         }
 
         try
