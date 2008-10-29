@@ -66,8 +66,7 @@ public class AuditEvent
     private ChangeType type;
 
     @Column(name = "TARGET_ENTITY_ID", nullable = false, columnDefinition="NUMBER(30, 0)")
-    private Long targetId; // TODO current implementation supports only Longs as ids, this needs
-                           // to be generalized if audited model uses other types as ids.
+    private Long targetId; // TODO https://jira.novaordis.org/browse/HBA-154
 
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)

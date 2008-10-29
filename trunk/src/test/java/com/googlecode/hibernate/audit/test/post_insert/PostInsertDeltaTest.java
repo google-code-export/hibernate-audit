@@ -18,7 +18,6 @@ import com.googlecode.hibernate.audit.test.post_insert.data.XB;
 import com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer;
 import com.googlecode.hibernate.audit.test.post_insert.data.XA2;
 import com.googlecode.hibernate.audit.test.post_insert.data.H;
-import com.googlecode.hibernate.audit.test.post_insert.data.K;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -1818,47 +1817,47 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
-    public void testInsert_StringId() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(K.class);
-        SessionFactoryImplementor sf = null;
-
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            K k = new K();
-
-            Session s = sf.openSession();
-            s.beginTransaction();
-            s.save(k);
-
-            s.getTransaction().commit();
-            s.close();
-
-            List<AuditTransaction> txs = HibernateAudit.getTransactions();
-            assert txs.size() == 1;
-            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
-            assert td.getEntityDeltas().size() == 1;
-            EntityDelta ed = td.getEntityDelta(k.getId(), K.class.getName());
-            assert ed != null;
-        }
-        finally
-        {
-            HibernateAudit.stopRuntime();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-154
+//    public void testInsert_StringId() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(K.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            K k = new K();
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//            s.save(k);
+//
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+//            assert txs.size() == 1;
+//            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
+//            assert td.getEntityDeltas().size() == 1;
+//            EntityDelta ed = td.getEntityDelta(k.getId(), K.class.getName());
+//            assert ed != null;
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
 
     // Package protected ---------------------------------------------------------------------------
 

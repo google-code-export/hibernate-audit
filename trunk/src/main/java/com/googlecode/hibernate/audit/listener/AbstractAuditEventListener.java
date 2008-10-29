@@ -107,7 +107,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         c.auditEvent.setTransaction(c.auditTransaction);
         c.auditEvent.setType(c.changeType);
 
-        // TODO currently we only support Long as ids, we may need to generalize this
+        // TODO currently we only support Long as ids, see https://jira.novaordis.org/browse/HBA-154
         if (!(c.entityId instanceof Long))
         {
             throw new IllegalArgumentException(
