@@ -18,6 +18,7 @@ import com.googlecode.hibernate.audit.test.post_insert.data.XB;
 import com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer;
 import com.googlecode.hibernate.audit.test.post_insert.data.XA2;
 import com.googlecode.hibernate.audit.test.post_insert.data.H;
+import com.googlecode.hibernate.audit.test.post_insert.data.K;
 import com.googlecode.hibernate.audit.test.util.Formats;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -65,7 +66,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertTest -------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_NullProperty() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -128,7 +129,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
     
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSuccesiveInserts() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -207,7 +208,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_OneTransaction() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -276,7 +277,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoInsertsSameEntity_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -357,7 +358,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditType_TwoEntities() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -445,7 +446,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAuditField_TwoEntities_TwoTransactions() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -560,7 +561,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertEntityTest -------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testSimpleCascade() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -632,7 +633,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testCascade_TwoTransactions_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -722,7 +723,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testCascade_TwoTransactions_MultipleEntities_Delta() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -827,7 +828,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertCollectionsTest --------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_EmptyCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -880,7 +881,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -958,7 +959,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddOneInCollection_NoBidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1032,7 +1033,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddTwoInCollection_Bidirectionality() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1123,7 +1124,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testAddTwoInCollection_NoBidirectionalityFromWBToWA() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1207,7 +1208,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testModifyOneFromCollection() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1303,7 +1304,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_ACollectionAndNothingElseButEmptyState() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1371,7 +1372,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
 
     // Tests initially developed in PostInsertTuplizerEntityTest -----------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testManyToOne_OneIsTuplizer() throws Exception
     {
         Configuration config = new Configuration();
@@ -1483,7 +1484,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testManyToOne_OneIsTuplizer_Collection() throws Exception
     {
         Configuration config = new Configuration();
@@ -1613,7 +1614,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testManyToOne_OneIsTuplizer_EmptyCollection() throws Exception
     {
         Configuration config = new Configuration();
@@ -1710,7 +1711,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-132
      */
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_TypeCache() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1773,7 +1774,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-132
      */
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testInsert_TypeCache_NonUniqueException() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -1804,6 +1805,48 @@ public class PostInsertDeltaTest extends JTATransactionTest
             TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
             assert td.getEntityDeltas().size() == 1;
             EntityDelta ed = td.getEntityDelta(h.getId(), H.class.getName());
+            assert ed != null;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testInsert_StringId() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(K.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            K k = new K();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            s.save(k);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
+            assert td.getEntityDeltas().size() == 1;
+            EntityDelta ed = td.getEntityDelta(k.getId(), K.class.getName());
             assert ed != null;
         }
         finally

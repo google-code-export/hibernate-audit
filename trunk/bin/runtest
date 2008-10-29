@@ -68,8 +68,8 @@ fi
 
 JAVA_OPTS="-Dhibernate.dialect=$DIALECT -Dhibernate.connection.driver_class=$DRIVER_CLASS -Dhibernate.connection.url=${CONNECTION_URL} -Dhibernate.connection.username=$CONNECTION_USERNAME -Dhibernate.connection.password=$CONNECTION_PASSWORD"
 
-echo "(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $JAVA_OPTS $SINGLE_TEST $clean test)"
-(cd ..; mvn -Dmaven.surefire.debug="$DEBUG_OPTS" $JAVA_OPTS $SINGLE_TEST $clean test)
+echo "(cd ..; mvn -o -Dmaven.surefire.debug="$DEBUG_OPTS" $JAVA_OPTS $SINGLE_TEST $clean test)"
+(cd ..; mvn -o -Dmaven.surefire.debug="$DEBUG_OPTS" $JAVA_OPTS $SINGLE_TEST $clean test)
 
 #
 # running from jar

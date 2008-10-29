@@ -105,7 +105,7 @@ public class AuditEntityType extends AuditType
         }
         catch(ClassNotFoundException e)
         {
-            throw new IllegalArgumentException("cannot resolve class " + idClassName, e);
+            throw new IllegalArgumentException(this + " cannot resolve class " + idClassName, e);
         }
 
         return idClassInstance;
@@ -146,13 +146,14 @@ public class AuditEntityType extends AuditType
 
         if (idClassInstance == null)
         {
-            throw new IllegalStateException("type of the entity's id is unknown");
+            throw new IllegalStateException(this + " cannot figure out its id type");
         }
 
         if (!idClassInstance.isInstance(o))
         {
-            throw new IllegalArgumentException("the argument cannot be an id for " +
-                                               idClassInstance.getName());
+            throw new IllegalArgumentException(
+                this + " cannot accept " + o + " as a value for its " +
+                idClassInstance.getName() + " id");
         }
 
         try
@@ -163,7 +164,7 @@ public class AuditEntityType extends AuditType
         catch(Exception e)
         {
             throw new IllegalArgumentException(
-                "failed to invoke " + idClassInstance.getName() + "'s toString()", e);
+                this + " failed to invoke " + idClassInstance.getName() + "'s toString()", e);
         }
     }
 

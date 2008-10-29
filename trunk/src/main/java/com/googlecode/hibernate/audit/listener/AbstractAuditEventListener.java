@@ -98,11 +98,14 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         else if (currentLGId != null && !currentLGId.equals(newLGId))
         {
             throw new IllegalStateException(
-                "NOT YET IMPLEMENTED: inconsistent logical groups, current: " + currentLGId +
-                ", new: " + newLGId);
+                "inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
         }
 
         c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);
+
+        c.auditEvent = new AuditEvent();
+        c.auditEvent.setTransaction(c.auditTransaction);
+        c.auditEvent.setType(c.changeType);
 
         // TODO currently we only support Long as ids, we may need to generalize this
         if (!(c.entityId instanceof Long))
@@ -111,11 +114,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
                 "audited entity " + c.entityClassName + "'s id is not a Long, " +
                 "so it is currently not supported");
         }
-
-        c.auditEvent = new AuditEvent();
-        c.auditEvent.setTransaction(c.auditTransaction);
-        c.auditEvent.setType(c.changeType);
         c.auditEvent.setTargetId((Long)c.entityId);
+
         c.auditEvent.setTargetType(c.auditEntityType);
 
         // even if it may seem redundant, log the event here in case the entity state is empty and
