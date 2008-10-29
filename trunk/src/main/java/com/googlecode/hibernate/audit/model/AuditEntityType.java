@@ -149,6 +149,11 @@ public class AuditEntityType extends AuditType
             throw new IllegalStateException(this + " cannot figure out its id type");
         }
 
+        if (o == null)
+        {
+            return null;
+        }
+
         if (!idClassInstance.isInstance(o))
         {
             throw new IllegalArgumentException(
@@ -177,6 +182,11 @@ public class AuditEntityType extends AuditType
     @Override
     public Serializable stringToValue(String s)
     {
+        if (s == null)
+        {
+            return null;
+        }
+
         if (Long.class.equals(getIdClassInstance()))
         {
             return Long.parseLong(s);

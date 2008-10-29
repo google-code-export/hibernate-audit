@@ -39,6 +39,7 @@ TARGET_CLASS=PostInsertDeltaTest
 #TARGET_CLASS=PostUpdateTest
 #TARGET_CLASS=PostUpdateRawTest
 #TARGET_CLASS=PostUpdateDeltaTest
+TARGET_CLASS=PostUpdateOddCasesTest
 #TARGET_CLASS=PostDeleteRawTest
 #TARGET_CLASS=PostDeleteDeltaTest
 #TARGET_CLASS=DeltaTest

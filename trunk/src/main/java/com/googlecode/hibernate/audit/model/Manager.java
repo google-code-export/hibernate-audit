@@ -482,6 +482,12 @@ public class Manager
                     }
                     else if (t.isEntityType())
                     {
+                        if (value == null)
+                        {
+                            // entity reference that was just nullified
+                            continue;
+                        }
+
                         AuditEntityType ret = (AuditEntityType)t;
                         Serializable refid = (Serializable)value;
                         mvd = Deltas.createEntityReferenceDelta(name, refid,
