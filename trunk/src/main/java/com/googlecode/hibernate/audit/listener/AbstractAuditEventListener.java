@@ -101,8 +101,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
                 "inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
         }
 
-        c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);
-
         c.auditEvent = new AuditEvent();
         c.auditEvent.setTransaction(c.auditTransaction);
         c.auditEvent.setType(c.changeType);
@@ -116,6 +114,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         }
         c.auditEvent.setTargetId((Long)c.entityId);
 
+        c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);
         c.auditEvent.setTargetType(c.auditEntityType);
 
         // even if it may seem redundant, log the event here in case the entity state is empty and
