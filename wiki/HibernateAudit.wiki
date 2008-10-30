@@ -58,6 +58,17 @@ Both persistence units are configured in the main `pom.xml`.
 
 7. Release in JIRA
 
+
+==Branches==
+
+{{{
+           | 10/30/08 r323     Branch_Supressed_Exceptions
+           o---------------------+
+           |                     | r324
+           |                     V
+           V
+}}}
+
 ==Test Situation==
 
  * 07/26/08 pre-1.0.0.Alpha5 101/0/0
