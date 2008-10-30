@@ -52,7 +52,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnableOnProxy() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -97,7 +97,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testRegisterUnregister() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -187,7 +187,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFailedStartup() throws Exception
     {
         assert HibernateAudit.getManager() == null;
@@ -208,7 +208,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testQueryOnStoppedRuntime() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -224,7 +224,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testIsEnabledOnDifferentSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -265,7 +265,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnableDisableTwoSessionFactories() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -449,7 +449,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testQueryOnEmptyAuditState_NoRegisteredSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -486,7 +486,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -525,7 +525,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testGetNullSecurityInformationProvider() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -558,7 +558,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnableDisable_InternalStatefulSession() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -617,7 +617,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testEnable_HBM2DDL_AUTO() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -659,7 +659,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testConfigurableHBAProperty() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -698,7 +698,7 @@ public class HibernateAuditTest extends JTATransactionTest
     }
 
     // TODO commented out due to Hibernate 3.3.1.GA bug https://jira.novaordis.org/browse/HBA-148
-//    @Test(enabled = false)
+//    @Test(enabled = true)
 //    public void testConfigurableJtaHBAProperty() throws Exception
 //    {
 //        assert !HibernateAudit.isStarted();
@@ -749,7 +749,7 @@ public class HibernateAuditTest extends JTATransactionTest
 //        }
 //    }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testBogusHBAProperty() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -784,7 +784,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testRegister_RuntimeNotStarted() throws Exception
     {
         try
@@ -798,7 +798,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStartRuntime() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -838,7 +838,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStopRuntime() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -873,7 +873,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testConsecutiveRegistrationsOfSameSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();

@@ -212,7 +212,8 @@ public class AuditTransaction implements Synchronization
     public void log(AuditEvent event)
     {
         AuditType type = event.getTargetType();
-        lockTypeToPersistenceContext(type);
+        AuditType lockedType = lockTypeToPersistenceContext(type);
+        event.setTargetType(lockedType);
 
         internalSession.save(event);
         log.debug(this + " logged " + event);
@@ -233,7 +234,8 @@ public class AuditTransaction implements Synchronization
         internalSession.lock(field, LockMode.NONE);
 
         AuditType type = field.getType();
-        lockTypeToPersistenceContext(type);
+        AuditType lockedType = lockTypeToPersistenceContext(type);
+        field.setType(lockedType);
 
         internalSession.save(pair);
         log.debug(this + " logged " + pair);
@@ -291,7 +293,12 @@ public class AuditTransaction implements Synchronization
 
     // Private -------------------------------------------------------------------------------------
 
-    private void lockTypeToPersistenceContext(AuditType at)
+    /**
+     * @return the 'locked' instance, that must be used from now on. If the calling context
+     *         continues to use 'at', it may run into failures such as
+     *         https://jira.novaordis.org/browse/HBA-164 (non unique exceptions).
+     */
+    private AuditType lockTypeToPersistenceContext(AuditType at)
     {
         // check whether the type hasn't been locked yet, it happens in case of entities with
         // multiple fields of same type or other similar cases
@@ -310,7 +317,7 @@ public class AuditTransaction implements Synchronization
             try
             {
                 internalSession.lock(at, LockMode.NONE);
-                return;
+                return at;
             }
             catch(Exception e)
             {
@@ -318,16 +325,14 @@ public class AuditTransaction implements Synchronization
             }
         }
 
-        // something in persistence context, must be identical instance, otherwise we have
-        // invalid state.
-
         if (persistenceCtxTypeInstance != at)
         {
-            // fail early, it'll fail later anyway
-            throw new IllegalStateException(
-                "type " + at + " already managed by the " +
-                "internal persistence context as " + persistenceCtxTypeInstance);
+            // see https://jira.novaordis.org/browse/HBA-164
+            log.warn("type " + at + " already managed by the internal persistence context as " +
+                     persistenceCtxTypeInstance + " using managed instance from now on");
         }
+
+        return (AuditType)persistenceCtxTypeInstance;
     }
 
     // Inner classes -------------------------------------------------------------------------------

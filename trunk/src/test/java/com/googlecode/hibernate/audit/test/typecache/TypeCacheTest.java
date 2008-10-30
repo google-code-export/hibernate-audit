@@ -11,7 +11,6 @@ import com.googlecode.hibernate.audit.test.typecache.data.A;
 import com.googlecode.hibernate.audit.test.typecache.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 
@@ -44,7 +43,7 @@ public class TypeCacheTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-149
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistenceContextCollision() throws Exception
     {
         log.debug("test");
@@ -166,65 +165,6 @@ public class TypeCacheTest extends JTATransactionTest
 
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
-        }
-        finally
-        {
-            HibernateAudit.stopRuntime();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
-
-    /**
-     * https://jira.novaordis.org/browse/HBA-164
-     */
-    @Test(enabled = false)
-    public void test_HBA164() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(A.class);
-        config.addAnnotatedClass(B.class);
-        SessionFactoryImplementor sf = null;
-        Session s = null;
-
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            // save types by hand
-
-            AuditEntityType atype = new AuditEntityType(Long.class, A.class);
-            AuditEntityType btype = new AuditEntityType(Long.class, B.class);
-            AuditTypeField bfield = new AuditTypeField();
-            bfield.setName("b");
-            bfield.setType(btype);
-
-            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
-            Session is = isf.openSession();
-            is.beginTransaction();
-            is.save(atype);
-            is.save(btype);
-            is.save(bfield);
-
-            is.getTransaction().commit();
-
-            s = sf.openSession();
-            s.beginTransaction();
-
-            A a = new A();
-            B b = new B();
-            a.setB(b);
-
-            s.save(a);
-
-            s.getTransaction().commit();
         }
         finally
         {
