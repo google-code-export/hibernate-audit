@@ -319,16 +319,14 @@ public class AuditTransaction implements Synchronization
         }
 
         // something in persistence context, must be identical instance, otherwise we have
-        // invalid state
+        // invalid state.
 
         if (persistenceCtxTypeInstance != at)
         {
             // fail early, it'll fail later anyway
             throw new IllegalStateException(
-                "instance corresponding to type " + at + "[" +
-                Integer.toHexString(System.identityHashCode(at)) + "] already managed by the " +
-                "internal persistence context: " + persistenceCtxTypeInstance + "[" +
-                Integer.toHexString(System.identityHashCode(persistenceCtxTypeInstance)) + "]");
+                "type " + at + " already managed by the " +
+                "internal persistence context as " + persistenceCtxTypeInstance);
         }
     }
 
