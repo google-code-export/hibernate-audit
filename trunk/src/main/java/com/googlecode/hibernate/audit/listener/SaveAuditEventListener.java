@@ -47,18 +47,18 @@ public class SaveAuditEventListener
         catch(Throwable t)
         {
             log.error("failed to log save event", t);
-//
-//            try
-//            {
-//                Transaction tx = event.getSession().getTransaction();
-//                tx.rollback();
-//            }
-//            catch(Throwable t2)
-//            {
-//                log.error("could not rollback current transaction", t2);
-//            }
-//
-//            throw new HibernateAuditException("failed to start audit transaction on save event", t);
+
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
+
+            throw new HibernateAuditException("failed to start audit transaction on save event", t);
         }
     }
 

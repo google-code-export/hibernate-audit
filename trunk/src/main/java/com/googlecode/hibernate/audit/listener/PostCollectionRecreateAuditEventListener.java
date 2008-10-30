@@ -47,17 +47,17 @@ public class PostCollectionRecreateAuditEventListener
         {
             log.error("failed to log post-collection-recreate event", t);
 
-//            try
-//            {
-//                Transaction tx = event.getSession().getTransaction();
-//                tx.rollback();
-//            }
-//            catch(Throwable t2)
-//            {
-//                log.error("could not rollback current transaction", t2);
-//            }
-//
-//            throw new HibernateAuditException("failed to log post-collection-recreate event", t);
+            try
+            {
+                Transaction tx = event.getSession().getTransaction();
+                tx.rollback();
+            }
+            catch(Throwable t2)
+            {
+                log.error("could not rollback current transaction", t2);
+            }
+
+            throw new HibernateAuditException("failed to log post-collection-recreate event", t);
         }
     }
 
