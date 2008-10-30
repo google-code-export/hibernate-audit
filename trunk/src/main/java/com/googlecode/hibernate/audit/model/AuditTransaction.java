@@ -325,8 +325,10 @@ public class AuditTransaction implements Synchronization
         {
             // fail early, it'll fail later anyway
             throw new IllegalStateException(
-                "instance corresponding to type " + at + " already in internal persistence " +
-                "context: " + persistenceCtxTypeInstance);
+                "instance corresponding to type " + at + "[" +
+                Integer.toHexString(System.identityHashCode(at)) + "] already managed by the " +
+                "internal persistence context: " + persistenceCtxTypeInstance + "[" +
+                Integer.toHexString(System.identityHashCode(persistenceCtxTypeInstance)) + "]");
         }
     }
 

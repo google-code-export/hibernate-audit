@@ -120,6 +120,11 @@ public class WriteOnceCache<P>
                 tx = ss.beginTransaction();
                 jtaTx = Hibernate.getUnderlyingTransaction(sf, tx);
 
+                if (jtaTx == null)
+                {
+                    throw new IllegalStateException("null JTA transaction");
+                }
+
                 // not in committed cache, next look in transaction-associated syncronization (if
                 // any) and try to get it from there first
 

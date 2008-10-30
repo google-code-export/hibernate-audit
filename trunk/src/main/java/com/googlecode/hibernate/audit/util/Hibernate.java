@@ -11,6 +11,7 @@ import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.transaction.JTATransaction;
 import org.hibernate.tuple.Tuplizer;
 import org.hibernate.tuple.entity.EntityTuplizer;
+import org.apache.log4j.Logger;
 
 import javax.transaction.TransactionManager;
 import java.util.List;
@@ -29,6 +30,8 @@ import java.util.Map;
 public class Hibernate
 {
     // Constants -----------------------------------------------------------------------------------
+
+    private static final Logger log = Logger.getLogger(Hibernate.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -112,6 +115,8 @@ public class Hibernate
      * TODO this is a hack give access to underlying transaction, won't work anywhere else but a
      * JTA environment.
      *
+     * May return null if no underlying JTA transaction is found.
+     *
      * See https://jira.novaordis.org/browse/HBA-134
      */
     public static javax.transaction.Transaction getUnderlyingTransaction(SessionFactoryImpl sf, 
@@ -126,14 +131,17 @@ public class Hibernate
         }
 
         TransactionManager tm = sf.getTransactionManager();
-        javax.transaction.Transaction jtaTx = tm.getTransaction();
 
-        if (jtaTx == null)
+        javax.transaction.Transaction tx = tm.getTransaction();
+
+        if (tx == null)
         {
-            throw new IllegalStateException("null JTA transaction");
+            // extra debugging info
+            log.debug("null JTA transaction, transaction manager " + tm +
+                      ", transaction manager status: " + tm.getStatus());
         }
 
-        return jtaTx;
+        return tx;
     }
 
     // Attributes ----------------------------------------------------------------------------------

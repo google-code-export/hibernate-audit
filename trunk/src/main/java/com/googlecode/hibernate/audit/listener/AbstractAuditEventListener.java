@@ -165,8 +165,10 @@ abstract class AbstractAuditEventListener implements AuditEventListener
      * Creates in-memory instance of the audit transaction the current event occured in scope of
      * and perform all necessary associations (with the thread, register synchronizations, etc.).
      * No unnecessary creation occurs if the audit transaction instance already exists.
+     *
+     * @exception Exception if anything goes wrong
      */
-    protected AuditTransaction createAuditTransaction(EventSource auditedSession)
+    protected AuditTransaction createAuditTransaction(EventSource auditedSession) throws Exception
     {
         Transaction ht = auditedSession.getTransaction();
         AuditTransaction at = Manager.getCurrentAuditTransaction();
@@ -174,35 +176,45 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         if (at != null)
         {
             // already logged
-            Transaction aht = at.getTransaction();
-            if (ht instanceof JTATransaction && aht instanceof JTATransaction)
+            Transaction prevht = at.getTransaction();
+
+            if (ht instanceof JTATransaction && prevht instanceof JTATransaction)
             {
                 // it is possible to have different instances of JTATransaction while the underlying
                 // javax.transaction.Transaction is the same. Unfortunately, Hibernate doesn't allow
                 // us to get the underlying transaction from the JTATransaction instance, so we have
                 // to do this:
-                javax.transaction.Transaction crtJtaTx = null, eventJtaTx = null;
-                try
-                {
-                    SessionFactoryImpl sf = (SessionFactoryImpl)auditedSession.getSessionFactory();
-                    crtJtaTx = Hibernate.getUnderlyingTransaction(sf, aht);
-                    eventJtaTx = Hibernate.getUnderlyingTransaction(sf, ht);
-                }
-                catch(Exception e)
-                {
-                    log.warn("failed to get underlying JTA transaction", e);
-                }
 
-                if (crtJtaTx == null || !crtJtaTx.equals(eventJtaTx))
+                SessionFactoryImpl sf = (SessionFactoryImpl)auditedSession.getSessionFactory();
+
+                javax.transaction.Transaction crtJtaTx = Hibernate.getUnderlyingTransaction(sf, ht);
+
+                if (crtJtaTx == null)
                 {
                     throw new IllegalStateException(
-                        "underlying JTA transactions don't match:  " + crtJtaTx + ", " + eventJtaTx);
+                        "no JTA transaction corresponding to current " + ht);
+                }
+
+                javax.transaction.Transaction prevJtaTx = Hibernate.
+                    getUnderlyingTransaction(sf, prevht);
+
+                if (prevJtaTx == null)
+                {
+                    throw new IllegalStateException(
+                        "no JTA transaction corresponding to previously recorded " + prevht);
+                }
+
+                if (!prevJtaTx.equals(crtJtaTx))
+                {
+                    throw new IllegalStateException(
+                        "underlying JTA transactions don't match: previously recorded " +
+                        "transaction " + prevJtaTx + ", current transaction " + crtJtaTx);
                 }
             }
-            else if (ht != aht)
+            else if (ht != prevht)
             {
                 throw new IllegalStateException(
-                    "Hibernate audit thinks that active transaction is " + aht + ", while " +
+                    "Hibernate audit thinks that active transaction is " + prevht + ", while " +
                     "the event was generated within the bounds of " + ht);
             }
             
