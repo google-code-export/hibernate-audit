@@ -46,18 +46,20 @@ public class SaveOrUpdateAuditEventListener
         }
         catch(Throwable t)
         {
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
+            log.error("failed to log save-or-update event", t);
 
-            throw new HibernateAuditException("failed to start audit transaction on save-update " +
-                                              "event", t);
+//            try
+//            {
+//                Transaction tx = event.getSession().getTransaction();
+//                tx.rollback();
+//            }
+//            catch(Throwable t2)
+//            {
+//                log.error("could not rollback current transaction", t2);
+//            }
+//
+//            throw new HibernateAuditException("failed to start audit transaction on save-update " +
+//                                              "event", t);
         }
     }
 

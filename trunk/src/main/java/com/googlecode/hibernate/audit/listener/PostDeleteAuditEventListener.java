@@ -42,25 +42,22 @@ public class PostDeleteAuditEventListener
         {
             log.debug(this + ".onPostDelete(" + event + ")");
             createAndLogEventContext(event);
-
-            // no need for an audit pair
-            // Object[] ds = event.getDeletedState();
         }
         catch(Throwable t)
         {
             log.error("failed to log post-delete event", t);
 
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
-
-            throw new HibernateAuditException("failed to log post-delete event", t);
+//            try
+//            {
+//                Transaction tx = event.getSession().getTransaction();
+//                tx.rollback();
+//            }
+//            catch(Throwable t2)
+//            {
+//                log.error("could not rollback current transaction", t2);
+//            }
+//
+//            throw new HibernateAuditException("failed to log post-delete event", t);
         }
     }
 
