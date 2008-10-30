@@ -97,8 +97,11 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         }
         else if (currentLGId != null && !currentLGId.equals(newLGId))
         {
-            throw new IllegalStateException(
-                "inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
+            // supressed exception, replaced it with a warning
+            // https://jira.novaordis.org/browse/HBA-166
+            log.warn("inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
+//            throw new IllegalStateException(
+//                "inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
         }
 
         c.auditEvent = new AuditEvent();
