@@ -137,7 +137,7 @@ public class AuditCollectionType extends AuditType
     {
         return "CollectionType[" +
                (getId() == null ? "TRANSIENT" : getId()) + "][" + getCollectionClassName() +
-               "<" + getClassName() + ">]";
+               "<" + getClassName() + ">]@" + Integer.toHexString(System.identityHashCode(this));
     }
 
     // Package protected ---------------------------------------------------------------------------

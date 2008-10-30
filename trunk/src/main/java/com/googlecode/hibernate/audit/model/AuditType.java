@@ -316,7 +316,8 @@ public class AuditType
     @Override
     public String toString()
     {
-        return "PrimitiveType[" + (id == null ? "TRANSIENT" : id) + "][" + className + "]";
+        return "PrimitiveType[" + (id == null ? "TRANSIENT" : id) + "][" + className + "]@" +
+               Integer.toHexString(System.identityHashCode(this));
     }
 
     // Package protected ---------------------------------------------------------------------------

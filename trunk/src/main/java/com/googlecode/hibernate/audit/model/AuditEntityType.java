@@ -201,8 +201,8 @@ public class AuditEntityType extends AuditType
     public String toString()
     {
         return "EntityType[" +
-               (getId() == null ? "TRANSIENT" : getId()) + "][" + getClassName() + ", " +
-               getIdClassName() + "]";
+               (getId() == null ? "TRANSIENT" : getId()) + "][" + getIdClassName() + ", " +
+               getClassName() + "]@" + Integer.toHexString(System.identityHashCode(this));
     }
 
     // Package protected ---------------------------------------------------------------------------
