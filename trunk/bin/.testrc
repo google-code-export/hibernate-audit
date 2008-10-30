@@ -13,7 +13,7 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 
 # different test types
 #TARGET_CLASS=ReflectionsTest
-#TARGET_CLASS=HibernateAuditTest
+TARGET_CLASS=HibernateAuditTest
 #TARGET_CLASS=PostInsertTest
 #TARGET_CLASS=ExternalDDLFileTest
 #TARGET_CLASS=ListenersTest
@@ -54,4 +54,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=WriteOnceCacheTest
 #TARGET_CLASS=WriteOnceCacheInheritanceTest
 #TARGET_CLASS=WriteOnceCacheAndTransactionsTest
-TARGET_CLASS=TypeCacheTest
+#TARGET_CLASS=TypeCacheTest

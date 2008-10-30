@@ -7,7 +7,6 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
@@ -17,6 +16,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.Date;
 import java.io.Serializable;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 /**
  * The main programmatic entry point. This class allows turning audit on/off at runtime, and various
@@ -36,14 +39,70 @@ public final class HibernateAudit
 
     private static final Logger log = Logger.getLogger(HibernateAudit.class);
 
+    private static final String HBA_VERSION_FILE_NAME = "HBA_VERSION";
+
     // Static --------------------------------------------------------------------------------------
 
     private static Manager manager;
     private static Object lock = new Object();
 
+    private static String version;
+
     public static final String getVersion()
     {
-        return "2";
+        if (version == null)
+        {
+            InputStream is = null;
+            BufferedReader br = null;
+
+            try
+            {
+                is = HibernateAudit.class.
+                    getClassLoader().getResourceAsStream(HBA_VERSION_FILE_NAME);
+
+                if (is == null)
+                {
+                    throw new Exception("cannot locate resource '" + HBA_VERSION_FILE_NAME + "'");
+                }
+                
+                br = new BufferedReader(new InputStreamReader(is));
+                version = br.readLine();
+            }
+            catch(Exception e)
+            {
+                log.error("failed to read HBA version", e);
+
+                version = "UNKNOWN";
+            }
+            finally
+            {
+                if (br != null)
+                {
+                    try
+                    {
+                        br.close();
+                    }
+                    catch(Exception e)
+                    {
+                        log.warn("failed to close version reader", e);
+                    }
+                }
+
+                if (is != null)
+                {
+                    try
+                    {
+                        is.close();
+                    }
+                    catch(Exception e)
+                    {
+                        log.warn("failed to close version input stream", e);
+                    }
+                }
+            }
+        }
+
+        return version;
     }
 
     /**

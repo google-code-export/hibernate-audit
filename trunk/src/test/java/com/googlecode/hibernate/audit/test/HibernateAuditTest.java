@@ -6,8 +6,6 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.cfg.Settings;
 import org.hibernate.SessionFactory;
-import org.hibernate.Session;
-import org.hibernate.TransactionException;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.connection.ConnectionProvider;
@@ -21,7 +19,6 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
-import javax.naming.NameNotFoundException;
 import java.util.Set;
 import java.util.List;
 import java.lang.reflect.Method;
@@ -55,7 +52,7 @@ public class HibernateAuditTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnableOnProxy() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -100,7 +97,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testRegisterUnregister() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -190,7 +187,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testFailedStartup() throws Exception
     {
         assert HibernateAudit.getManager() == null;
@@ -211,7 +208,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testQueryOnStoppedRuntime() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -227,7 +224,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testIsEnabledOnDifferentSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -268,7 +265,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnableDisableTwoSessionFactories() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -452,7 +449,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testQueryOnEmptyAuditState_NoRegisteredSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -489,7 +486,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testQueryOnEmptyAuditState() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -528,7 +525,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testGetNullSecurityInformationProvider() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -561,7 +558,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnableDisable_InternalStatefulSession() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -620,7 +617,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testEnable_HBM2DDL_AUTO() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -662,7 +659,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testConfigurableHBAProperty() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -701,7 +698,7 @@ public class HibernateAuditTest extends JTATransactionTest
     }
 
     // TODO commented out due to Hibernate 3.3.1.GA bug https://jira.novaordis.org/browse/HBA-148
-//    @Test(enabled = true)
+//    @Test(enabled = false)
 //    public void testConfigurableJtaHBAProperty() throws Exception
 //    {
 //        assert !HibernateAudit.isStarted();
@@ -752,7 +749,7 @@ public class HibernateAuditTest extends JTATransactionTest
 //        }
 //    }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testBogusHBAProperty() throws Exception
     {
         assert !HibernateAudit.isStarted();
@@ -787,7 +784,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testRegister_RuntimeNotStarted() throws Exception
     {
         try
@@ -801,7 +798,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStartRuntime() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -841,7 +838,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStopRuntime() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -876,7 +873,7 @@ public class HibernateAuditTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testConsecutiveRegistrationsOfSameSessionFactory() throws Exception
     {
         Configuration config = new AnnotationConfiguration();
@@ -902,6 +899,16 @@ public class HibernateAuditTest extends JTATransactionTest
                 sf.close();
             }
         }
+    }
+
+    @Test(enabled = true)
+    public void testVersion() throws Exception
+    {
+        String version = HibernateAudit.getVersion();
+        String mavenTestHbaVersion = System.getProperty("maven.test.hba.version");
+        log.debug(">>> HBA version:            " + version);
+        log.debug(">>> maven.test.hba.version: " + mavenTestHbaVersion);
+        assert mavenTestHbaVersion.equals(version);
     }
 
     // Package protected ---------------------------------------------------------------------------

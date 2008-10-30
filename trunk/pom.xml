@@ -35,7 +35,7 @@
                 <filtering>true</filtering>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>**/*.xml</include>
+                    <include>**</include>
                 </includes>
             </resource>
         </resources>
@@ -100,6 +100,12 @@
 						<threadCount>10</threadCount>
 						-->
                         <parallel>false</parallel>
+                        <systemProperties>
+                            <property>
+                                <name>maven.test.hba.version</name>
+                                <value>${version}</value>
+                            </property>
+                        </systemProperties>
                     </configuration>
                 </plugin>
                 <plugin>
