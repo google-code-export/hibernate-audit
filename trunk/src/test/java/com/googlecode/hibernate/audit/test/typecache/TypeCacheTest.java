@@ -109,10 +109,79 @@ public class TypeCacheTest extends JTATransactionTest
         }
     }
 
+    @Test(enabled = true)
+    public void testTypeCache_PreSavedTypesAndFields() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            // save types by hand
+
+            AuditEntityType atype = new AuditEntityType(Long.class, A.class);
+            AuditEntityType btype = new AuditEntityType(Long.class, B.class);
+            AuditTypeField bfield = new AuditTypeField();
+            bfield.setName("b");
+            bfield.setType(btype);
+
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+            Session is = isf.openSession();
+            is.beginTransaction();
+            is.save(atype);
+            is.save(btype);
+            is.save(bfield);
+            
+            is.getTransaction().commit();
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            B b = new B();
+            a.setB(b);
+
+            s.save(a);
+
+            s.getTransaction().commit();
+
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            A da = (A)s.get(A.class, a.getId());
+
+            s.getTransaction().commit();
+
+            assert da.getB().getId().equals(b.getId());
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
     /**
      * https://jira.novaordis.org/browse/HBA-164
      */
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test_HBA164() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -129,7 +198,22 @@ public class TypeCacheTest extends JTATransactionTest
             HibernateAudit.startRuntime(sf.getSettings());
             HibernateAudit.register(sf);
 
-            // first, write a type and a fileld in the database via the write-once cache
+            // save types by hand
+
+            AuditEntityType atype = new AuditEntityType(Long.class, A.class);
+            AuditEntityType btype = new AuditEntityType(Long.class, B.class);
+            AuditTypeField bfield = new AuditTypeField();
+            bfield.setName("b");
+            bfield.setType(btype);
+
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+            Session is = isf.openSession();
+            is.beginTransaction();
+            is.save(atype);
+            is.save(btype);
+            is.save(bfield);
+
+            is.getTransaction().commit();
 
             s = sf.openSession();
             s.beginTransaction();
@@ -141,26 +225,6 @@ public class TypeCacheTest extends JTATransactionTest
             s.save(a);
 
             s.getTransaction().commit();
-
-            // feed typeCache with a 'non-cached' type
-
-            TypeCache tc = HibernateAudit.getManager().getTypeCache();
-
-            s.beginTransaction();
-
-            AuditEntityType fakeBType = new AuditEntityType(Long.class, B.class);
-            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
-            Session is = isf.openSession();
-            is.beginTransaction();
-            is.save(fakeBType);
-            is.getTransaction().commit();
-
-            AuditTypeField f = tc.getAuditTypeField("b", fakeBType);
-
-            s.getTransaction().commit();
-
-            throw new RuntimeException("NOT YET IMPLEMENTED");
-
         }
         finally
         {
