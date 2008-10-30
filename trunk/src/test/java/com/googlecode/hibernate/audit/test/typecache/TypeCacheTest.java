@@ -5,11 +5,15 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.typecache.data.A;
 import com.googlecode.hibernate.audit.test.typecache.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.TypeCache;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
 
 import java.util.List;
 
@@ -40,7 +44,7 @@ public class TypeCacheTest extends JTATransactionTest
     /**
      * https://jira.novaordis.org/browse/HBA-149
      */
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistenceContextCollision() throws Exception
     {
         log.debug("test");
@@ -92,6 +96,70 @@ public class TypeCacheTest extends JTATransactionTest
 
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 2;
+
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    /**
+     * https://jira.novaordis.org/browse/HBA-164
+     */
+    @Test(enabled = true)
+    public void test_HBA164() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            // first, write a type and a fileld in the database via the write-once cache
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            B b = new B();
+            a.setB(b);
+
+            s.save(a);
+
+            s.getTransaction().commit();
+
+            // feed typeCache with a 'non-cached' type
+
+            TypeCache tc = HibernateAudit.getManager().getTypeCache();
+
+            s.beginTransaction();
+
+            AuditEntityType fakeBType = new AuditEntityType(Long.class, B.class);
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+            Session is = isf.openSession();
+            is.beginTransaction();
+            is.save(fakeBType);
+            is.getTransaction().commit();
+
+            AuditTypeField f = tc.getAuditTypeField("b", fakeBType);
+
+            s.getTransaction().commit();
+
+            throw new RuntimeException("NOT YET IMPLEMENTED");
 
         }
         finally
