@@ -9,6 +9,8 @@ import org.hibernate.impl.SessionImpl;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.wocache.data.A;
+import com.googlecode.hibernate.audit.test.util.wocache.data.E;
+import com.googlecode.hibernate.audit.test.util.wocache.data.D;
 import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
 import com.googlecode.hibernate.audit.util.wocache.CacheQuery;
 import com.googlecode.hibernate.audit.util.wocache.WriteOnceCacheException;
@@ -1007,6 +1009,50 @@ public class WriteOnceCacheTest extends JTATransactionTest
 
             assert ca4 == ca0;
             assert ca5 == ca1;
+
+            s.close();
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testTwoCaches() throws Throwable
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(D.class);
+        config.addAnnotatedClass(E.class);
+        SessionFactory sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            s = sf.openSession();
+
+            WriteOnceCache<D> dcache = new WriteOnceCache<D>(sf);
+            WriteOnceCache<E> ecache = new WriteOnceCache<E>(sf);
+
+            s.beginTransaction();
+
+            E e = ecache.get(new CacheQuery<E>(E.class, "i", 10));
+
+            s.getTransaction().commit();
+
+            s.beginTransaction();
+            
+            D d = dcache.get(new CacheQuery<D>(D.class, "e", e));
+
+            s.getTransaction().commit();
+
+            assert e == d.getE();
 
             s.close();
         }
