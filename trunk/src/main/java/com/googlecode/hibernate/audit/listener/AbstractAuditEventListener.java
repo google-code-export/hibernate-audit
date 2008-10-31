@@ -42,6 +42,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Static --------------------------------------------------------------------------------------
 
+    private static final boolean traceEnabled = log.isTraceEnabled();
+
     // Attributes ----------------------------------------------------------------------------------
 
     protected Manager manager;
@@ -86,23 +88,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         c.auditTransaction = createAuditTransaction(c.session);
 
-        // update LogicalGroupId
-
-        Serializable newLGId = manager.getLogicalGroupId(c.session, c.entityId, c.entity);
-        Serializable currentLGId  = c.auditTransaction.getLogicalGroupId();
-
-        if (currentLGId == null && newLGId != null)
-        {
-            c.auditTransaction.setLogicalGroupId(newLGId);
-        }
-        else if (currentLGId != null && !currentLGId.equals(newLGId))
-        {
-            // supressed exception, replaced it with a warning
-            // https://jira.novaordis.org/browse/HBA-166
-            log.warn("inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
-//            throw new IllegalStateException(
-//                "inconsistent logical groups, current: " + currentLGId + ", new: " + newLGId);
-        }
+        updateLogicalGroupId(c.auditTransaction, c.session, c.entityId, c.entity);
 
         c.auditEvent = new AuditEvent();
         c.auditEvent.setTransaction(c.auditTransaction);
@@ -177,6 +163,8 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         if (at != null)
         {
+            if (traceEnabled) { log.trace(this + " found existing audit transaction " + at + " associated with thread"); }
+
             // already logged
             Transaction prevht = at.getTransaction();
 
@@ -226,15 +214,40 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Manager m = HibernateAudit.getManager();
         Principal p = m.getPrincipal();
         SessionFactory isf = m.getSessionFactory();
+
+        if (traceEnabled) { log.trace(this + " creating a new audit transaction instance"); }
+
         at = new AuditTransaction(ht, p, isf);
         Manager.setCurrentAuditTransaction(at);
-
-        log.debug(this + " created");
 
         return at;
     }
 
     // Private -------------------------------------------------------------------------------------
+
+    private void updateLogicalGroupId(AuditTransaction atx, EventSource session,
+                                      Serializable entityId, Object entity) throws Exception
+    {
+        Serializable currentLGId = manager.getLogicalGroupId(session, entityId, entity);
+        Serializable prevLGId = atx.getLogicalGroupId();
+
+        if (traceEnabled) { log.trace("current logical group id: " + currentLGId + ", audit transaction logical group id: " + prevLGId); }
+
+        if (prevLGId == null && currentLGId != null)
+        {
+            atx.setLogicalGroupId(currentLGId);
+
+            if (traceEnabled) { log.trace("set logical group id to " + currentLGId + " on " + atx); }
+
+            return;
+        }
+
+        if (prevLGId != null && !prevLGId.equals(currentLGId))
+        {
+            throw new IllegalStateException(
+                "inconsistent logical groups, previous: " + prevLGId + ", current: " + currentLGId);
+        }
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 

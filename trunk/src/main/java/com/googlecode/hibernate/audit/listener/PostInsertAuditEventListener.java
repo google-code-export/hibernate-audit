@@ -36,6 +36,7 @@ public class PostInsertAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostInsertAuditEventListener.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -54,7 +55,8 @@ public class PostInsertAuditEventListener
     {
         try
         {
-            log.debug(this + ".onPostInsert(" + event + ")");
+            if (traceEnabled) { log.trace(this + ".onPostInsert(" + event + ")"); }
+            
             log(event);
         }
         catch(Throwable t)

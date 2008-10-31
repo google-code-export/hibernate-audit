@@ -7,12 +7,12 @@
 		<layout class="org.apache.log4j.PatternLayout">
 <!-- 			<param name="ConversionPattern" value="%-5p %c{1} - %m%n" /> -->
 <!--			<param name="ConversionPattern" value="%m%n"/> -->
-            <param name="ConversionPattern" value="@%t %m%n"/>
+            <param name="ConversionPattern" value="@%t [%c{1}] %m%n"/>
         </layout>
 	</appender>
 
 	<logger name="com.googlecode.hibernate.audit">
-		<level value="DEBUG" />
+		<level value="ALL"/>
 	</logger>
 
     <logger name="com.googlecode.hibernate.audit.test.mock.jca.InterceptedConnection">
@@ -24,7 +24,7 @@
     </logger>
 
     <root>
-		<priority value="error" />
+		<priority value="error"/>
 		<appender-ref ref="console" />
 	</root>
 

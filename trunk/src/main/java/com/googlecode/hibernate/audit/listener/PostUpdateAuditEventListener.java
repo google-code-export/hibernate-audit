@@ -29,6 +29,7 @@ public class PostUpdateAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostUpdateAuditEventListener.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -47,7 +48,8 @@ public class PostUpdateAuditEventListener
     {
         try
         {
-            log.debug(this + ".onPostUpdate(" + event + ")");
+            if (traceEnabled) { log.trace(this + ".onPostUpdate(" + event + ")"); }
+
             log(event);
         }
         catch(Throwable t)

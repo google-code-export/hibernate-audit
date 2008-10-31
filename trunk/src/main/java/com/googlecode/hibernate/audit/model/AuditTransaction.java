@@ -279,7 +279,8 @@ public class AuditTransaction implements Synchronization
     @Override
     public String toString()
     {
-        return "AuditTransaction[" + (id == null ? "TRANSIENT" : id) + "]";
+        return "AuditTransaction[" + (id == null ? "TRANSIENT" : id) + "]@" +
+               Integer.toHexString(System.identityHashCode(this));
     }
 
     // Package protected ---------------------------------------------------------------------------

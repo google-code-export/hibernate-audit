@@ -51,7 +51,7 @@ public class TypeCache
         cif = new CollectionInstanceFactory();
         fif = new FieldInstanceFactory();
 
-        log.debug(this + " contstructed");
+        log.debug(this + " constructed");
     }
 
     // Public --------------------------------------------------------------------------------------

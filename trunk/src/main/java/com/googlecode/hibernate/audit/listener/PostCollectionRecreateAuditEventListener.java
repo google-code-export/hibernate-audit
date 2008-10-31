@@ -22,6 +22,7 @@ public class PostCollectionRecreateAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostCollectionRecreateAuditEventListener.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -40,7 +41,8 @@ public class PostCollectionRecreateAuditEventListener
     {
         try
         {
-            log.debug(this + ".onPostRecreateCollection(" + event + ")");
+            if (traceEnabled) { log.trace(this + ".onPostRecreateCollection(" + event + ")"); }
+
             logCollectionEvent(event);
         }
         catch(Throwable t)

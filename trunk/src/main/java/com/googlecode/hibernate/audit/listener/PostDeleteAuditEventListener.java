@@ -21,7 +21,8 @@ public class PostDeleteAuditEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
-     private static final Logger log = Logger.getLogger(PostDeleteAuditEventListener.class);
+    private static final Logger log = Logger.getLogger(PostDeleteAuditEventListener.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -40,7 +41,8 @@ public class PostDeleteAuditEventListener
     {
         try
         {
-            log.debug(this + ".onPostDelete(" + event + ")");
+            if (traceEnabled) { log.trace(this + ".onPostDelete(" + event + ")"); }
+
             createAndLogEventContext(event);
         }
         catch(Throwable t)

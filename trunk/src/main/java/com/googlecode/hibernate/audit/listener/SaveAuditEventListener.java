@@ -23,6 +23,7 @@ public class SaveAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(SaveAuditEventListener.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -41,6 +42,8 @@ public class SaveAuditEventListener
     {
         try
         {
+            if (traceEnabled) { log.trace(this + ".onSaveOrUpdate(" + event + ")"); }
+
             // this will create an audit transaction and properly register the synchronizations
             createAuditTransaction(event.getSession());
         }
