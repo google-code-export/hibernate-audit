@@ -466,7 +466,7 @@ public final class HibernateAudit
      *
      * @exception IllegalStateException if the audit runtime was not started.
      */
-    public static AuditTransaction getLatestTransactionsByLogicalGroup(Serializable lgId)
+    public static AuditTransaction getLatestTransactionByLogicalGroup(Serializable lgId)
         throws Exception
     {
         String qs =

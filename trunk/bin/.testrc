@@ -57,5 +57,6 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=TypeCacheTest
 #TARGET_CLASS=HibernateFailureTest
 #TARGET_CLASS=ThreadBoundLogicalGroupIdTest
-TARGET_CLASS=WriteCollisionTest
 #TARGET_CLASS=HBA168Test
+TARGET_CLASS=CoarseWriteCollisionTest
+TARGET_CLASS=FirstLevelWriteCollisionTest

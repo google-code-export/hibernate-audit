@@ -5,10 +5,7 @@ import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
-import java.util.List;
-import java.util.ArrayList;
+import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -18,8 +15,8 @@ import java.util.ArrayList;
  * $Id$
  */
 @Entity
-@Table(name = "ROOT")
-public class Root
+@Table(name = "B")
+public class B
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -33,21 +30,14 @@ public class Root
 
     private String s;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    private Shared shared;
-
-    @OneToMany(mappedBy = "root", cascade = CascadeType.ALL)
-    private List<A> as;
-
-    @OneToMany(mappedBy = "root", cascade = CascadeType.ALL)
-    private List<B> bs;
+    @ManyToOne
+    @JoinColumn(name = "root")
+    private Root root;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public Root()
+    public B()
     {
-        as = new ArrayList<A>();
-        bs = new ArrayList<B>();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -72,34 +62,14 @@ public class Root
         this.s = s;
     }
 
-    public Shared getShared()
+    public Root getRoot()
     {
-        return shared;
+        return root;
     }
 
-    public void setShared(Shared shared)
+    public void setRoot(Root root)
     {
-        this.shared = shared;
-    }
-
-    public List<A> getAs()
-    {
-        return as;
-    }
-
-    public void setAs(List<A> as)
-    {
-        this.as = as;
-    }
-
-    public List<B> getBs()
-    {
-        return bs;
-    }
-
-    public void setBs(List<B> bs)
-    {
-        this.bs = bs;
+        this.root = root;
     }
 
     // Package protected ---------------------------------------------------------------------------

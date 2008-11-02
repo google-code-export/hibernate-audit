@@ -237,7 +237,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
     {
         try
         {
-            HibernateAudit.getLatestTransactionsByLogicalGroup("doesn't matter");
+            HibernateAudit.getLatestTransactionByLogicalGroup("doesn't matter");
             throw new Error("should have failed");
         }
         catch(IllegalStateException e)
@@ -258,7 +258,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
             HibernateAudit.startRuntime(sf.getSettings());
 
-            assert null == HibernateAudit.getLatestTransactionsByLogicalGroup("doesn't matter");
+            assert null == HibernateAudit.getLatestTransactionByLogicalGroup("doesn't matter");
         }
         finally
         {
@@ -297,7 +297,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
 
-            assert null == HibernateAudit.getLatestTransactionsByLogicalGroup("doesn't matter");
+            assert null == HibernateAudit.getLatestTransactionByLogicalGroup("doesn't matter");
         }
         finally
         {
@@ -338,7 +338,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
 
-            AuditTransaction tx = HibernateAudit.getLatestTransactionsByLogicalGroup(a.getId());
+            AuditTransaction tx = HibernateAudit.getLatestTransactionByLogicalGroup(a.getId());
 
             assert a.getId().equals(tx.getLogicalGroupId());
         }
@@ -382,7 +382,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             assert txs.size() == 1;
             AuditTransaction tx1 = txs.get(0);
 
-            AuditTransaction tx = HibernateAudit.getLatestTransactionsByLogicalGroup(a.getId());
+            AuditTransaction tx = HibernateAudit.getLatestTransactionByLogicalGroup(a.getId());
             assert a.getId().equals(tx.getLogicalGroupId());
 
 
@@ -403,7 +403,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             assert tx1.getId().equals(txs.get(0).getId());
             AuditTransaction tx2 = txs.get(1);
 
-            tx = HibernateAudit.getLatestTransactionsByLogicalGroup(a.getId());
+            tx = HibernateAudit.getLatestTransactionByLogicalGroup(a.getId());
             assert tx2.getId().equals(tx.getId());
             assert a.getId().equals(tx2.getLogicalGroupId());
         }

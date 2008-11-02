@@ -10,12 +10,17 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.write_collision.data.A;
 import com.googlecode.hibernate.audit.test.write_collision.data.Root;
 import com.googlecode.hibernate.audit.test.write_collision.data.Shared;
+import com.googlecode.hibernate.audit.test.write_collision.data.B;
 import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;
 import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
+ * TODO this test doesn't exercise HBA functionality, is part of an experiment, break out in a
+ *      different module!
+ * 
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -25,11 +30,11 @@ import com.googlecode.hibernate.audit.HibernateAuditException;
  * $Id$
  */
 @Test(sequential = true)
-public class WriteCollisionTest extends JTATransactionTest
+public class CoarseWriteCollisionTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(WriteCollisionTest.class);
+    private static final Logger log = Logger.getLogger(CoarseWriteCollisionTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -44,7 +49,7 @@ public class WriteCollisionTest extends JTATransactionTest
     /**
      * Detecting write collision if anything under root has changed.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testCoarseWriteCollisionDetection() throws Throwable
     {
         log.debug("testCoarseWriteCollisionDetection");
@@ -55,6 +60,7 @@ public class WriteCollisionTest extends JTATransactionTest
         conf.addAnnotatedClass(Root.class);
         conf.addAnnotatedClass(Shared.class);
         conf.addAnnotatedClass(A.class);
+        conf.addAnnotatedClass(B.class);
 
         final SessionFactoryImplementor sf = (SessionFactoryImplementor)conf.buildSessionFactory();
 
@@ -80,7 +86,7 @@ public class WriteCollisionTest extends JTATransactionTest
             {
                 public void run()
                 {
-                    new TwoPhaseUpdater(rootId, sf, rendezVous).update();
+                    new TwoPhaseRootUpdater(rootId, sf, rendezVous).update();
                 }
             }, "THREAD1").start();
 
@@ -88,71 +94,7 @@ public class WriteCollisionTest extends JTATransactionTest
             {
                 public void run()
                 {
-                    new TwoPhaseUpdater(rootId, sf, rendezVous).update();
-                }
-            }, "THREAD2").start();
-
-            rendezVous.awaitEnd();
-
-            assert null == rendezVous.getThrowable("THREAD1");
-            Throwable t = rendezVous.getThrowable("THREAD2");
-            assert t instanceof HibernateAuditException;
-            log.debug(">>>>> " + t.getMessage());
-        }
-        finally
-        {
-            HibernateAudit.stopRuntime();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
-
-    @Test(enabled = true)
-    public void testFinelyGrainedWriteCollisionDetection() throws Throwable
-    {
-        AnnotationConfiguration conf = new AnnotationConfiguration();
-        conf.configure(getHibernateConfigurationFileName());
-        conf.getProperties().setProperty("hibernate.show_sql", "false");
-        conf.addAnnotatedClass(Root.class);
-        conf.addAnnotatedClass(Shared.class);
-        conf.addAnnotatedClass(A.class);
-
-        final SessionFactoryImplementor sf = (SessionFactoryImplementor)conf.buildSessionFactory();
-
-        try
-        {
-            System.setProperty("hba.show_sql", "false");
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            RootIdProvider rip = new RootIdProvider(Root.class);
-            HibernateAudit.register(sf, rip);
-
-            // write intial data in database
-
-            final Long rootId = init(sf, rip);
-
-            // read/write data in two separated transactions, on two separate threads
-
-            final RendezVous rendezVous = new RendezVous("THREAD1", "THREAD2");
-
-            log.debug("\n\nstarting parallel threads\n");
-
-            new Thread(new Runnable()
-            {
-                public void run()
-                {
-                    new TwoPhaseUpdater(rootId, sf, rendezVous).update();
-                }
-            }, "THREAD1").start();
-
-            new Thread(new Runnable()
-            {
-                public void run()
-                {
-                    new TwoPhaseUpdater(rootId, sf, rendezVous).update();
+                    new TwoPhaseRootUpdater(rootId, sf, rendezVous).update();
                 }
             }, "THREAD2").start();
 
@@ -196,7 +138,11 @@ public class WriteCollisionTest extends JTATransactionTest
         A a = new A();
         a.setS("a");
         root.getAs().add(a);
+        B b = new B();
+        b.setS("b");
+        root.getBs().add(b);
         a.setRoot(root);
+        b.setRoot(root);
         root.setShared(shared);
 
         s.save(root);
@@ -209,13 +155,13 @@ public class WriteCollisionTest extends JTATransactionTest
 
     // Inner classes -------------------------------------------------------------------------------
 
-    private class TwoPhaseUpdater
+    private class TwoPhaseRootUpdater
     {
         private Long rootId;
         private RendezVous rendezVous;
         private SessionFactory sf;
 
-        TwoPhaseUpdater(Long rootId, SessionFactory sf, RendezVous rendezVous)
+        TwoPhaseRootUpdater(Long rootId, SessionFactory sf, RendezVous rendezVous)
         {
             this.rootId = rootId;
             this.sf = sf;
@@ -262,7 +208,7 @@ public class WriteCollisionTest extends JTATransactionTest
             s.beginTransaction();
 
             Root root = (Root)s.get(Root.class, id);
-            Long changeId = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId).getId();
+            Long changeId = HibernateAudit.getLatestTransactionByLogicalGroup(rootId).getId();
             root.getAs().get(0); // trigger lazy load
 
             s.getTransaction().commit();
@@ -290,11 +236,11 @@ public class WriteCollisionTest extends JTATransactionTest
                 s.beginTransaction();
 
                 Long lastChangeId = HibernateAudit.
-                    getLatestTransactionsByLogicalGroup(root.getId()).getId();
+                    getLatestTransactionByLogicalGroup(root.getId()).getId();
 
                 if (lastChangeId.equals(version))
                 {
-                    // ok to write
+                    // nothing changed anywhere under root, ok to write
                     s.update(versionedRoot.getEntity());
                     s.getTransaction().commit();
                     log.debug(tn + " committed successfully");
@@ -315,4 +261,5 @@ public class WriteCollisionTest extends JTATransactionTest
             }
         }
     }
+
 }
