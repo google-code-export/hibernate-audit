@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.Date;
 import java.io.Serializable;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -459,6 +458,29 @@ public final class HibernateAudit
 
             return ts;
         }
+    }
+
+    /**
+     * @return the latest (most recent) recorded transaction for this specific logical group or
+     *         null if there's not such transaction.
+     *
+     * @exception IllegalStateException if the audit runtime was not started.
+     */
+    public static AuditTransaction getLatestTransactionsByLogicalGroup(Serializable lgId)
+        throws Exception
+    {
+        String qs =
+            "from AuditTransaction where id = " +
+            "( select max(t.id) from AuditTransaction as t where t.logicalGroupId = :lgId )";
+
+        List result = query(qs, lgId);
+
+        if (result.isEmpty())
+        {
+            return null;
+        }
+
+        return (AuditTransaction)result.get(0);
     }
 
     // Delta functions -----------------------------------------------------------------------------
