@@ -208,7 +208,7 @@ public class CoarseWriteCollisionTest extends JTATransactionTest
             s.beginTransaction();
 
             Root root = (Root)s.get(Root.class, id);
-            Long changeId = HibernateAudit.getLatestTransactionByLogicalGroup(rootId).getId();
+            Long changeId = HibernateAudit.getLatestTransactionForLogicalGroup(rootId).getId();
             root.getAs().get(0); // trigger lazy load
 
             s.getTransaction().commit();
@@ -236,7 +236,7 @@ public class CoarseWriteCollisionTest extends JTATransactionTest
                 s.beginTransaction();
 
                 Long lastChangeId = HibernateAudit.
-                    getLatestTransactionByLogicalGroup(root.getId()).getId();
+                    getLatestTransactionForLogicalGroup(root.getId()).getId();
 
                 if (lastChangeId.equals(version))
                 {

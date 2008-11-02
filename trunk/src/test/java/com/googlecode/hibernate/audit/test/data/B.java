@@ -1,17 +1,20 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.data;
 
-import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
- *
- * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-public class Versions
+@Entity
+@Table(name = "B")
+public class B
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,35 +22,49 @@ public class Versions
 
     // Attributes ----------------------------------------------------------------------------------
 
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String s;
+    private Integer i;
+
     // Constructors --------------------------------------------------------------------------------
+
+    public B()
+    {
+    }
 
     // Public --------------------------------------------------------------------------------------
 
-    public void put(Class c, Long entityId, Long version)
+    public Long getId()
     {
-        
+        return id;
     }
 
-    public VersionedEntity getVersionedEntity(Class c, Serializable id)
+    public void setId(Long id)
     {
-        return null;
+        this.id = id;
     }
 
-    public Object getEntity(Class c, Serializable id)
+    public String getS()
     {
-        VersionedEntity ve = getVersionedEntity(c, id);
-
-        if (ve == null)
-        {
-            return null;
-        }
-
-        return ve.getEntity();
+        return s;
     }
 
-    public Long getVersion(Entity e)
+    public void setS(String s)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        this.s = s;
+    }
+
+    public Integer getI()
+    {
+        return i;
+    }
+
+    public void setI(Integer i)
+    {
+        this.i = i;
     }
 
     // Package protected ---------------------------------------------------------------------------

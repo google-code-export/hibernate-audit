@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * $Id$
  */
-public class Versions
+public class Entity
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,35 +19,66 @@ public class Versions
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private String name;
+    private Serializable id;
+
     // Constructors --------------------------------------------------------------------------------
+
+    public Entity(String name, Serializable id)
+    {
+        this.name = name;
+        this.id = id;
+    }
 
     // Public --------------------------------------------------------------------------------------
 
-    public void put(Class c, Long entityId, Long version)
+    public String getName()
     {
-        
+        return name;
     }
 
-    public VersionedEntity getVersionedEntity(Class c, Serializable id)
+    public void setName(String name)
     {
-        return null;
+        this.name = name;
     }
 
-    public Object getEntity(Class c, Serializable id)
+    public Serializable getId()
     {
-        VersionedEntity ve = getVersionedEntity(c, id);
+        return id;
+    }
 
-        if (ve == null)
+    public void setId(Serializable id)
+    {
+        this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
         {
-            return null;
+            return true;
         }
 
-        return ve.getEntity();
+        if (!(o instanceof Entity))
+        {
+            return false;
+        }
+
+        if (name == null || id == null)
+        {
+            return false;
+        }
+
+        Entity that = (Entity)o;
+
+        return name.equals(that.name) && id.equals(that.id);
     }
 
-    public Long getVersion(Entity e)
+    @Override
+    public int hashCode()
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        return (id == null ? 0 : id.hashCode()) * 37 + (name == null ? 0 : name.hashCode());
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -7,6 +7,8 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.impl.SessionFactoryImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
@@ -466,7 +468,7 @@ public final class HibernateAudit
      *
      * @exception IllegalStateException if the audit runtime was not started.
      */
-    public static AuditTransaction getLatestTransactionByLogicalGroup(Serializable lgId)
+    public static AuditTransaction getLatestTransactionForLogicalGroup(Serializable lgId)
         throws Exception
     {
         String qs =
@@ -481,6 +483,52 @@ public final class HibernateAudit
         }
 
         return (AuditTransaction)result.get(0);
+    }
+
+    /**
+     * @return the latest (most recent) recorded transaction for this specific entity, or null if
+     *         there is not such transaction.
+     *
+     * @exception IllegalStateException if the audit runtime was not started.
+     */
+    public static AuditTransaction getLatestTransaction(String entityName, Serializable entityId)
+        throws Exception
+    {
+        // TODO totally inefficient, can be optimized
+
+        Class idClass = entityId.getClass();
+
+        String qs = "from AuditEntityType as at where at.className = ? and at.idClassName = ?";
+
+        // TODO - make sure this goes through the type cache, otherwise I end up with persistence context collisions
+        List result = query(qs, entityName, idClass.getName());
+
+        if (result.isEmpty())
+        {
+            return null;
+        }
+
+        if (result.size() > 1)
+        {
+            throw new IllegalStateException("multiple entities " + entityName + "[" +
+                                            idClass.getName() + "] in the type table");
+        }
+
+        AuditEntityType aet = (AuditEntityType)result.get(0);
+
+        qs =
+            "from AuditEvent where id = " +
+            "( select max(e.id) from AuditEvent as e " +
+            "  where e.targetType = :aet and e.targetId = :entityId )";
+
+        result = query(qs, aet, entityId);
+
+        if (result.isEmpty())
+        {
+            return null;
+        }
+
+        return ((AuditEvent)result.get(0)).getTransaction();
     }
 
     // Delta functions -----------------------------------------------------------------------------

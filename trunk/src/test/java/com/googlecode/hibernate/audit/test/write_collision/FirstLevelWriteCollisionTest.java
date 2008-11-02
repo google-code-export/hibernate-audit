@@ -15,6 +15,9 @@ import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;
 import com.googlecode.hibernate.audit.HibernateAuditException;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
+
+import java.util.Set;
 
 /**
  * TODO this test doesn't exercise HBA functionality, is part of an experiment, break out in a
@@ -84,13 +87,13 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 }
             }, "THREAD1").start();
 
-            new Thread(new Runnable()
-            {
-                public void run()
-                {
-                    new TwoPhaseVersionedUpdater(rootId, sf, rendezVous).update();
-                }
-            }, "THREAD2").start();
+//            new Thread(new Runnable()
+//            {
+//                public void run()
+//                {
+//                    new TwoPhaseVersionedUpdater(rootId, sf, rendezVous).update();
+//                }
+//            }, "THREAD2").start();
 
             rendezVous.awaitEnd();
 
@@ -190,7 +193,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
 
                 rendezVous.swapControl();
 
-                //write(ve);
+                write(root, v);
 
                 rendezVous.end();
             }
@@ -211,20 +214,32 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
             Session s  = sf.openSession();
             s.beginTransaction();
 
+            AuditTransaction atx = null;
+
             Root root = (Root)s.get(Root.class, rootId);
-            Long changeId = HibernateAudit.getLatestTransactionByLogicalGroup(rootId).getId();
+            atx = HibernateAudit.getLatestTransactionForLogicalGroup(rootId);
+            Long changeId = atx.getId();
 
             v.put(Root.class, rootId, changeId);
-//
-//            Long sharedChangeId = HibernateAudit.get
-//
-//            root.getAs().get(0); // trigger lazy load
-//            root.getBs().get(0); // trigger lazy load
-//
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            return new VersionedEntity<Root>(root, changeId);
+
+            atx = HibernateAudit.
+                getLatestTransaction(Shared.class.getName(), root.getShared().getId());
+            v.put(Shared.class, root.getShared().getId(), atx.getId());
+
+            for(A a: root.getAs())
+            {
+                atx = HibernateAudit.getLatestTransaction(A.class.getName(), a.getId());
+                v.put(A.class, a.getId(), atx.getId());
+            }
+
+            for(B b: root.getBs())
+            {
+                atx = HibernateAudit.getLatestTransaction(B.class.getName(), b.getId());
+                v.put(B.class, b.getId(), atx.getId());
+            }
+
+            s.getTransaction().commit();
+            s.close();
 
             return v;
         }
@@ -232,13 +247,10 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
         /**
          * @throws com.googlecode.hibernate.audit.HibernateAuditException on write conflict.
          */
-        private void write(VersionedEntity<Root> versionedRoot) throws Exception
+        private void write(Root root, Versions v) throws Exception
         {
             String tn = Thread.currentThread().getName();
             log.debug(tn + " attempting to write the database in another transaction");
-
-            Root root = versionedRoot.getEntity();
-            Long version = versionedRoot.getVersion();
 
             Session s  = null;
 
@@ -246,27 +258,33 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
             {
                 s = sf.openSession();
                 s.beginTransaction();
+                
+                Versions currentVersions = read(rootId);
 
-                Long lastChangeId = HibernateAudit.
-                    getLatestTransactionByLogicalGroup(root.getId()).getId();
+                Set<Entity> changed = Util.getChanged();
 
-                if (lastChangeId.equals(version))
+                for(Entity e: changed)
                 {
-                    // nothing changed anywhere under root, ok to write; this is an optimization
-                    s.update(versionedRoot.getEntity());
-                    s.getTransaction().commit();
-                    log.debug(tn + " committed successfully");
-                    return;
+                    Long currentVersion = currentVersions.getVersion(e);
+                    Long initialVersion = v.getVersion(e);
+
+                    if (!currentVersion.equals(initialVersion))
+                    {
+                        // write conflict
+                        s.getTransaction().rollback();
+                        log.debug(tn + " rolled back");
+
+                        throw new HibernateAuditException(
+                            "write collision detected for " + e + " current change id is " +
+                            currentVersion + ", original change id is " + initialVersion);
+                    }
                 }
 
-                // something changed, let's see if changes conflict
-
-                s.getTransaction().rollback();
-                log.debug(tn + " rolled back");
-
-                throw new HibernateAuditException(
-                    "write collision detected, current chage id is " + lastChangeId +
-                    ", original change id is " + version);
+                // no write conflict
+                s.update(root);
+                s.getTransaction().commit();
+                log.debug(tn + " committed successfully");
+                
             }
             finally
             {
