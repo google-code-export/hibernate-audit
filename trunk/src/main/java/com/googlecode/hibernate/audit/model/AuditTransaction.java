@@ -113,7 +113,8 @@ public class AuditTransaction implements Synchronization
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         internalSession.beginTransaction();
 
-        log.debug(this + " registering itself as synchronization on " + this.hibernateTransaction);
+        if (traceEnabled) { log.trace(this + " registering itself as synchronization on " + this.hibernateTransaction); }
+
         this.hibernateTransaction.registerSynchronization(this);
     }
 
@@ -128,7 +129,8 @@ public class AuditTransaction implements Synchronization
         try
         {
             internalSession.getTransaction().commit();
-            log.debug(this + " committed");
+            
+            if (traceEnabled) { log.trace(this + " committed"); }
 
             internalSession.close();
             internalSession = null;
@@ -142,7 +144,8 @@ public class AuditTransaction implements Synchronization
 
     public void afterCompletion(int i)
     {
-        log.debug("after completion, commit status " + i);
+        if (traceEnabled) { log.trace("after completion, commit status " + i); }
+
         // no matter what happens, disassociate myself from the thread
         Manager.setCurrentAuditTransaction(null);
     }
