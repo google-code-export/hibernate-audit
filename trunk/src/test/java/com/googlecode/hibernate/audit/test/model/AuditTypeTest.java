@@ -38,7 +38,7 @@ public class AuditTypeTest extends AuditTypeTestBase
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_UnsupportedType() throws Exception
     {
         AuditType type = new AuditType();
@@ -55,7 +55,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_String() throws Exception
     {
         AuditType type = new AuditType();
@@ -65,7 +65,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert "abc".equals(type.stringToValue("abc"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_Integer() throws Exception
     {
         AuditType type = new AuditType();
@@ -90,7 +90,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 " + timeZone + " 2008"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_Long() throws Exception
     {
         AuditType type = new AuditType();
@@ -100,7 +100,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new Long(77).equals(type.stringToValue("77"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testTypeConversion_Boolean() throws Exception
     {
         AuditType type = new AuditType();
@@ -112,7 +112,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert Boolean.FALSE.equals(type.stringToValue("false"));
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStringToValue_CustomType() throws Exception
     {
         AuditType t = new AuditType();
@@ -123,7 +123,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new CustomType(123).equals(ct);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStringToValue_NonConvertibleCustomType() throws Exception
     {
         AuditType t = new AuditType();
@@ -140,7 +140,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStringToValue_CustomType_UseValueOfWithPriority() throws Exception
     {
         AuditType t = new AuditType();
@@ -150,7 +150,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new CustomType2(123).equals(ct);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testStringToValue_NonConvertibleCustomType_UseValueOfWithPriority()
         throws Exception
     {
@@ -170,7 +170,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
         log.debug("testPersistence_NoActiveTransaction");
@@ -206,7 +206,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_NoTypeInDatabase_Create_MessWithInternalSession() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -258,7 +258,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPersistence_TypeAlreadyInDatabase() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
