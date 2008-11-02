@@ -9,8 +9,10 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.write_collision.data.A;
 import com.googlecode.hibernate.audit.test.write_collision.data.Root;
 import com.googlecode.hibernate.audit.test.write_collision.data.Shared;
+import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;
+import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -47,7 +49,7 @@ public class WriteCollisionTest extends JTATransactionTest
      * @throws Exception
      */
     @Test(enabled = true)
-    public void testCoarseWriteCollisionDetection() throws Exception
+    public void testCoarseWriteCollisionDetection() throws Throwable
     {
         log.debug("testCoarseWriteCollisionDetection");
 
@@ -57,11 +59,12 @@ public class WriteCollisionTest extends JTATransactionTest
         config.addAnnotatedClass(Shared.class);
         config.addAnnotatedClass(A.class);
 
-        SessionFactoryImplementor sf = null;
+        final SessionFactoryImplementor sf =
+            (SessionFactoryImplementor)config.buildSessionFactory();
 
         try
         {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
             System.setProperty("hba.show_sql", "false");
             HibernateAudit.startRuntime(sf.getSettings());
             RootIdProvider rip = new RootIdProvider(Root.class);
@@ -88,7 +91,7 @@ public class WriteCollisionTest extends JTATransactionTest
 
             s.save(root);
 
-            Long rootId = root.getId();
+            final Long rootId = root.getId();
 
             s.getTransaction().commit();
             s.close();
@@ -97,27 +100,171 @@ public class WriteCollisionTest extends JTATransactionTest
             assert txs.size() == 1;
             assert rootId.equals(txs.get(0).getLogicalGroupId());
 
-            // read data in a separated transaction
+            final Long changeId = txs.get(0).getId();
 
-            s  = sf.openSession();
-            s.beginTransaction();
-            root = (Root)s.get(Root.class, rootId);
+            // read data in two separated transactions
 
-            AuditTransaction atx = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId);
-            Long changeId = atx.getId();
+            String threadOneName = "THREAD1";
+            String threadTwoName = "THREAD2";
 
-            assert "initial root".equals(root.getS());
-            assert "initial shared".equals(root.getShared().getS());
+            final RendezVous rendezVous = new RendezVous(threadOneName, threadTwoName);
 
-            List<A> as = root.getAs();
-            assert as.size() == 1;
-            assert "initial a".equals(as.get(0).getS());
-            assert root == as.get(0).getRoot();
 
-            s.getTransaction().commit();
-            s.close();
+            log.debug("\n\nstarting parallel threads\n");
 
-            throw new RuntimeException("NOT FINISHED");
+            new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        rendezVous.begin();
+
+                        log.debug("\n\nreading state from database\n");
+
+                        Root rootInTxOne = null;
+
+                        Session s  = sf.openSession();
+                        s.beginTransaction();
+                        rootInTxOne = (Root)s.get(Root.class, rootId);
+
+                        AuditTransaction atx =
+                            HibernateAudit.getLatestTransactionsByLogicalGroup(rootId);
+                        assert changeId.equals(atx.getId());
+
+                        assert "initial root".equals(rootInTxOne.getS());
+                        assert "initial shared".equals(rootInTxOne.getShared().getS());
+
+                        List<A> as = rootInTxOne.getAs();
+                        assert as.size() == 1;
+                        assert "initial a".equals(as.get(0).getS());
+                        assert rootInTxOne == as.get(0).getRoot();
+
+                        s.getTransaction().commit();
+                        s.close();
+
+                        rendezVous.swapControl();
+
+                        log.debug("\n\nmodifying state in memory\n");
+
+                        rootInTxOne.getAs().get(0).
+                            setS("a modified by " + Thread.currentThread().getName());
+
+                        rendezVous.swapControl();
+
+                        log.debug("\n\nattempting to write the database in another transaction\n");
+
+                        s  = sf.openSession();
+                        s.beginTransaction();
+
+                        atx = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId);
+
+                        if (atx.getId().equals(changeId))
+                        {
+                            // ok to write
+                            s.update(rootInTxOne);
+                        }
+                        else
+                        {
+                            s.getTransaction().rollback();
+
+                            throw new HibernateAuditException(
+                                "Write collision detected, my chage id is " + atx.getId() +
+                                ", database change id is " + changeId);
+                        }
+
+                        s.getTransaction().commit();
+                        s.close();
+
+                        rendezVous.end();
+                    }
+                    catch(Throwable t)
+                    {
+                        rendezVous.abort(t);
+                    }
+                }
+            }, threadOneName).start();
+
+            new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        rendezVous.begin();
+
+                        log.debug("\n\nreading state from database\n");
+
+                        Root rootInTxOne = null;
+
+                        Session s  = sf.openSession();
+                        s.beginTransaction();
+                        rootInTxOne = (Root)s.get(Root.class, rootId);
+
+                        AuditTransaction atx =
+                            HibernateAudit.getLatestTransactionsByLogicalGroup(rootId);
+                        assert changeId.equals(atx.getId());
+
+                        assert "initial root".equals(rootInTxOne.getS());
+                        assert "initial shared".equals(rootInTxOne.getShared().getS());
+
+                        List<A> as = rootInTxOne.getAs();
+                        assert as.size() == 1;
+                        assert "initial a".equals(as.get(0).getS());
+                        assert rootInTxOne == as.get(0).getRoot();
+
+                        s.getTransaction().commit();
+                        s.close();
+
+                        rendezVous.swapControl();
+
+                        log.debug("\n\nmodifying state in memory\n");
+
+                        rootInTxOne.getAs().get(0).
+                            setS("a modified by " + Thread.currentThread().getName());
+
+                        rendezVous.swapControl();
+
+                        log.debug("\n\nattempting to write the database in another transaction\n");
+
+                        s  = sf.openSession();
+                        s.beginTransaction();
+
+                        atx = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId);
+
+                        if (atx.getId() == changeId)
+                        {
+                            // ok to write
+                            s.update(rootInTxOne);
+                        }
+                        else
+                        {
+                            s.getTransaction().rollback();
+
+                            throw new HibernateAuditException(
+                                "Write collision detected, my chage id is " + atx.getId() +
+                                ", database change id is " + changeId);
+                        }
+
+                        s.getTransaction().commit();
+                        s.close();
+
+                        rendezVous.end();
+                    }
+                    catch(Throwable t)
+                    {
+                        rendezVous.abort(t);
+                    }
+                }
+            }, threadTwoName).start();
+
+            rendezVous.awaitEnd();
+
+            assert null == rendezVous.getThrowable(threadOneName);
+
+            Throwable t = rendezVous.getThrowable(threadTwoName);
+            assert t instanceof HibernateAuditException;
+            log.debug(">>>>> " + t.getMessage());
         }
         finally
         {
