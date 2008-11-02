@@ -31,6 +31,7 @@ public class RootIdProvider implements LogicalGroupIdProvider
     {
         this(root.getClass());
         getId = root.getClass().getMethod("getId");
+        this.root = root;
     }
 
     public RootIdProvider(Class rootClass) throws Exception
