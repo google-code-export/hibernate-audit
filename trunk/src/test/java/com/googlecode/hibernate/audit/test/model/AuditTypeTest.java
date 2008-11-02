@@ -38,7 +38,7 @@ public class AuditTypeTest extends AuditTypeTestBase
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_UnsupportedType() throws Exception
     {
         AuditType type = new AuditType();
@@ -55,7 +55,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_String() throws Exception
     {
         AuditType type = new AuditType();
@@ -65,7 +65,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert "abc".equals(type.stringToValue("abc"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_Integer() throws Exception
     {
         AuditType type = new AuditType();
@@ -83,13 +83,14 @@ public class AuditTypeTest extends AuditTypeTestBase
 
         // it only supports "oracle" date format so far, this will be a problem in the future
         Date d = Formats.testDateFormat.parse("07/07/2008");
-        String timeZone = Formats.timeZone.format(new Date());
+        String timeZone = Formats.timeZone.format(d);
 
+        log.debug(">>> Mon Jul 07 00:00:00 " + timeZone + " 2008 = " + type.valueToString(d));
         assert ("Mon Jul 07 00:00:00 " + timeZone + " 2008").equals(type.valueToString(d));
         assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 " + timeZone + " 2008"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_Long() throws Exception
     {
         AuditType type = new AuditType();
@@ -99,7 +100,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new Long(77).equals(type.stringToValue("77"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testTypeConversion_Boolean() throws Exception
     {
         AuditType type = new AuditType();
@@ -111,7 +112,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert Boolean.FALSE.equals(type.stringToValue("false"));
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStringToValue_CustomType() throws Exception
     {
         AuditType t = new AuditType();
@@ -122,7 +123,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new CustomType(123).equals(ct);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStringToValue_NonConvertibleCustomType() throws Exception
     {
         AuditType t = new AuditType();
@@ -139,7 +140,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStringToValue_CustomType_UseValueOfWithPriority() throws Exception
     {
         AuditType t = new AuditType();
@@ -149,7 +150,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         assert new CustomType2(123).equals(ct);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testStringToValue_NonConvertibleCustomType_UseValueOfWithPriority()
         throws Exception
     {
@@ -169,7 +170,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_NoActiveTransaction() throws Exception
     {
         log.debug("testPersistence_NoActiveTransaction");
@@ -205,7 +206,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_NoTypeInDatabase_Create_MessWithInternalSession() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -257,7 +258,7 @@ public class AuditTypeTest extends AuditTypeTestBase
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testPersistence_TypeAlreadyInDatabase() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
