@@ -112,7 +112,7 @@ public class PostUpdateAuditEventListener
             }
 
             String name = names[i];
-            Object current = state[i];
+            Object current = state == null ? null : state[i];
             Object old = oldState == null ? null : oldState[i];
 
             if (type.isEntityType())
