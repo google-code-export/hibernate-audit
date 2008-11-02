@@ -56,6 +56,7 @@ public class WriteCollisionTest extends JTATransactionTest
 
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
+        config.getProperties().setProperty("hibernate.show_sql", "false");
         config.addAnnotatedClass(Root.class);
         config.addAnnotatedClass(Shared.class);
         config.addAnnotatedClass(A.class);
@@ -78,11 +79,11 @@ public class WriteCollisionTest extends JTATransactionTest
 
             Root root = new Root();
             rip.setRoot(root);
-            root.setS("initial root");
+            root.setS("r");
             Shared shared = new Shared();
-            shared.setS("initial shared");
+            shared.setS("s");
             A a = new A();
-            a.setS("initial a");
+            a.setS("a");
             root.getAs().add(a);
             a.setRoot(root);
             root.setShared(shared);
@@ -165,51 +166,19 @@ public class WriteCollisionTest extends JTATransactionTest
             {
                 rendezVous.begin();
 
-                log.debug(Thread.currentThread().getName() + " reading state from database");
-
-                Session s  = sf.openSession();
-                s.beginTransaction();
-
-                Root root = (Root)s.get(Root.class, rootId);
-                Long changeId = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId).getId();
-                root.getAs().get(0); // trigger lazy load
-
-                s.getTransaction().commit();
-                s.close();
+                VersionedEntity<Root> ve = read();
 
                 rendezVous.swapControl();
 
-                log.debug(Thread.currentThread().getName() + " modifying state in memory");
-
+                Root root = ve.getEntity();
                 root.getAs().get(0).setS("a modified by " + Thread.currentThread().getName());
+                
+                log.debug(Thread.currentThread().getName() +
+                          " modified state in memory, root.a.s = " + root.getAs().get(0).getS());
 
                 rendezVous.swapControl();
 
-                log.debug(Thread.currentThread().getName() +
-                          " attempting to write the database in another transaction");
-
-                s  = sf.openSession();
-                s.beginTransaction();
-
-                Long crtChangeId = HibernateAudit.
-                    getLatestTransactionsByLogicalGroup(rootId).getId();
-
-                if (crtChangeId.equals(changeId))
-                {
-                    // ok to write
-                    s.update(root);
-                    s.getTransaction().commit();
-                    s.close();
-                }
-                else
-                {
-                    s.getTransaction().rollback();
-                    s.close();
-
-                    throw new HibernateAuditException(
-                        "Write collision detected, current chage id is " + crtChangeId +
-                        ", original change id is " + changeId);
-                }
+                write(ve);
 
                 rendezVous.end();
             }
@@ -218,6 +187,72 @@ public class WriteCollisionTest extends JTATransactionTest
                 rendezVous.abort(t);
             }
         }
+
+        /**
+         * @return a detached root and its version.
+         */
+        private VersionedEntity<Root> read() throws Exception
+        {
+            String tn = Thread.currentThread().getName();
+            log.debug(tn + " reading root from database");
+
+            Session s  = sf.openSession();
+            s.beginTransaction();
+
+            Root root = (Root)s.get(Root.class, rootId);
+            Long changeId = HibernateAudit.getLatestTransactionsByLogicalGroup(rootId).getId();
+            root.getAs().get(0); // trigger lazy load
+
+            s.getTransaction().commit();
+            s.close();
+
+            return new VersionedEntity<Root>(root, changeId);
+        }
+
+        /**
+         * @throws HibernateAuditException on write conflict.
+         */
+        private void write(VersionedEntity<Root> versionedRoot) throws Exception
+        {
+            String tn = Thread.currentThread().getName();
+            log.debug(tn + " attempting to write the database in another transaction");
+
+            Root root = versionedRoot.getEntity();
+            Long version = versionedRoot.getVersion();
+
+            Session s  = null;
+
+            try
+            {
+                s = sf.openSession();
+                s.beginTransaction();
+
+                Long lastChangeId = HibernateAudit.
+                    getLatestTransactionsByLogicalGroup(root.getId()).getId();
+
+                if (lastChangeId.equals(version))
+                {
+                    // ok to write
+                    s.update(versionedRoot.getEntity());
+                    s.getTransaction().commit();
+                    log.debug(tn + " committed successfully");
+                    return;
+                }
+
+                // write conflict
+                s.getTransaction().rollback();
+                log.debug(tn + " rolled back");
+
+                throw new HibernateAuditException(
+                    "write collision detected, current chage id is " + lastChangeId +
+                    ", original change id is " + version);
+            }
+            finally
+            {
+                s.close();
+            }
+        }
+
     }
 
 }

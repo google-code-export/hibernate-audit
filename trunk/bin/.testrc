@@ -58,4 +58,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=HibernateFailureTest
 #TARGET_CLASS=ThreadBoundLogicalGroupIdTest
 TARGET_CLASS=WriteCollisionTest
-#TARGET_CLASS=NullPointerExceptionOnNoPrimitiveStateTest
+#TARGET_CLASS=HBA168Test
