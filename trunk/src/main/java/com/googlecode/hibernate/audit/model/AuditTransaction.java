@@ -46,6 +46,7 @@ public class AuditTransaction implements Synchronization
     // Static --------------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(AuditTransaction.class);
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Attributes ----------------------------------------------------------------------------------
 
@@ -120,6 +121,7 @@ public class AuditTransaction implements Synchronization
 
     public void beforeCompletion()
     {
+        // most likely, this won't be called for a JTA transaction, because AuditTransaction
         // most likely, this won't be called for a JTA transaction, because AuditTransaction
         // synchronization is registered during the JTA transaction "beforeCompletion()" call.
         // see https://jira.novaordis.org/browse/HBA-37
@@ -216,7 +218,8 @@ public class AuditTransaction implements Synchronization
         event.setTargetType(lockedType);
 
         internalSession.save(event);
-        log.debug(this + " logged " + event);
+
+        if (traceEnabled) { log.trace(this + " logged " + event); }
     }
 
     /**
@@ -238,7 +241,8 @@ public class AuditTransaction implements Synchronization
         field.setType(lockedType);
 
         internalSession.save(pair);
-        log.debug(this + " logged " + pair);
+
+        if (traceEnabled) { log.trace(this + " logged " + pair); }
     }
 
     /**
