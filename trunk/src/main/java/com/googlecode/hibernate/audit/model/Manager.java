@@ -89,9 +89,36 @@ public class Manager
 
     public static void setCurrentAuditTransaction(AuditTransaction at)
     {
-        log.debug(at == null ?
-                  "dissasociating audit transaction from the current thread":
-                  "associating " + at + " with the current thread");
+        AuditTransaction crt = auditTransaction.get();
+
+        if (at == null)
+        {
+            // we want to clean thread local
+
+            if (crt == null)
+            {
+                // nothing to clean
+                return;
+            }
+
+            if (log.isDebugEnabled())
+            {
+                log.debug("disassociating " + crt + " from current thread " + Thread.currentThread());
+            }
+        }
+        else if (log.isDebugEnabled())
+        {
+            if (crt == null)
+            {
+                log.debug("associating " + at + " with current thread " + Thread.currentThread());
+            }
+            else
+            {
+                log.debug("replacing " + crt + " with " + at + " on current thread " +
+                          Thread.currentThread());
+            }
+        }
+
         auditTransaction.set(at);
     }
 
