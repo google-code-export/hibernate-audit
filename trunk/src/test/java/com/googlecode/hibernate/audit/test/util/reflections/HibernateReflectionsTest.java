@@ -33,12 +33,10 @@ public class HibernateReflectionsTest
 
     // Public --------------------------------------------------------------------------------------
 
-    // Primitive Updates ---------------------------------------------------------------------------
-
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyChanges_Primitives() throws Throwable
     {
-        log.debug("test");
+        log.debug("testApplyChanges_Primitives");
 
         AnnotationConfiguration conf = new AnnotationConfiguration();
         conf.configure("/hibernate-thread.cfg.xml");
@@ -79,83 +77,46 @@ public class HibernateReflectionsTest
     @Test(enabled = true)
     public void testApplyChanges_Collections() throws Throwable
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
-//
-//        AnnotationConfiguration conf = new AnnotationConfiguration();
-//        conf.configure("/hibernate-thread.cfg.xml");
-//        conf.getProperties().setProperty("hibernate.show_sql", "false");
-//        conf.addAnnotatedClass(A.class);
-//        conf.addAnnotatedClass(B.class);
-//
-//        SessionFactoryImplementor sf = null;
-//
-//        EntityMode entityMode = EntityMode.POJO;
-//
-//        // TODO what about other entity modes?
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)conf.buildSessionFactory();
-//
-//            A base = new A();
-//
-//            A modified = new A();
-//            modified.setI(new Integer(1));
-//            modified.setS("a");
-//
-//            HibernateReflections.applyChanges(sf, entityMode, base, modified);
-//
-//            assert new Integer(1).equals(base.getI());
-//            assert "a".equals(base.getS());
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
+        AnnotationConfiguration conf = new AnnotationConfiguration();
+        conf.configure("/hibernate-thread.cfg.xml");
+        conf.getProperties().setProperty("hibernate.show_sql", "false");
+        conf.addAnnotatedClass(A.class);
+        conf.addAnnotatedClass(B.class);
+
+        SessionFactoryImplementor sf = null;
+
+        EntityMode entityMode = EntityMode.POJO;
+
+        // TODO what about other entity modes?
+
+        try
+        {
+            sf = (SessionFactoryImplementor)conf.buildSessionFactory();
+
+            A base = new A();
+
+            A modified = new A();
+            B b = new B();
+            modified.getBs().add(b);
+
+            HibernateReflections.applyChanges(sf, entityMode, base, modified);
+
+            assert new Integer(1).equals(base.getI());
+            assert "a".equals(base.getS());
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void testApplyChanges_Entities() throws Throwable
     {
         throw new RuntimeException("NOT YET IMPLEMENTED");
-//
-//        AnnotationConfiguration conf = new AnnotationConfiguration();
-//        conf.configure("/hibernate-thread.cfg.xml");
-//        conf.getProperties().setProperty("hibernate.show_sql", "false");
-//        conf.addAnnotatedClass(A.class);
-//        conf.addAnnotatedClass(B.class);
-//
-//        SessionFactoryImplementor sf = null;
-//
-//        EntityMode entityMode = EntityMode.POJO;
-//
-//        // TODO what about other entity modes?
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)conf.buildSessionFactory();
-//
-//            A base = new A();
-//
-//            A modified = new A();
-//            modified.setI(new Integer(1));
-//            modified.setS("a");
-//
-//            HibernateReflections.applyChanges(sf, entityMode, base, modified);
-//
-//            assert new Integer(1).equals(base.getI());
-//            assert "a".equals(base.getS());
-//        }
-//        finally
-//        {
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
     }
 
 //    @Test(enabled = true) // TODO https://jira.novaordis.org/browse/HBA-32

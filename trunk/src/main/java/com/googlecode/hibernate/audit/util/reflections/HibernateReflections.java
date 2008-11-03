@@ -2,9 +2,13 @@ package com.googlecode.hibernate.audit.util.reflections;
 
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.type.Type;
+import org.hibernate.type.CollectionType;
 import org.apache.log4j.Logger;
+
+import java.util.Collection;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -67,11 +71,12 @@ public class HibernateReflections
 
             if (type.isEntityType())
             {
-                log.debug("entity");
+                throw new RuntimeException("NOT YET IMPLEMENTED");
             }
             else if (type.isCollectionType())
             {
-                log.debug("collection");
+                applyCollectionChanges(ep, base, i, (Collection)baseProperty,
+                                       (Collection)modifiedProperty);
             }
             else if (type.isComponentType())
             {
@@ -100,6 +105,18 @@ public class HibernateReflections
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    private static void applyCollectionChanges(EntityPersister ep, Object base, int i,
+                                               Collection collectionBase, Collection modified)
+    {
+        if (collectionBase.isEmpty() && modified.isEmpty())
+        {
+            return;
+        }
+
+        throw new RuntimeException("NOT YET IMPLEMENTED");
+        //ep.setPropertyValue(base, i, modifiedProperty, entityMode);
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 }
