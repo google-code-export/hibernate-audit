@@ -10,8 +10,6 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_update.data.A;
 import com.googlecode.hibernate.audit.test.post_update.data.CUni;
 import com.googlecode.hibernate.audit.test.post_update.data.DUni;
-import com.googlecode.hibernate.audit.test.post_update.data.FMan;
-import com.googlecode.hibernate.audit.test.post_update.data.E;
 import com.googlecode.hibernate.audit.test.post_update.data.GMan;
 import com.googlecode.hibernate.audit.test.post_update.data.H;
 import com.googlecode.hibernate.audit.test.post_update.data.CBi;
@@ -1316,7 +1314,7 @@ public class PostUpdateDeltaTest extends JTATransactionTest
         String cMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class entity-name='C' name='com.googlecode.hibernate.audit.test.post_update.data.CBi' table='C'>\n" +
@@ -1336,7 +1334,7 @@ public class PostUpdateDeltaTest extends JTATransactionTest
         String dMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class name='com.googlecode.hibernate.audit.test.post_update.data.DBi' table='D'>\n" +

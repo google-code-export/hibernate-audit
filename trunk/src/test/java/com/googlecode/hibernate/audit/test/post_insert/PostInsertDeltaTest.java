@@ -1383,7 +1383,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xaMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA' table='XA'>\n" +
@@ -1398,7 +1398,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xbMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
@@ -1495,7 +1495,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xa2Mapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
@@ -1512,7 +1512,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xbMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
@@ -1625,7 +1625,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xa2Mapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
@@ -1642,7 +1642,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
         String xbMapping =
             "<?xml version='1.0'?>\n" +
             "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
             "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
             "<hibernate-mapping>\n" +
             "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +

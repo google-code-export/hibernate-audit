@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Collection;
 
+import com.googlecode.hibernate.audit.test.write_collision.data.Root;
+
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -167,7 +169,6 @@ public class Util
     {
         return false;
     }
-
 
     // Attributes ----------------------------------------------------------------------------------
 

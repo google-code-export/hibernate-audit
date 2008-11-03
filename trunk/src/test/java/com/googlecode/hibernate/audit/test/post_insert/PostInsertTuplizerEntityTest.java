@@ -37,7 +37,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xaMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA' table='XA'>\n" +
@@ -52,7 +52,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xbMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
@@ -131,7 +131,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xaMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA' table='XA'>\n" +
@@ -146,7 +146,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xcMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XC' name='com.googlecode.hibernate.audit.test.post_insert.data.XC' table='XC'>\n" +
@@ -224,7 +224,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xa2Mapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
@@ -241,7 +241,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xbMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
@@ -338,7 +338,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xa3Mapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XA3' name='com.googlecode.hibernate.audit.test.post_insert.data.XA3' table='XA3'>\n" +
@@ -356,7 +356,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xbMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +
@@ -463,7 +463,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xa2Mapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class name='com.googlecode.hibernate.audit.test.post_insert.data.XA2' table='XA2'>\n" +
@@ -480,7 +480,7 @@ public class PostInsertTuplizerEntityTest extends JTATransactionTest
 //        String xbMapping =
 //            "<?xml version='1.0'?>\n" +
 //            "<!DOCTYPE hibernate-mapping PUBLIC\n" +
-//            "    \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\"\n" +
+//            "    \"-//Hibernate/HibernateReflections Mapping DTD 3.0//EN\"\n" +
 //            "    \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 //            "<hibernate-mapping>\n" +
 //            "   <class entity-name='XB' name='com.googlecode.hibernate.audit.test.post_insert.data.XB' table='XB'>\n" +

@@ -6,6 +6,7 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.EntityMode;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.write_collision.data.Root;
 import com.googlecode.hibernate.audit.test.write_collision.data.Shared;
@@ -15,6 +16,7 @@ import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;
 import com.googlecode.hibernate.audit.HibernateAuditException;
+import com.googlecode.hibernate.audit.util.reflections.HibernateReflections;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.Set;
@@ -54,6 +56,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
         AnnotationConfiguration conf = new AnnotationConfiguration();
         conf.configure(getHibernateConfigurationFileName());
         conf.getProperties().setProperty("hibernate.show_sql", "false");
+
         conf.addAnnotatedClass(Root.class);
         conf.addAnnotatedClass(Shared.class);
         conf.addAnnotatedClass(A.class);
@@ -171,7 +174,11 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
             {
                 rendezVous.begin();
 
-                Versions v = read(rootId);
+                Session s = sf.openSession();
+                s.beginTransaction();
+                Versions v = read(s, rootId);
+                s.getTransaction().commit();
+                s.close();
 
                 rendezVous.swapControl();
 
@@ -203,15 +210,15 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
             }
         }
 
-        private Versions read(Long rootId) throws Exception
+        /**
+         * Requires an open transaction!
+         */
+        private Versions read(Session s, Long rootId) throws Exception
         {
             String tn = Thread.currentThread().getName();
             log.debug(tn + " reading root from database");
 
             Versions v = new Versions();
-
-            Session s  = sf.openSession();
-            s.beginTransaction();
 
             AuditTransaction atx = null;
 
@@ -235,16 +242,13 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 v.put(B.class.getName(), b.getId(), b, atx.getId());
             }
 
-            s.getTransaction().commit();
-            s.close();
-
             return v;
         }
 
         /**
          * @throws com.googlecode.hibernate.audit.HibernateAuditException on write conflict.
          */
-        private void write(SessionFactoryImplementor sf, Root root, Versions v) throws Exception
+        private void write(SessionFactoryImplementor sf, Root memoryRoot, Versions v) throws Exception
         {
             String tn = Thread.currentThread().getName();
             log.debug(tn + " attempting to write the database in another transaction");
@@ -256,7 +260,9 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 s = sf.openSession();
                 s.beginTransaction();
                 
-                Versions currentVersions = read(rootId);
+                Versions currentVersions = read(s, rootId);
+                Root dbRoot = (Root)currentVersions.
+                    getVersionedEntity(Root.class.getName(), rootId).getEntity();
 
                 Set<Entity> changed = Util.getChanged(sf, v, currentVersions);
 
@@ -278,8 +284,10 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 }
 
                 // no write conflict
-                s.merge(root); // TODO ?????
+                HibernateReflections.applyChanges(sf, EntityMode.POJO, dbRoot, memoryRoot);
+                s.update(dbRoot);
                 s.getTransaction().commit();
+
                 log.debug(tn + " committed successfully");
                 
             }
