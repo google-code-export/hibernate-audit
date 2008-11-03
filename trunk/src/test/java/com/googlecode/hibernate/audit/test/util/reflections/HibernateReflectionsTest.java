@@ -113,7 +113,7 @@ public class HibernateReflectionsTest
 //        }
 //    }
 //
-//    @Test(enabled = false) // TODO enable if I ever decide to pursue this path, which I doubt
+//    @Test(enabled = true) // TODO enable if I ever decide to pursue this path, which I doubt
 //    public void testApplyChanges_Entities() throws Throwable
 //    {
 //        throw new RuntimeException("NOT YET IMPLEMENTED");

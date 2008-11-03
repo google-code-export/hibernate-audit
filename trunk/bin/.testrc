@@ -61,5 +61,5 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=HibernateAuditGetTransactionTest
 #TARGET_CLASS=CoarseWriteCollisionTest
 #>>>TARGET_CLASS=FirstLevelWriteCollisionTest
-#>>TARGET_CLASS=TwoPhaseUpdateTest
-TARGET_CLASS=HibernateReflectionsTest
+#TARGET_CLASS=TwoPhaseUpdateTest
+#TARGET_CLASS=HibernateReflectionsTest
