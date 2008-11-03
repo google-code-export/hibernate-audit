@@ -2,15 +2,18 @@ package com.googlecode.hibernate.audit.util.reflections;
 
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.type.Type;
-import org.hibernate.type.CollectionType;
 import org.apache.log4j.Logger;
 
 import java.util.Collection;
 
 /**
+ *
+ * TODO Most likely not the way to go, very complicated and fragile. And incomplete.
+ * Added here during experiments for write colission detection, trying to figure out changes upfront
+ * and then apply changes in memory to the fresh copy from the database.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
