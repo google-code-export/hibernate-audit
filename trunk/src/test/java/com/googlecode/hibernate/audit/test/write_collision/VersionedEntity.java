@@ -38,6 +38,12 @@ public class VersionedEntity<E>
         return version;
     }
 
+    @Override
+    public String toString()
+    {
+        return entity + ", version " + version;
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------

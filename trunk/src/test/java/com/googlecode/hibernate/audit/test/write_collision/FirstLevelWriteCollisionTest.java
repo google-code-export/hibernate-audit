@@ -49,7 +49,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
     // Primitive Updates ---------------------------------------------------------------------------
 
     @Test(enabled = true)
-    public void test() throws Throwable
+    public void testIndependentUpdatesNoCollision() throws Throwable
     {
         AnnotationConfiguration conf = new AnnotationConfiguration();
         conf.configure(getHibernateConfigurationFileName());
@@ -87,13 +87,13 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 }
             }, "THREAD1").start();
 
-//            new Thread(new Runnable()
-//            {
-//                public void run()
-//                {
-//                    new TwoPhaseVersionedUpdater(rootId, sf, rendezVous).update();
-//                }
-//            }, "THREAD2").start();
+            new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    new TwoPhaseVersionedUpdater(rootId, sf, rendezVous).update();
+                }
+            }, "THREAD2").start();
 
             rendezVous.awaitEnd();
 
@@ -154,9 +154,9 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
     {
         private Long rootId;
         private RendezVous rendezVous;
-        private SessionFactory sf;
+        private SessionFactoryImplementor sf;
 
-        TwoPhaseVersionedUpdater(Long rootId, SessionFactory sf, RendezVous rendezVous)
+        TwoPhaseVersionedUpdater(Long rootId, SessionFactoryImplementor sf, RendezVous rendezVous)
         {
             this.rootId = rootId;
             this.sf = sf;
@@ -175,12 +175,11 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
 
                 rendezVous.swapControl();
 
-                Root root = (Root)v.getEntity(Root.class, rootId);
+                Root root = (Root)v.getEntity(Root.class.getName(), rootId);
 
                 if ("THREAD1".equals(tn))
                 {
                     // modifying As
-
                     root.getAs().get(0).setS("a2");
                     log.debug(tn + " modified state in memory, root.a.s = " + root.getAs().get(0).getS());
                 }
@@ -193,7 +192,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
 
                 rendezVous.swapControl();
 
-                write(root, v);
+                write(sf, root, v);
 
                 rendezVous.end();
             }
@@ -217,25 +216,23 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
             AuditTransaction atx = null;
 
             Root root = (Root)s.get(Root.class, rootId);
-            atx = HibernateAudit.getLatestTransactionForLogicalGroup(rootId);
-            Long changeId = atx.getId();
+            atx = HibernateAudit.getLatestTransaction(Root.class.getName(), rootId);
+            v.put(Root.class.getName(), rootId, root, atx.getId());
 
-            v.put(Root.class, rootId, changeId);
-
-            atx = HibernateAudit.
-                getLatestTransaction(Shared.class.getName(), root.getShared().getId());
-            v.put(Shared.class, root.getShared().getId(), atx.getId());
+            Shared shared = root.getShared();
+            atx = HibernateAudit.getLatestTransaction(Shared.class.getName(), shared.getId());
+            v.put(Shared.class.getName(), root.getShared().getId(), shared, atx.getId());
 
             for(A a: root.getAs())
             {
                 atx = HibernateAudit.getLatestTransaction(A.class.getName(), a.getId());
-                v.put(A.class, a.getId(), atx.getId());
+                v.put(A.class.getName(), a.getId(), a, atx.getId());
             }
 
             for(B b: root.getBs())
             {
                 atx = HibernateAudit.getLatestTransaction(B.class.getName(), b.getId());
-                v.put(B.class, b.getId(), atx.getId());
+                v.put(B.class.getName(), b.getId(), b, atx.getId());
             }
 
             s.getTransaction().commit();
@@ -247,7 +244,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
         /**
          * @throws com.googlecode.hibernate.audit.HibernateAuditException on write conflict.
          */
-        private void write(Root root, Versions v) throws Exception
+        private void write(SessionFactoryImplementor sf, Root root, Versions v) throws Exception
         {
             String tn = Thread.currentThread().getName();
             log.debug(tn + " attempting to write the database in another transaction");
@@ -261,7 +258,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 
                 Versions currentVersions = read(rootId);
 
-                Set<Entity> changed = Util.getChanged();
+                Set<Entity> changed = Util.getChanged(sf, v, currentVersions);
 
                 for(Entity e: changed)
                 {
@@ -281,7 +278,7 @@ public class FirstLevelWriteCollisionTest extends JTATransactionTest
                 }
 
                 // no write conflict
-                s.update(root);
+                s.merge(root); // TODO ?????
                 s.getTransaction().commit();
                 log.debug(tn + " committed successfully");
                 

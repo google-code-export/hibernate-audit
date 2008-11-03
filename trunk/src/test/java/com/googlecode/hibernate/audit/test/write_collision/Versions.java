@@ -1,8 +1,15 @@
 package com.googlecode.hibernate.audit.test.write_collision;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
+ * TODO nothing is synchronized, Version instance is supposed to be accessed only from within a
+ * single transaction (one thread at a time)
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -19,23 +26,35 @@ public class Versions
 
     // Attributes ----------------------------------------------------------------------------------
 
+    private Map<Entity, VersionedEntity> versions;
+
     // Constructors --------------------------------------------------------------------------------
+
+    public Versions()
+    {
+        versions = new HashMap<Entity, VersionedEntity>();
+    }
 
     // Public --------------------------------------------------------------------------------------
 
-    public void put(Class c, Long entityId, Long version)
+    public void put(String entityName, Long entityId, Object entity, Long version)
     {
-        
+        versions.put(new Entity(entityName, entityId), new VersionedEntity(entity, version));
     }
 
-    public VersionedEntity getVersionedEntity(Class c, Serializable id)
+    public VersionedEntity getVersionedEntity(String entityName, Serializable id)
     {
-        return null;
+        return getVersionedEntity(new Entity(entityName, id));
     }
 
-    public Object getEntity(Class c, Serializable id)
+    public VersionedEntity getVersionedEntity(Entity e)
     {
-        VersionedEntity ve = getVersionedEntity(c, id);
+        return versions.get(e);
+    }
+
+    public Object getEntity(String entityName, Serializable id)
+    {
+        VersionedEntity ve = getVersionedEntity(entityName, id);
 
         if (ve == null)
         {
@@ -47,7 +66,19 @@ public class Versions
 
     public Long getVersion(Entity e)
     {
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        VersionedEntity ve = versions.get(e);
+
+        if (ve == null)
+        {
+            return null;
+        }
+
+        return ve.getVersion();
+    }
+
+    public Set<Entity> entities()
+    {
+        return versions.keySet();
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -57,4 +88,6 @@ public class Versions
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
+
 }

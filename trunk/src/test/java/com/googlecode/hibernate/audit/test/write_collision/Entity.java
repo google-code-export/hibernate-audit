@@ -81,6 +81,12 @@ public class Entity
         return (id == null ? 0 : id.hashCode()) * 37 + (name == null ? 0 : name.hashCode());
     }
 
+    @Override
+    public String toString()
+    {
+        return name + "[" + id + "]";
+    }
+
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
