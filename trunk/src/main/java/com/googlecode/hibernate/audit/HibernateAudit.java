@@ -540,8 +540,9 @@ public final class HibernateAudit
     /**
      * TODO very bad implementation, must be optimized
      *
-     * @return the value of the specified field of the specified entity. May retrun null if the
-     *         value corresponding to the given version was null for the specified version.
+     * @return the value of the specified field of the specified entity as it was available in the
+     *         database for the given version. May retrun null if the value corresponding to the
+     *         given version was null.
      *
      * @throws IllegalArgumentException for an invalid entityName, entityId or version.
      * @throws org.hibernate.HibernateException for an invalid field name.

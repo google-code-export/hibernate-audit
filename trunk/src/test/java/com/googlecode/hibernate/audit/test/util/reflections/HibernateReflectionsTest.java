@@ -99,7 +99,7 @@ public class HibernateReflectionsTest
 //            B b = new B();
 //            modified.getBs().add(b);
 //
-//            HibernateReflections.applyChanges(sf, entityMode, base, modified);
+//            HibernateReflections.applyMemoryDelta(sf, entityMode, base, modified);
 //
 //            assert new Integer(1).equals(base.getI());
 //            assert "a".equals(base.getS());

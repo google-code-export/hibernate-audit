@@ -13,5 +13,5 @@ import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.Roo
  */
 public interface ModificationStrategy
 {
-    void modify(Root root) throws Exception;
+    void modify(Root root, boolean fake) throws Exception;
 }

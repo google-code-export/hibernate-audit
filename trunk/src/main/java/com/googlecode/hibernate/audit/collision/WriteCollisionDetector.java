@@ -84,12 +84,15 @@ public class WriteCollisionDetector
      * transaction. The responsiblity of catching the exception and rolling back the transaction
      * falls to the layer that started the transaction.
      *
+     * @param preUpdateValue - the Hibernate "old" state, the value of the field as recorded by
+     *        Hibernate before the current update taking place.
+     *
      * @exception WriteCollisionException if a write collision has been detected.
      * @exception Exception if something else went wrong.
      */
     public void detectCollision(SessionFactoryImplementor sf,
                                 String entityName, Serializable entityId,
-                                String fieldName,  Object currentValue)  throws Exception
+                                String fieldName,  Object preUpdateValue)  throws Exception
     {
         if (!enabled)
         {
@@ -102,11 +105,20 @@ public class WriteCollisionDetector
         if (referenceVersion == null)
         {
             throw new IllegalStateException(
-                "write collision detection enabled, but no reference version provided");
+                "write collision detection enabled, " +
+                "but no reference version passed via thread local");
         }
 
-        HibernateAudit.getValue(sf, entityName, entityId, fieldName, referenceVersion);
+        Object referenceValue =
+            HibernateAudit.getValue(sf, entityName, entityId, fieldName, referenceVersion);
 
+        if ((preUpdateValue != null || referenceValue != null) &&
+            !preUpdateValue.equals(referenceValue))
+        {
+            throw new WriteCollisionException(
+                entityName + "["  + entityId + "]." + fieldName + " has been changed from " +
+                referenceValue + " to " + preUpdateValue + " by a concurrent transaction");
+        }
     }
 
     // Package protected ---------------------------------------------------------------------------

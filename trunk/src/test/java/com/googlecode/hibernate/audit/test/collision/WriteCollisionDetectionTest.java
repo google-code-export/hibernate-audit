@@ -10,6 +10,7 @@ import com.googlecode.hibernate.audit.test.collision.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
+import com.googlecode.hibernate.audit.collision.WriteCollisionException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -35,8 +36,8 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = true)
-    public void testCollisionDetection_NoReferenceVersion() throws Exception
+    @Test(enabled = false)
+    public void testCollisionDetection_NoReferenceVersionInThreadLocal() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -94,54 +95,135 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
         }
     }
 
-//    @Test(enabled = true)
-//    public void testCollisionDetection() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            WriteCollisionDetector wcd = HibernateAudit.getManager().getWriteCollisionDetector();
-//
-//            assert !wcd.isWriteCollisionDetectionEnabled();
-//
-//            wcd.setWriteCollisionDetectionEnabled(true);
-//            assert wcd.isWriteCollisionDetectionEnabled();
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//            A a = new A();
-//            s.save(a);
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            WriteCollisionDetector.setReferenceVersion(new Long(7));
-//
-//            s = sf.openSession();
-//            s.beginTransaction();
-//            A da = (A)s.get(A.class, a.getId());
-//            da.setI(1);
-//            s.update(da);
-//            s.getTransaction().commit();
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
+    @Test(enabled = false)
+    public void testCollisionDetection_NoCollision() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            WriteCollisionDetector wcd = HibernateAudit.getManager().getWriteCollisionDetector();
+
+            assert !wcd.isWriteCollisionDetectionEnabled();
+
+            wcd.setWriteCollisionDetectionEnabled(true);
+            assert wcd.isWriteCollisionDetectionEnabled();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            A a = new A();
+            s.save(a);
+            s.getTransaction().commit();
+            s.close();
+
+            // no other transaction is concurrently changing A, so we're safe to do this:
+
+            Long refVersion = HibernateAudit.
+                getLatestTransaction(A.class.getName(), a.getId()).getId();
+
+            WriteCollisionDetector.setReferenceVersion(refVersion);
+
+            s = sf.openSession();
+            s.beginTransaction();
+            A da = (A)s.get(A.class, a.getId());
+            da.setI(1);
+            s.update(da);
+            s.getTransaction().commit();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testCollisionDetection_Collision() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            WriteCollisionDetector wcd = HibernateAudit.getManager().getWriteCollisionDetector();
+
+            assert !wcd.isWriteCollisionDetectionEnabled();
+
+            wcd.setWriteCollisionDetectionEnabled(true);
+            assert wcd.isWriteCollisionDetectionEnabled();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            A a = new A();
+            s.save(a);
+            s.getTransaction().commit();
+
+            // no other transaction is concurrently changing A, so we're safe to do this:
+
+            Long refVersion = HibernateAudit.
+                getLatestTransaction(A.class.getName(), a.getId()).getId();
+
+            WriteCollisionDetector.setReferenceVersion(refVersion);
+
+            // we simulate a concurrent transaction, collision detection won't kick in
+
+            s.beginTransaction();
+            a.setI(2);
+            s.update(a);
+            s.getTransaction().commit();
+
+            s.close();
+
+            // we keep the same reference version in the threadlocal
+
+            s = sf.openSession();
+            s.beginTransaction();
+            A da = (A)s.get(A.class, a.getId());
+            da.setI(3);
+            s.update(da);
+
+            try
+            {
+                s.getTransaction().commit();
+            }
+            catch(HibernateAuditException e)
+            {
+                Throwable cause = e.getCause();
+                assert cause instanceof WriteCollisionException;
+                log.debug(">>> " + cause.getMessage());
+
+                // transaction is rolled back by the audit listener
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 
     // Package protected ---------------------------------------------------------------------------
 
