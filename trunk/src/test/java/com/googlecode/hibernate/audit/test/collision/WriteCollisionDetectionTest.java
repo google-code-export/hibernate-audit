@@ -6,7 +6,7 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.test.collision.data.A;
+import com.googlecode.hibernate.audit.test.collision.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
@@ -36,12 +36,12 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testCollisionDetection_NoReferenceVersionInThreadLocal() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(C.class);
         SessionFactoryImplementor sf = null;
 
         try
@@ -60,14 +60,14 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
             Session s = sf.openSession();
             s.beginTransaction();
-            A a = new A();
-            s.save(a);
+            C c = new C();
+            s.save(c);
             s.getTransaction().commit();
             s.close();
 
             s = sf.openSession();
             s.beginTransaction();
-            A da = (A)s.get(A.class, a.getId());
+            C da = (C)s.get(C.class, c.getId());
             da.setI(1);
             s.update(da);
             try
@@ -95,12 +95,12 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testCollisionDetection_NoCollision() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(C.class);
         SessionFactoryImplementor sf = null;
 
         try
@@ -119,21 +119,21 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
             Session s = sf.openSession();
             s.beginTransaction();
-            A a = new A();
-            s.save(a);
+            C c = new C();
+            s.save(c);
             s.getTransaction().commit();
             s.close();
 
             // no other transaction is concurrently changing A, so we're safe to do this:
 
             Long refVersion = HibernateAudit.
-                getLatestTransaction(A.class.getName(), a.getId()).getId();
+                getLatestTransaction(C.class.getName(), c.getId()).getId();
 
             WriteCollisionDetector.setReferenceVersion(refVersion);
 
             s = sf.openSession();
             s.beginTransaction();
-            A da = (A)s.get(A.class, a.getId());
+            C da = (C)s.get(C.class, c.getId());
             da.setI(1);
             s.update(da);
             s.getTransaction().commit();
@@ -154,7 +154,7 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(C.class);
         SessionFactoryImplementor sf = null;
 
         try
@@ -173,22 +173,22 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
             Session s = sf.openSession();
             s.beginTransaction();
-            A a = new A();
-            s.save(a);
+            C c = new C();
+            s.save(c);
             s.getTransaction().commit();
 
             // no other transaction is concurrently changing A, so we're safe to do this:
 
             Long refVersion = HibernateAudit.
-                getLatestTransaction(A.class.getName(), a.getId()).getId();
+                getLatestTransaction(C.class.getName(), c.getId()).getId();
 
             WriteCollisionDetector.setReferenceVersion(refVersion);
 
             // we simulate a concurrent transaction, collision detection won't kick in
 
             s.beginTransaction();
-            a.setI(2);
-            s.update(a);
+            c.setI(2);
+            s.update(c);
             s.getTransaction().commit();
 
             s.close();
@@ -197,7 +197,7 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
 
             s = sf.openSession();
             s.beginTransaction();
-            A da = (A)s.get(A.class, a.getId());
+            C da = (C)s.get(C.class, c.getId());
             da.setI(3);
             s.update(da);
 

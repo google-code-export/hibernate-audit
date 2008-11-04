@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -13,8 +15,8 @@ import javax.persistence.GeneratedValue;
  * $Id$
  */
 @Entity
-@Table(name = "A")
-public class A
+@Table(name = "B")
+public class B
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -27,11 +29,14 @@ public class A
     private Long id;
 
     private String s;
-    private Integer i;
+
+    @ManyToOne
+    @JoinColumn(name = "root")
+    private Root root;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
+    public B()
     {
     }
 
@@ -57,14 +62,14 @@ public class A
         this.s = s;
     }
 
-    public Integer getI()
+    public Root getRoot()
     {
-        return i;
+        return root;
     }
 
-    public void setI(Integer i)
+    public void setRoot(Root root)
     {
-        this.i = i;
+        this.root = root;
     }
 
     // Package protected ---------------------------------------------------------------------------

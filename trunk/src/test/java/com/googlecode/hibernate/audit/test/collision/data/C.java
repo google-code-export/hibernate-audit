@@ -1,11 +1,9 @@
-package com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data;
+package com.googlecode.hibernate.audit.test.collision.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -15,8 +13,8 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "B")
-public class B
+@Table(name = "C")
+public class C
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -29,14 +27,11 @@ public class B
     private Long id;
 
     private String s;
-
-    @ManyToOne
-    @JoinColumn(name = "root")
-    private Root root;
+    private Integer i;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public B()
+    public C()
     {
     }
 
@@ -62,14 +57,14 @@ public class B
         this.s = s;
     }
 
-    public Root getRoot()
+    public Integer getI()
     {
-        return root;
+        return i;
     }
 
-    public void setRoot(Root root)
+    public void setI(Integer i)
     {
-        this.root = root;
+        this.i = i;
     }
 
     // Package protected ---------------------------------------------------------------------------

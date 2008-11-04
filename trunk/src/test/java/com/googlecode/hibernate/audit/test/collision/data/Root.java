@@ -1,11 +1,14 @@
-package com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data;
+package com.googlecode.hibernate.audit.test.collision.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -15,8 +18,8 @@ import javax.persistence.ManyToOne;
  * $Id$
  */
 @Entity
-@Table(name = "A")
-public class A
+@Table(name = "ROOT")
+public class Root
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -30,14 +33,21 @@ public class A
 
     private String s;
 
-    @ManyToOne
-    @JoinColumn(name = "root")
-    private Root root;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Shared shared;
+
+    @OneToMany(mappedBy = "root", cascade = CascadeType.ALL)
+    private List<A> as;
+
+    @OneToMany(mappedBy = "root", cascade = CascadeType.ALL)
+    private List<B> bs;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public A()
+    public Root()
     {
+        as = new ArrayList<A>();
+        bs = new ArrayList<B>();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -62,14 +72,34 @@ public class A
         this.s = s;
     }
 
-    public Root getRoot()
+    public Shared getShared()
     {
-        return root;
+        return shared;
     }
 
-    public void setRoot(Root root)
+    public void setShared(Shared shared)
     {
-        this.root = root;
+        this.shared = shared;
+    }
+
+    public List<A> getAs()
+    {
+        return as;
+    }
+
+    public void setAs(List<A> as)
+    {
+        this.as = as;
+    }
+
+    public List<B> getBs()
+    {
+        return bs;
+    }
+
+    public void setBs(List<B> bs)
+    {
+        this.bs = bs;
     }
 
     // Package protected ---------------------------------------------------------------------------
@@ -79,4 +109,5 @@ public class A
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

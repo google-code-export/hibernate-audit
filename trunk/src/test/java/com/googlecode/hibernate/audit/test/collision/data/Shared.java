@@ -1,13 +1,20 @@
-package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
+package com.googlecode.hibernate.audit.test.collision.data;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
- * Copyright 2008 Ovidiu Feodorov
- *
  * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class VersionedEntity<E>
+@Entity
+@Table(name = "SHARED")
+public class Shared
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,33 +22,38 @@ public class VersionedEntity<E>
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private Long version;
-    private E entity;
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String s;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public VersionedEntity(E entity, Long version)
+    public Shared()
     {
-        this.entity = entity;
-        this.version = version;
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public E getEntity()
+    public Long getId()
     {
-        return entity;
+        return id;
     }
 
-    public Long getVersion()
+    public void setId(Long id)
     {
-        return version;
+        this.id = id;
     }
 
-    @Override
-    public String toString()
+    public String getS()
     {
-        return entity + ", version " + version;
+        return s;
+    }
+
+    public void setS(String s)
+    {
+        this.s = s;
     }
 
     // Package protected ---------------------------------------------------------------------------
