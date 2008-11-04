@@ -42,12 +42,13 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Static --------------------------------------------------------------------------------------
 
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Attributes ----------------------------------------------------------------------------------
 
     protected Manager manager;
     protected TypeCache typeCache;
+    protected boolean suppressed;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -55,6 +56,10 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     {
         this.manager = manager;
         this.typeCache = manager.getTypeCache();
+
+        // suppresses throwing exceptions and rolling back transactions in listeners
+        // VERY DANGEROUS! Do not use in production!
+        suppressed = Boolean.getBoolean("hba.suppressed");
     }
 
     // AuditEventListener implementation -----------------------------------------------------------
@@ -164,7 +169,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         if (at != null)
         {
-            if (traceEnabled) { log.trace(this + " found existing audit transaction " + at + " associated with thread"); }
+            if (traceEnabled) { log.debug(this + " found existing audit transaction " + at + " associated with thread"); }
 
             // already logged
             Transaction prevht = at.getTransaction();
@@ -216,7 +221,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Principal p = m.getPrincipal();
         SessionFactory isf = m.getSessionFactory();
 
-        if (traceEnabled) { log.trace(this + " creating a new audit transaction instance"); }
+        if (traceEnabled) { log.debug(this + " creating a new audit transaction instance"); }
 
         at = new AuditTransaction(ht, p, isf);
         Manager.setCurrentAuditTransaction(at);
@@ -232,13 +237,13 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Serializable currentLGId = manager.getLogicalGroupId(session, entityId, entity);
         Serializable prevLGId = atx.getLogicalGroupId();
 
-        if (traceEnabled) { log.trace("current logical group id: " + currentLGId + ", audit transaction logical group id: " + prevLGId); }
+        if (traceEnabled) { log.debug("current logical group id: " + currentLGId + ", audit transaction logical group id: " + prevLGId); }
 
         if (prevLGId == null && currentLGId != null)
         {
             atx.setLogicalGroupId(currentLGId);
 
-            if (traceEnabled) { log.trace("set logical group id to " + currentLGId + " on " + atx); }
+            if (traceEnabled) { log.debug("set logical group id to " + currentLGId + " on " + atx); }
 
             return;
         }

@@ -30,7 +30,7 @@ public class PostUpdateAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostUpdateAuditEventListener.class);
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -56,13 +56,20 @@ public class PostUpdateAuditEventListener
     {
         try
         {
-            if (traceEnabled) { log.trace(this + ".onPostUpdate(" + event + ")"); }
+            if (traceEnabled) { log.debug(this + ".onPostUpdate(" + event + ")"); }
 
             log(event);
         }
         catch(Throwable t)
         {
             log.error("failed to log post-update event", t);
+
+            if (suppressed)
+            {
+                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
+                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                return;
+            }
 
             try
             {

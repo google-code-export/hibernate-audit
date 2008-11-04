@@ -23,7 +23,7 @@ public class SaveAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(SaveAuditEventListener.class);
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ public class SaveAuditEventListener
     {
         try
         {
-            if (traceEnabled) { log.trace(this + ".onSaveOrUpdate(" + event + ")"); }
+            if (traceEnabled) { log.debug(this + ".onSaveOrUpdate(" + event + ")"); }
 
             // this will create an audit transaction and properly register the synchronizations
             createAuditTransaction(event.getSession());
@@ -50,6 +50,13 @@ public class SaveAuditEventListener
         catch(Throwable t)
         {
             log.error("failed to log save event", t);
+
+            if (suppressed)
+            {
+                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
+                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                return;
+            }
 
             try
             {

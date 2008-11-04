@@ -20,7 +20,7 @@ public class WriteCollisionDetector
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(WriteCollisionDetector.class);
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -104,9 +104,9 @@ public class WriteCollisionDetector
 
         if (referenceVersion == null)
         {
-            throw new IllegalStateException(
-                "write collision detection enabled, " +
-                "but no reference version passed via thread local");
+            // upper layer didn't want to force a field-by-field comparison, so just return
+            // doing nothing
+            return;
         }
 
         Object referenceValue =

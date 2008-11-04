@@ -23,6 +23,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -228,6 +229,10 @@ public class AuditType
         else if (Boolean.class == classInstance)
         {
             return Boolean.parseBoolean(s);
+        }
+        else if (BigDecimal.class == classInstance)
+        {
+            return new BigDecimal(s);
         }
         else if (Date.class == classInstance)
         {

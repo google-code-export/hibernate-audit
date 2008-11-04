@@ -22,7 +22,7 @@ public class PostCollectionRecreateAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostCollectionRecreateAuditEventListener.class);
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -41,13 +41,20 @@ public class PostCollectionRecreateAuditEventListener
     {
         try
         {
-            if (traceEnabled) { log.trace(this + ".onPostRecreateCollection(" + event + ")"); }
+            if (traceEnabled) { log.debug(this + ".onPostRecreateCollection(" + event + ")"); }
 
             logCollectionEvent(event);
         }
         catch(Throwable t)
         {
             log.error("failed to log post-collection-recreate event", t);
+
+            if (suppressed)
+            {
+                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
+                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                return;
+            }
 
             try
             {

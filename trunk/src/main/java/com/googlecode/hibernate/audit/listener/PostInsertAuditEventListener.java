@@ -36,7 +36,7 @@ public class PostInsertAuditEventListener
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(PostInsertAuditEventListener.class);
-    private static final boolean traceEnabled = log.isTraceEnabled();
+    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -55,13 +55,20 @@ public class PostInsertAuditEventListener
     {
         try
         {
-            if (traceEnabled) { log.trace(this + ".onPostInsert(" + event + ")"); }
+            if (traceEnabled) { log.debug(this + ".onPostInsert(" + event + ")"); }
             
             log(event);
         }
         catch(Throwable t)
         {
             log.error("failed to log post-insert event", t);
+
+            if (suppressed)
+            {
+                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
+                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                return;
+            }
 
             try
             {

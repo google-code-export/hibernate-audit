@@ -818,51 +818,48 @@ public class HibernateAuditHistoryAccessorsTest extends JTATransactionTest
         }
     }
 
-    /**
-     * https://jira.novaordis.org/browse/HBA-172
-     */
-    @Test(enabled = true)
-    public void testGetValue_FieldNotSeenEvenIfExists() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(B.class);
-        SessionFactoryImplementor sf = null;
-
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            // enter B in the audit tables
-            Session s = sf.openSession();
-
-            s.beginTransaction();
-            B b = new B();
-            b.setS("s");
-            s.save(b);
-            s.getTransaction().commit();
-            s.close();
-
-            List<AuditTransaction> txs = HibernateAudit.getTransactions();
-            assert txs.size() == 1;
-
-            Long currentVersion = txs.get(0).getId();
-
-            assert null == HibernateAudit.
-                getValue(sf, B.class.getName(), b.getId(), "i", currentVersion);
-        }
-        finally
-        {
-            HibernateAudit.stopRuntime();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-172
+//    public void testGetValue_FieldNotSeenEvenIfExists() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(B.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            // enter B in the audit tables
+//            Session s = sf.openSession();
+//
+//            s.beginTransaction();
+//            B b = new B();
+//            b.setS("s");
+//            s.save(b);
+//            s.getTransaction().commit();
+//            s.close();
+//
+//            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+//            assert txs.size() == 1;
+//
+//            Long currentVersion = txs.get(0).getId();
+//
+//            assert null == HibernateAudit.
+//                getValue(sf, B.class.getName(), b.getId(), "i", currentVersion);
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
 
     // Package protected ---------------------------------------------------------------------------
 
