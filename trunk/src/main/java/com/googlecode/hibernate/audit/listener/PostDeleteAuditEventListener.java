@@ -59,6 +59,7 @@ public class PostDeleteAuditEventListener
                 log.error("could not rollback current transaction", t2);
             }
 
+            // TODO bubble WriteCollisionException up https://jira.novaordis.org/browse/HBA-174
             throw new HibernateAuditException("failed to log post-delete event", t);
         }
     }
