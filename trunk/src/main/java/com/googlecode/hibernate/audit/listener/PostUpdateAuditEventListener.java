@@ -157,7 +157,7 @@ public class PostUpdateAuditEventListener
 
             // noop if collision detection disabled
             writeCollisionDetector.
-                detectCollision(ctx.entityName, ctx.entityId, f.getName(), current); 
+                detectCollision(ctx.factory, ctx.entityName, ctx.entityId, f.getName(), current); 
 
             pair.setField(f);
             pair.setValue(current);

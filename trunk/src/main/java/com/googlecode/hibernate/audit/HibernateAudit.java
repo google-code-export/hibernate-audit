@@ -2,6 +2,7 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
+import org.hibernate.type.Type;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.cfg.Settings;
 import org.hibernate.impl.SessionFactoryImpl;
@@ -10,7 +11,11 @@ import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.TypeCache;
+import com.googlecode.hibernate.audit.model.AuditTypeField;
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.util.Reflections;
+import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
 import java.util.List;
@@ -533,12 +538,16 @@ public final class HibernateAudit
     }
 
     /**
-     * @return the value of the specified field of the specified entity. May retrun null if the
-     *         value corresponding to the given version was null at the time.
+     * TODO very bad implementation, must be optimized
      *
-     * @throws IllegalArgumentException for an invalid entityName, entityId, field name or version.
+     * @return the value of the specified field of the specified entity. May retrun null if the
+     *         value corresponding to the given version was null for the specified version.
+     *
+     * @throws IllegalArgumentException for an invalid entityName, entityId or version.
+     * @throws org.hibernate.HibernateException for an invalid field name.
      */
-    public static Object getValue(String entityName, Serializable entityId,
+    public static Object getValue(SessionFactoryImplementor sf,
+                                  String entityName, Serializable entityId,
                                   String fieldName, Long version) throws Exception
     {
         Manager m = null;
@@ -553,34 +562,74 @@ public final class HibernateAudit
             m = manager;
         }
 
-        TypeCache tc = m.getTypeCache();
-        Class idClass = entityId.getClass();
-
         // currently we implicitly assume 'entityName' is class name, this has to change
         // TODO https://jira.novaordis.org/browse/HBA-80
         Class entityClass = Class.forName(entityName);
-        
-        AuditEntityType et = tc.getAuditEntityType(idClass, entityClass);
-//
-//        if (et == null)
-//        {
-//            throw new IllegalArgumentException(
-//                "unknown entity " + entityName + "/" + idClass.getName());
-//        }
-//
-//
-//        String qs = "from AuditEventPair where id = 0";
-//
-//        List result = query(qs);
-//
-//        if (result.isEmpty())
-//        {
-//            return null;
-//        }
-//
-//        return null;
+        Class idClass = entityId.getClass();
 
-        throw new RuntimeException("NOT YET IMPLEMENTED");
+        TypeCache tc = m.getTypeCache();
+        AuditEntityType entityType = tc.getAuditEntityType(idClass, entityClass, false);
+
+        if (entityType == null)
+        {
+            throw new IllegalArgumentException(
+                "entity " + entityName + "[" + idClass.getName() +
+                "] was not seen by the audit framework yet");
+        }
+
+        Type pt = sf.getEntityPersister(entityName).getPropertyType(fieldName);
+        AuditType fieldType = Hibernate.hibernateTypeToAuditType(pt, tc, sf);
+        AuditTypeField field = tc.getAuditTypeField(fieldName, fieldType, false);
+
+        if (field == null)
+        {
+            throw new IllegalArgumentException(
+                "field " + entityName + "[" + idClass.getName() +
+                "]." + fieldName + " was not seen by the audit framework yet");
+        }
+
+        // TODO inefficient, probably these two queries can be coalesced
+
+        String qs =
+            "select count(*) from AuditTransaction as t, AuditEvent as e where " +
+            "e.transaction = t and " +
+            "e.targetId = :entityId and " +
+            "e.targetType = :entityType and t.id <= :version";
+
+        // TODO have an "uniqueResult" version for query()
+        
+        List result = query(qs, entityId, entityType, version);
+
+        Long count = (Long)result.get(0);
+
+        if (count.longValue() == 0)
+        {
+            throw new IllegalArgumentException(
+                "no trace of " + entityName + "[" + entityId +
+                "] with version smaller or equal with " + version +
+                " has been recorded by the audit framework yet");
+        }
+
+        qs =
+            "from AuditTransaction t, AuditEvent as e, AuditEventPair as p where " +
+            "e.transaction = t and " +
+            "e.targetId = :entityId and " +
+            "e.targetType = :entityType and " +
+            "p.event = e and " +
+            "p.field = :field and t.id <= :version " +
+            "order by t.id desc";
+
+        // TODO - bad, this returns a whole bunch of things, unnecessariyl
+
+        result = query(qs, entityId, entityType, field, version);
+
+        if (result.isEmpty())
+        {
+            // no change recorded for the field, hence is null
+            return null;
+        }
+
+        return ((AuditEventPair)(((Object[])result.get(0))[2])).getValue();
     }
 
     // Delta functions -----------------------------------------------------------------------------

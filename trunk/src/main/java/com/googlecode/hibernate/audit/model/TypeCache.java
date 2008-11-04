@@ -87,7 +87,7 @@ public class TypeCache
         throws Exception
     {
         CacheQuery<AuditType> cq =
-            new CacheQuery<AuditType>(AuditEntityType.class, eif,
+            new CacheQuery<AuditType>(AuditEntityType.class, insert, eif,
                                       "className", entityClass.getName(),
                                       "idClassName", idClass.getName());
 
@@ -121,14 +121,29 @@ public class TypeCache
     public AuditTypeField getAuditTypeField(String fieldName, AuditType fieldType)
          throws Exception
     {
+        return getAuditTypeField(fieldName, fieldType, true);
+    }
+
+    /**
+     * TODO may be changed when refactoring https://jira.novaordis.org/browse/HBA-80
+     *
+     * @param insert - specifies behavior on cache miss - if true, transactionally insert in the
+     *        database, return null otherwise.
+     */
+    public AuditTypeField getAuditTypeField(String fieldName, AuditType fieldType, boolean insert)
+         throws Exception
+    {
         CacheQuery<AuditTypeField> cq =
-            new CacheQuery<AuditTypeField>(AuditTypeField.class, fif,
+            new CacheQuery<AuditTypeField>(AuditTypeField.class, insert, fif,
                                            "name", fieldName, "type", fieldType);
 
         AuditTypeField field = fields.get(cq);
 
-        // restore instance integrity, see https://jira.novaordis.org/browse/HBA-149
-        field.setType(fieldType);
+        if (field != null)
+        {
+            // restore instance integrity, see https://jira.novaordis.org/browse/HBA-149
+            field.setType(fieldType);
+        }
 
         return field;
     }

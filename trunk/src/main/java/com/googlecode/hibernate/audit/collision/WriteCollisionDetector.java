@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.collision;
 
 import org.apache.log4j.Logger;
+import org.hibernate.engine.SessionFactoryImplementor;
 import com.googlecode.hibernate.audit.HibernateAudit;
 
 import java.io.Serializable;
@@ -86,7 +87,8 @@ public class WriteCollisionDetector
      * @exception WriteCollisionException if a write collision has been detected.
      * @exception Exception if something else went wrong.
      */
-    public void detectCollision(String entityName, Serializable entityId,
+    public void detectCollision(SessionFactoryImplementor sf,
+                                String entityName, Serializable entityId,
                                 String fieldName,  Object currentValue)  throws Exception
     {
         if (!enabled)
@@ -103,7 +105,7 @@ public class WriteCollisionDetector
                 "write collision detection enabled, but no reference version provided");
         }
 
-        HibernateAudit.getValue(entityName, entityId, fieldName, referenceVersion);
+        HibernateAudit.getValue(sf, entityName, entityId, fieldName, referenceVersion);
 
     }
 

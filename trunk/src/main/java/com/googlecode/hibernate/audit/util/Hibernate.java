@@ -4,9 +4,11 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.BagType;
 import org.hibernate.type.SetType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.Type;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.Transaction;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.transaction.JTATransaction;
 import org.hibernate.tuple.Tuplizer;
@@ -17,6 +19,9 @@ import javax.transaction.TransactionManager;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+
+import com.googlecode.hibernate.audit.model.AuditType;
+import com.googlecode.hibernate.audit.model.TypeCache;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -142,6 +147,57 @@ public class Hibernate
         }
 
         return tx;
+    }
+
+    /**
+     * TODO refactor listener code to use this method.
+     * https://jira.novaordis.org/browse/HBA-171
+     */
+    public static AuditType hibernateTypeToAuditType(Type hibernateType,
+                                                     TypeCache typeCache,
+                                                     SessionFactoryImplementor sf) throws Exception
+    {
+        AuditType auditType = null;
+
+        if (hibernateType.isEntityType())
+        {
+            EntityType et = (EntityType)hibernateType;
+            String en = et.getAssociatedEntityName();
+            EntityPersister ep = sf.getEntityPersister(en);
+            Class ec = Hibernate.guessEntityClass(et, ep, EntityMode.POJO);
+            Class idc = ep.getIdentifierType().getReturnedClass();
+            auditType = typeCache.getAuditEntityType(idc, ec);
+        }
+        else if (hibernateType.isCollectionType())
+        {
+            // figure out collection type
+            CollectionType ct = (CollectionType)hibernateType;
+            Class cc = Hibernate.collectionTypeToClass(ct);
+
+            // figure out element type
+            Type et = ct.getElementType(sf);
+            if (!(et instanceof EntityType))
+            {
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+            }
+            EntityType eet = (EntityType)et;
+            String een = eet.getAssociatedEntityName();
+            EntityPersister eep = sf.getEntityPersister(een);
+            Class eec = Hibernate.guessEntityClass(eet, eep, EntityMode.POJO);
+
+            auditType = typeCache.getAuditCollectionType(cc, eec);
+        }
+        else if (hibernateType.isComponentType())
+        {
+            // not handled yet
+            // TODO https://jira.novaordis.org/browse/HBA-32
+        }
+        else
+        {
+            auditType = typeCache.getAuditPrimitiveType(hibernateType.getReturnedClass());
+        }
+
+        return auditType;
     }
 
     // Attributes ----------------------------------------------------------------------------------
