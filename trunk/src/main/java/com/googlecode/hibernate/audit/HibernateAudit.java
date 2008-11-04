@@ -2,6 +2,8 @@ package com.googlecode.hibernate.audit;
 
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
+import org.hibernate.EntityMode;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.cfg.Settings;
@@ -565,7 +567,18 @@ public final class HibernateAudit
 
         // currently we implicitly assume 'entityName' is class name, this has to change
         // TODO https://jira.novaordis.org/browse/HBA-80
-        Class entityClass = Class.forName(entityName);
+        Class entityClass = null;
+        try
+        {
+            entityClass = Class.forName(entityName);
+        }
+        catch(Exception e)
+        {
+            // try tuplizer
+            EntityPersister ep = sf.getEntityPersister(entityName);
+            entityClass = Hibernate.getTypeFromTuplizer(ep, EntityMode.POJO);
+        }
+        
         Class idClass = entityId.getClass();
 
         TypeCache tc = m.getTypeCache();
