@@ -1,6 +1,4 @@
-package com.googlecode.hibernate.audit.test.write_collision;
-
-import java.io.Serializable;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -8,10 +6,8 @@ import java.io.Serializable;
  * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
- *
- * $Id$
  */
-public class Entity
+public class VersionedEntity<E>
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,72 +15,33 @@ public class Entity
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private String name;
-    private Serializable id;
+    private Long version;
+    private E entity;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public Entity(String name, Serializable id)
+    public VersionedEntity(E entity, Long version)
     {
-        this.name = name;
-        this.id = id;
+        this.entity = entity;
+        this.version = version;
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public String getName()
+    public E getEntity()
     {
-        return name;
+        return entity;
     }
 
-    public void setName(String name)
+    public Long getVersion()
     {
-        this.name = name;
-    }
-
-    public Serializable getId()
-    {
-        return id;
-    }
-
-    public void setId(Serializable id)
-    {
-        this.id = id;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-
-        if (!(o instanceof Entity))
-        {
-            return false;
-        }
-
-        if (name == null || id == null)
-        {
-            return false;
-        }
-
-        Entity that = (Entity)o;
-
-        return name.equals(that.name) && id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return (id == null ? 0 : id.hashCode()) * 37 + (name == null ? 0 : name.hashCode());
+        return version;
     }
 
     @Override
     public String toString()
     {
-        return name + "[" + id + "]";
+        return entity + ", version " + version;
     }
 
     // Package protected ---------------------------------------------------------------------------

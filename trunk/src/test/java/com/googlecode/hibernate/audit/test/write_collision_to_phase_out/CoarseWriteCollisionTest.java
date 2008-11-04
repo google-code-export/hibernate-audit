@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
 
 import org.testng.annotations.Test;
 import org.apache.log4j.Logger;
@@ -7,10 +7,10 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
-import com.googlecode.hibernate.audit.test.write_collision.data.A;
-import com.googlecode.hibernate.audit.test.write_collision.data.Root;
-import com.googlecode.hibernate.audit.test.write_collision.data.Shared;
-import com.googlecode.hibernate.audit.test.write_collision.data.B;
+import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.A;
+import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.Root;
+import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.Shared;
+import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.B;
 import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;

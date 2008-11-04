@@ -47,13 +47,27 @@ public class RendezVous
     /**
      * Thread One starts first.
      */
+    public RendezVous(String threadOneName)
+    {
+        this(threadOneName, null);
+    }
+
+    /**
+     * Thread One starts first.
+     */
     public RendezVous(String threadOneName, String threadTwoName)
     {
         this.threadOneName = threadOneName;
         this.threadTwoName = threadTwoName;
+
         enabler1 = new ArrayBlockingQueue<Control>(1);
-        enabler2 = new ArrayBlockingQueue<Control>(1);
-        end = new CountDownLatch(2);
+
+        if (threadTwoName != null)
+        {
+            enabler2 = new ArrayBlockingQueue<Control>(1);
+        }
+
+        end = new CountDownLatch(threadTwoName != null ? 2 : 1);
 
         throwables = new HashMap<String, Throwable>();
     }
@@ -71,7 +85,10 @@ public class RendezVous
         else
         {
             // wait
-            enabler2.take();
+            if (enabler2 != null)
+            {
+                enabler2.take();
+            }
         }
     }
 
@@ -84,15 +101,27 @@ public class RendezVous
             if (!throwables.isEmpty())
             {
                 enabler1.offer(GO);
-                enabler2.offer(GO);
+
+                if (enabler2 != null)
+                {
+                    enabler2.offer(GO);
+                }
+
                 return;
             }
         }
 
         if (threadOneName.equals(threadName))
         {
-            enabler2.put(GO);
-            enabler1.take();
+            if (enabler2 != null)
+            {
+                enabler2.put(GO);
+                enabler1.take();
+            }
+            else
+            {
+                // just go
+            }
         }
         else
         {
@@ -112,14 +141,26 @@ public class RendezVous
                 if (!throwables.isEmpty())
                 {
                     enabler1.offer(GO);
-                    enabler2.offer(GO);
+
+                    if (enabler2 != null)
+                    {
+                        enabler2.offer(GO);
+                    }
+
                     return;
                 }
             }
 
             if (threadOneName.equals(threadName))
             {
-                enabler2.put(GO);
+                if (enabler2 != null)
+                {
+                    enabler2.put(GO);
+                }
+                else
+                {
+                    // just go
+                }
             }
             else
             {
@@ -146,7 +187,11 @@ public class RendezVous
             }
 
             enabler1.offer(GO);
-            enabler2.offer(GO);
+
+            if (enabler2 != null)
+            {
+                enabler2.offer(GO);
+            }
         }
         finally
         {

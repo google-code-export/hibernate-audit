@@ -1,11 +1,11 @@
-package com.googlecode.hibernate.audit.test.write_collision.data;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -15,8 +15,8 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "B")
-public class B
+@Table(name = "A")
+public class A
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ public class B
 
     // Constructors --------------------------------------------------------------------------------
 
-    public B()
+    public A()
     {
     }
 

@@ -1,12 +1,13 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * TODO get rid of it!
+ *
  * TODO nothing is synchronized, Version instance is supposed to be accessed only from within a
  * single transaction (one thread at a time)
  *

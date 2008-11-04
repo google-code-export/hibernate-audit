@@ -30,6 +30,7 @@ import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDeltaImpl;
@@ -132,6 +133,8 @@ public class Manager
 
     private TypeCache typeCache;
 
+    private WriteCollisionDetector writeCollisionDetector;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -143,6 +146,7 @@ public class Manager
     {
         sessionFactoryHolders = new HashMap<SessionFactoryImpl, SessionFactoryHolder>();
         this.settings = settings;
+        this.writeCollisionDetector = new WriteCollisionDetector();
 
         log.debug(this + " created");
     }
@@ -391,6 +395,14 @@ public class Manager
     public TypeCache getTypeCache()
     {
         return typeCache;
+    }
+
+    /**
+     * May return a disabled WriteCollisionDetector, but never null.
+     */
+    public WriteCollisionDetector getWriteCollisionDetector()
+    {
+        return writeCollisionDetector;
     }
 
     public List query(String query, Object... args) throws Exception

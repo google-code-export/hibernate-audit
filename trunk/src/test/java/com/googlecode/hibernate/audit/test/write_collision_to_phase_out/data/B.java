@@ -1,13 +1,22 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
- * Copyright 2008 Ovidiu Feodorov
- *
  * @version <tt>$Revision$</tt>
+ *
+ * $Id$
  */
-public class VersionedEntity<E>
+@Entity
+@Table(name = "B")
+public class B
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -15,33 +24,52 @@ public class VersionedEntity<E>
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private Long version;
-    private E entity;
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String s;
+
+    @ManyToOne
+    @JoinColumn(name = "root")
+    private Root root;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public VersionedEntity(E entity, Long version)
+    public B()
     {
-        this.entity = entity;
-        this.version = version;
     }
 
     // Public --------------------------------------------------------------------------------------
 
-    public E getEntity()
+    public Long getId()
     {
-        return entity;
+        return id;
     }
 
-    public Long getVersion()
+    public void setId(Long id)
     {
-        return version;
+        this.id = id;
     }
 
-    @Override
-    public String toString()
+    public String getS()
     {
-        return entity + ", version " + version;
+        return s;
+    }
+
+    public void setS(String s)
+    {
+        this.s = s;
+    }
+
+    public Root getRoot()
+    {
+        return root;
+    }
+
+    public void setRoot(Root root)
+    {
+        this.root = root;
     }
 
     // Package protected ---------------------------------------------------------------------------

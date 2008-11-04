@@ -1,11 +1,9 @@
-package com.googlecode.hibernate.audit.test.write_collision.data;
+package com.googlecode.hibernate.audit.test.collision.data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -29,10 +27,7 @@ public class A
     private Long id;
 
     private String s;
-
-    @ManyToOne
-    @JoinColumn(name = "root")
-    private Root root;
+    private Integer i;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -62,14 +57,14 @@ public class A
         this.s = s;
     }
 
-    public Root getRoot()
+    public Integer getI()
     {
-        return root;
+        return i;
     }
 
-    public void setRoot(Root root)
+    public void setI(Integer i)
     {
-        this.root = root;
+        this.i = i;
     }
 
     // Package protected ---------------------------------------------------------------------------

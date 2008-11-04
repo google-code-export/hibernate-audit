@@ -9,6 +9,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 
@@ -529,6 +530,57 @@ public final class HibernateAudit
         }
 
         return ((AuditEvent)result.get(0)).getTransaction();
+    }
+
+    /**
+     * @return the value of the specified field of the specified entity. May retrun null if the
+     *         value corresponding to the given version was null at the time.
+     *
+     * @throws IllegalArgumentException for an invalid entityName, entityId, field name or version.
+     */
+    public static Object getValue(String entityName, Serializable entityId,
+                                  String fieldName, Long version) throws Exception
+    {
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit runtime not enabled");
+            }
+
+            m = manager;
+        }
+
+        TypeCache tc = m.getTypeCache();
+        Class idClass = entityId.getClass();
+
+        // currently we implicitly assume 'entityName' is class name, this has to change
+        // TODO https://jira.novaordis.org/browse/HBA-80
+        Class entityClass = Class.forName(entityName);
+        
+        AuditEntityType et = tc.getAuditEntityType(idClass, entityClass);
+//
+//        if (et == null)
+//        {
+//            throw new IllegalArgumentException(
+//                "unknown entity " + entityName + "/" + idClass.getName());
+//        }
+//
+//
+//        String qs = "from AuditEventPair where id = 0";
+//
+//        List result = query(qs);
+//
+//        if (result.isEmpty())
+//        {
+//            return null;
+//        }
+//
+//        return null;
+
+        throw new RuntimeException("NOT YET IMPLEMENTED");
     }
 
     // Delta functions -----------------------------------------------------------------------------

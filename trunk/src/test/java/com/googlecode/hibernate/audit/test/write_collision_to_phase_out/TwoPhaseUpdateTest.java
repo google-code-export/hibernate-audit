@@ -1,4 +1,4 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
 
 import org.testng.annotations.Test;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;

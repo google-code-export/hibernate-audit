@@ -1,20 +1,15 @@
-package com.googlecode.hibernate.audit.test.write_collision.data;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
+package com.googlecode.hibernate.audit.collision;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
+ *
+ * Copyright 2008 Ovidiu Feodorov
  *
  * @version <tt>$Revision$</tt>
  *
  * $Id$
  */
-@Entity
-@Table(name = "SHARED")
-public class Shared
+public class WriteCollisionException extends Exception
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -22,39 +17,29 @@ public class Shared
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String s;
-
     // Constructors --------------------------------------------------------------------------------
 
-    public Shared()
+    public WriteCollisionException()
     {
+        super();
+    }
+
+    public WriteCollisionException(String message)
+    {
+        super(message);
+    }
+
+    public WriteCollisionException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
+    public WriteCollisionException(Throwable cause)
+    {
+        super(cause);
     }
 
     // Public --------------------------------------------------------------------------------------
-
-    public Long getId()
-    {
-        return id;
-    }
-
-    public void setId(Long id)
-    {
-        this.id = id;
-    }
-
-    public String getS()
-    {
-        return s;
-    }
-
-    public void setS(String s)
-    {
-        this.s = s;
-    }
 
     // Package protected ---------------------------------------------------------------------------
 

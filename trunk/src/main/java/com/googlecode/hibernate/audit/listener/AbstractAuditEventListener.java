@@ -133,6 +133,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             c.entityId = pue.getId();
             c.entity = pue.getEntity();
             c.persister = pue.getPersister();
+            c.entityName = c.persister.getEntityName();
         }
         else if (e instanceof PostDeleteEvent)
         {

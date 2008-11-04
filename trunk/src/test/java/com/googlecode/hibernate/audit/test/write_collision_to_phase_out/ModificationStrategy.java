@@ -1,6 +1,6 @@
-package com.googlecode.hibernate.audit.test.write_collision;
+package com.googlecode.hibernate.audit.test.write_collision_to_phase_out;
 
-import com.googlecode.hibernate.audit.test.write_collision.data.Root;
+import com.googlecode.hibernate.audit.test.write_collision_to_phase_out.data.Root;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>

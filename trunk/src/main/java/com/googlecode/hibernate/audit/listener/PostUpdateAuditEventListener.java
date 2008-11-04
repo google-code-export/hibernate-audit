@@ -12,6 +12,7 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.HibernateAuditException;
+import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.util.Hibernate;
 
 /**
@@ -35,11 +36,18 @@ public class PostUpdateAuditEventListener
 
     // Attributes ----------------------------------------------------------------------------------
 
+    /**
+     * Convenience cache, to save a method call per event occurence.
+     */
+    private WriteCollisionDetector writeCollisionDetector;
+
     // Constructors --------------------------------------------------------------------------------
 
     public PostUpdateAuditEventListener(Manager m)
     {
         super(m);
+
+        writeCollisionDetector = m.getWriteCollisionDetector();
     }
 
     // PostInsertEventListener implementation ------------------------------------------------------
@@ -146,6 +154,11 @@ public class PostUpdateAuditEventListener
             }
 
             AuditTypeField f = typeCache.getAuditTypeField(name, fieldType);
+
+            // noop if collision detection disabled
+            writeCollisionDetector.
+                detectCollision(ctx.entityName, ctx.entityId, f.getName(), current); 
+
             pair.setField(f);
             pair.setValue(current);
             pair.setEvent(ctx.auditEvent);
