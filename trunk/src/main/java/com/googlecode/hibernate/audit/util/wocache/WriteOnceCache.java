@@ -160,15 +160,26 @@ public class WriteOnceCache<P>
                 }
 
                 // not in the database
-                P newInstance = cacheQuery.createMatchingInstance();
-                ss.insert(newInstance);
 
-                // can't configure StatelessSession not to use batching, so I have to manually
-                // execute the batch, otherwise I run into https://jira.novaordis.org/browse/HBA-127
-                ss.getBatcher().executeBatch();
+                if (!cacheQuery.isInsert())
+                {
+                    // don't insert it in the database, just return null
+                    return null;
+                }
+                else
+                {
+                    // insert it in the database
 
-                txCache.put(key, newInstance);
-                return newInstance;
+                    P newInstance = cacheQuery.createMatchingInstance();
+                    ss.insert(newInstance);
+
+                    // can't configure StatelessSession not to use batching, so I have to manually
+                    // execute the batch, otherwise I run into https://jira.novaordis.org/browse/HBA-127
+                    ss.getBatcher().executeBatch();
+
+                    txCache.put(key, newInstance);
+                    return newInstance;
+                }
             }
             catch(Throwable t)
             {

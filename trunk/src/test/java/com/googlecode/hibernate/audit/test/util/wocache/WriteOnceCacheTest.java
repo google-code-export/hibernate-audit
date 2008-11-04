@@ -104,6 +104,73 @@ public class WriteOnceCacheTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
+    public void testNoEnclosingTransaction_NoInsertQuery() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+
+        // make sure there isn't any kind of active transaction laying around
+
+        String utJndiName = getUserTransactionJNDIName();
+        InitialContext ic = new InitialContext();
+        UserTransaction ut = (UserTransaction)ic.lookup(utJndiName);
+        assert Status.STATUS_NO_TRANSACTION == ut.getStatus();
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            WriteOnceCache<A> cache = new WriteOnceCache<A>(sf);
+
+            assert null == cache.get(new CacheQuery<A>(A.class, false, "s", "blah"));
+
+            // also make sure there's nothing in the database
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            List result = s.createQuery("from A").list();
+            s.getTransaction().commit();
+            s.close();
+
+            assert result.isEmpty();
+
+            // insert it in the database
+
+            A a = cache.get(new CacheQuery<A>(A.class, "s", "blah"));
+
+            Long id = a.getId();
+            assert id != null;
+            assert "blah".equals(a.getS());
+
+            // clear the cache
+
+            cache.clear();
+
+            // make sure it's there when we retrieve with 'no insert' option
+
+            a = cache.get(new CacheQuery<A>(A.class, false, "s", "blah"));
+
+            id = a.getId();
+            assert id != null;
+            assert "blah".equals(a.getS());
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+
+        // make sure there isn't any kind of active transaction laying around
+        assert Status.STATUS_NO_TRANSACTION == ut.getStatus();
+        ic.close();
+    }
+
+
+    @Test(enabled = true)
     public void testNoEnclosingTransaction_DatabaseFailure_Duplicates() throws Exception
     {
         log.debug("testNoEnclosingTransaction_DatabaseFailure_Duplicates");
@@ -300,6 +367,63 @@ public class WriteOnceCacheTest extends JTATransactionTest
             {
                 s.getTransaction().rollback();
             }
+        }
+        finally
+        {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testEnclosingJTATransaction_NoInsertQuery() throws Throwable
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactory sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            WriteOnceCache<A> cache = new WriteOnceCache<A>(sf);
+
+            // use 'no-insert' option
+
+            assert null == cache.get(new CacheQuery<A>(A.class, false, "s", "alice"));
+
+            // insert it in the database
+
+            A a = cache.get(new CacheQuery<A>(A.class, "s", "blah"));
+
+            s.getTransaction().commit();
+
+            Long id = a.getId();
+            assert id != null;
+            assert "blah".equals(a.getS());
+
+            // clear the cache
+
+            cache.clear();
+
+            s.beginTransaction();
+
+            // make sure it's there when we retrieve with 'no insert' option
+
+            a = cache.get(new CacheQuery<A>(A.class, false, "s", "blah"));
+
+            id = a.getId();
+            assert id != null;
+            assert "blah".equals(a.getS());
+            s.getTransaction().commit();
+            s.close();
         }
         finally
         {

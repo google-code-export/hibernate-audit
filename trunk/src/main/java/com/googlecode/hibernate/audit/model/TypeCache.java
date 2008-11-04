@@ -68,9 +68,23 @@ public class TypeCache
     }
 
     /**
+     * Will transactionally write the type in the database if it does't find it in cache.
+     *
      * TODO may be changed when refactoring https://jira.novaordis.org/browse/HBA-80
      */
     public AuditEntityType getAuditEntityType(Class idClass, Class entityClass) throws Exception
+    {
+        return getAuditEntityType(idClass, entityClass, true);
+    }
+
+    /**
+     * TODO may be changed when refactoring https://jira.novaordis.org/browse/HBA-80
+     *
+     * @param insert - specifies behavior on cache miss - if true, transactionally insert in the
+     *        database, return null otherwise.
+     */
+    public AuditEntityType getAuditEntityType(Class idClass, Class entityClass, boolean insert)
+        throws Exception
     {
         CacheQuery<AuditType> cq =
             new CacheQuery<AuditType>(AuditEntityType.class, eif,
@@ -79,6 +93,7 @@ public class TypeCache
 
         return (AuditEntityType)types.get(cq);
     }
+
 
     /**
      * TODO may be changed when refactoring https://jira.novaordis.org/browse/HBA-80

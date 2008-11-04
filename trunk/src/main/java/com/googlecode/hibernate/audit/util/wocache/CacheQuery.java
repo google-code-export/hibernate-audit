@@ -32,6 +32,8 @@ public class CacheQuery<P>
     private Key key;
     private InstanceFactory<P> factory;
 
+    private boolean insert;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -39,13 +41,33 @@ public class CacheQuery<P>
      */
     public CacheQuery(Class type, Object ... nameValuePairs)
     {
-        this(type, null, nameValuePairs);
+        this(type, true, null, nameValuePairs);
+    }
+
+    /**
+     * @exception IllegalArgumentException for unconsistent name/value pairs
+     */
+    public CacheQuery(Class type, boolean insert, Object ... nameValuePairs)
+    {
+        this(type, insert, null, nameValuePairs);
     }
 
     /**
      * @exception IllegalArgumentException for unconsistent name/value pairs
      */
     public CacheQuery(Class type, InstanceFactory<P> factory, Object ... nameValuePairs)
+    {
+        this(type, true, factory, nameValuePairs);
+    }
+
+    /**
+     * @param insert - specifies behavior on cache miss - if true, transactionally insert in the
+     *        database, return null otherwise.
+     *
+     * @exception IllegalArgumentException for unconsistent name/value pairs
+     */
+    public CacheQuery(Class type, boolean insert, InstanceFactory<P> factory,
+                      Object ... nameValuePairs)
     {
         this.key = new Key(nameValuePairs);
 
@@ -56,6 +78,7 @@ public class CacheQuery<P>
 
         this.type = type;
         this.factory = factory;
+        this.insert = insert;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -100,6 +123,11 @@ public class CacheQuery<P>
         }
         
         return (P)o;
+    }
+
+    public boolean isInsert()
+    {
+        return insert;
     }
 
     // Package protected ---------------------------------------------------------------------------
