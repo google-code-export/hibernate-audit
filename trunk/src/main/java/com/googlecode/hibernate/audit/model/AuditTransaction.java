@@ -123,7 +123,6 @@ public class AuditTransaction implements Synchronization
     public void beforeCompletion()
     {
         // most likely, this won't be called for a JTA transaction, because AuditTransaction
-        // most likely, this won't be called for a JTA transaction, because AuditTransaction
         // synchronization is registered during the JTA transaction "beforeCompletion()" call.
         // see https://jira.novaordis.org/browse/HBA-37
         try
