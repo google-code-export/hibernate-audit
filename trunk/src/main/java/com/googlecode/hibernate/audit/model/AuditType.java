@@ -53,8 +53,12 @@ public class AuditType
 
     private static final Logger log = Logger.getLogger(AuditType.class);
 
+    // date format supported by "stringToValue()"
     public static final Format oracleDateFormat =
         new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
+
+    // date format supported by "stringToValue()"
+    public static final Format customDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     // Static --------------------------------------------------------------------------------------
 
@@ -236,15 +240,35 @@ public class AuditType
         }
         else if (Date.class == classInstance)
         {
+            // TODO the implementation is very limiting, come up with a generic date conversion
+            //      mechanism, all sort of date format that make sense should be supported
+            //      automatically
+
+            ParseException pe = null;
+
             try
             {
                 return (Date)oracleDateFormat.parseObject(s);
             }
             catch(ParseException e)
             {
-                throw new IllegalArgumentException(
-                    "conversion of '" + s + "' to a Date value failed", e);
+                // fine, try another one
+                pe = e;
             }
+
+            try
+            {
+                return (Date)customDateFormat.parseObject(s);
+            }
+            catch(ParseException e)
+            {
+                // fine, try another one
+                pe = e;
+            }
+
+            // didn't find one that match
+            throw new IllegalArgumentException(
+                "conversion of '" + s + "' to a Date value failed", pe);
         }
 
         try
