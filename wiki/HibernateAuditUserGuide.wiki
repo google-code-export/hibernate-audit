@@ -30,3 +30,16 @@ If a collection item is removed from a collection, there are at least two ways t
 1. UPDATE and the delta is the remaining collection content. It's easier to implement, because this is the information Hibernate pushes to its listener. HBA uses this method.
 
 2. REMOVE and the delta is the removed member. This is a lot better in expressing the semantic of the change, and also in terms of space used, but it's difficult to figure out the delta, unless going even deeper within hibernate.
+
+==Logical Group Id Support==
+
+A "logical group id" is a concept introduced by the audit framework to allow to group audit entities in so called "logical groups", as a way to optimize some queries and avoid laborious full-extent tree walking.
+
+Providing the logical group id is optional, as it is just an optimization. The audit framework will work fine without it, just that some queries would be slower.
+
+The id of the logical group an entity is part of must be provided by the application, via an implementation of LogicalGroupIdProvider interface. The instance of the application-provided LogicalGroupIdProvided interface must be registered at the same time the SessionFactory is registered with the audit runtime, by using the following API call:
+
+{{{
+    HibernateAudit.register(SessionFactory sf, LogicalGroupIdProvider lgip);
+}}}
+
