@@ -42,3 +42,7 @@ The id of the logical group an entity is part of must be provided by the applica
 {{{
     HibernateAudit.register(SessionFactory sf, LogicalGroupIdProvider lgip);
 }}}
+
+Multiple logical groups per transaction are supported. 
+
+As per 1.0 release, the audit framework doesn't make any assumption, nor it tries to enforce any consistency criteria, it just records the logical groups as they are being passed to it. We acknowledge that this is potentially dangerous, as it could lead to a "logically corrupted" audit trail. Further research will be done on the subject.
