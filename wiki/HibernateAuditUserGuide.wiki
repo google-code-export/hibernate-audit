@@ -37,9 +37,8 @@ A "logical group id" is a concept introduced by the audit framework to allow to 
 
 Providing the logical group id is optional, as it is just an optimization. The audit framework will work fine without it, just that some queries would be slower.
 
-The id of the logical group an entity is part of must be provided by the application, via an implementation of LogicalGroupIdProvider interface. The instance of the application-provided LogicalGroupIdProvided interface must be registered at the same time the SessionFactory is registered with the audit runtime, by using the following API call:
+The id of the logical group an entity is part of must be provided by the application, via an implementation of `LogicalGroupIdProvider` interface. The instance of the application-provided `LogicalGroupIdProvided` interface must be registered at the same time the SessionFactory is registered with the audit runtime, by using the following API call:
 
 {{{
     HibernateAudit.register(SessionFactory sf, LogicalGroupIdProvider lgip);
 }}}
-
