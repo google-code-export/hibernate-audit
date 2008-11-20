@@ -469,7 +469,6 @@ public class Manager
             }
 
             TransactionDeltaImpl td = new TransactionDeltaImpl(atx.getId(),
-                                                               atx.getLogicalGroupId(),
                                                                atx.getTimestamp(),
                                                                atx.getUser());
             List<AuditEvent> es = atx.getEvents();
@@ -487,13 +486,14 @@ public class Manager
 
                 Serializable id = e.getTargetId();
                 AuditEntityType aet = (AuditEntityType)at;
-                String entityName = aet.getClassInstance().getName(); // TODO this will fail when we use real entityNames
+                String entityName = aet.getClassInstance().getName(); // TODO this will fail when we use real entityNames https://jira.novaordis.org/browse/HBA-80
                 EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id, entityName);
                 ChangeType ct = e.getType();
+                Serializable lgid = e.getLogicalGroupId();
 
                 if (ed == null)
                 {
-                    ed = new EntityDeltaImpl(id, entityName, ct);
+                    ed = new EntityDeltaImpl(id, entityName, ct, lgid);
                     td.addEntityDelta(ed);
                 }
                 else if (ChangeType.INSERT.equals(ct))

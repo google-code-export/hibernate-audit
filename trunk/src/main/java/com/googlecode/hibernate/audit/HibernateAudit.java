@@ -430,22 +430,22 @@ public final class HibernateAudit
         if (entityTypeId == null)
         {
             String qs =
-                "from AuditTransaction as t " +
-                "where t.logicalGroupId = :lgId and " +
+                "from AuditTransaction as t where " +
                 "t.timestamp >= :from and " +
-                "t.timestamp <= :to " +
+                "t.timestamp <= :to and " +
+                "t in (select transaction from AuditEvent where logicalGroupId = :lgId) " +
                 "order by t.id";
 
-            return query(qs, lgId, from, to);
+            return query(qs, from, to, lgId);
         }
         else
         {
             String qs =
-                "from AuditTransaction as tx, AuditEvent as e, AuditEntityType as t " +
-                "where tx.logicalGroupId = :lgId and " +
+                "from AuditTransaction as tx, AuditEvent as e, AuditEntityType as t where " +
                 "e.transaction = tx and " +
                 "e.targetType = t and " +
-                "t.id = :entityTypeId " +
+                "t.id = :entityTypeId and " +
+                "e.logicalGroupId = :lgId " +
                 "order by tx.id";
 
             List result = query(qs, lgId, entityTypeId);

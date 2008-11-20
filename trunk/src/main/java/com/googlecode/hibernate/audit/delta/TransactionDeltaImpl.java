@@ -21,7 +21,6 @@ public class TransactionDeltaImpl implements TransactionDelta
     // Attributes ----------------------------------------------------------------------------------
 
     private Serializable id;
-    private Serializable lgi;
     private Date timestamp;
     private String user;
 
@@ -29,10 +28,9 @@ public class TransactionDeltaImpl implements TransactionDelta
 
     // Constructors --------------------------------------------------------------------------------
 
-    public TransactionDeltaImpl(Serializable id, Serializable lgi, Date timestamp, String user)
+    public TransactionDeltaImpl(Serializable id, Date timestamp, String user)
     {
         this.id = id;
-        this.lgi = lgi;
         this.timestamp = timestamp;
         this.user = user;
 
@@ -44,11 +42,6 @@ public class TransactionDeltaImpl implements TransactionDelta
     public Serializable getId()
     {
         return id;
-    }
-
-    public Serializable getLogicalGroupId()
-    {
-        return lgi;
     }
 
     public Date getTimestamp()

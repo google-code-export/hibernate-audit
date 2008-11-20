@@ -5,12 +5,20 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
+import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.HibernateAuditTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.delta.EntityDelta;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -52,7 +60,25 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            LogicalGroupIdProvider lgip = null;
+
+            LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
+            {
+                public Serializable getLogicalGroupId(EventSource es,
+                                                      Serializable id,
+                                                      Object entity)
+                {
+                    if (entity instanceof A)
+                    {
+                        return new Long(77);
+                    }
+                    else if (entity instanceof B)
+                    {
+                        return new Long(88);
+                    }
+
+                    throw new IllegalStateException("don't know the entity " + entity);
+                }
+            };
             HibernateAudit.register(sf, lgip);
 
             Session s = sf.openSession();
@@ -66,6 +92,40 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
             s.save(b);
 
             s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+
+            TransactionDelta txd = HibernateAudit.getDelta(txs.get(0).getId());
+
+            Set<EntityDelta> eds = txd.getEntityDeltas();
+            assert eds.size() == 2;
+
+            for(EntityDelta d: eds)
+            {
+                if (d.getId().equals(a.getId()))
+                {
+                    assert new Long(77).equals(d.getLogicalGroupId());
+
+                }
+                else if (d.getId().equals(b.getId()))
+                {
+                    assert new Long(88).equals(d.getLogicalGroupId());
+                }
+                else
+                {
+                    throw new Error("didn't expect this entity delta");
+                }
+            }
+
+//            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(23482347239l));
+//            assert txs.isEmpty();
+
+            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(77));
+            assert txs.size() == 1;
+//
+//            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(88));
+//            assert txs.size() == 1;
         }
         finally
         {

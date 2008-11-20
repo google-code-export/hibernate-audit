@@ -25,7 +25,6 @@ import javax.transaction.Synchronization;
 import java.util.Date;
 import java.util.List;
 import java.security.Principal;
-import java.io.Serializable;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -62,11 +61,6 @@ public class AuditTransaction implements Synchronization
 
     @Column(name = "TRANSACTION_USER")
     private String user;
-
-    // The id of the application-level logical group modified by this transaction. For more about
-    // logical groups see https://jira.novaordis.org/browse/HBA-100.
-    @Column(name = "LOGICAL_GROUP_ID", columnDefinition="NUMBER(30, 0)")
-    private Long logicalGroupId;
 
     // the events are stored in the order they were initially logged in the database. TODO implement this
     @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY)
@@ -184,17 +178,6 @@ public class AuditTransaction implements Synchronization
     public Transaction getTransaction()
     {
         return hibernateTransaction;
-    }
-
-    public Serializable getLogicalGroupId()
-    {
-        return logicalGroupId;
-    }
-
-    public void setLogicalGroupId(Serializable logicalGroupId)
-    {
-        // TODO The API supports generic Serializables, internally we only support longs. Review that.
-        this.logicalGroupId = (Long)logicalGroupId;
     }
 
     /**

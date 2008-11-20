@@ -70,4 +70,6 @@ public interface EntityDelta
      * @return null if no collection delta exists for this specific member variable.
      */
     CollectionDelta getCollectionDelta(String name);
+
+    Serializable getLogicalGroupId();
 }

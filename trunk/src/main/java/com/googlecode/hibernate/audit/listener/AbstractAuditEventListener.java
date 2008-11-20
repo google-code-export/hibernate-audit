@@ -93,8 +93,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         c.auditTransaction = createAuditTransaction(c.session);
 
-        updateLogicalGroupId(c.auditTransaction, c.session, c.entityId, c.entity);
-
         c.auditEvent = new AuditEvent();
         c.auditEvent.setTransaction(c.auditTransaction);
         c.auditEvent.setType(c.changeType);
@@ -107,6 +105,14 @@ abstract class AbstractAuditEventListener implements AuditEventListener
                 "so it is currently not supported");
         }
         c.auditEvent.setTargetId((Long)c.entityId);
+
+        Serializable lgid = manager.getLogicalGroupId(c.session, c.entityId, c.entity);
+
+        if (lgid != null)
+        {
+            if (traceEnabled) { log.debug("current logical group id " + lgid); }
+            c.auditEvent.setLogicalGroupId(lgid);
+        }
 
         c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);
         c.auditEvent.setTargetType(c.auditEntityType);
@@ -230,30 +236,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     }
 
     // Private -------------------------------------------------------------------------------------
-
-    private void updateLogicalGroupId(AuditTransaction atx, EventSource session,
-                                      Serializable entityId, Object entity) throws Exception
-    {
-        Serializable currentLGId = manager.getLogicalGroupId(session, entityId, entity);
-        Serializable prevLGId = atx.getLogicalGroupId();
-
-        if (traceEnabled) { log.debug("current logical group id: " + currentLGId + ", audit transaction logical group id: " + prevLGId); }
-
-        if (prevLGId == null && currentLGId != null)
-        {
-            atx.setLogicalGroupId(currentLGId);
-
-            if (traceEnabled) { log.debug("set logical group id to " + currentLGId + " on " + atx); }
-
-            return;
-        }
-
-        if (prevLGId != null && !prevLGId.equals(currentLGId))
-        {
-            throw new IllegalStateException(
-                "inconsistent logical groups, previous: " + prevLGId + ", current: " + currentLGId);
-        }
-    }
 
     // Inner classes -------------------------------------------------------------------------------
 

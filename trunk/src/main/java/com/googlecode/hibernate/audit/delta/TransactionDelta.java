@@ -20,7 +20,6 @@ public interface TransactionDelta
      */
     Serializable getId();
 
-    Serializable getLogicalGroupId();
     Date getTimestamp();
     String getUser();
 

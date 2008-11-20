@@ -131,7 +131,6 @@ public class DeltaTest extends JTATransactionTest
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
 
             assert tx.getId().equals(td.getId());
-            assert null == td.getLogicalGroupId();
             assert null == td.getUser();
 
             Date timestamp = td.getTimestamp();
@@ -191,7 +190,6 @@ public class DeltaTest extends JTATransactionTest
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
 
             assert tx.getId().equals(td.getId());
-            assert null == td.getLogicalGroupId();
             assert null != td.getTimestamp();
             assert null == td.getUser();
 

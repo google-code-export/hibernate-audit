@@ -32,7 +32,7 @@ public class TransactionDeltaTest
     @Test(enabled = true)
     public void testAddEntityDelta() throws Exception
     {
-        TransactionDeltaImpl td = new TransactionDeltaImpl(new Long(1), null, null, null);
+        TransactionDeltaImpl td = new TransactionDeltaImpl(new Long(1), null, null);
 
         assert td.getEntityDeltas().isEmpty();
 

@@ -21,6 +21,7 @@ import javax.persistence.FetchType;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 
 import java.util.List;
+import java.io.Serializable;
 
 
 /**
@@ -72,6 +73,11 @@ public class AuditEvent
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
     private AuditType targetType;
+
+    // The id of the application-level logical group modified by this transaction. For more about
+    // logical groups see https://jira.novaordis.org/browse/HBA-100.
+    @Column(name = "LOGICAL_GROUP_ID", columnDefinition="NUMBER(30, 0)")
+    private Long logicalGroupId;
 
     // the pairs are stored in the order they were initially logged in the database. TODO implement this
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
@@ -133,6 +139,17 @@ public class AuditEvent
     public void setTargetType(AuditType type)
     {
         this.targetType = type;
+    }
+
+    public Serializable getLogicalGroupId()
+    {
+        return logicalGroupId;
+    }
+
+    public void setLogicalGroupId(Serializable logicalGroupId)
+    {
+        // TODO The API supports generic Serializables, internally we only support longs. Review that.
+        this.logicalGroupId = (Long)logicalGroupId;
     }
 
     /**
