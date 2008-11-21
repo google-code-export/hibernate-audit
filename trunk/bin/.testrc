@@ -63,3 +63,4 @@ DIALECT=org.hibernate.dialect.Oracle10gDialect
 #TARGET_CLASS=WriteCollisionDetectionTest
 #TARGET_CLASS=HibernateReflectionsTest
 TARGET_CLASS=MultipleLogicalGroupsPerTransactionTest
+#TARGET_CLASS=HBA181Test

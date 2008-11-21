@@ -118,14 +118,14 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
                 }
             }
 
-//            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(23482347239l));
-//            assert txs.isEmpty();
+            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(23482347239l));
+            assert txs.isEmpty();
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(77));
             assert txs.size() == 1;
-//
-//            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(88));
-//            assert txs.size() == 1;
+
+            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(88));
+            assert txs.size() == 1;
         }
         finally
         {

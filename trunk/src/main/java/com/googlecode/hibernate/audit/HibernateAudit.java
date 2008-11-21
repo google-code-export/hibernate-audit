@@ -433,7 +433,7 @@ public final class HibernateAudit
                 "from AuditTransaction as t where " +
                 "t.timestamp >= :from and " +
                 "t.timestamp <= :to and " +
-                "t in (select transaction from AuditEvent where logicalGroupId = :lgId) " +
+                "t in (select transaction from AuditEvent where logicalGroupId = :lgId ) " +
                 "order by t.id";
 
             return query(qs, from, to, lgId);
