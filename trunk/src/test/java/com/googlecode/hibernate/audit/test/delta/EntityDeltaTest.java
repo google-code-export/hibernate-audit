@@ -34,7 +34,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testAddPrimitiveDelta() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null, null);
 
         ScalarDelta pd = Deltas.createPrimitiveDelta("a", "alice");
 
@@ -64,7 +64,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testAddPrimitiveAndEntityReferenceDelta() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null, null);
 
         PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
         EntityReferenceDelta erd = Deltas.
@@ -97,7 +97,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testGetPrimitiveDeltas() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null, null);
 
         EntityReferenceDelta erd = Deltas.createEntityReferenceDelta("x", new Long(2), "e", null);
         assert ed.addMemberVariableDelta(erd);
@@ -117,7 +117,7 @@ public class EntityDeltaTest
     @Test(enabled = true)
     public void testGetEntityReferenceDeltas() throws Exception
     {
-        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null);
+        EntityDeltaImpl ed = new EntityDeltaImpl(new Long(1), "MockEntity", null, null);
 
         PrimitiveDelta pd = Deltas.createPrimitiveDelta("a", "alice");
         assert ed.addMemberVariableDelta(pd);

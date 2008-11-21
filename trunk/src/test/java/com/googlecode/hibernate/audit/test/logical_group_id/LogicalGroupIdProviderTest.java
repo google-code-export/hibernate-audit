@@ -8,12 +8,11 @@ import org.hibernate.event.EventSource;
 import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
-import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.RootIdProvider;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.AuditEvent;
 
 import java.util.List;
 import java.util.Random;
@@ -45,127 +44,12 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-//    @Test(enabled = true)
-//    public void testNullLogicalProviderId() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf);
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            List<AuditTransaction> atxs = HibernateAudit.getTransactions(a.getId());
-//
-//            assert atxs.size() == 1;
-//
-//            AuditTransaction at = atxs.get(0);
-//
-//            log.debug(at);
-//
-//            assert at.getLogicalGroupId() == null;
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = true)
-//    public void testConstantLogicalProviderId() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//
-//            final long random = new Random().nextLong();
-//
-//            LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
-//            {
-//                public Serializable getLogicalGroupId(EventSource es,
-//                                                      Serializable id,
-//                                                      Object entity)
-//                {
-//                    return new Long(random);
-//                }
-//            };
-//
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf, lgip);
-//
-//            A a = new A();
-//            a.setName("alice");
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            s.beginTransaction();
-//
-//            a = new A();
-//            a.setName("anna");
-//
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//
-//            List<AuditTransaction> atxs = HibernateAudit.getTransactions(null);
-//
-//            assert atxs.size() == 2;
-//
-//            for(AuditTransaction atx: atxs)
-//            {
-//                assert new Long(random).equals(atx.getLogicalGroupId());
-//            }
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-
     @Test(enabled = true)
-    public void testInconsistentLogicalGroup() throws Exception
+    public void testNullLogicalProviderId() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
-        config.addAnnotatedClass(B.class);
 
         SessionFactoryImplementor sf = null;
 
@@ -173,22 +57,67 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         {
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            A a = new A();
+            a.setName("alice");
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(a);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> atxs = HibernateAudit.getTransactions(a.getId());
+
+            assert atxs.size() == 1;
+
+            AuditTransaction at = atxs.get(0);
+
+            log.debug(at);
+
+            List<AuditEvent> events = at.getEvents();
+
+            for(AuditEvent e: events)
+            {
+                assert e.getLogicalGroupId() == null;
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testConstantLogicalProviderId() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            final long random = new Random().nextLong();
+
             LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
             {
                 public Serializable getLogicalGroupId(EventSource es,
                                                       Serializable id,
                                                       Object entity)
                 {
-                    if (entity instanceof A)
-                    {
-                        return new Long(10);
-                    }
-                    else if (entity instanceof B)
-                    {
-                        return new Long(20);
-                    }
-
-                    throw new IllegalStateException();
+                    return new Long(random);
                 }
             };
 
@@ -198,27 +127,32 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             A a = new A();
             a.setName("alice");
 
-            B b = new B();
-            b.setName("bob");
-
             Session s = sf.openSession();
             s.beginTransaction();
 
             s.save(a);
-            s.save(b);
 
-            try
-            {
-                s.getTransaction().commit();
-                throw new Error("should've failed");
-            }
-            catch(HibernateAuditException e)
-            {
-                Throwable cause = e.getCause();
-                assert cause instanceof IllegalStateException;
-                log.debug(">>> " + cause.getMessage());
+            s.getTransaction().commit();
 
-                // transaction already rolled back
+            s.beginTransaction();
+
+            a = new A();
+            a.setName("anna");
+
+            s.save(a);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> atxs = HibernateAudit.getTransactions(null);
+
+            assert atxs.size() == 2;
+
+            for(AuditTransaction atx: atxs)
+            {
+                for(AuditEvent e: atx.getEvents())
+                {
+                    assert new Long(random).equals(e.getLogicalGroupId());
+                }
             }
         }
         finally
@@ -310,113 +244,123 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         }
     }
 
-//    @Test(enabled = true)
-//    public void testLatestTransactionByLogicalGroup_OneRecord() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            RootIdProvider rip = new RootIdProvider(A.class);
-//            HibernateAudit.register(sf, rip); // null logical group id
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            A a = new A();
-//            rip.setRoot(a);
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            List<AuditTransaction> txs = HibernateAudit.getTransactions();
-//            assert txs.size() == 1;
-//
-//            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
-//
-//            assert a.getId().equals(tx.getLogicalGroupId());
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
-//
-//    @Test(enabled = true)
-//    public void testLatestTransactionByLogicalGroup_TwoRecords() throws Exception
-//    {
-//        AnnotationConfiguration config = new AnnotationConfiguration();
-//        config.configure(getHibernateConfigurationFileName());
-//        config.addAnnotatedClass(A.class);
-//        SessionFactoryImplementor sf = null;
-//
-//        try
-//        {
-//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-//            HibernateAudit.startRuntime(sf.getSettings());
-//            RootIdProvider rip = new RootIdProvider(A.class);
-//            HibernateAudit.register(sf, rip); // null logical group id
-//
-//            Session s = sf.openSession();
-//            s.beginTransaction();
-//
-//            A a = new A();
-//            rip.setRoot(a);
-//            s.save(a);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            List<AuditTransaction> txs = HibernateAudit.getTransactions();
-//            assert txs.size() == 1;
-//            AuditTransaction tx1 = txs.get(0);
-//
-//            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
-//            assert a.getId().equals(tx.getLogicalGroupId());
-//
-//
-//            s = sf.openSession();
-//            s.beginTransaction();
-//
-//            a = (A)s.get(A.class, a.getId());
-//            rip.setRoot(a);
-//
-//            a.setName("blah");
-//            s.update(a);
-//
-//            s.getTransaction().commit();
-//            s.close();
-//
-//            txs = HibernateAudit.getTransactions();
-//            assert txs.size() == 2;
-//            assert tx1.getId().equals(txs.get(0).getId());
-//            AuditTransaction tx2 = txs.get(1);
-//
-//            tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
-//            assert tx2.getId().equals(tx.getId());
-//            assert a.getId().equals(tx2.getLogicalGroupId());
-//        }
-//        finally
-//        {
-//            HibernateAudit.stopRuntime();
-//
-//            if (sf != null)
-//            {
-//                sf.close();
-//            }
-//        }
-//    }
+    @Test(enabled = true)
+    public void testLatestTransactionByLogicalGroup_OneRecord() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            HibernateAudit.startRuntime(sf.getSettings());
+            RootIdProvider rip = new RootIdProvider(A.class);
+            HibernateAudit.register(sf, rip);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            rip.setRoot(a);
+            s.save(a);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+
+            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+
+            for(AuditEvent e: tx.getEvents())
+            {
+                assert a.getId().equals(e.getLogicalGroupId());
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testLatestTransactionByLogicalGroup_TwoRecords() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            HibernateAudit.startRuntime(sf.getSettings());
+            RootIdProvider rip = new RootIdProvider(A.class);
+            HibernateAudit.register(sf, rip);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            A a = new A();
+            rip.setRoot(a);
+            s.save(a);
+
+            s.getTransaction().commit();
+            s.close();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+            AuditTransaction tx1 = txs.get(0);
+
+            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+
+            for(AuditEvent e: tx.getEvents())
+            {
+                assert a.getId().equals(e.getLogicalGroupId());
+            }
+
+            s = sf.openSession();
+            s.beginTransaction();
+
+            a = (A)s.get(A.class, a.getId());
+            rip.setRoot(a);
+
+            a.setName("blah");
+            s.update(a);
+
+            s.getTransaction().commit();
+            s.close();
+
+            txs = HibernateAudit.getTransactions();
+            assert txs.size() == 2;
+            assert tx1.getId().equals(txs.get(0).getId());
+            AuditTransaction tx2 = txs.get(1);
+
+            tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+            assert tx2.getId().equals(tx.getId());
+
+            for(AuditEvent e: tx2.getEvents())
+            {
+                assert a.getId().equals(e.getLogicalGroupId());
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

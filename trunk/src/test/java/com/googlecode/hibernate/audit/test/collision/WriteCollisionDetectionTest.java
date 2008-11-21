@@ -70,19 +70,10 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
             C da = (C)s.get(C.class, c.getId());
             da.setI(1);
             s.update(da);
-            try
-            {
-                s.getTransaction().commit();
-                throw new Error("should fail");
-            }
-            catch(HibernateAuditException e)
-            {
-                Throwable t = e.getCause();
-                assert t instanceof IllegalStateException;
-                log.debug(">>> " + t.getMessage());
 
-                // transaction already rolled back by the audit listener
-            }
+            // no reference version in thread local, it means we silently DON'T perform write
+            // colission detection, commit should succeed
+            s.getTransaction().commit();
         }
         finally
         {

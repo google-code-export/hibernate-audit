@@ -36,7 +36,7 @@ public class HBA181Test extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testGenericSubQuery_HibernateLevel() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

@@ -3,6 +3,8 @@ package com.googlecode.hibernate.audit;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.EntityMode;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.hibernate.engine.SessionFactoryImplementor;
@@ -16,6 +18,7 @@ import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
+import com.googlecode.hibernate.audit.model.QueryResult;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -309,23 +312,13 @@ public final class HibernateAudit
     // Generic Queries -----------------------------------------------------------------------------
 
     /**
-     * A general purpose query facility. Understands HQL.
+     * A general purpose query facility. Understands HQL. Does close the query session on exit
+     * so it cannot be used to explore lazily loaded relationships.
      */
     public static List query(String query, Object... args) throws Exception
     {
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
-
-        return m.query(query, args);
+        Manager m = getManagerOrFail();
+        return m.query(query, false, args).getResult();
     }
 
     // Specialized Queries -------------------------------------------------------------------------
@@ -344,51 +337,87 @@ public final class HibernateAudit
      *
      * TODO add tests.
      *
+     * TODO - loads lazy relationships - potential performance hit.
+     *
      * @param entityId - if null, returns all transactions. This may be a very costly operation.
      *
      * @return the list of transactions that have been applied to the entity with the specified id.
      */
     public static List<AuditTransaction> getTransactions(Serializable entityId) throws Exception
     {
-        List result = null;
-        if (entityId == null)
-        {
-            String qs = "from AuditTransaction as t order by t.id";
-            result = query(qs);
-        }
-        else
-        {
-            String qs =
-                "from AuditTransaction as t, AuditEvent as e " +
-                "where e.transaction = t and e.targetId = :entityId order by t.id";
+        Manager m = getManagerOrFail();
+        QueryResult qr = null;
 
-            result = query(qs, entityId);
-        }
-
-        if (result.size() == 0)
+        try
         {
-            return Collections.emptyList();
-        }
-
-        List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
-        for(Object o: result)
-        {
-            AuditTransaction at =
-                entityId == null ? (AuditTransaction)o : (AuditTransaction)((Object[])o)[0];
-            
-            if (!ts.contains(at))
+            if (entityId == null)
             {
-                ts.add(at);
+                String qs = "from AuditTransaction as t order by t.id";
+                qr = m.query(qs, true);
+            }
+            else
+            {
+                String qs =
+                    "from AuditTransaction as t, AuditEvent as e " +
+                    "where e.transaction = t and e.targetId = :entityId order by t.id";
+
+                qr = m.query(qs, true, entityId);
+            }
+
+            List result = qr.getResult();
+            if (result.size() == 0)
+            {
+                return Collections.emptyList();
+            }
+
+            List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
+
+            for(Object o: result)
+            {
+                AuditTransaction at =
+                    entityId == null ? (AuditTransaction)o : (AuditTransaction)((Object[])o)[0];
+
+                if (!ts.contains(at))
+                {
+                    ts.add(at);
+                }
+
+                // walk the lazy loaded relationship
+                // TODO: performance hit when I don't actually need this
+                at.getEvents().isEmpty();
+            }
+
+            return ts;
+        }
+        finally
+        {
+            // make sure the transaction is committed and query session is closed
+
+            if (qr != null)
+            {
+                Session qs = qr.getSession();
+
+                if (qs != null)
+                {
+                    Transaction ht = qs.getTransaction();
+
+                    if (ht != null)
+                    {
+                        ht.commit();
+                    }
+
+                    qs.close();
+                }
             }
         }
-
-        return ts;
     }
 
     /**
      * Specialized query.
      *
      * TODO add tests.
+     *
+     * TODO - loads lazy relationships - potential performance hit.
      *
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group.
@@ -404,6 +433,8 @@ public final class HibernateAudit
      *
      * TODO add tests.
      *
+     * TODO - loads lazy relationships - potential performance hit.
+     *
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group, satisfying the filter.
      */
@@ -411,6 +442,9 @@ public final class HibernateAudit
                                                                        TransactionFilter filter)
         throws Exception
     {
+
+        Manager m = getManagerOrFail();
+
         Date from = null;
         Date to = null;
         String user = null;
@@ -427,46 +461,80 @@ public final class HibernateAudit
         from = from == null ? new Date(0) : from;
         to = to == null ? new Date(Long.MAX_VALUE) : to;
 
-        if (entityTypeId == null)
+        QueryResult qr = null;
+
+        try
         {
-            String qs =
-                "from AuditTransaction as t where " +
-                "t.timestamp >= :from and " +
-                "t.timestamp <= :to and " +
-                "t in (select transaction from AuditEvent where logicalGroupId = :lgId ) " +
-                "order by t.id";
 
-            return query(qs, from, to, lgId);
-        }
-        else
-        {
-            String qs =
-                "from AuditTransaction as tx, AuditEvent as e, AuditEntityType as t where " +
-                "e.transaction = tx and " +
-                "e.targetType = t and " +
-                "t.id = :entityTypeId and " +
-                "e.logicalGroupId = :lgId " +
-                "order by tx.id";
-
-            List result = query(qs, lgId, entityTypeId);
-
-            if (result.size() == 0)
+            if (entityTypeId == null)
             {
-                return Collections.emptyList();
+                String qs =
+                    "from AuditTransaction as t where " +
+                    "t.timestamp >= :from and " +
+                    "t.timestamp <= :to and " +
+                    "t in (select transaction from AuditEvent where logicalGroupId = :lgId ) " +
+                    "order by t.id";
+
+                qr = m.query(qs, true, from, to, lgId);
+                return qr.getResult();
             }
-
-            List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
-            for(Object o: result)
+            else
             {
-                AuditTransaction at = (AuditTransaction)((Object[])o)[0];
+                String qs =
+                    "from AuditTransaction as tx, AuditEvent as e, AuditEntityType as t where " +
+                    "e.transaction = tx and " +
+                    "e.targetType = t and " +
+                    "t.id = :entityTypeId and " +
+                    "e.logicalGroupId = :lgId " +
+                    "order by tx.id";
 
-                if (!ts.contains(at))
+                qr = m.query(qs, true, lgId, entityTypeId);
+
+                List result = qr.getResult();
+
+                if (result.size() == 0)
                 {
-                    ts.add(at);
+                    return Collections.emptyList();
+                }
+
+                List<AuditTransaction> ts = new ArrayList<AuditTransaction>();
+                for(Object o: result)
+                {
+                    AuditTransaction at = (AuditTransaction)((Object[])o)[0];
+
+                    if (!ts.contains(at))
+                    {
+                        ts.add(at);
+                    }
+
+                    // walk the lazy loaded relationship
+                    // TODO: performance hit when I don't actually need this
+                    at.getEvents().isEmpty();
+                }
+
+                return ts;
+            }
+        }
+        finally
+        {
+            // make sure the transaction is committed and query session is closed
+
+            if (qr != null)
+            {
+                Session qs = qr.getSession();
+
+                if (qs != null)
+                {
+                    Transaction ht = qs.getTransaction();
+
+                    if (ht != null)
+                    {
+                        ht.commit();
+                    }
+
+                    qs.close();
                 }
             }
-
-            return ts;
         }
     }
 
@@ -479,18 +547,55 @@ public final class HibernateAudit
     public static AuditTransaction getLatestTransactionForLogicalGroup(Serializable lgId)
         throws Exception
     {
-        String qs =
-            "from AuditTransaction where id = " +
-            "( select max(t.id) from AuditTransaction as t where t.logicalGroupId = :lgId )";
+        Manager m = getManagerOrFail();
 
-        List result = query(qs, lgId);
+        QueryResult qr = null;
 
-        if (result.isEmpty())
+        try
         {
-            return null;
-        }
+            String qs =
+                "from AuditTransaction " +
+                " where id = " +
+                " ( select max(e.transaction.id) from AuditEvent as e " +
+                "   where e.logicalGroupId = :lgId )";
 
-        return (AuditTransaction)result.get(0);
+            qr = m.query(qs, true, lgId);
+            List result = qr.getResult();
+
+            if (result.isEmpty())
+            {
+                return null;
+            }
+
+            AuditTransaction tx = (AuditTransaction)result.get(0);
+
+            // walk the lazy loaded relationship
+            // TODO: performance hit when I don't actually need this
+            tx.getEvents().isEmpty();
+            
+            return tx;
+        }
+        finally
+        {
+            // make sure the transaction is committed and query session is closed
+
+            if (qr != null)
+            {
+                Session qs = qr.getSession();
+
+                if (qs != null)
+                {
+                    Transaction ht = qs.getTransaction();
+
+                    if (ht != null)
+                    {
+                        ht.commit();
+                    }
+
+                    qs.close();
+                }
+            }
+        }
     }
 
     /**
@@ -553,17 +658,7 @@ public final class HibernateAudit
                                   String entityName, Serializable entityId,
                                   String fieldName, Long version) throws Exception
     {
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
+        Manager m = getManagerOrFail();
 
         // currently we implicitly assume 'entityName' is class name, this has to change
         // TODO https://jira.novaordis.org/browse/HBA-80
@@ -657,24 +752,15 @@ public final class HibernateAudit
      */
     public static TransactionDelta getDelta(Long txId) throws Exception
     {
-        Manager m = null;
-
-        synchronized(lock)
-        {
-            if (manager == null)
-            {
-                throw new IllegalStateException("audit runtime not enabled");
-            }
-
-            m = manager;
-        }
-
+        Manager m = getManagerOrFail();
         return m.getDelta(txId);
     }
 
     // Others --------------------------------------------------------------------------------------
 
     /**
+     * TODO
+     *
      * Exposing the manager to the inner packages, until I refactor and I unify package protected
      * access.
      */
@@ -715,6 +801,28 @@ public final class HibernateAudit
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return a non-null manager reference or fail with IllegalStateException
+     *         'audit runtime not started'.
+     */
+    private static Manager getManagerOrFail()
+    {
+        Manager m = null;
+
+        synchronized(lock)
+        {
+            if (manager == null)
+            {
+                throw new IllegalStateException("audit runtime not started");
+            }
+
+            m = manager;
+        }
+
+        return m;
+    }
 
     // Inner classes -------------------------------------------------------------------------------
 }

@@ -405,17 +405,31 @@ public class Manager
         return writeCollisionDetector;
     }
 
-    public List query(String query, Object... args) throws Exception
+    /**
+     * @param leaveSessionOpen - don't commit the current transaction and don't close the current
+     *        'query session'. This is useful for cases we want to walk lazily instantiated
+     *        relationships.
+     *
+     *        WARNING, don't forget to commit transaction and close the session after you're done
+     *                 with it!
+     *
+     * @return a QueryResult that is a simple wrapper around a List (the result) and the query
+     *         session, in case query(...) was invoked with leaveSessionOpen = true.
+     */
+    public QueryResult query(String query, boolean leaveSessionOpen, Object ... args)
+        throws Exception
     {
         checkStarted();
 
         SessionFactoryImpl localIsf = null;
+
         synchronized(this)
         {
             localIsf = isf;
             // TODO what happens if isf is closed while in the middle of a query?
         }
 
+        QueryResult queryResult = null;
         Session s = null;
 
         try
@@ -425,11 +439,17 @@ public class Manager
 
             Query q = s.createQuery(query);
             QueryParameters.fill(q, args);
-            return q.list();
+            List result = q.list();
+            queryResult = new QueryResult(result);
+            return queryResult;
         }
         finally
         {
-            if (s != null)
+            if (leaveSessionOpen)
+            {
+                queryResult.setSession(s);
+            }
+            else if (s != null)
             {
                 try
                 {
