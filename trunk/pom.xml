@@ -30,6 +30,7 @@
     </distributionManagement>
 
     <build>
+
         <resources>
             <resource>
                 <filtering>true</filtering>
@@ -39,6 +40,7 @@
                 </includes>
             </resource>
         </resources>
+
         <testResources>
             <testResource>
                 <!--
@@ -65,6 +67,33 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!--
+                            Generates the DDL script corresponding to the current version
+                        -->
+                        <phase>compile</phase>
+                        <configuration>
+                            <tasks>
+                                <property name="maven.compile.classpath" refid="maven.compile.classpath"/>
+                                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"/>
+                                <property name="maven.test.classpath" refid="maven.test.classpath"/>
+                                <property name="maven.plugin.classpath" refid="maven.plugin.classpath"/>
+                                <property name="hba.version" value="${version}"/>
+                                <ant antfile="${basedir}/build.xml">
+                                    <target name="generate-ddl"/>
+                                </ant>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>

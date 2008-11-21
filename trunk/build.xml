@@ -1,0 +1,32 @@
+<project name="hba-auxiliary">
+
+    <!--
+          A collection of tasks we feel more confortable handingling from ant, as opposite to maven.
+          Called from maven. It won't work standalone, as it depends on maven generated paths.
+
+          We rely on hba.version, maven.compile.classpath, among others.
+    -->
+
+    <property name="ddl.filename" value="hba-${hba.version}.ddl"/>
+
+    <target name="generate-ddl">
+
+        <echo message="Generating DDL for Hibernate Audit version ${hba.version}"/>
+
+        <mkdir dir="./target/resources"/>
+
+        <java classname="com.googlecode.hibernate.audit.util.DDL"
+              classpath="${maven.compile.classpath}"
+              fork="true">
+
+            <arg value="create"/>
+
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Djava.compiler=NONE"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=generate-ddl"/>
+        </java>
+
+    </target>
+
+</project>
