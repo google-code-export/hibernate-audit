@@ -4,6 +4,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -60,11 +61,13 @@ public class AuditEventPair
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_EVENT_ID")
+    @ForeignKey(name = "FK_AUDIT_EVENT_PAIR")
     private AuditEvent event;
 
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_FIELD_ID")
+    @ForeignKey(name = "FK_AUDIT_CLASS_FIELD_EVNT_PAIR")
     private AuditTypeField field;
 
     @Column(name = "STRING_VALUE", length=3000)

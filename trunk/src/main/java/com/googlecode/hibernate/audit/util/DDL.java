@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.util;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.SessionFactory;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.apache.log4j.Logger;
 
@@ -113,6 +112,7 @@ public class DDL
         String line = null;
         while((line = br.readLine()) != null)
         {
+            line = postProcessLine(line);
             outPs.println(line + ";");
         }
 
@@ -165,6 +165,42 @@ public class DDL
     {
         Class.forName(driverClassName);
         return DriverManager.getConnection(url, username, password);
+    }
+
+    /**
+     *
+     * Post processing, "improving" the DDL in ways that are not possible just using Hibernate and
+     * JPA annotations.
+     *
+     * Experimental, most likely will be refactored.
+     */
+    private static String postProcessLine(String line)
+    {
+        String lcLine = line.toLowerCase();
+
+        int i = lcLine.indexOf("create table");
+
+        if (i != -1)
+        {
+            // explicitely name the primary key constraint (works on Oracle, for the time being)
+
+            String tableName = line.substring(i + "create table".length()).trim();
+            tableName = tableName.substring(0, tableName.indexOf(' '));
+
+            i = lcLine.indexOf("primary key");
+
+            if (i != -1)
+            {
+                String modifiedLine =
+                    line.substring(0, i) + "constraint PK_" + tableName + " " + line.substring(i);
+
+                log.debug("added primary key constraint name to '" + modifiedLine + "'");
+
+                return modifiedLine;
+            }
+        }
+
+        return line;
     }
 
     // Attributes ----------------------------------------------------------------------------------

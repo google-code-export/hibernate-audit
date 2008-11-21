@@ -6,6 +6,8 @@
 
           We rely on hba.version, maven.test.classpath, hibernate.dialect being set by maven ant
           plugin configuration.
+
+          If you want to disable generate-ddl, set -Dmaven.ddl.skip=true.
     -->
 
     <property name="ddl.filename" value="hba-ddl-${hba.version}.sql"/>
@@ -13,8 +15,13 @@
     <property name="tmp.dir" value="./target/tmp"/>
     <property name="ddl.generator.classpath" value="${tmp.dir};./src/test/resources;${maven.test.classpath}"/>
 
+    <target name="ckeck-ddl-skip">
+        <condition property="ddl.skip" value="true">
+            <equals arg1="${maven.ddl.skip}" arg2="true"/>
+        </condition>
+    </target>
 
-    <target name="generate-ddl">
+    <target name="generate-ddl" depends="ckeck-ddl-skip" unless="ddl.skip">
 
         <echo message="Generating DDL script for Hibernate Audit version ${hba.version}"/>
 
@@ -55,10 +62,7 @@
             <arg value="${ddl.target.dir}/${ddl.filename}"/>
 
             <!--
-            <jvmarg value="-Xdebug"/>
-            <jvmarg value="-Xnoagent"/>
-            <jvmarg value="-Djava.compiler=NONE"/>
-            <jvmarg value="-Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=generate-ddl"/>
+            <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=generate-ddl"/>
             -->
             
         </java>

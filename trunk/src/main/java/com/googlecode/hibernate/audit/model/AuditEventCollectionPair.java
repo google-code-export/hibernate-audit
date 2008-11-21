@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.model;
 
 import org.hibernate.annotations.CollectionOfElements;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.DiscriminatorValue;
@@ -36,6 +37,7 @@ public class AuditEventCollectionPair extends AuditEventPair
     @JoinTable(name = "AUDIT_EVENT_PAIR_COLLECTION",
                joinColumns = @JoinColumn(name = "AUDIT_EVENT_PAIR_ID"))
     @Column(name = "COLLECTION_ENTITY_ID", nullable = false)
+    @ForeignKey(name = "FK_AUDIT_EVENT_PAIR_COLLECTION")
     private List<Long> ids;
 
     /**

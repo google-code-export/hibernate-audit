@@ -4,6 +4,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -50,6 +51,7 @@ public class AuditTypeField
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
+    @ForeignKey(name = "FK_AUDIT_CLASS_FIELD")
     private AuditType type;
 
     @Column(name = "FIELD_NAME", nullable = false)

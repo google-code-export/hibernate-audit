@@ -4,6 +4,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -60,6 +61,7 @@ public class AuditEvent
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_TRANSACTION_ID")
+    @ForeignKey(name = "FK_AUDIT_TRANSACTION_EVENT")
     private AuditTransaction transaction;
 
     @Column(name = "EVENT_TYPE", nullable = false)
@@ -72,6 +74,7 @@ public class AuditEvent
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_CLASS_ID")
+    @ForeignKey(name = "FK_AUDIT_CLASS_EVENT")
     private AuditType targetType;
 
     // The id of the application-level logical group modified by this transaction. For more about

@@ -89,7 +89,8 @@
                 <executions>
                     <execution>
                         <!--
-                            Generates the DDL script corresponding to the current version
+                            Generates the DDL script corresponding to the current version.
+                            It runs by default, if you want to disable it, set -Dmaven.ddl.skip=true.
                         -->
                         <phase>compile</phase>
                         <configuration>
@@ -102,10 +103,12 @@
                                 <property name="hibernate.connection.url" value="${hibernate.connection.url}"/>
                                 <property name="hibernate.connection.username" value="${hibernate.connection.username}"/>
                                 <property name="hibernate.connection.password" value="${hibernate.connection.password}"/>
+                                <property name="maven.ddl.skip" value="${maven.ddl.skip}"/>
 
                                 <ant antfile="${basedir}/build.xml">
                                     <target name="generate-ddl"/>
                                 </ant>
+                                
                             </tasks>
                         </configuration>
                         <goals>
