@@ -5,6 +5,7 @@ import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.cfg.Settings;
 import org.hibernate.cfg.SettingsFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.cfg.Configuration;
 import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.connection.DatasourceConnectionProvider;
 import org.hibernate.SessionFactory;
@@ -127,6 +128,9 @@ public class Manager
     private Map<SessionFactoryImpl, SessionFactoryHolder> sessionFactoryHolders;
     private SecurityInformationProvider securityInformationProvider;
 
+    // internal (audit) configuration
+    private AnnotationConfiguration ic;
+
     // the session factory to create sessions used to write the audit log
     // a non-null session factory signifies that this manager instance is started
     private SessionFactoryImpl isf;
@@ -158,8 +162,8 @@ public class Manager
         log.debug(this + " starting ...");
 
         SettingsFactory settf = new AuditSettingsFactory(settings);
-        AnnotationConfiguration config = new AnnotationConfiguration(settf);
-        installMappings(config);
+        ic = new AnnotationConfiguration(settf);
+        installMappings(ic);
 
         try
         {
@@ -174,7 +178,7 @@ public class Manager
             log.debug("Cannot instantiate a security information provider", e);
         }
 
-        isf = (SessionFactoryImpl)config.buildSessionFactory();
+        isf = (SessionFactoryImpl)ic.buildSessionFactory();
 
         typeCache = new TypeCache(isf);
 
@@ -202,6 +206,7 @@ public class Manager
         typeCache = null;
         isf.close();
         isf = null;
+        ic = null;
 
         log.debug(this + " stopped");
     }
@@ -390,6 +395,14 @@ public class Manager
     public SessionFactoryImpl getSessionFactory()
     {
         return isf;
+    }
+
+    /**
+     * @return internal configuration. May return null if the manager instance is stopped.
+     */
+    public Configuration getConfiguration()
+    {
+        return ic;
     }
 
     public TypeCache getTypeCache()

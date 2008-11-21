@@ -3,6 +3,8 @@ package com.googlecode.hibernate.audit.util;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.SessionFactory;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.apache.log4j.Logger;
 
 import java.io.PrintStream;
@@ -13,6 +15,9 @@ import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.sql.DriverManager;
 import java.sql.Connection;
+
+import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.model.Manager;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -39,8 +44,14 @@ public class DDL
     public static void main(String[] args) throws Exception
     {
         Configuration config = new AnnotationConfiguration();
-        config.configure("/hibernate-thread.cfg.xml");
-        SchemaExport se = new SchemaExport(config);
+        config.configure("hibernate-for-ddl.cfg.xml");
+
+        SessionFactoryImplementor sf = (SessionFactoryImplementor)config.buildSessionFactory();
+        HibernateAudit.startRuntime(sf.getSettings());
+
+        Manager m = HibernateAudit.getManager();
+        Configuration auditConfiguration = m.getConfiguration();
+        SchemaExport se = new SchemaExport(auditConfiguration);
 
         log.debug(se);
 
@@ -123,8 +134,10 @@ public class DDL
             throw new Exception(usageString);
         }
 
-        for(String arg: args)
+        for(int i = 0; i < args.length; i++)
         {
+            String arg = args[i];
+
             if ("create".equals(arg))
             {
                 command = Command.CREATE;
@@ -135,7 +148,14 @@ public class DDL
             }
             else if ("-f".equals(arg))
             {
-                fileName = "./ddl.sql";
+                if (i <= args.length - 1)
+                {
+                    fileName = args[++i];
+                }
+                else
+                {
+                    fileName = "./ddl.sql";
+                }
             }
         }
     }

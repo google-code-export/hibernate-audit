@@ -58,6 +58,18 @@
         </testResources>
 
         <plugins>
+            <!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*.ddl</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -82,11 +94,15 @@
                         <phase>compile</phase>
                         <configuration>
                             <tasks>
-                                <property name="maven.compile.classpath" refid="maven.compile.classpath"/>
-                                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"/>
+                                
                                 <property name="maven.test.classpath" refid="maven.test.classpath"/>
-                                <property name="maven.plugin.classpath" refid="maven.plugin.classpath"/>
                                 <property name="hba.version" value="${version}"/>
+                                <property name="hibernate.dialect" value="${hibernate.dialect}"/>
+                                <property name="hibernate.connection.driver_class" value="${hibernate.connection.driver_class}"/>
+                                <property name="hibernate.connection.url" value="${hibernate.connection.url}"/>
+                                <property name="hibernate.connection.username" value="${hibernate.connection.username}"/>
+                                <property name="hibernate.connection.password" value="${hibernate.connection.password}"/>
+
                                 <ant antfile="${basedir}/build.xml">
                                     <target name="generate-ddl"/>
                                 </ant>

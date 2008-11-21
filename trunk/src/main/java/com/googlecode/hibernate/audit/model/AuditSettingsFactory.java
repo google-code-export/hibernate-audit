@@ -6,7 +6,6 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.connection.ConnectionProvider;
 import org.hibernate.transaction.TransactionFactory;
-import org.hibernate.transaction.JTATransactionFactory;
 import org.hibernate.transaction.TransactionManagerLookup;
 import org.apache.log4j.Logger;
 
@@ -125,15 +124,7 @@ class AuditSettingsFactory extends SettingsFactory
         copy.put(AuditEnvironment.CONNECTION_PROVIDER_DELEGATE, cp);
 
         TransactionFactory tf = sourceSettings.getTransactionFactory();
-        if (!(tf instanceof JTATransactionFactory))
-        {
-            throw new RuntimeException("NOT YET IMPLEMENTED: " +
-                                       (tf == null ?
-                                        "null TransactionFactory" :
-                                        tf.getClass().getName() + " not yet supported!"));
-        }
-
-        copy.setProperty(Environment.TRANSACTION_STRATEGY, JTATransactionFactory.class.getName());
+        copy.setProperty(Environment.TRANSACTION_STRATEGY, tf.getClass().getName());
 
         // other default settings
 
@@ -212,6 +203,12 @@ class AuditSettingsFactory extends SettingsFactory
     protected TransactionManagerLookup createTransactionManagerLookup(Properties properties)
     {
         TransactionManagerLookup originalTML = sourceSettings.getTransactionManagerLookup();
+
+        if (originalTML == null)
+        {
+            return null;
+        }
+
         TransactionManager origTM = originalTML.getTransactionManager(properties);
 
         String userTransactionName = userTransactionNameFromProperties;

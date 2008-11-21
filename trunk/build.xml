@@ -4,27 +4,63 @@
           A collection of tasks we feel more confortable handingling from ant, as opposite to maven.
           Called from maven. It won't work standalone, as it depends on maven generated paths.
 
-          We rely on hba.version, maven.compile.classpath, among others.
+          We rely on hba.version, maven.test.classpath, hibernate.dialect being set by maven ant
+          plugin configuration.
     -->
 
-    <property name="ddl.filename" value="hba-${hba.version}.ddl"/>
+    <property name="ddl.filename" value="hba-ddl-${hba.version}.sql"/>
+    <property name="ddl.target.dir" value="./target/classes"/>
+    <property name="tmp.dir" value="./target/tmp"/>
+    <property name="ddl.generator.classpath" value="${tmp.dir};./src/test/resources;${maven.test.classpath}"/>
+
 
     <target name="generate-ddl">
 
-        <echo message="Generating DDL for Hibernate Audit version ${hba.version}"/>
+        <echo message="Generating DDL script for Hibernate Audit version ${hba.version}"/>
 
-        <mkdir dir="./target/resources"/>
+        <mkdir dir="${tmp.dir}"/>
+
+        <copy file="./src/test/resources/hibernate-thread.cfg.xml"
+              tofile="${tmp.dir}/hibernate-for-ddl.cfg.xml"/>
+
+        <replace file="${tmp.dir}/hibernate-for-ddl.cfg.xml" value="${hibernate.dialect}">
+            <replacetoken><![CDATA[${hibernate.dialect}]]></replacetoken>
+        </replace>
+
+        <replace file="${tmp.dir}/hibernate-for-ddl.cfg.xml" value="${hibernate.connection.driver_class}">
+            <replacetoken><![CDATA[${hibernate.connection.driver_class}]]></replacetoken>
+        </replace>
+
+        <replace file="${tmp.dir}/hibernate-for-ddl.cfg.xml" value="${hibernate.connection.url}">
+            <replacetoken><![CDATA[${hibernate.connection.url}]]></replacetoken>
+        </replace>
+
+        <replace file="${tmp.dir}/hibernate-for-ddl.cfg.xml" value="${hibernate.connection.username}">
+            <replacetoken><![CDATA[${hibernate.connection.username}]]></replacetoken>
+        </replace>
+
+        <replace file="${tmp.dir}/hibernate-for-ddl.cfg.xml" value="${hibernate.connection.password}">
+            <replacetoken><![CDATA[${hibernate.connection.password}]]></replacetoken>
+        </replace>
+
 
         <java classname="com.googlecode.hibernate.audit.util.DDL"
-              classpath="${maven.compile.classpath}"
+              classpath="${ddl.generator.classpath}"
               fork="true">
 
-            <arg value="create"/>
+            <sysproperty key="hibernate.dialect" value="${hibernate.dialect}"/>
 
+            <arg value="create"/>
+            <arg value="-f"/>
+            <arg value="${ddl.target.dir}/${ddl.filename}"/>
+
+            <!--
             <jvmarg value="-Xdebug"/>
             <jvmarg value="-Xnoagent"/>
             <jvmarg value="-Djava.compiler=NONE"/>
             <jvmarg value="-Xrunjdwp:transport=dt_shmem,server=y,suspend=y,address=generate-ddl"/>
+            -->
+            
         </java>
 
     </target>
