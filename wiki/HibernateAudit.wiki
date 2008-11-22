@@ -40,6 +40,8 @@ mvn clean install
 In order to create the database tables and sequences based on the DDL script, the procedure is the following:
 
  * Hardcode 'useExternallyCreatedSchema' to 'true' in `ConfigurableEnvironmentSupport.java` (as per pre-1.0.0.Beta1, in the future, this will be configurable)
+ * Make sure the DDL file with the schema you want to use only contains CREATE and ALTER statements. 
+ * Manually copy the DDL file containing the schema you want to use under `src/test/resources` as 'test_ddl.sql'.
 
 ==Release Process==
 
