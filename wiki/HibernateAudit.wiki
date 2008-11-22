@@ -99,4 +99,4 @@ Successful external DDL-based table creation generates this kind of statements i
 
 ==Latest Test Snapshot==
 
-11/20/08 285/0/0
+11/22/08 288/0/0
