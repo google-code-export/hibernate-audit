@@ -33,9 +33,15 @@ mvn clean install
 
 = How do I test? =
 
+==Automated create-drop==
+
+Make sure 'useExternallyCreatedSchema' is 'false' in `ConfigurableEnvironmentSupport.java`. Then:
+
 {{{
     mvn clean test
 }}}
+
+==External DDL File==
 
 In order to create the database tables and sequences based on the DDL script, the procedure is the following:
 
