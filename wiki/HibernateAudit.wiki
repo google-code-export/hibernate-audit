@@ -33,11 +33,13 @@ mvn clean install
 
 = How do I test? =
 
-==Testing Prerequisites==
+{{{
+    mvn clean test
+}}}
 
-In order to run a complete testsuite there are necessary two distinct persistence units. One will be used to persist test data and the other to persist audit data. 
+In order to create the database tables and sequences based on the DDL script, the procedure is the following:
 
-Both persistence units are configured in the main `pom.xml`.
+* Hardcode 'useExternallyCreatedSchema' to 'true' in `ConfigurableEnvironmentSupport.java` (as per pre-1.0.0.Beta1, in the future, this will be configurable)
 
 ==Release Process==
 
