@@ -39,7 +39,7 @@ mvn clean install
 
 In order to create the database tables and sequences based on the DDL script, the procedure is the following:
 
-* Hardcode 'useExternallyCreatedSchema' to 'true' in `ConfigurableEnvironmentSupport.java` (as per pre-1.0.0.Beta1, in the future, this will be configurable)
+ * Hardcode 'useExternallyCreatedSchema' to 'true' in `ConfigurableEnvironmentSupport.java` (as per pre-1.0.0.Beta1, in the future, this will be configurable)
 
 ==Release Process==
 
