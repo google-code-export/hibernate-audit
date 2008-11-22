@@ -2,7 +2,7 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
 		<param name="Target" value="System.out" />
 		<layout class="org.apache.log4j.PatternLayout">
 <!-- 			<param name="ConversionPattern" value="%-5p %c{1} - %m%n" /> -->
@@ -11,7 +11,18 @@
         </layout>
 	</appender>
 
-	<logger name="com.googlecode.hibernate.audit">
+    <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+        <errorHandler class="org.apache.log4j.helpers.OnlyOnceErrorHandler"/>
+        <param name="File" value="./target/test.log"/>
+        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
+        <param name="Threshold" value="DEBUG"/>
+        <param name="Append" value="false"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p @%t [%c{1}] %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="com.googlecode.hibernate.audit">
 		<!-- <level value="ALL"/> -->
         <level value="DEBUG"/>
     </logger>
@@ -26,7 +37,11 @@
 
     <root>
 		<priority value="error"/>
-		<appender-ref ref="console" />
-	</root>
+		<appender-ref ref="CONSOLE"/>
+
+        <!--
+        <appender-ref ref="FILE"/>
+        -->
+    </root>
 
 </log4j:configuration>

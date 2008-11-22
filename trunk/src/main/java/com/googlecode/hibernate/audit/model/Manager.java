@@ -139,6 +139,8 @@ public class Manager
 
     private WriteCollisionDetector writeCollisionDetector;
 
+    private boolean suppressed;
+
     // Constructors --------------------------------------------------------------------------------
 
     /**
@@ -181,6 +183,16 @@ public class Manager
         isf = (SessionFactoryImpl)ic.buildSessionFactory();
 
         typeCache = new TypeCache(isf);
+
+        // suppresses throwing exceptions and rolling back transactions in listeners
+        // VERY DANGEROUS! Do not use in production!
+        suppressed = Boolean.getBoolean("hba.suppressed");
+
+        if (suppressed)
+        {
+            log.warn("Exception propagation and automatic transaction rollback on audit failure " + 
+                     " is suppressed! DO NOT USE THIS OPTION IN PRODUCTION!");
+        }
 
         log.debug(this + " started");
     }
@@ -416,6 +428,11 @@ public class Manager
     public WriteCollisionDetector getWriteCollisionDetector()
     {
         return writeCollisionDetector;
+    }
+
+    public boolean isSuppressed()
+    {
+        return suppressed;
     }
 
     /**

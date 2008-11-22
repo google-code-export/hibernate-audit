@@ -14,6 +14,7 @@ import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
 import com.googlecode.hibernate.audit.AuditRuntimeException;
+import com.googlecode.hibernate.audit.RollingBackAuditException;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
@@ -45,7 +46,7 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
     // Public --------------------------------------------------------------------------------------
 
     @Test(enabled = true)
-    public void testRuntimeFailureOnMockListener() throws Exception
+    public void testUnexpectedRuntimeFailureOnMockListener() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -95,7 +96,7 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
     }
 
     @Test(enabled = true)
-    public void testRuntimeFailureOnRealListener() throws Exception
+    public void testUnexpectedRuntimeFailureOnRealAuditListener_NotSupressed() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
@@ -136,6 +137,152 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
         }
         finally
         {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testUnexpectedRuntimeFailureOnRealAuditListener_Supressed() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImpl sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImpl)config.buildSessionFactory();
+
+            // "suppress" audit
+            System.setProperty("hba.suppressed", "true");
+            
+            HibernateAudit.startRuntime(sf.getSettings());
+
+            // we use a BrokenLogicalGroupIdProvider that throws an  ExoticRuntimeException smack
+            // in the middle of event processing
+
+            HibernateAudit.register(sf, new BrokenLogicalGroupIdProvider());
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(new A());
+
+            // commit should go through, even if the audit database may be corrupted
+            s.getTransaction().commit();
+
+            assert HibernateAudit.getTransactions().isEmpty();
+        }
+        finally
+        {
+            System.clearProperty("hba.suppressed");
+
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testRollingBackFailureOnRealAuditListener_NotSupressed() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImpl sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImpl)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+
+            // we use a RollingBackBrokenLogicalGroupIdProvider that throws a RollingBack exception
+
+            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupIdProvider());
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(new A());
+
+            try
+            {
+                s.getTransaction().commit();
+                throw new Error("should've failed");
+            }
+            catch(ARollingBackAuditException e)
+            {
+                Transaction t = s.getTransaction();
+                // my mock TM dissasociates a rolled back transaction from the thread, so I cannot
+                // test t.wasRolledBack() here
+                assert !t.isActive();
+                assert !t.wasCommitted();
+            }
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testRollingBackFailureOnRealAuditListener_Supressed() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        SessionFactoryImpl sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImpl)config.buildSessionFactory();
+
+            // "suppress" audit
+            System.setProperty("hba.suppressed", "true");
+
+            HibernateAudit.startRuntime(sf.getSettings());
+
+            // we use a RollingBackBrokenLogicalGroupIdProvider that throws a RollingBack exception
+
+            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupIdProvider());
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            s.save(new A());
+
+            try
+            {
+                s.getTransaction().commit();
+                throw new Error("should've failed");
+            }
+            catch(ARollingBackAuditException e)
+            {
+                Transaction t = s.getTransaction();
+                // my mock TM dissasociates a rolled back transaction from the thread, so I cannot
+                // test t.wasRolledBack() here
+                assert !t.isActive();
+                assert !t.wasCommitted();
+            }
+        }
+        finally
+        {
+            System.clearProperty("hba.suppressed");
+
             HibernateAudit.stopRuntime();
 
             if (sf != null)
@@ -188,9 +335,22 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
         }
     }
 
+    class RollingBackBrokenLogicalGroupIdProvider implements LogicalGroupIdProvider
+    {
+        public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+        {
+            throw new ARollingBackAuditException();
+        }
+    }
+
     class ExoticRuntimeException extends RuntimeException
     {
     }
+
+    class ARollingBackAuditException extends RollingBackAuditException
+    {
+    }
+
 
     class BrokenPostInsertEventListnerRuntimeException extends RuntimeException
     {

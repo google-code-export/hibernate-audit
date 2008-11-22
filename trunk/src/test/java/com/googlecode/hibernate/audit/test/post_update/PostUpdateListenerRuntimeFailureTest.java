@@ -48,7 +48,11 @@ public class PostUpdateListenerRuntimeFailureTest extends JTATransactionTest
         {
             sf = (SessionFactoryImpl)config.buildSessionFactory();
 
+            assert null == System.getProperty("hba.suppressed");
+
             HibernateAudit.startRuntime(sf.getSettings());
+
+            assert !HibernateAudit.getManager().isSuppressed();
 
             // we use a BreakableLogicalGroupIdProvider that throws an  ExoticRuntimeException smack
             // in the middle of event processing
@@ -72,6 +76,8 @@ public class PostUpdateListenerRuntimeFailureTest extends JTATransactionTest
             blgip.breakIt();
 
             s.update(a);
+
+            assert !HibernateAudit.getManager().isSuppressed();
 
             try
             {
@@ -124,7 +130,7 @@ public class PostUpdateListenerRuntimeFailureTest extends JTATransactionTest
                 return null;
             }
 
-            throw new PostUpdateListenerRuntimeFailureTest.ExoticRuntimeException();
+            throw new ExoticRuntimeException();
         }
 
         public boolean isBroken()

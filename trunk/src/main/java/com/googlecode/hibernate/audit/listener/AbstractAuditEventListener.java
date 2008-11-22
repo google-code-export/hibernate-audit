@@ -50,7 +50,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     protected Manager manager;
     protected TypeCache typeCache;
-    protected boolean suppressed;
 
     // Constructors --------------------------------------------------------------------------------
 
@@ -58,10 +57,6 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     {
         this.manager = manager;
         this.typeCache = manager.getTypeCache();
-
-        // suppresses throwing exceptions and rolling back transactions in listeners
-        // VERY DANGEROUS! Do not use in production!
-        suppressed = Boolean.getBoolean("hba.suppressed");
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -119,13 +114,17 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         }
         catch(Throwable t)
         {
-            log.error("failed to log " + getListenerType() + " event", t);
-
-            if (suppressed)
+            if (manager.isSuppressed())
             {
-                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
-                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                log.error(
+                    "An audit listener detected failure when logging a " + getListenerType() +
+                    " event, but exception propagation and automatic transaction rollback is " +
+                    "suppressed! DO NOT USE THIS OPTION IN PRODUCTION!", t);
                 return;
+            }
+            else
+            {
+                log.error("failed to log " + getListenerType() + " event", t);
             }
 
             doRollBack = true;
