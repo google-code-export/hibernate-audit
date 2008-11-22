@@ -127,7 +127,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             }
         }
     }
-    
+
     @Test(enabled = true)
     public void testSuccesiveInserts() throws Exception
     {
@@ -1462,7 +1462,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             //ed = td.getEntityDelta(xb.getId(), "XB");
             ed = td.getEntityDelta(xb.getId(), XB.class.getName());
             assert ChangeType.INSERT.equals(ed.getChangeType());
-            
+
             assert ed.getCollectionDeltas().isEmpty();
             assert ed.getScalarDeltas().size() == 1;
             assert "xbone".equals(ed.getPrimitiveDelta("name").getValue());
@@ -1843,10 +1843,14 @@ public class PostInsertDeltaTest extends JTATransactionTest
 //
 //            List<AuditTransaction> txs = HibernateAudit.getTransactions();
 //            assert txs.size() == 1;
+//
 //            TransactionDelta td = HibernateAudit.getDelta(txs.get(0).getId());
 //            assert td.getEntityDeltas().size() == 1;
+//
 //            EntityDelta ed = td.getEntityDelta(k.getId(), K.class.getName());
 //            assert ed != null;
+//            assert ed.getId().equals(k.getId());
+//            assert ed.isInsert();
 //        }
 //        finally
 //        {
