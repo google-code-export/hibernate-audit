@@ -1,8 +1,15 @@
-package com.googlecode.hibernate.audit.collision;
-
-import com.googlecode.hibernate.audit.RollingBackAuditException;
+package com.googlecode.hibernate.audit;
 
 /**
+ * Exception thrown by listeners if somethings goes wrong, internally, while attempting to record
+ * an audit event, and the failure justifies rolling back the transaction, even if the audit is
+ * "muted".
+ *
+ * If thrown anywhere in the audit event recording code, this exception will bubble up to the 
+ * application layer, and the current transaction will be rolled back, even if the audit is "muted"
+ * ("muted" means that the audit layer it suppresses any other unforeseen exception and just logs
+ * them).
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -11,7 +18,7 @@ import com.googlecode.hibernate.audit.RollingBackAuditException;
  *
  * $Id$
  */
-public class WriteCollisionException extends RollingBackAuditException
+public class RollingBackAuditException extends RuntimeException
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -21,22 +28,22 @@ public class WriteCollisionException extends RollingBackAuditException
 
     // Constructors --------------------------------------------------------------------------------
 
-    public WriteCollisionException()
+    public RollingBackAuditException()
     {
         super();
     }
 
-    public WriteCollisionException(String message)
+    public RollingBackAuditException(String message)
     {
         super(message);
     }
 
-    public WriteCollisionException(String message, Throwable cause)
+    public RollingBackAuditException(String message, Throwable cause)
     {
         super(message, cause);
     }
 
-    public WriteCollisionException(Throwable cause)
+    public RollingBackAuditException(Throwable cause)
     {
         super(cause);
     }

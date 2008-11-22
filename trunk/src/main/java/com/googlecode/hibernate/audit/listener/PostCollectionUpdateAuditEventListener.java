@@ -2,10 +2,7 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostCollectionUpdateEventListener;
 import org.hibernate.event.PostCollectionUpdateEvent;
-import org.hibernate.Transaction;
-import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -20,9 +17,6 @@ public class PostCollectionUpdateAuditEventListener
     extends AbstractAuditCollectionEventListener implements PostCollectionUpdateEventListener
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostCollectionUpdateAuditEventListener.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -39,36 +33,7 @@ public class PostCollectionUpdateAuditEventListener
 
     public void onPostUpdateCollection(PostCollectionUpdateEvent event)
     {
-        try
-        {
-            if (traceEnabled) { log.debug(this + ".onPostUpdateCollection(" + event + ")"); }
-
-            logCollectionEvent(event);
-        }
-        catch(Throwable t)
-        {
-            log.error("failed to log post-collection-update event", t);
-
-            if (suppressed)
-            {
-                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
-                         "DO NOT USE THIS OPTION IN PRODUCTION!");
-                return;
-            }
-
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
-
-            // TODO bubble WriteCollisionException up https://jira.novaordis.org/browse/HBA-174
-            throw new HibernateAuditException("failed to log post-collection-update event", t);
-        }
+        log("onPostUpdateCollection", event);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -81,6 +46,14 @@ public class PostCollectionUpdateAuditEventListener
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    // AbstractAuditEventListener overrides --------------------------------------------------------
+
+    @Override
+    protected String getListenerType()
+    {
+        return "post-collection-update";
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

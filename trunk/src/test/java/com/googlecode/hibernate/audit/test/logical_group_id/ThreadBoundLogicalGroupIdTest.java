@@ -10,7 +10,6 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.HibernateAuditTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>

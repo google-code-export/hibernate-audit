@@ -53,8 +53,13 @@ abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventLi
 
     // Package protected ---------------------------------------------------------------------------
 
-    void logCollectionEvent(AbstractCollectionEvent ace) throws Exception
+    // AbstractAuditEventListener overrides --------------------------------------------------------
+
+    @Override
+    protected void listenerTypeDependentLog(AbstractEvent e) throws Exception
     {
+        AbstractCollectionEvent ace = (AbstractCollectionEvent)e;
+
         EventContext ctx = createAndLogEventContext(ace);
 
         // figure out collection type

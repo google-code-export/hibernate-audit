@@ -1,7 +1,7 @@
 package com.googlecode.hibernate.audit;
 
 /**
- * Exception thrown by listeners if somethings goes wrong, internally.
+ * RuntimeException wrapper for unforeseen failures in the audit code.
  *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
@@ -11,7 +11,7 @@ package com.googlecode.hibernate.audit;
  *
  * $Id$
  */
-public class HibernateAuditException extends RuntimeException
+public class AuditRuntimeException extends RuntimeException
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -21,22 +21,22 @@ public class HibernateAuditException extends RuntimeException
 
     // Constructors --------------------------------------------------------------------------------
 
-    public HibernateAuditException()
+    public AuditRuntimeException()
     {
         super();
     }
 
-    public HibernateAuditException(String message)
+    public AuditRuntimeException(String message)
     {
         super(message);
     }
 
-    public HibernateAuditException(String message, Throwable cause)
+    public AuditRuntimeException(String message, Throwable cause)
     {
         super(message, cause);
     }
 
-    public HibernateAuditException(Throwable cause)
+    public AuditRuntimeException(Throwable cause)
     {
         super(cause);
     }

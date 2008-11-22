@@ -2,20 +2,18 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostInsertEvent;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.type.Type;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.EntityType;
-import org.hibernate.Transaction;
-import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditEventCollectionPair;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.util.Hibernate;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,9 +33,6 @@ public class PostInsertAuditEventListener
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(PostInsertAuditEventListener.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
-
     // Static --------------------------------------------------------------------------------------
 
     // Attributes ----------------------------------------------------------------------------------
@@ -53,36 +48,7 @@ public class PostInsertAuditEventListener
 
     public void onPostInsert(PostInsertEvent event)
     {
-        try
-        {
-            if (traceEnabled) { log.debug(this + ".onPostInsert(" + event + ")"); }
-            
-            log(event);
-        }
-        catch(Throwable t)
-        {
-            log.error("failed to log post-insert event", t);
-
-            if (suppressed)
-            {
-                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
-                         "DO NOT USE THIS OPTION IN PRODUCTION!");
-                return;
-            }
-
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
-
-            // TODO bubble WriteCollisionException up https://jira.novaordis.org/browse/HBA-174
-            throw new HibernateAuditException("failed to log post-insert event", t);
-        }
+        log("onPostInsert", event);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -96,13 +62,20 @@ public class PostInsertAuditEventListener
 
     // Package protected ---------------------------------------------------------------------------
 
-    // Protected -----------------------------------------------------------------------------------
+    // AbstractAuditEventListener overrides --------------------------------------------------------
 
-    // Private -------------------------------------------------------------------------------------
-
-    private void log(PostInsertEvent event) throws Exception
+    @Override
+    protected String getListenerType()
     {
-        EventContext ctx = createAndLogEventContext(event);
+        return "post-insert";
+    }
+
+    @Override
+    protected void listenerTypeDependentLog(AbstractEvent event) throws Exception
+    {
+        PostInsertEvent pie = (PostInsertEvent)event;
+
+        EventContext ctx = createAndLogEventContext(pie);
 
         // TODO maybe there's no need to iterate over *all* properties, maybe the state contains
         //      only the new properties, look at how onPostUpdate() was implemented and possibly
@@ -197,6 +170,10 @@ public class PostInsertAuditEventListener
             ctx.auditTransaction.log(pair);
         }
     }
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 

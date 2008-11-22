@@ -13,7 +13,6 @@ import com.googlecode.hibernate.audit.test.collision.data.B;
 import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootIdProvider;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.collision.WriteCollisionException;
 
@@ -254,10 +253,8 @@ public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATrans
             assert null == rendezVous.getThrowable("THREAD1");
 
             Throwable t = rendezVous.getThrowable("THREAD2");
-            assert t instanceof HibernateAuditException;
-            Throwable cause = t.getCause();
-            assert cause instanceof WriteCollisionException;
-            log.debug(">>> " + cause.getMessage());
+            assert t instanceof WriteCollisionException;
+            log.debug(">>> " + t.getMessage());
 
         }
         finally

@@ -11,9 +11,9 @@ import org.hibernate.impl.SessionFactoryImpl;
 import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.AuditRuntimeException;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
@@ -72,7 +72,7 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
                 s.getTransaction().commit();
                 throw new Error("should've failed");
             }
-            catch(HibernateAuditException e)
+            catch(BrokenPostInsertEventListnerRuntimeException e)
             {
                 assert e.getCause() instanceof SQLException;
                 Transaction t = s.getTransaction();
@@ -123,7 +123,7 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
                 s.getTransaction().commit();
                 throw new Error("should've failed");
             }
-            catch(HibernateAuditException e)
+            catch(AuditRuntimeException e)
             {
                 assert e.getCause() instanceof ExoticRuntimeException;
                 Transaction t = s.getTransaction();
@@ -174,7 +174,8 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
                     log.error("could not rollback current transaction", t2);
                 }
 
-                throw new HibernateAuditException("bogus SQL exception carrier", t);
+                throw new BrokenPostInsertEventListnerRuntimeException(
+                    "bogus SQL exception carrier", t);
             }
         }
     }
@@ -189,5 +190,13 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
 
     class ExoticRuntimeException extends RuntimeException
     {
+    }
+
+    class BrokenPostInsertEventListnerRuntimeException extends RuntimeException
+    {
+        public BrokenPostInsertEventListnerRuntimeException(String message, Throwable cause)
+        {
+            super(message, cause);
+        }
     }
 }

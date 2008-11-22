@@ -8,7 +8,6 @@ import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.collision.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.collision.WriteCollisionException;
 
@@ -196,11 +195,9 @@ public class WriteCollisionDetectionTest extends JTATransactionTest
             {
                 s.getTransaction().commit();
             }
-            catch(HibernateAuditException e)
+            catch(WriteCollisionException e)
             {
-                Throwable cause = e.getCause();
-                assert cause instanceof WriteCollisionException;
-                log.debug(">>> " + cause.getMessage());
+                log.debug(">>> " + e.getMessage());
 
                 // transaction is rolled back by the audit listener
             }

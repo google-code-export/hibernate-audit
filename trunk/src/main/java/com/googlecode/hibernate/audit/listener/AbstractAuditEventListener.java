@@ -19,6 +19,8 @@ import com.googlecode.hibernate.audit.model.AuditEntityType;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.RollingBackAuditException;
+import com.googlecode.hibernate.audit.AuditRuntimeException;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 
@@ -62,13 +64,90 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         suppressed = Boolean.getBoolean("hba.suppressed");
     }
 
-    // AuditEventListener implementation -----------------------------------------------------------
-
     // Public --------------------------------------------------------------------------------------
 
     // Package protected ---------------------------------------------------------------------------
 
     // Protected -----------------------------------------------------------------------------------
+
+    /**
+     * Does listener type-dependent audit work.
+     *
+     * @throws RollingBackAuditException - if such exception type is detected, this means the
+     *         lower code wants the current transaction to be rolled back and this exception to
+     *         bubble up to the upper layers, even if the audit is "supressed".
+     *
+     * @throws Exception - unforeseen exception (environmental or programming error).
+     */
+    protected abstract void listenerTypeDependentLog(AbstractEvent e) throws Exception;
+
+    /**
+     * @return one of 'post-insert', 'post-update', etc. Used for logging.
+     */
+    protected abstract String getListenerType();
+
+    /**
+     * Must be used by *ALL* audit listeners to insure uniform exception and transactional handling.
+     *
+     * @param methodName - for logging only.
+     * 
+     * @throws RollingBackAuditException - thrown by listeners if somethings goes wrong,
+     *         internally, while attempting to record an audit event. If thrown anywhere in the
+     *         lower audit event recording code, this exception will bubble up to the application
+     *         layer, and the current transaction will be rolled back, even if the audit is
+     *         "supressed" (meaning that it suppresses any other unforeseen exception).
+     */
+    protected void log(String methodName, AbstractEvent event) throws RollingBackAuditException
+    {
+        boolean doRollBack = false;
+
+        try
+        {
+            // calling from inside the try block, exceptions could be thrown even by this
+            if (traceEnabled) { log.debug(this + "." + methodName + "(" + event + ")"); }
+
+            listenerTypeDependentLog(event);
+
+        }
+        catch(RollingBackAuditException e)
+        {
+            // rollback transaction, even if audit is "muted" ...
+            doRollBack = true;
+
+            // ... and bubble up the exception
+            throw e;
+        }
+        catch(Throwable t)
+        {
+            log.error("failed to log " + getListenerType() + " event", t);
+
+            if (suppressed)
+            {
+                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
+                         "DO NOT USE THIS OPTION IN PRODUCTION!");
+                return;
+            }
+
+            doRollBack = true;
+
+            throw new AuditRuntimeException("failed to log " + getListenerType() + " event", t);
+        }
+        finally
+        {
+            if (doRollBack)
+            {
+                try
+                {
+                    Transaction tx = event.getSession().getTransaction();
+                    tx.rollback();
+                }
+                catch(Throwable rbt)
+                {
+                    log.error("could not rollback current transaction", rbt);
+                }
+            }
+        }
+    }
 
     /**
      * Extracts all sorts of useful information out of the event and wrap them together as an

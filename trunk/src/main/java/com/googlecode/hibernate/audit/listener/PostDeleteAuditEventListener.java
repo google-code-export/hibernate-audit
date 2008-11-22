@@ -2,10 +2,8 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostDeleteEvent;
-import org.hibernate.Transaction;
-import org.apache.log4j.Logger;
+import org.hibernate.event.AbstractEvent;
 import com.googlecode.hibernate.audit.model.Manager;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -20,9 +18,6 @@ public class PostDeleteAuditEventListener
     extends AbstractAuditEventListener implements PostDeleteEventListener
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostDeleteAuditEventListener.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -39,36 +34,7 @@ public class PostDeleteAuditEventListener
 
     public void onPostDelete(PostDeleteEvent event)
     {
-        try
-        {
-            if (traceEnabled) { log.debug(this + ".onPostDelete(" + event + ")"); }
-
-            createAndLogEventContext(event);
-        }
-        catch(Throwable t)
-        {
-            log.error("failed to log post-delete event", t);
-
-            if (suppressed)
-            {
-                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
-                         "DO NOT USE THIS OPTION IN PRODUCTION!");
-                return;
-            }
-
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
-
-            // TODO bubble WriteCollisionException up https://jira.novaordis.org/browse/HBA-174
-            throw new HibernateAuditException("failed to log post-delete event", t);
-        }
+        log("onPostDelete", event);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -81,6 +47,20 @@ public class PostDeleteAuditEventListener
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    // AbstractAuditEventListener overrides --------------------------------------------------------
+
+    @Override
+    protected String getListenerType()
+    {
+        return "post-delete";
+    }
+
+    @Override
+    protected void listenerTypeDependentLog(AbstractEvent event) throws Exception
+    {
+        createAndLogEventContext(event);
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

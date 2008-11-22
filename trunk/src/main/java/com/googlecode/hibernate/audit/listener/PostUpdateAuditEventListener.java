@@ -2,16 +2,14 @@ package com.googlecode.hibernate.audit.listener;
 
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PostUpdateEvent;
+import org.hibernate.event.AbstractEvent;
 import org.hibernate.type.Type;
 import org.hibernate.type.EntityType;
-import org.hibernate.Transaction;
 import org.hibernate.persister.entity.EntityPersister;
-import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.model.Manager;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
-import com.googlecode.hibernate.audit.HibernateAuditException;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.util.Hibernate;
 
@@ -28,9 +26,6 @@ public class PostUpdateAuditEventListener
     extends AbstractAuditEventListener implements PostUpdateEventListener
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostUpdateAuditEventListener.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -54,36 +49,7 @@ public class PostUpdateAuditEventListener
 
     public void onPostUpdate(PostUpdateEvent event)
     {
-        try
-        {
-            if (traceEnabled) { log.debug(this + ".onPostUpdate(" + event + ")"); }
-
-            log(event);
-        }
-        catch(Throwable t)
-        {
-            log.error("failed to log post-update event", t);
-
-            if (suppressed)
-            {
-                log.warn("Exception propagation and automatic transaction rollback is suppressed! " +
-                         "DO NOT USE THIS OPTION IN PRODUCTION!");
-                return;
-            }
-
-            try
-            {
-                Transaction tx = event.getSession().getTransaction();
-                tx.rollback();
-            }
-            catch(Throwable t2)
-            {
-                log.error("could not rollback current transaction", t2);
-            }
-
-            // TODO bubble WriteCollisionException up https://jira.novaordis.org/browse/HBA-174
-            throw new HibernateAuditException("failed to log post-update event", t);
-        }
+        log("onPostUpdate", event);
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -97,16 +63,23 @@ public class PostUpdateAuditEventListener
 
     // Package protected ---------------------------------------------------------------------------
 
-    // Protected -----------------------------------------------------------------------------------
+    // AbstractAuditEventListener overrides --------------------------------------------------------
 
-    // Private -------------------------------------------------------------------------------------
-
-    private void log(PostUpdateEvent event) throws Exception
+    @Override
+    protected String getListenerType()
     {
-        EventContext ctx = createAndLogEventContext(event);
+        return "post-update";
+    }
 
-        Object[] state = event.getState();
-        Object[] oldState = event.getOldState();
+    @Override
+    protected void listenerTypeDependentLog(AbstractEvent event) throws Exception
+    {
+        PostUpdateEvent pue = (PostUpdateEvent)event;
+        
+        EventContext ctx = createAndLogEventContext(pue);
+
+        Object[] state = pue.getState();
+        Object[] oldState = pue.getOldState();
         String[] names = ctx.persister.getPropertyNames();
         Type[] types = ctx.persister.getPropertyTypes();
 
@@ -165,7 +138,7 @@ public class PostUpdateAuditEventListener
 
             // noop if collision detection disabled
             writeCollisionDetector.
-                detectCollision(ctx.factory, ctx.entityName, ctx.entityId, f.getName(), old); 
+                detectCollision(ctx.factory, ctx.entityName, ctx.entityId, f.getName(), old);
 
             pair.setField(f);
             pair.setValue(current);
@@ -173,6 +146,10 @@ public class PostUpdateAuditEventListener
             ctx.auditTransaction.log(pair);
         }
     }
+
+    // Protected -----------------------------------------------------------------------------------
+
+    // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
 
