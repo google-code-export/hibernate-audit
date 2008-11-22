@@ -49,7 +49,18 @@ In order to create the database tables and sequences based on the DDL script, th
  * Make sure the DDL file with the schema you want to use only contains CREATE and ALTER statements. 
  * Manually copy the DDL file containing the schema you want to use under `src/test/resources` as 'test_ddl.sql'.
 
-==Release Process==
+Successful external DDL-based table creation generates this kind of statements in the log:
+
+{{{
+@main [DDLSchema] executing DDL statement: DROP SEQUENCE AUDIT_TYPE_SEQ
+[...]
+@main [DDLSchema] executing DDL statement: DROP TABLE AUDIT_TYPE_FIELD CASCADE CONSTRAINTS
+[...]
+@main [DDLSchema] executing DDL statement: create table AUDIT_EVENT (AUDIT_EVENT_ID NUMBER(30, 0) not null, LOGICAL_GROUP_ID NUMBER(30, 0), TARGET_ENTITY_ID NUMBER(30, 0) not null, EVENT_TYPE varchar2(255 char) not null, AUDIT_TYPE_ID NUMBER(30, 0) not null, AUDIT_TRANSACTION_ID NUMBER(30, 0) not null, constraint PK_AUDIT_EVENT primary key (AUDIT_EVENT_ID))
+[...]
+}}}
+
+=Release Process=
 
 1. Run a full testsuite and record the results in the "Test Situation" section
 
