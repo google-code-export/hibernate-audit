@@ -26,12 +26,12 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_CLASS_FIELD")
+@Table(name = "AUDIT_TYPE_FIELD")
 @GenericGenerator(name = "audit-type-field-seqhilo-generator",
                   strategy = "seqhilo",
                   parameters =
                   {
-                      @Parameter(name = "sequence", value = "AUDIT_CLASS_FIELD_SEQ"),
+                      @Parameter(name = "sequence", value = "AUDIT_TYPE_FIELD_SEQ"),
                       @Parameter(name = "max_lo", value = "1000")
                   })
 public class AuditTypeField
@@ -43,15 +43,15 @@ public class AuditTypeField
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "AUDIT_CLASS_FIELD_ID", columnDefinition="NUMBER(30, 0)")
+    @Column(name = "AUDIT_TYPE_FIELD_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
                     generator = "audit-type-field-seqhilo-generator")
     private Long id;
 
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
-    @JoinColumn(name = "AUDIT_CLASS_ID")
-    @ForeignKey(name = "FK_AUDIT_CLASS_FIELD")
+    @JoinColumn(name = "AUDIT_TYPE_ID")
+    @ForeignKey(name = "FK_AUDIT_TYPE_FIELD")
     private AuditType type;
 
     @Column(name = "FIELD_NAME", nullable = false)

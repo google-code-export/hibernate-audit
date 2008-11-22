@@ -66,8 +66,8 @@ public class AuditEventPair
 
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
-    @JoinColumn(name = "AUDIT_CLASS_FIELD_ID")
-    @ForeignKey(name = "FK_AUDIT_CLASS_FIELD_EVNT_PAIR")
+    @JoinColumn(name = "AUDIT_TYPE_FIELD_ID")
+    @ForeignKey(name = "FK_AUDIT_TYPE_FIELD_EVNT_PAIR")
     private AuditTypeField field;
 
     @Column(name = "STRING_VALUE", length=3000)

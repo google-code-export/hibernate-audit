@@ -73,8 +73,8 @@ public class AuditEvent
 
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
-    @JoinColumn(name = "AUDIT_CLASS_ID")
-    @ForeignKey(name = "FK_AUDIT_CLASS_EVENT")
+    @JoinColumn(name = "AUDIT_TYPE_ID")
+    @ForeignKey(name = "FK_AUDIT_TYPE_EVENT")
     private AuditType targetType;
 
     // The id of the application-level logical group modified by this transaction. For more about

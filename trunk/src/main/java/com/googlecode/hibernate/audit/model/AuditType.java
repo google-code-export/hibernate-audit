@@ -35,13 +35,13 @@ import java.math.BigDecimal;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_CLASS")
+@Table(name = "AUDIT_TYPE")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @GenericGenerator(name = "audit-type-seqhilo-generator",
                   strategy = "seqhilo",
                   parameters =
                   {
-                      @Parameter(name = "sequence", value = "AUDIT_CLASS_SEQ"),
+                      @Parameter(name = "sequence", value = "AUDIT_TYPE_SEQ"),
                       @Parameter(name = "max_lo", value = "1000")
                   })
 @DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.CHAR)
@@ -65,7 +65,7 @@ public class AuditType
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
-    @Column(name = "AUDIT_CLASS_ID", columnDefinition="NUMBER(30, 0)")
+    @Column(name = "AUDIT_TYPE_ID", columnDefinition="NUMBER(30, 0)")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit-type-seqhilo-generator")
     private Long id;
 
