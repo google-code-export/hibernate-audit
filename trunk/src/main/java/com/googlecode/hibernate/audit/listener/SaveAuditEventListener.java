@@ -63,6 +63,14 @@ public class SaveAuditEventListener
         createAuditTransaction(event.getSession());
     }
 
+    @Override
+    protected boolean isDisabledOn(AbstractEvent event)
+    {
+        SaveOrUpdateEvent soue = (SaveOrUpdateEvent)event;
+        Class c = soue.getEntity().getClass();
+        return isDisabledOn(c);
+    }
+
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------

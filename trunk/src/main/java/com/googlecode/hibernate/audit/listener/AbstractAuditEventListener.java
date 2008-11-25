@@ -21,11 +21,14 @@ import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RollingBackAuditException;
 import com.googlecode.hibernate.audit.AuditRuntimeException;
+import com.googlecode.hibernate.audit.annotations.Audited;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.ChangeType;
 
 import java.security.Principal;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -82,6 +85,12 @@ abstract class AbstractAuditEventListener implements AuditEventListener
     protected abstract String getListenerType();
 
     /**
+     * @return true if the entity that generated the audit event lacks the audit-enabling annotation
+     *         or the annotation is turned off.
+     */
+    protected abstract boolean isDisabledOn(AbstractEvent event);
+
+    /**
      * Must be used by *ALL* audit listeners to insure uniform exception and transactional handling.
      *
      * @param methodName - for logging only.
@@ -98,6 +107,12 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         try
         {
+            if (isDisabledOn(event))
+            {
+                // audit disabled, exit ASAP
+                return;
+            }
+
             // calling from inside the try block, exceptions could be thrown even by this
             if (traceEnabled) { log.debug(this + "." + methodName + "(" + event + ")"); }
 
@@ -311,6 +326,20 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Manager.setCurrentAuditTransaction(at);
 
         return at;
+    }
+
+    protected boolean isDisabledOn(Class entityClass)
+    {
+        Annotation a = entityClass.getAnnotation(Audited.class);
+
+        if (a == null)
+        {
+            return true;
+        }
+
+        // currently, "disabled" is ignored
+
+        return false;
     }
 
     // Private -------------------------------------------------------------------------------------

@@ -171,6 +171,14 @@ public class PostInsertAuditEventListener
         }
     }
 
+    @Override
+    protected boolean isDisabledOn(AbstractEvent event)
+    {
+        PostInsertEvent pie = (PostInsertEvent)event;
+        Class c = pie.getEntity().getClass();
+        return isDisabledOn(c);
+    }
+
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------

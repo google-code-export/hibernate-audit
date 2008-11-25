@@ -62,6 +62,14 @@ public class PostDeleteAuditEventListener
         createAndLogEventContext(event);
     }
 
+    @Override
+    protected boolean isDisabledOn(AbstractEvent event)
+    {
+        PostDeleteEvent pde = (PostDeleteEvent)event;
+        Class c = pde.getEntity().getClass();
+        return isDisabledOn(c);
+    }
+
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------

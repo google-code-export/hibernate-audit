@@ -147,6 +147,14 @@ public class PostUpdateAuditEventListener
         }
     }
 
+    @Override
+    protected boolean isDisabledOn(AbstractEvent event)
+    {
+        PostUpdateEvent pue = (PostUpdateEvent)event;
+        Class c = pue.getEntity().getClass();
+        return isDisabledOn(c);
+    }
+
     // Protected -----------------------------------------------------------------------------------
 
     // Private -------------------------------------------------------------------------------------

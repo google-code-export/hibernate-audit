@@ -7,6 +7,8 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.annotations.data.A;
+import com.googlecode.hibernate.audit.test.annotations.data.B;
+import com.googlecode.hibernate.audit.test.annotations.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
@@ -62,7 +64,83 @@ public class AuditedAnnotationTest extends JTATransactionTest
 
             s.getTransaction().commit();
 
-            List<AuditTransaction> txs = HibernateAudit.getTransactions(a.getId());
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAnnotationPresentAndNotDisabled() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            B b = new B();
+
+            s.save(b);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+            assert txs.size() == 1;
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testAnnotationPresentAndDisabled() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(C.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+
+            C c = new C();
+
+            s.save(c);
+
+            s.getTransaction().commit();
+
+            List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.isEmpty();
         }
         finally

@@ -135,6 +135,20 @@ abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventLi
         }
     }
 
+    @Override
+    protected boolean isDisabledOn(AbstractEvent event)
+    {
+        AbstractCollectionEvent ace = (AbstractCollectionEvent)event;
+        Object o = ace.getAffectedOwnerOrNull();
+
+        if (o == null)
+        {
+            throw new RuntimeException("NOT YET IMPLEMENTED");
+        }
+
+        return isDisabledOn(o.getClass());
+    }
+
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
