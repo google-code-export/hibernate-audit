@@ -12,7 +12,7 @@ HibernateAudit.enable(SessionFactory auditedSessionFactory)
 
 =Error Handling=
 
-Describe HibernateAuditException and handling (transaction behavior, etc).
+Describe `HibernateAuditException` and handling (transaction behavior, etc).
 
 If anything unbecoming happens inside an audit listener, the following are guaranteed:
  # the current transaction is rolled back
@@ -20,6 +20,16 @@ If anything unbecoming happens inside an audit listener, the following are guara
  # the HibernateAuditException contains the Throwable instance that caused it all (accessible via getCause()).
 
 See https://jira.novaordis.org/browse/HBA-78
+
+=Configuration=
+
+{{{
+hbm.hbm2ddl.auto=validate|update|create|create-drop
+}}}
+
+controls automatic audit schema creation. Has the same meaning as "hibernate.hbm2ddl.auto", but applied to the internal audit tables. 
+
+Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), causing all audit information to be lost.
 
 =Implementation Details=
 
