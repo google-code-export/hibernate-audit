@@ -29,7 +29,7 @@ hbm.hbm2ddl.auto=validate|update|create|create-drop
 
 controls automatic audit schema creation. Has the same meaning as "hibernate.hbm2ddl.auto", but applied to the internal audit tables. 
 
-Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), causing all audit information to be lost.
+Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), so all audit information will be lost.
 
 =Implementation Details=
 
