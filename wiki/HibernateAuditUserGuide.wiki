@@ -31,7 +31,6 @@ controls automatic audit schema creation. Has the same meaning as "hibernate.hbm
 
 Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), so all audit information will be lost.
 
-=Annotations=
 
 =Implementation Details=
 
