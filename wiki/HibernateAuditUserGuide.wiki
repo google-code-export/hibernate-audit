@@ -31,6 +31,8 @@ controls automatic audit schema creation. Has the same meaning as "hibernate.hbm
 
 Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), so all audit information will be lost.
 
+=Annotations=
+
 =Implementation Details=
 
 Collection directionality information is not maintained in the original model, so that's why we introduced the AUDIT_EVENT_PAIR_COLLECTION table. 
