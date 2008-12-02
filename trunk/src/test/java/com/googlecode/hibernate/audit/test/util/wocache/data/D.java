@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.util.wocache.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
  */
 @Entity
 @Table(name = "D")
+@Audited
 public class D
 {
     // Constants -----------------------------------------------------------------------------------

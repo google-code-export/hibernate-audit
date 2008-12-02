@@ -176,7 +176,7 @@ public class PostInsertAuditEventListener
     {
         PostInsertEvent pie = (PostInsertEvent)event;
         Class c = pie.getEntity().getClass();
-        return isDisabledOn(c);
+        return isDisabledOn(c, event.getSession().getFactory());
     }
 
     // Protected -----------------------------------------------------------------------------------

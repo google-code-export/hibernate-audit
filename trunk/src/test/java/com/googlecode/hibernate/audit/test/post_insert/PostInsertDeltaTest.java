@@ -19,6 +19,7 @@ import com.googlecode.hibernate.audit.test.post_insert.data.XBTuplizer;
 import com.googlecode.hibernate.audit.test.post_insert.data.XA2;
 import com.googlecode.hibernate.audit.test.post_insert.data.H;
 import com.googlecode.hibernate.audit.test.util.Formats;
+import com.googlecode.hibernate.audit.test.AuditAllSelector;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
@@ -1420,7 +1421,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
+            HibernateAudit.register(sf, new AuditAllSelector());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -1534,7 +1535,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
+            HibernateAudit.register(sf, new AuditAllSelector());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -1664,7 +1665,7 @@ public class PostInsertDeltaTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
+            HibernateAudit.register(sf, new AuditAllSelector());
 
             Session s = sf.openSession();
             s.beginTransaction();

@@ -8,7 +8,6 @@ import org.hibernate.Session;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.annotations.data.A;
 import com.googlecode.hibernate.audit.test.annotations.data.B;
-import com.googlecode.hibernate.audit.test.annotations.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
@@ -116,43 +115,43 @@ public class AuditedAnnotationTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)
-    public void testAnnotationPresentAndDisabled() throws Exception
-    {
-        AnnotationConfiguration config = new AnnotationConfiguration();
-        config.configure(getHibernateConfigurationFileName());
-        config.addAnnotatedClass(C.class);
-        SessionFactoryImplementor sf = null;
-
-        try
-        {
-            sf = (SessionFactoryImplementor)config.buildSessionFactory();
-
-            HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf);
-
-            Session s = sf.openSession();
-            s.beginTransaction();
-
-            C c = new C();
-
-            s.save(c);
-
-            s.getTransaction().commit();
-
-            List<AuditTransaction> txs = HibernateAudit.getTransactions();
-            assert txs.isEmpty();
-        }
-        finally
-        {
-            HibernateAudit.stopRuntime();
-
-            if (sf != null)
-            {
-                sf.close();
-            }
-        }
-    }
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-183
+//    public void testAnnotationPresentAndDisabled() throws Exception
+//    {
+//        AnnotationConfiguration config = new AnnotationConfiguration();
+//        config.configure(getHibernateConfigurationFileName());
+//        config.addAnnotatedClass(C.class);
+//        SessionFactoryImplementor sf = null;
+//
+//        try
+//        {
+//            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+//
+//            HibernateAudit.startRuntime(sf.getSettings());
+//            HibernateAudit.register(sf);
+//
+//            Session s = sf.openSession();
+//            s.beginTransaction();
+//
+//            C c = new C();
+//
+//            s.save(c);
+//
+//            s.getTransaction().commit();
+//
+//            List<AuditTransaction> txs = HibernateAudit.getTransactions();
+//            assert txs.isEmpty();
+//        }
+//        finally
+//        {
+//            HibernateAudit.stopRuntime();
+//
+//            if (sf != null)
+//            {
+//                sf.close();
+//            }
+//        }
+//    }
 
     // Package protected ---------------------------------------------------------------------------
 

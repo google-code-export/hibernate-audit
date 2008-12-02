@@ -152,7 +152,7 @@ public class PostUpdateAuditEventListener
     {
         PostUpdateEvent pue = (PostUpdateEvent)event;
         Class c = pue.getEntity().getClass();
-        return isDisabledOn(c);
+        return isDisabledOn(c, event.getSession().getFactory());
     }
 
     // Protected -----------------------------------------------------------------------------------

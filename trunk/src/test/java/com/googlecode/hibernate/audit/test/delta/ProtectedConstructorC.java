@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.delta;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -14,6 +16,7 @@ import javax.persistence.GeneratedValue;
  */
 @Entity
 @Table(name = "PROTECTED_CONSTRUCTOR_C")
+@Audited
 public class ProtectedConstructorC
 {
     // Constants -----------------------------------------------------------------------------------

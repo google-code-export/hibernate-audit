@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.post_delete.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -16,7 +18,9 @@ import javax.persistence.GeneratedValue;
  */
 @Entity
 @Table(name = "D")
-public class DUni {
+@Audited
+public class DUni
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------

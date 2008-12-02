@@ -31,6 +31,7 @@ import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.AuditSelector;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -232,8 +233,10 @@ public class Manager
      *        group ids for entities managed by this session factory. If null, no logical group id
      *        will persisted in the database. This is alright if you don't need logical grouping
      *        of entities.
+     *
+     * @param as - may be null, in which case the framework decides whether to log or not based on annotations.
      */
-    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupIdProvider lgip)
+    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupIdProvider lgip, AuditSelector as)
         throws Exception
     {
         if (!(asfi instanceof SessionFactoryImpl))
@@ -294,7 +297,7 @@ public class Manager
         }
 
         installAuditListeners(asf);
-        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip));
+        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip, as));
     }
 
     public synchronized boolean unregister(SessionFactory sf) throws Exception
@@ -728,6 +731,22 @@ public class Manager
         return sfh.logicalGroupIdProvider.getLogicalGroupId(es, id, entity);
     }
 
+    /**
+     * @return may return null if no selector was installed with this factory.
+     */
+    public AuditSelector getSelector(SessionFactory sf)
+    {
+        SessionFactoryHolder sfh = sessionFactoryHolders.get((SessionFactoryImpl)sf);
+
+        if (sfh == null)
+        {
+            log.warn("no such session factory " + sf);
+            return null;
+        }
+
+        return sfh.auditSelector;
+    }
+
     @Override
     public String toString()
     {
@@ -874,12 +893,15 @@ public class Manager
     {
         SessionFactoryImpl sessionFactory;
         LogicalGroupIdProvider logicalGroupIdProvider;
+        AuditSelector auditSelector;
 
         SessionFactoryHolder(SessionFactoryImpl sessionFactory,
-                             LogicalGroupIdProvider logicalGroupIdProvider)
+                             LogicalGroupIdProvider logicalGroupIdProvider,
+                             AuditSelector auditSelector)
         {
             this.sessionFactory = sessionFactory;
             this.logicalGroupIdProvider = logicalGroupIdProvider;
+            this.auditSelector = auditSelector;
         }
     }
 }

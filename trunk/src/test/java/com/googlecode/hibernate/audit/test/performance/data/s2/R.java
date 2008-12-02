@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.test.performance.data.s2;
 
 import com.googlecode.hibernate.audit.test.performance.util.Util;
+import com.googlecode.hibernate.audit.annotations.Audited;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -29,6 +30,7 @@ import java.util.Date;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "DISCRIMINATOR", discriminatorType = DiscriminatorType.STRING)
 @SequenceGenerator(name = "sequence", sequenceName = "R_SEQUENCE", allocationSize = 50)
+@Audited
 public abstract class R
 {
     // Constants -----------------------------------------------------------------------------------

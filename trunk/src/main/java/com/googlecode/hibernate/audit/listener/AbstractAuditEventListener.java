@@ -21,6 +21,7 @@ import com.googlecode.hibernate.audit.model.TypeCache;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RollingBackAuditException;
 import com.googlecode.hibernate.audit.AuditRuntimeException;
+import com.googlecode.hibernate.audit.AuditSelector;
 import com.googlecode.hibernate.audit.annotations.Audited;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.ChangeType;
@@ -28,7 +29,6 @@ import com.googlecode.hibernate.audit.delta.ChangeType;
 import java.security.Principal;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -328,8 +328,19 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         return at;
     }
 
-    protected boolean isDisabledOn(Class entityClass)
+    protected boolean isDisabledOn(Class entityClass, SessionFactory sf)
     {
+        AuditSelector s = manager.getSelector(sf);
+
+        // the selector, if installed, takes precedence
+
+        if (s != null)
+        {
+            return !s.isAuditEnabled(entityClass);
+        }
+
+        // if no selector, try the annotation
+
         Annotation a = entityClass.getAnnotation(Audited.class);
 
         if (a == null)

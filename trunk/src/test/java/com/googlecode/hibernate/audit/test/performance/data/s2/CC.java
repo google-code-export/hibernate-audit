@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.performance.data.s2;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.DiscriminatorValue;
 

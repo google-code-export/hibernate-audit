@@ -1,24 +1,13 @@
-package com.googlecode.hibernate.audit.test.logical_group_id.data;
+package com.googlecode.hibernate.audit.test;
 
-import com.googlecode.hibernate.audit.annotations.Audited;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Column;
+import com.googlecode.hibernate.audit.AuditSelector;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
- * @version <tt>$Revision$</tt>
- *
- * $Id$
+ * Copyright 2008 Ovidiu Feodorov
  */
-@Entity
-@Table(name = "C")
-@Audited
-public class C
+public class AuditAllSelector implements AuditSelector
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -26,36 +15,16 @@ public class C
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    @Column(unique = true)
-    private String s;
-
     // Constructors --------------------------------------------------------------------------------
 
+    // AuditSelector implementation ----------------------------------------------------------------
+
+    public boolean isAuditEnabled(Class c)
+    {
+        return true;
+    }
+
     // Public --------------------------------------------------------------------------------------
-
-    public Long getId()
-    {
-        return id;
-    }
-
-    public void setId(Long id)
-    {
-        this.id = id;
-    }
-
-    public String getS()
-    {
-        return s;
-    }
-
-    public void setS(String s)
-    {
-        this.s = s;
-    }
 
     // Package protected ---------------------------------------------------------------------------
 
@@ -64,4 +33,5 @@ public class C
     // Private -------------------------------------------------------------------------------------
 
     // Inner classes -------------------------------------------------------------------------------
+
 }

@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.delta.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -15,6 +17,7 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 @Table(name = "D")
+@Audited
 public class D
 {
     // Constants -----------------------------------------------------------------------------------

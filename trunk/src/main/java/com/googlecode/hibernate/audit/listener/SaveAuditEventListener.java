@@ -68,7 +68,7 @@ public class SaveAuditEventListener
     {
         SaveOrUpdateEvent soue = (SaveOrUpdateEvent)event;
         Class c = soue.getEntity().getClass();
-        return isDisabledOn(c);
+        return isDisabledOn(c, event.getSession().getFactory());
     }
 
     // Protected -----------------------------------------------------------------------------------

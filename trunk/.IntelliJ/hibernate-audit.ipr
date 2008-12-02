@@ -418,32 +418,16 @@
         <root url="file://C:/work/hibernate-3.3.1.GA/project/core/src/main/java" />
       </SOURCES>
     </library>
-    <library name="log4j-1.2.14">
+    <library name="testng-5.7-jdk15">
       <CLASSES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar!/" />
+        <root url="jar://C:/Users/ovidiu/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
-    </library>
-    <library name="testng-5.7-jdk15">
-      <CLASSES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/org/testng/testng/5.7/testng-5.7-jdk15-src.jar!/" />
-      </SOURCES>
     </library>
     <library name="jta">
       <CLASSES>
         <root url="jar://C:/Users/ovidiu/.m2/repository/javax/transaction/jta/1.1/jta-1.1.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES />
-    </library>
-    <library name="persistence-api-1.0">
-      <CLASSES>
-        <root url="jar://C:/Documents and Settings/ofeodoro/.m2/repository/javax/persistence/persistence-api/1.0/persistence-api-1.0.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
@@ -467,6 +451,20 @@
     <library name="hibernate-commons-annotations">
       <CLASSES>
         <root url="jar://C:/work/hibernate-annotations-3.4.0.GA/lib/hibernate-commons-annotations.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
+    <library name="log4j">
+      <CLASSES>
+        <root url="jar://C:/Users/ovidiu/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
+    <library name="persistence-api">
+      <CLASSES>
+        <root url="jar://C:/Users/ovidiu/.m2/repository/javax/persistence/persistence-api/1.0/persistence-api-1.0.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />

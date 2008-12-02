@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.post_update.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -18,6 +20,7 @@ import javax.persistence.CascadeType;
  */
 @Entity
 @Table(name = "G")
+@Audited
 public class GMan
 {
     // Constants -----------------------------------------------------------------------------------

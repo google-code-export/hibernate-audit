@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.collision.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
  */
 @Entity
 @Table(name = "ROOT")
+@Audited
 public class Root
 {
     // Constants -----------------------------------------------------------------------------------

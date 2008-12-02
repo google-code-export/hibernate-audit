@@ -19,6 +19,8 @@
     <orderEntry type="library" name="hibernate-commons-annotations-3.3.0.ga" level="project" />
     <orderEntry type="library" name="hibernate-annotations" level="project" />
     <orderEntry type="library" name="hibernate-commons-annotations" level="project" />
+    <orderEntry type="library" name="log4j" level="project" />
+    <orderEntry type="library" name="persistence-api" level="project" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ACTIVE_VCS_NAME" value="svn" />

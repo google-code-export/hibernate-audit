@@ -8,7 +8,8 @@ import com.googlecode.hibernate.audit.test.util.data.B;
  * Copyright 2008 Ovidiu Feodorov
  *
  */
-public class SubB extends B {
+public class SubB extends B
+{
     // Constants -----------------------------------------------------------------------------------
 
     // Static --------------------------------------------------------------------------------------

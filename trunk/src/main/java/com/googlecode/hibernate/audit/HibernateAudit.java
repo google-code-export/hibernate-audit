@@ -204,7 +204,17 @@ public final class HibernateAudit
      */
     public static void register(SessionFactory auditedSessionFactory) throws Exception
     {
-        register(auditedSessionFactory, null);
+        register(auditedSessionFactory, null, null);
+    }
+
+    public static void register(SessionFactory auditedSessionFactory, LogicalGroupIdProvider lgip) throws Exception
+    {
+        register(auditedSessionFactory, lgip, null);
+    }
+
+    public static void register(SessionFactory auditedSessionFactory, AuditSelector as) throws Exception
+    {
+        register(auditedSessionFactory, null, as);
     }
 
     /**
@@ -218,13 +228,20 @@ public final class HibernateAudit
      * @see HibernateAudit#unregister(SessionFactory)
      *
      * @param auditedSessionFactory - the session factory of the audited persistence unit.
+     *
      * @param lgip - the application-level LogicalGroupIdProvider. If null, no logical group id
      *        will persisted in the database. This is alright if you don't need logical grouping
      *        of entities.
      *
+     * @param as - the application-level AuditSelector implementation. The application provides it as a way to specify
+     *        what persistent entities it wants audited. Form more details on AuditSelector usage and how it interacts
+     *        with @Audited annotations, see AuditSelector javadoc.
+     *
      * @exception IllegalStateException if the runtime is not started when invoked.
+     *
+     * @see AuditSelector
      */
-    public static void register(SessionFactory auditedSessionFactory, LogicalGroupIdProvider lgip)
+    public static void register(SessionFactory auditedSessionFactory, LogicalGroupIdProvider lgip, AuditSelector as)
         throws Exception
     {
         Manager m = null;
@@ -246,7 +263,7 @@ public final class HibernateAudit
                 (auditedSessionFactory == null ? null : auditedSessionFactory.getClass().getName()));
         }
 
-        m.register((SessionFactoryImplementor)auditedSessionFactory, lgip);
+        m.register((SessionFactoryImplementor)auditedSessionFactory, lgip, as);
 
         log.debug(auditedSessionFactory + " registered with the audit runtime");
     }

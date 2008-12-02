@@ -67,7 +67,7 @@ public class PostDeleteAuditEventListener
     {
         PostDeleteEvent pde = (PostDeleteEvent)event;
         Class c = pde.getEntity().getClass();
-        return isDisabledOn(c);
+        return isDisabledOn(c, event.getSession().getFactory());
     }
 
     // Protected -----------------------------------------------------------------------------------

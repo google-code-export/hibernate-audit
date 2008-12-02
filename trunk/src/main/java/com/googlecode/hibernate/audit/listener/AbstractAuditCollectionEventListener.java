@@ -146,7 +146,7 @@ abstract class AbstractAuditCollectionEventListener extends AbstractAuditEventLi
             throw new RuntimeException("NOT YET IMPLEMENTED");
         }
 
-        return isDisabledOn(o.getClass());
+        return isDisabledOn(o.getClass(), event.getSession().getFactory());
     }
 
     // Private -------------------------------------------------------------------------------------

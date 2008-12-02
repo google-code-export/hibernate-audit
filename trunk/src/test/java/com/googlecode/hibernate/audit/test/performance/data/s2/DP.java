@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.test.performance.data.s2;
 
 import com.googlecode.hibernate.audit.test.performance.util.Util;
+import com.googlecode.hibernate.audit.annotations.Audited;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -20,6 +21,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "DP")
+@Audited
 public class DP
 {
     // Constants -----------------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.test.collision.data;
 
+import com.googlecode.hibernate.audit.annotations.Audited;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -16,6 +18,7 @@ import javax.persistence.JoinColumn;
  */
 @Entity
 @Table(name = "B")
+@Audited
 public class B
 {
     // Constants -----------------------------------------------------------------------------------
