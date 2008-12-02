@@ -64,7 +64,7 @@ public class ThreadBoundLogicalGroupIdTest extends JTATransactionTest
 //
 //            // start Audit, which will catch the problem
 //
-//            ThreadBoundLogicalGroupIdProvider lgip = new ThreadBoundLogicalGroupIdProvider();
+//            ThreadBoundLogicalGroupProvider lgip = new ThreadBoundLogicalGroupProvider();
 //            HibernateAudit.startRuntime(sf.getSettings());
 //            HibernateAudit.register(sf, lgip);
 //

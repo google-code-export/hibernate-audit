@@ -11,7 +11,9 @@ import com.googlecode.hibernate.audit.test.HibernateAuditTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
+import com.googlecode.hibernate.audit.LogicalGroup;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
@@ -61,19 +63,19 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
 
             HibernateAudit.startRuntime(sf.getSettings());
 
-            LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
+            LogicalGroupProvider lgip = new LogicalGroupProvider()
             {
-                public Serializable getLogicalGroupId(EventSource es,
-                                                      Serializable id,
-                                                      Object entity)
+                public LogicalGroup getLogicalGroup(EventSource es,
+                                                    Serializable id,
+                                                    Object entity)
                 {
                     if (entity instanceof A)
                     {
-                        return new Long(77);
+                        return new LogicalGroupImpl(new Long(77), A.class.getName());
                     }
                     else if (entity instanceof B)
                     {
-                        return new Long(88);
+                        return new LogicalGroupImpl(new Long(88), B.class.getName());
                     }
 
                     throw new IllegalStateException("don't know the entity " + entity);
@@ -105,12 +107,15 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
             {
                 if (d.getId().equals(a.getId()))
                 {
-                    assert new Long(77).equals(d.getLogicalGroupId());
-
+                    LogicalGroup lg = d.getLogicalGroup();
+                    assert new Long(77).equals(lg.getId());
+                    assert A.class.getName().equals(lg.getType());
                 }
                 else if (d.getId().equals(b.getId()))
                 {
-                    assert new Long(88).equals(d.getLogicalGroupId());
+                    LogicalGroup lg = d.getLogicalGroup();
+                    assert new Long(88).equals(lg.getId());
+                    assert B.class.getName().equals(lg.getType());
                 }
                 else
                 {

@@ -12,7 +12,7 @@ import com.googlecode.hibernate.audit.test.collision.data.A;
 import com.googlecode.hibernate.audit.test.collision.data.B;
 import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.RootIdProvider;
+import com.googlecode.hibernate.audit.RootProvider;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.collision.WriteCollisionException;
 
@@ -65,7 +65,7 @@ public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATrans
             HibernateAudit.getManager().getWriteCollisionDetector().
                 setWriteCollisionDetectionEnabled(true);
 
-            RootIdProvider rip = new RootIdProvider(Root.class);
+            RootProvider rip = new RootProvider(Root.class);
             HibernateAudit.register(sf, rip);
 
             // write intial data in database
@@ -181,7 +181,7 @@ public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATrans
             HibernateAudit.getManager().getWriteCollisionDetector().
                 setWriteCollisionDetectionEnabled(true);
 
-            RootIdProvider rip = new RootIdProvider(Root.class);
+            RootProvider rip = new RootProvider(Root.class);
             HibernateAudit.register(sf, rip);
 
             // write intial data in database

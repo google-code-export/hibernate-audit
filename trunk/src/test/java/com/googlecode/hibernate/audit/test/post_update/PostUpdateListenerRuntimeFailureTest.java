@@ -9,8 +9,9 @@ import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
 import com.googlecode.hibernate.audit.AuditRuntimeException;
+import com.googlecode.hibernate.audit.LogicalGroup;
 
 import java.io.Serializable;
 
@@ -54,9 +55,9 @@ public class PostUpdateListenerRuntimeFailureTest extends JTATransactionTest
 
             assert !HibernateAudit.getManager().isSuppressed();
 
-            // we use a BreakableLogicalGroupIdProvider that throws an  ExoticRuntimeException smack
+            // we use a BreakableLogicalGroupProvider that throws an  ExoticRuntimeException smack
             // in the middle of event processing
-            BreakableLogicalGroupIdProvider blgip = new BreakableLogicalGroupIdProvider();
+            BreakableLogicalGroupProvider blgip = new BreakableLogicalGroupProvider();
             assert !blgip.isBroken();
 
             HibernateAudit.register(sf, blgip);
@@ -114,16 +115,16 @@ public class PostUpdateListenerRuntimeFailureTest extends JTATransactionTest
 
     // Inner classes -------------------------------------------------------------------------------
 
-    class BreakableLogicalGroupIdProvider implements LogicalGroupIdProvider
+    class BreakableLogicalGroupProvider implements LogicalGroupProvider
     {
         private boolean broken;
 
-        BreakableLogicalGroupIdProvider()
+        BreakableLogicalGroupProvider()
         {
             broken = false;
         }
 
-        public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+        public LogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
         {
             if (!broken)
             {

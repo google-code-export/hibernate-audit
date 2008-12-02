@@ -200,14 +200,14 @@ public final class HibernateAudit
      * @exception IllegalStateException if the runtime is not started when invoked.
      *
      * @see HibernateAudit#unregister(SessionFactory)
-     * @see HibernateAudit#register(SessionFactory, LogicalGroupIdProvider)
+     * @see HibernateAudit#register(SessionFactory, LogicalGroupProvider)
      */
     public static void register(SessionFactory auditedSessionFactory) throws Exception
     {
         register(auditedSessionFactory, null, null);
     }
 
-    public static void register(SessionFactory auditedSessionFactory, LogicalGroupIdProvider lgip) throws Exception
+    public static void register(SessionFactory auditedSessionFactory, LogicalGroupProvider lgip) throws Exception
     {
         register(auditedSessionFactory, lgip, null);
     }
@@ -241,7 +241,7 @@ public final class HibernateAudit
      *
      * @see AuditSelector
      */
-    public static void register(SessionFactory auditedSessionFactory, LogicalGroupIdProvider lgip, AuditSelector as)
+    public static void register(SessionFactory auditedSessionFactory, LogicalGroupProvider lgip, AuditSelector as)
         throws Exception
     {
         Manager m = null;

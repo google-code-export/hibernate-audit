@@ -13,18 +13,19 @@ import org.hibernate.event.AbstractEvent;
 import org.hibernate.event.PostInsertEvent;
 import org.hibernate.event.PostUpdateEvent;
 import org.hibernate.event.PostDeleteEvent;
-import com.googlecode.hibernate.audit.model.AuditTransaction;
-import com.googlecode.hibernate.audit.model.Manager;
-import com.googlecode.hibernate.audit.model.AuditEntityType;
-import com.googlecode.hibernate.audit.model.AuditEvent;
-import com.googlecode.hibernate.audit.model.TypeCache;
-import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.RollingBackAuditException;
-import com.googlecode.hibernate.audit.AuditRuntimeException;
-import com.googlecode.hibernate.audit.AuditSelector;
 import com.googlecode.hibernate.audit.annotations.Audited;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.ChangeType;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
+import com.googlecode.hibernate.audit.model.Manager;
+import com.googlecode.hibernate.audit.model.TypeCache;
+import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
+import com.googlecode.hibernate.audit.model.AuditEntityType;
+import com.googlecode.hibernate.audit.RollingBackAuditException;
+import com.googlecode.hibernate.audit.AuditRuntimeException;
+import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.AuditSelector;
 
 import java.security.Principal;
 import java.io.Serializable;
@@ -199,12 +200,12 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         }
         c.auditEvent.setTargetId((Long)c.entityId);
 
-        Serializable lgid = manager.getLogicalGroupId(c.session, c.entityId, c.entity);
+        AuditLogicalGroup alg = manager.getLogicalGroup(c.session, c.entityId, c.entity);
 
-        if (lgid != null)
+        if (alg != null)
         {
-            if (traceEnabled) { log.debug("current logical group id " + lgid); }
-            c.auditEvent.setLogicalGroupId(lgid);
+            if (traceEnabled) { log.debug("current logical group " + alg); }
+            c.auditEvent.setLogicalGroup(alg);
         }
 
         c.auditEntityType = typeCache.getAuditEntityType(c.entityIdClass, c.entityClass);

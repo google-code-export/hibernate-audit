@@ -14,7 +14,7 @@ import com.googlecode.hibernate.audit.test.delta.data.D;
 import com.googlecode.hibernate.audit.test.delta.data.C;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.RootIdProvider;
+import com.googlecode.hibernate.audit.RootProvider;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
@@ -486,9 +486,9 @@ public class DeltaEngineTest extends JTATransactionTest
 //            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 //
 //            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+//            HibernateAudit.register(sf, new LogicalGroupProvider()
 //            {
-//                public Serializable getLogicalGroupId(EventSource es,
+//                public Serializable getLogicalGroup(EventSource es,
 //                                                      Serializable id,
 //                                                      Object entity)
 //                {
@@ -535,9 +535,9 @@ public class DeltaEngineTest extends JTATransactionTest
 //            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 //
 //            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+//            HibernateAudit.register(sf, new LogicalGroupProvider()
 //            {
-//                public Serializable getLogicalGroupId(EventSource es,
+//                public Serializable getLogicalGroup(EventSource es,
 //                                                      Serializable id,
 //                                                      Object entity)
 //                {
@@ -589,7 +589,7 @@ public class DeltaEngineTest extends JTATransactionTest
             C c = new C();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf, new RootIdProvider(c));
+            HibernateAudit.register(sf, new RootProvider(c));
 
             Session s = sf.openSession();
             s.beginTransaction();

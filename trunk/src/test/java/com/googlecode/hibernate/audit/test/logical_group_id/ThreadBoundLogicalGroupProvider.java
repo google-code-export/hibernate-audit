@@ -1,6 +1,7 @@
 package com.googlecode.hibernate.audit.test.logical_group_id;
 
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
+import com.googlecode.hibernate.audit.LogicalGroup;
 
 import java.io.Serializable;
 
@@ -11,7 +12,7 @@ import org.hibernate.event.EventSource;
  *
  * Copyright 2008 Ovidiu Feodorov
  */
-class ThreadBoundLogicalGroupIdProvider implements LogicalGroupIdProvider
+class ThreadBoundLogicalGroupProvider implements LogicalGroupProvider
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -19,20 +20,20 @@ class ThreadBoundLogicalGroupIdProvider implements LogicalGroupIdProvider
 
     // Attributes ----------------------------------------------------------------------------------
 
-    private static ThreadLocal<Long> logicalGroupId;
+    private static ThreadLocal<LogicalGroup> logicalGroup;
 
     // Constructors --------------------------------------------------------------------------------
 
-    ThreadBoundLogicalGroupIdProvider()
+    ThreadBoundLogicalGroupProvider()
     {
-       logicalGroupId = new ThreadLocal<Long>();
+       logicalGroup = new ThreadLocal<LogicalGroup>();
     }
 
-    // LogicalGroupIdProvider implementation -------------------------------------------------------
+    // LogicalGroupProvider implementation -------------------------------------------------------
 
-    public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+    public LogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
     {
-        return logicalGroupId.get();
+        return logicalGroup.get();
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -41,9 +42,9 @@ class ThreadBoundLogicalGroupIdProvider implements LogicalGroupIdProvider
 
     // Protected -----------------------------------------------------------------------------------
 
-    void bindLogicalGroupId(Long lgid)
+    void bindLogicalGroup(LogicalGroup lg)
     {
-        logicalGroupId.set(lgid);
+        logicalGroup.set(lg);
     }
 
     // Private -------------------------------------------------------------------------------------

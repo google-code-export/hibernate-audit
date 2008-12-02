@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.delta;
 
+import com.googlecode.hibernate.audit.LogicalGroup;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -71,5 +73,5 @@ public interface EntityDelta
      */
     CollectionDelta getCollectionDelta(String name);
 
-    Serializable getLogicalGroupId();
+    LogicalGroup getLogicalGroup();
 }

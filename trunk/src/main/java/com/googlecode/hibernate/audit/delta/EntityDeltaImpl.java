@@ -1,5 +1,7 @@
 package com.googlecode.hibernate.audit.delta;
 
+import com.googlecode.hibernate.audit.LogicalGroup;
+
 import java.util.Set;
 import java.util.HashSet;
 import java.io.Serializable;
@@ -31,7 +33,7 @@ public class EntityDeltaImpl implements EntityDelta
     private Serializable id;
     private String entityName;
     private ChangeType ct;
-    private Serializable lgid;
+    private LogicalGroup lg;
 
     // TODO can be optimized by maintaining a map, keyed on variable name
     private Set<ScalarDelta> scalarDeltas;
@@ -40,14 +42,14 @@ public class EntityDeltaImpl implements EntityDelta
     // Constructors --------------------------------------------------------------------------------
 
     /**
-     * @param lgid - null is acceptable.
+     * @param lg - null is acceptable.
      */
-    public EntityDeltaImpl(Serializable id, String entityName, ChangeType ct, Serializable lgid)
+    public EntityDeltaImpl(Serializable id, String entityName, ChangeType ct, LogicalGroup lg)
     {
         this.id = id;
         this.entityName = entityName;
         this.ct = ct;
-        this.lgid = lgid;
+        this.lg = lg;
         scalarDeltas = new HashSet<ScalarDelta>();
         collectionDeltas = new HashSet<CollectionDelta>();
     }
@@ -126,9 +128,9 @@ public class EntityDeltaImpl implements EntityDelta
         return collectionDeltas;
     }
 
-    public Serializable getLogicalGroupId()
+    public LogicalGroup getLogicalGroup()
     {
-        return lgid;
+        return lg;
     }
 
     public ScalarDelta getScalarDelta(String name)

@@ -11,7 +11,9 @@ import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.TransactionFilter;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
+import com.googlecode.hibernate.audit.LogicalGroup;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
@@ -61,14 +63,14 @@ public class TransactionFilterTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+            HibernateAudit.register(sf, new LogicalGroupProvider()
             {
-                public Serializable getLogicalGroupId(EventSource es,
-                                                      Serializable id,
-                                                      Object entity)
+                public LogicalGroup getLogicalGroup(EventSource es,
+                                                    Serializable id,
+                                                    Object entity)
                 {
                     // constant logical group
-                    return currentLG;
+                    return new LogicalGroupImpl(currentLG, "constant_" + currentLG);
                 }
             });
 
@@ -125,9 +127,9 @@ public class TransactionFilterTest extends JTATransactionTest
 //            sf = (SessionFactoryImplementor)config.buildSessionFactory();
 //
 //            HibernateAudit.startRuntime(sf.getSettings());
-//            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+//            HibernateAudit.register(sf, new LogicalGroupProvider()
 //            {
-//                public Serializable getLogicalGroupId(EventSource es,
+//                public Serializable getLogicalGroup(EventSource es,
 //                                                      Serializable id,
 //                                                      Object entity)
 //                {
@@ -316,14 +318,14 @@ public class TransactionFilterTest extends JTATransactionTest
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
 
             HibernateAudit.startRuntime(sf.getSettings());
-            HibernateAudit.register(sf, new LogicalGroupIdProvider()
+            HibernateAudit.register(sf, new LogicalGroupProvider()
             {
-                public Serializable getLogicalGroupId(EventSource es,
+                public LogicalGroup getLogicalGroup(EventSource es,
                                                       Serializable id,
                                                       Object entity)
                 {
                     // constant logical group
-                    return currentLG;
+                    return new LogicalGroupImpl(currentLG, "constant_" + currentLG);
                 }
             });
 

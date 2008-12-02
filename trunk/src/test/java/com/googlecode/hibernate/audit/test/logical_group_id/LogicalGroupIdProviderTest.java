@@ -9,10 +9,13 @@ import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
-import com.googlecode.hibernate.audit.RootIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
+import com.googlecode.hibernate.audit.RootProvider;
+import com.googlecode.hibernate.audit.LogicalGroup;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditEvent;
+import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 
 import java.util.List;
 import java.util.Random;
@@ -82,7 +85,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
             for(AuditEvent e: events)
             {
-                assert e.getLogicalGroupId() == null;
+                assert e.getLogicalGroup() == null;
             }
         }
         finally
@@ -111,13 +114,13 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
             final long random = new Random().nextLong();
 
-            LogicalGroupIdProvider lgip = new LogicalGroupIdProvider()
+            LogicalGroupProvider lgip = new LogicalGroupProvider()
             {
-                public Serializable getLogicalGroupId(EventSource es,
-                                                      Serializable id,
-                                                      Object entity)
+                public LogicalGroup getLogicalGroup(EventSource es,
+                                                    Serializable id,
+                                                    Object entity)
                 {
-                    return new Long(random);
+                    return new LogicalGroupImpl(new Long(random), "constant_" + random);
                 }
             };
 
@@ -151,7 +154,9 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             {
                 for(AuditEvent e: atx.getEvents())
                 {
-                    assert new Long(random).equals(e.getLogicalGroupId());
+                    AuditLogicalGroup alg = e.getLogicalGroup();
+                    assert new Long(random).equals(alg.getId());
+                    assert ("constant_" + random).equals(alg.getType());
                 }
             }
         }
@@ -256,7 +261,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         {
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
             HibernateAudit.startRuntime(sf.getSettings());
-            RootIdProvider rip = new RootIdProvider(A.class);
+            RootProvider rip = new RootProvider(A.class);
             HibernateAudit.register(sf, rip);
 
             Session s = sf.openSession();
@@ -276,7 +281,9 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
             for(AuditEvent e: tx.getEvents())
             {
-                assert a.getId().equals(e.getLogicalGroupId());
+                AuditLogicalGroup alg = e.getLogicalGroup();
+                assert a.getId().equals(alg.getId());
+                assert A.class.getName().equals(alg.getType());
             }
         }
         finally
@@ -302,7 +309,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
         {
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
             HibernateAudit.startRuntime(sf.getSettings());
-            RootIdProvider rip = new RootIdProvider(A.class);
+            RootProvider rip = new RootProvider(A.class);
             HibernateAudit.register(sf, rip);
 
             Session s = sf.openSession();
@@ -323,7 +330,9 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
             for(AuditEvent e: tx.getEvents())
             {
-                assert a.getId().equals(e.getLogicalGroupId());
+                AuditLogicalGroup alg = e.getLogicalGroup();
+                assert a.getId().equals(alg.getId());
+                assert A.class.getName().equals(alg.getType());
             }
 
             s = sf.openSession();
@@ -348,7 +357,9 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
 
             for(AuditEvent e: tx2.getEvents())
             {
-                assert a.getId().equals(e.getLogicalGroupId());
+                AuditLogicalGroup alg = e.getLogicalGroup();
+                assert a.getId().equals(alg.getId());
+                assert A.class.getName().equals(alg.getType());
             }
         }
         finally

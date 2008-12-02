@@ -13,10 +13,10 @@ import java.io.Serializable;
  *
  * $Id$
  */
-public interface LogicalGroupIdProvider 
+public interface LogicalGroupProvider
 {
     /**
      * @return nul if it cannot figure it out.
      */
-    Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity);
+    LogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity);
 }

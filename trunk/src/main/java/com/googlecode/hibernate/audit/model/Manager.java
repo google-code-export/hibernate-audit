@@ -30,8 +30,9 @@ import java.security.Principal;
 import java.io.Serializable;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
 import com.googlecode.hibernate.audit.AuditSelector;
+import com.googlecode.hibernate.audit.LogicalGroup;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.delta.TransactionDeltaImpl;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -236,7 +237,7 @@ public class Manager
      *
      * @param as - may be null, in which case the framework decides whether to log or not based on annotations.
      */
-    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupIdProvider lgip, AuditSelector as)
+    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupProvider lgip, AuditSelector as)
         throws Exception
     {
         if (!(asfi instanceof SessionFactoryImpl))
@@ -321,7 +322,7 @@ public class Manager
 
         uninstallAuditListeners(sfi);
         sfh.sessionFactory = null;
-        sfh.logicalGroupIdProvider = null;
+        sfh.logicalGroupProvider = null;
         return true;
     }
 
@@ -526,9 +527,9 @@ public class Manager
                                                                atx.getUser());
             List<AuditEvent> es = atx.getEvents();
 
-            for(AuditEvent e: es)
+            for(AuditEvent ae: es)
             {
-                AuditType at = e.getTargetType();
+                AuditType at = ae.getTargetType();
 
                 if (!at.isEntityType())
                 {
@@ -537,16 +538,16 @@ public class Manager
                     throw new RuntimeException("NOT YET IMPLEMENTED");
                 }
 
-                Serializable id = e.getTargetId();
+                Serializable id = ae.getTargetId();
                 AuditEntityType aet = (AuditEntityType)at;
                 String entityName = aet.getClassInstance().getName(); // TODO this will fail when we use real entityNames https://jira.novaordis.org/browse/HBA-80
                 EntityDeltaImpl ed = (EntityDeltaImpl)td.getEntityDelta(id, entityName);
-                ChangeType ct = e.getType();
-                Serializable lgid = e.getLogicalGroupId();
+                ChangeType ct = ae.getType();
+                AuditLogicalGroup alg = ae.getLogicalGroup();
 
                 if (ed == null)
                 {
-                    ed = new EntityDeltaImpl(id, entityName, ct, lgid);
+                    ed = new EntityDeltaImpl(id, entityName, ct, alg);
                     td.addEntityDelta(ed);
                 }
                 else if (ChangeType.INSERT.equals(ct))
@@ -555,7 +556,7 @@ public class Manager
                     ed.setChangeType(ChangeType.INSERT);
                 }
 
-                List<AuditEventPair> pairs = e.getPairs();
+                List<AuditEventPair> pairs = ae.getPairs();
 
                 for(AuditEventPair p: pairs)
                 {
@@ -716,19 +717,30 @@ public class Manager
     /**
      * @return null if it cannot figure it out.
      */
-    public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+    public AuditLogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
     {
         SessionFactoryImpl sf = (SessionFactoryImpl)es.getSessionFactory();
-
         SessionFactoryHolder sfh = sessionFactoryHolders.get(sf);
 
-        if (sfh == null || sfh.logicalGroupIdProvider == null)
+        if (sfh == null || sfh.logicalGroupProvider == null)
         {
             // no provider, return null
             return null;
         }
 
-        return sfh.logicalGroupIdProvider.getLogicalGroupId(es, id, entity);
+        LogicalGroup lg = sfh.logicalGroupProvider.getLogicalGroup(es, id, entity);
+
+        if (lg == null)
+        {
+            return null;
+        }
+
+        // TODO wrap it into an AuditLogicalGroup, using the write-once cache most likely https://jira.novaordis.org/browse/HBA-178
+        // This implememntation is broken, will produce duplicates in the database
+        AuditLogicalGroup alg = new AuditLogicalGroup();
+        alg.setId(lg.getId());
+        alg.setType(lg.getType());
+        return alg;
     }
 
     /**
@@ -892,15 +904,15 @@ public class Manager
     private class SessionFactoryHolder
     {
         SessionFactoryImpl sessionFactory;
-        LogicalGroupIdProvider logicalGroupIdProvider;
+        LogicalGroupProvider logicalGroupProvider;
         AuditSelector auditSelector;
 
         SessionFactoryHolder(SessionFactoryImpl sessionFactory,
-                             LogicalGroupIdProvider logicalGroupIdProvider,
+                             LogicalGroupProvider logicalGroupProvider,
                              AuditSelector auditSelector)
         {
             this.sessionFactory = sessionFactory;
-            this.logicalGroupIdProvider = logicalGroupIdProvider;
+            this.logicalGroupProvider = logicalGroupProvider;
             this.auditSelector = auditSelector;
         }
     }

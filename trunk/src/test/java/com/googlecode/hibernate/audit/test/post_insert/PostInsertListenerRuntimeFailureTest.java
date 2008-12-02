@@ -12,9 +12,10 @@ import org.apache.log4j.Logger;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.HibernateAudit;
-import com.googlecode.hibernate.audit.LogicalGroupIdProvider;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
 import com.googlecode.hibernate.audit.AuditRuntimeException;
 import com.googlecode.hibernate.audit.RollingBackAuditException;
+import com.googlecode.hibernate.audit.LogicalGroup;
 import com.googlecode.hibernate.audit.listener.Listeners;
 import com.googlecode.hibernate.audit.listener.AuditEventListener;
 
@@ -109,10 +110,10 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
 
             HibernateAudit.startRuntime(sf.getSettings());
 
-            // we use a BrokenLogicalGroupIdProvider that throws an  ExoticRuntimeException smack
+            // we use a BrokenLogicalGroupProvider that throws an  ExoticRuntimeException smack
             // in the middle of event processing
 
-            HibernateAudit.register(sf, new BrokenLogicalGroupIdProvider());
+            HibernateAudit.register(sf, new BrokenLogicalGroupProvider());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -163,10 +164,10 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
             
             HibernateAudit.startRuntime(sf.getSettings());
 
-            // we use a BrokenLogicalGroupIdProvider that throws an  ExoticRuntimeException smack
+            // we use a BrokenLogicalGroupProvider that throws an  ExoticRuntimeException smack
             // in the middle of event processing
 
-            HibernateAudit.register(sf, new BrokenLogicalGroupIdProvider());
+            HibernateAudit.register(sf, new BrokenLogicalGroupProvider());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -205,9 +206,9 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
 
             HibernateAudit.startRuntime(sf.getSettings());
 
-            // we use a RollingBackBrokenLogicalGroupIdProvider that throws a RollingBack exception
+            // we use a RollingBackBrokenLogicalGroupProvider that throws a RollingBack exception
 
-            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupIdProvider());
+            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupProvider());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -256,9 +257,9 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
 
             HibernateAudit.startRuntime(sf.getSettings());
 
-            // we use a RollingBackBrokenLogicalGroupIdProvider that throws a RollingBack exception
+            // we use a RollingBackBrokenLogicalGroupProvider that throws a RollingBack exception
 
-            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupIdProvider());
+            HibernateAudit.register(sf, new RollingBackBrokenLogicalGroupProvider());
 
             Session s = sf.openSession();
             s.beginTransaction();
@@ -327,17 +328,17 @@ public class PostInsertListenerRuntimeFailureTest extends JTATransactionTest
         }
     }
 
-    class BrokenLogicalGroupIdProvider implements LogicalGroupIdProvider
+    class BrokenLogicalGroupProvider implements LogicalGroupProvider
     {
-        public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+        public LogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
         {
             throw new ExoticRuntimeException();
         }
     }
 
-    class RollingBackBrokenLogicalGroupIdProvider implements LogicalGroupIdProvider
+    class RollingBackBrokenLogicalGroupProvider implements LogicalGroupProvider
     {
-        public Serializable getLogicalGroupId(EventSource es, Serializable id, Object entity)
+        public LogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
         {
             throw new ARollingBackAuditException();
         }
