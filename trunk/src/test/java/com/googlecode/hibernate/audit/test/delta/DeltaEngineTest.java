@@ -435,7 +435,7 @@ public class DeltaEngineTest extends JTATransactionTest
 //    }
 //
 //    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-107
-//    public void testGetDelta_NoMatchingLogicalGroupId() throws Exception
+//    public void testGetDelta_NoMatchingLogicalGroup() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
 //        config.configure(getHibernateConfigurationFileName());
@@ -476,7 +476,7 @@ public class DeltaEngineTest extends JTATransactionTest
 //    }
 //
 //    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-107
-//    public void testGetDelta_NoMatchingLogicalGroupId2() throws Exception
+//    public void testGetDelta_NoMatchingLogicalGroup2() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
 //        config.configure(getHibernateConfigurationFileName());
@@ -525,7 +525,7 @@ public class DeltaEngineTest extends JTATransactionTest
 //    }
 //
 //    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-107
-//    public void testGetDelta_MatchingLogicalGroupId() throws Exception
+//    public void testGetDelta_MatchingLogicalGroup() throws Exception
 //    {
 //        AnnotationConfiguration config = new AnnotationConfiguration();
 //        config.configure(getHibernateConfigurationFileName());

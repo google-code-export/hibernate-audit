@@ -230,8 +230,8 @@ public class Manager
      * process, the audit manager registers listeners on the session factory. The listeners will
      * capture and persist state changes.
      *
-     * @param lgip - the application-level LogicalGroupIdProvider that knows to provide logical
-     *        group ids for entities managed by this session factory. If null, no logical group id
+     * @param lgp - the application-level LogicalGroupProvider that knows to provide logical group
+     *        instances ids for entities managed by this session factory. If null, no logical group
      *        will persisted in the database. This is alright if you don't need logical grouping
      *        of entities.
      *
@@ -239,7 +239,7 @@ public class Manager
      *        annotations.
      */
     public synchronized void register(SessionFactoryImplementor asfi,
-                                      LogicalGroupProvider lgip,
+                                      LogicalGroupProvider lgp,
                                       AuditSelector as) throws Exception
     {
         if (!(asfi instanceof SessionFactoryImpl))
@@ -302,7 +302,7 @@ public class Manager
         installAuditListeners(asf);
 
         LogicalGroupCache lgc = new LogicalGroupCache(isf, typeCache, asf);
-        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip, lgc, as));
+        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgp, lgc, as));
     }
 
     public synchronized boolean unregister(SessionFactory sf) throws Exception

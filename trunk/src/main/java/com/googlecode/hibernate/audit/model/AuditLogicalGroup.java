@@ -5,9 +5,6 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.engine.SessionFactoryImplementor;
-import org.hibernate.EntityMode;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -24,6 +21,9 @@ import com.googlecode.hibernate.audit.LogicalGroup;
 import java.io.Serializable;
 
 /**
+ * Never create an instance of this class directly, use a LogicalGroupCache instance to get such
+ * an instance.
+ *
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  *
  * Copyright 2008 Ovidiu Feodorov
@@ -65,12 +65,6 @@ public class AuditLogicalGroup implements LogicalGroup
     private AuditType auditType;
 
     @Transient
-    private TypeCache typeCache;
-
-    @Transient
-    private SessionFactoryImplementor sf;
-
-    @Transient
     private String definingEntityName;
 
     // Constructors --------------------------------------------------------------------------------
@@ -83,21 +77,9 @@ public class AuditLogicalGroup implements LogicalGroup
     {
     }
 
-    /**
-     * Only constructor to use when creating fresh AuditLogicalGroups instances to be persisted.
-     *
-     * @param sf - the session factory containing the metadata for the hibernate entity defining
-     *        this logical group.
-     */
-    public AuditLogicalGroup(TypeCache typeCache, SessionFactoryImplementor sf)
-    {
-        this.typeCache = typeCache;
-        this.sf = sf;
-    }
-
     // LogicalGroup implementation -----------------------------------------------------------------
 
-    public Serializable getLogicalGroupId()
+    public Serializable getExternalId()
     {
         return externalId;
     }
@@ -128,33 +110,9 @@ public class AuditLogicalGroup implements LogicalGroup
         this.internalId = internalId;
     }
 
-    public void setLogicalGroupId(Long externalId)
+    public void setExternalId(Long externalId)
     {
         this.externalId = externalId;
-    }
-
-    /**
-     * @throws org.hibernate.MappingException
-     * @throws Exception (possibly thrown by type cache)
-     */
-    public void setDefiningEntityName(String entityName) throws Exception
-    {
-        if (sf == null)
-        {
-            throw new IllegalStateException("session factory reference not set");
-        }
-
-        if (typeCache == null)
-        {
-            throw new IllegalStateException("type cache reference not set");
-        }
-
-        // TODO LAT
-        EntityPersister ep = sf.getEntityPersister(entityName);
-        Class ec = ep.getMappedClass(EntityMode.POJO);
-        Class idc = ep.getIdentifierType().getReturnedClass();
-        auditType = typeCache.getAuditEntityType(idc, ec);
-        this.definingEntityName = entityName;
     }
 
     public AuditType getAuditType()

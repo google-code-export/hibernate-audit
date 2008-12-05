@@ -108,13 +108,13 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
                 if (d.getId().equals(a.getId()))
                 {
                     LogicalGroup lg = d.getLogicalGroup();
-                    assert new Long(77).equals(lg.getLogicalGroupId());
+                    assert new Long(77).equals(lg.getExternalId());
                     assert A.class.getName().equals(lg.getDefiningEntityName());
                 }
                 else if (d.getId().equals(b.getId()))
                 {
                     LogicalGroup lg = d.getLogicalGroup();
-                    assert new Long(88).equals(lg.getLogicalGroupId());
+                    assert new Long(88).equals(lg.getExternalId());
                     assert B.class.getName().equals(lg.getDefiningEntityName());
                 }
                 else

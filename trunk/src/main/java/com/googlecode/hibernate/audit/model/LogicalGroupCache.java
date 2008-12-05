@@ -64,8 +64,6 @@ public class LogicalGroupCache
     {
         // look up the corresponding AuditType
 
-        // TODO LAT
-
         String definingEntityName = lg.getDefiningEntityName();
         EntityPersister ep = sf.getEntityPersister(definingEntityName);
         Class ec = ep.getMappedClass(EntityMode.POJO);
@@ -87,7 +85,7 @@ public class LogicalGroupCache
 
         CacheQuery<AuditLogicalGroup> cq =
             new CacheQuery<AuditLogicalGroup>(AuditLogicalGroup.class, insert, lgif,
-                                              "externalId", lg.getLogicalGroupId(),
+                                              "externalId", lg.getExternalId(),
                                               "auditType", at);
 
         AuditLogicalGroup alg = logicalGroups.get(cq);
@@ -133,7 +131,7 @@ public class LogicalGroupCache
             }
 
             AuditLogicalGroup alg = new AuditLogicalGroup();
-            alg.setLogicalGroupId(externalId);
+            alg.setExternalId(externalId);
             alg.setAuditType(at);
             return alg;
         }

@@ -19,11 +19,11 @@ import java.io.Serializable;
 public interface LogicalGroup
 {
     /**
-     * We went for the long name (getLogicalGroupId() instead of getId()) to make easier for the
+     * We went for the long name (getExternalId() instead of getId()) to make easier for
      * implementing classes to avoid breaking the usual persistent class idiom: getId() returns
      * the database id, which, in this case, is not the logical group id. 
      */
-    Serializable getLogicalGroupId();
+    Serializable getExternalId();
     String getDefiningEntityName();
 
 }

@@ -27,7 +27,7 @@ public class LogicalGroupImpl implements LogicalGroup
 
     // LogicalGroup implementation -----------------------------------------------------------------
 
-    public Long getLogicalGroupId()
+    public Long getExternalId()
     {
         return id;
     }

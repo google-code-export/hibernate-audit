@@ -21,7 +21,7 @@ import com.googlecode.hibernate.audit.HibernateAudit;
  * $Id$
  */
 @Test(sequential = true)
-public class ThreadBoundLogicalGroupIdTest extends JTATransactionTest
+public class ThreadBoundLogicalGroupTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ public class ThreadBoundLogicalGroupIdTest extends JTATransactionTest
 //            HibernateAudit.register(sf, lgip);
 //
 //            // simulate a deal context
-//            lgip.bindLogicalGroupId(new Long(7777));
+//            lgip.bindLogicalGroup(new Long(7777));
 //
 //            // attempt a benign persistence operation, that will fail due to the unique constraint
 //            // violation
@@ -96,7 +96,7 @@ public class ThreadBoundLogicalGroupIdTest extends JTATransactionTest
 //            // ... because we reuse the thread for a different transaction, from a completely
 //            // different deal context
 //
-//            lgip.bindLogicalGroupId(new Long(8888));
+//            lgip.bindLogicalGroup(new Long(8888));
 //
 //            s = sf.openSession();
 //            Transaction tx2 = s.beginTransaction();

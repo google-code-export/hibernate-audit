@@ -30,12 +30,12 @@ import com.googlecode.hibernate.audit.collision.WriteCollisionException;
  * $Id$
  */
 @Test(sequential = true)
-public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATransactionTest
+public class FinelyGrainedWriteCollisionUsingLogicalGroupTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.
-        getLogger(FinelyGrainedWriteCollisionUsingLogicalGroupIdTest.class);
+        getLogger(FinelyGrainedWriteCollisionUsingLogicalGroupTest.class);
 
     // Static --------------------------------------------------------------------------------------
 

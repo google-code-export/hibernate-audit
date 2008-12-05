@@ -156,7 +156,7 @@ public class LogicalGroupProviderTest extends JTATransactionTest
                 for(AuditEvent e: atx.getEvents())
                 {
                     AuditLogicalGroup alg = e.getLogicalGroup();
-                    assert new Long(random).equals(alg.getLogicalGroupId());
+                    assert new Long(random).equals(alg.getExternalId());
                     assert A.class.getName().equals(alg.getDefiningEntityName());
                 }
             }
@@ -289,7 +289,7 @@ public class LogicalGroupProviderTest extends JTATransactionTest
             for(AuditEvent e: tx.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getLogicalGroupId());
+                assert a.getId().equals(alg.getExternalId());
                 assert A.class.getName().equals(alg.getDefiningEntityName());
             }
         }
@@ -339,7 +339,7 @@ public class LogicalGroupProviderTest extends JTATransactionTest
             for(AuditEvent e: tx.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getLogicalGroupId());
+                assert a.getId().equals(alg.getExternalId());
                 assert A.class.getName().equals(alg.getDefiningEntityName());
             }
 
@@ -366,7 +366,7 @@ public class LogicalGroupProviderTest extends JTATransactionTest
             for(AuditEvent e: tx2.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getLogicalGroupId());
+                assert a.getId().equals(alg.getExternalId());
                 assert A.class.getName().equals(alg.getDefiningEntityName());
             }
         }
