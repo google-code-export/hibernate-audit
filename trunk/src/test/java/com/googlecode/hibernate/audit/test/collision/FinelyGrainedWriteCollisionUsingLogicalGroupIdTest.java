@@ -13,6 +13,8 @@ import com.googlecode.hibernate.audit.test.collision.data.B;
 import com.googlecode.hibernate.audit.test.util.RendezVous;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootProvider;
+import com.googlecode.hibernate.audit.LogicalGroup;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
 import com.googlecode.hibernate.audit.collision.WriteCollisionDetector;
 import com.googlecode.hibernate.audit.collision.WriteCollisionException;
 
@@ -311,8 +313,10 @@ public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATrans
                 root.getAs().get(0);
                 root.getBs().get(0);
 
+                LogicalGroup rootLG = new LogicalGroupImpl(rootId, Root.class.getName());
+
                 Long refVersion = HibernateAudit.
-                    getLatestTransactionForLogicalGroup(rootId).getId();
+                    getLatestTransactionForLogicalGroup(rootLG).getId();
 
                 s.getTransaction().commit();
                 s.close();
@@ -341,7 +345,7 @@ public class FinelyGrainedWriteCollisionUsingLogicalGroupIdTest extends JTATrans
                 dbroot.getAs().get(0);
                 dbroot.getBs().get(0);
 
-                Long dbVersion = HibernateAudit.getLatestTransactionForLogicalGroup(rootId).getId();
+                Long dbVersion = HibernateAudit.getLatestTransactionForLogicalGroup(rootLG).getId();
 
                 log.debug(tn + " has read root in memory again, version " + dbVersion);
 

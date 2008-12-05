@@ -424,7 +424,7 @@ public class PostUpdateDeltaTest extends JTATransactionTest
         }
     }
 
-    @Test(enabled = true)             
+    @Test(enabled = true)
     public void testPostUpdate_EmptyCollection_Update_AddOne() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

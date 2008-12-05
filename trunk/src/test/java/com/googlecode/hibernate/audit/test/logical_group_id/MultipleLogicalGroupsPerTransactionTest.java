@@ -108,14 +108,14 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
                 if (d.getId().equals(a.getId()))
                 {
                     LogicalGroup lg = d.getLogicalGroup();
-                    assert new Long(77).equals(lg.getId());
-                    assert A.class.getName().equals(lg.getType());
+                    assert new Long(77).equals(lg.getLogicalGroupId());
+                    assert A.class.getName().equals(lg.getDefiningEntityName());
                 }
                 else if (d.getId().equals(b.getId()))
                 {
                     LogicalGroup lg = d.getLogicalGroup();
-                    assert new Long(88).equals(lg.getId());
-                    assert B.class.getName().equals(lg.getType());
+                    assert new Long(88).equals(lg.getLogicalGroupId());
+                    assert B.class.getName().equals(lg.getDefiningEntityName());
                 }
                 else
                 {
@@ -123,13 +123,16 @@ public class MultipleLogicalGroupsPerTransactionTest extends JTATransactionTest
                 }
             }
 
-            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(23482347239l));
+            LogicalGroup alg = new LogicalGroupImpl(new Long(23482347239l), A.class.getName());
+            txs = HibernateAudit.getTransactionsByLogicalGroup(alg);
             assert txs.isEmpty();
 
-            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(77));
+            alg = new LogicalGroupImpl(new Long(77), A.class.getName());
+            txs = HibernateAudit.getTransactionsByLogicalGroup(alg);
             assert txs.size() == 1;
 
-            txs = HibernateAudit.getTransactionsByLogicalGroup(new Long(88));
+            LogicalGroup blg = new LogicalGroupImpl(new Long(88), B.class.getName());
+            txs = HibernateAudit.getTransactionsByLogicalGroup(blg);
             assert txs.size() == 1;
         }
         finally

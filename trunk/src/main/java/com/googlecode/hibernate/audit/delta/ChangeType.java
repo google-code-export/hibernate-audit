@@ -11,6 +11,8 @@ package com.googlecode.hibernate.audit.delta;
  */
 public enum ChangeType
 {
+    // Comparator aspect of this enumeration is used, so order matters!
+    
     INSERT,
     UPDATE,
     DELETE

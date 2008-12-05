@@ -9,6 +9,7 @@ import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
 import com.googlecode.hibernate.audit.test.post_insert.data.B;
+import com.googlecode.hibernate.audit.test.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.TransactionFilter;
 import com.googlecode.hibernate.audit.LogicalGroupProvider;
@@ -54,9 +55,10 @@ public class TransactionFilterTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
         config.addAnnotatedClass(B.class);
+        config.addAnnotatedClass(C.class);
         SessionFactoryImplementor sf = null;
 
-        final Long currentLG = new Long(7);
+        final Long currentLGId = new Long(7);
 
         try
         {
@@ -70,7 +72,7 @@ public class TransactionFilterTest extends JTATransactionTest
                                                     Object entity)
                 {
                     // constant logical group
-                    return new LogicalGroupImpl(currentLG, "constant_" + currentLG);
+                    return new LogicalGroupImpl(currentLGId, C.class.getName());
                 }
             });
 
@@ -83,10 +85,10 @@ public class TransactionFilterTest extends JTATransactionTest
             s.save(a);
             s.getTransaction().commit();
 
-            TransactionFilter f =
-                new TransactionFilter(new Date(0), new Date(Long.MAX_VALUE));
+            TransactionFilter f = new TransactionFilter(new Date(0), new Date(Long.MAX_VALUE));
 
-            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
+            LogicalGroup lg = new LogicalGroupImpl(currentLGId, C.class.getName());
+            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(lg, f);
             assert txs.size() == 1;
             AuditTransaction tx = txs.get(0);
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
@@ -309,9 +311,10 @@ public class TransactionFilterTest extends JTATransactionTest
         config.configure(getHibernateConfigurationFileName());
         config.addAnnotatedClass(A.class);
         config.addAnnotatedClass(B.class);
+        config.addAnnotatedClass(C.class);
         SessionFactoryImplementor sf = null;
 
-        final Long currentLG = new Long(7);
+        final Long currentLGId = new Long(7);
 
         try
         {
@@ -325,7 +328,7 @@ public class TransactionFilterTest extends JTATransactionTest
                                                       Object entity)
                 {
                     // constant logical group
-                    return new LogicalGroupImpl(currentLG, "constant_" + currentLG);
+                    return new LogicalGroupImpl(currentLGId, C.class.getName());
                 }
             });
 
@@ -355,7 +358,8 @@ public class TransactionFilterTest extends JTATransactionTest
             TransactionFilter f =
                 new TransactionFilter(null, null, null, new Long(3857398753l), null);
 
-            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(currentLG, f);
+            LogicalGroup lg = new LogicalGroupImpl(currentLGId, C.class.getName());
+            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(lg, f);
             assert txs.isEmpty();
         }
         finally

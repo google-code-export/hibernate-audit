@@ -15,26 +15,26 @@ public class LogicalGroupImpl implements LogicalGroup
     // Attributes ----------------------------------------------------------------------------------
 
     private Long id;
-    private String type;
+    private String entityName;
 
     // Constructors --------------------------------------------------------------------------------
 
-    public LogicalGroupImpl(Long id, String type)
+    public LogicalGroupImpl(Long id, String entityName)
     {
         this.id = id;
-        this.type = type;
+        this.entityName = entityName;
     }
 
     // LogicalGroup implementation -----------------------------------------------------------------
 
-    public Long getId()
+    public Long getLogicalGroupId()
     {
         return id;
     }
 
-    public String getType()
+    public String getDefiningEntityName()
     {
-        return type;
+        return entityName;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -57,20 +57,27 @@ public class LogicalGroupImpl implements LogicalGroup
             return false;
         }
 
-        if (type == null)
+        if (entityName == null)
         {
             return false;
         }
 
         LogicalGroupImpl that = (LogicalGroupImpl)o;
 
-        return id.equals(that.id) && type.equals(that.type);
+        return id.equals(that.id) && entityName.equals(that.entityName);
     }
 
     @Override
     public int hashCode()
     {
-        return (id == null ? 0 : id.hashCode()) + 37 * (type == null ? 0 : type.hashCode());
+        return (id == null ? 0 : id.hashCode()) +
+                37 * (entityName == null ? 0 : entityName.hashCode());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "LogicalGroup[" + entityName + "[" + id + "]]";
     }
 
     // Package protected ---------------------------------------------------------------------------

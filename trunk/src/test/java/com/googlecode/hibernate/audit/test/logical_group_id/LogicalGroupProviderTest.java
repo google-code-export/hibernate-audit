@@ -8,6 +8,7 @@ import org.hibernate.event.EventSource;
 import org.hibernate.cfg.AnnotationConfiguration;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.logical_group_id.data.A;
+import com.googlecode.hibernate.audit.test.logical_group_id.data.B;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.LogicalGroupProvider;
 import com.googlecode.hibernate.audit.RootProvider;
@@ -33,11 +34,11 @@ import java.io.Serializable;
  * $Id$
  */
 @Test(sequential = true)
-public class LogicalGroupIdProviderTest extends JTATransactionTest
+public class LogicalGroupProviderTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
 
-    private static final Logger log = Logger.getLogger(LogicalGroupIdProviderTest.class);
+    private static final Logger log = Logger.getLogger(LogicalGroupProviderTest.class);
 
     // Static --------------------------------------------------------------------------------------
 
@@ -120,7 +121,7 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
                                                     Serializable id,
                                                     Object entity)
                 {
-                    return new LogicalGroupImpl(new Long(random), "constant_" + random);
+                    return new LogicalGroupImpl(new Long(random), A.class.getName());
                 }
             };
 
@@ -155,8 +156,8 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
                 for(AuditEvent e: atx.getEvents())
                 {
                     AuditLogicalGroup alg = e.getLogicalGroup();
-                    assert new Long(random).equals(alg.getId());
-                    assert ("constant_" + random).equals(alg.getType());
+                    assert new Long(random).equals(alg.getLogicalGroupId());
+                    assert A.class.getName().equals(alg.getDefiningEntityName());
                 }
             }
         }
@@ -176,7 +177,8 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
     {
         try
         {
-            HibernateAudit.getLatestTransactionForLogicalGroup("doesn't matter");
+            HibernateAudit.getLatestTransactionForLogicalGroup(
+                    new LogicalGroupImpl(new Long(0), "doesn't matter"));
             throw new Error("should have failed");
         }
         catch(IllegalStateException e)
@@ -190,14 +192,17 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
         config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(B.class);
         SessionFactoryImplementor sf = null;
 
         try
         {
             sf = (SessionFactoryImplementor)config.buildSessionFactory();
             HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
 
-            assert null == HibernateAudit.getLatestTransactionForLogicalGroup("doesn't matter");
+            assert null == HibernateAudit.getLatestTransactionForLogicalGroup(
+                    new LogicalGroupImpl(new Long(0), B.class.getName()));
         }
         finally
         {
@@ -236,7 +241,8 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
 
-            assert null == HibernateAudit.getLatestTransactionForLogicalGroup("doesn't matter");
+            assert null == HibernateAudit.getLatestTransactionForLogicalGroup(
+                    new LogicalGroupImpl(new Long(0), A.class.getName()));
         }
         finally
         {
@@ -277,13 +283,14 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             List<AuditTransaction> txs = HibernateAudit.getTransactions();
             assert txs.size() == 1;
 
-            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+            LogicalGroup lg = new LogicalGroupImpl(a.getId(), A.class.getName());
+            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(lg);
 
             for(AuditEvent e: tx.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getId());
-                assert A.class.getName().equals(alg.getType());
+                assert a.getId().equals(alg.getLogicalGroupId());
+                assert A.class.getName().equals(alg.getDefiningEntityName());
             }
         }
         finally
@@ -326,13 +333,14 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             assert txs.size() == 1;
             AuditTransaction tx1 = txs.get(0);
 
-            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+            LogicalGroup lg = new LogicalGroupImpl(a.getId(), A.class.getName());
+            AuditTransaction tx = HibernateAudit.getLatestTransactionForLogicalGroup(lg);
 
             for(AuditEvent e: tx.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getId());
-                assert A.class.getName().equals(alg.getType());
+                assert a.getId().equals(alg.getLogicalGroupId());
+                assert A.class.getName().equals(alg.getDefiningEntityName());
             }
 
             s = sf.openSession();
@@ -352,14 +360,14 @@ public class LogicalGroupIdProviderTest extends JTATransactionTest
             assert tx1.getId().equals(txs.get(0).getId());
             AuditTransaction tx2 = txs.get(1);
 
-            tx = HibernateAudit.getLatestTransactionForLogicalGroup(a.getId());
+            tx = HibernateAudit.getLatestTransactionForLogicalGroup(lg);
             assert tx2.getId().equals(tx.getId());
 
             for(AuditEvent e: tx2.getEvents())
             {
                 AuditLogicalGroup alg = e.getLogicalGroup();
-                assert a.getId().equals(alg.getId());
-                assert A.class.getName().equals(alg.getType());
+                assert a.getId().equals(alg.getLogicalGroupId());
+                assert A.class.getName().equals(alg.getDefiningEntityName());
             }
         }
         finally

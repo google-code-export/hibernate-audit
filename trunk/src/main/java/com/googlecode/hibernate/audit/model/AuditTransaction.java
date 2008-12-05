@@ -24,6 +24,8 @@ import javax.persistence.FetchType;
 import javax.transaction.Synchronization;
 import java.util.Date;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 import java.security.Principal;
 
 /**
@@ -47,6 +49,15 @@ public class AuditTransaction implements Synchronization
     private static final Logger log = Logger.getLogger(AuditTransaction.class);
     private static final boolean traceEnabled = log.isDebugEnabled();
 
+    private static final Comparator<AuditEvent> insertFirstEventComparator =
+       new Comparator<AuditEvent>()
+       {
+           public int compare(AuditEvent ae1, AuditEvent ae2)
+           {
+               return ae1.getType().compareTo(ae2.getType());
+           }
+       };
+
     // Attributes ----------------------------------------------------------------------------------
 
     @Id
@@ -62,9 +73,14 @@ public class AuditTransaction implements Synchronization
     @Column(name = "TRANSACTION_USER")
     private String user;
 
-    // the events are stored in the order they were initially logged in the database. TODO implement this
+    // the events are stored in the order they were initially logged in the database.
+    // TODO implement this, 'sorted' hack used until a correct solution is implemented
     @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY)
     private List<AuditEvent> events;
+
+    // TODO hack, see above
+    @Transient
+    private boolean sorted;
 
     /**
      * The originating Hibernate transaction. Can be a JDBCTransaction or a JTATransaction.
@@ -110,6 +126,8 @@ public class AuditTransaction implements Synchronization
         if (traceEnabled) { log.debug(this + " registering itself as synchronization on " + this.hibernateTransaction); }
 
         this.hibernateTransaction.registerSynchronization(this);
+
+        this.sorted = false;
     }
 
     // Synchronization implementation --------------------------------------------------------------
@@ -182,10 +200,17 @@ public class AuditTransaction implements Synchronization
 
     /**
      * The events are returned in the order they were initially logged in the database.
-     * TODO: ordering is not implemented yet.
+     * TODO: ordering is not implemented yet, 'sorted' hack used until a correct implementation
      */
     public List<AuditEvent> getEvents()
     {
+        if (!sorted)
+        {
+            sorted = true;
+            // make sure the "INSERT" events come first
+            Collections.sort(events, insertFirstEventComparator);
+        }
+
         return events;
     }
 

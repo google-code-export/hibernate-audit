@@ -14,6 +14,7 @@ import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditTypeField;
+import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -44,7 +45,7 @@ public class EntitiesTest
     {
         Set<Class> entities = Entities.getAuditEntities();
 
-        assert entities.size() == 8;
+        assert entities.size() == 9;
 
         assert entities.contains(AuditCollectionType.class);
         assert entities.contains(AuditEntityType.class);
@@ -54,6 +55,7 @@ public class EntitiesTest
         assert entities.contains(AuditTransaction.class);
         assert entities.contains(AuditType.class);
         assert entities.contains(AuditTypeField.class);
+        assert entities.contains(AuditLogicalGroup.class);
 
         log.debug("done");
     }

@@ -15,6 +15,8 @@ import com.googlecode.hibernate.audit.test.delta.data.C;
 import com.googlecode.hibernate.audit.delta_deprecated.DeltaEngine;
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.RootProvider;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
+import com.googlecode.hibernate.audit.LogicalGroup;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
 import com.googlecode.hibernate.audit.delta.EntityDelta;
 import com.googlecode.hibernate.audit.delta.CollectionDelta;
@@ -612,7 +614,8 @@ public class DeltaEngineTest extends JTATransactionTest
             s.save(c);
             s.getTransaction().commit();
 
-            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            LogicalGroup clg = new LogicalGroupImpl(c.getId(), C.class.getName());
+            List<AuditTransaction> txs = HibernateAudit.getTransactionsByLogicalGroup(clg);
             assert txs.size() == 1;
             AuditTransaction tx = txs.get(0);
 
@@ -658,7 +661,7 @@ public class DeltaEngineTest extends JTATransactionTest
 
             s.getTransaction().commit();
 
-            txs = HibernateAudit.getTransactionsByLogicalGroup(c.getId());
+            txs = HibernateAudit.getTransactionsByLogicalGroup(clg);
             assert txs.size() == 2;
             tx = txs.get(1);
 

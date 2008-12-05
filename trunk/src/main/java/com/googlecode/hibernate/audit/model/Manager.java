@@ -235,10 +235,12 @@ public class Manager
      *        will persisted in the database. This is alright if you don't need logical grouping
      *        of entities.
      *
-     * @param as - may be null, in which case the framework decides whether to log or not based on annotations.
+     * @param as - may be null, in which case the framework decides whether to log or not based on
+     *        annotations.
      */
-    public synchronized void register(SessionFactoryImplementor asfi, LogicalGroupProvider lgip, AuditSelector as)
-        throws Exception
+    public synchronized void register(SessionFactoryImplementor asfi,
+                                      LogicalGroupProvider lgip,
+                                      AuditSelector as) throws Exception
     {
         if (!(asfi instanceof SessionFactoryImpl))
         {
@@ -298,7 +300,9 @@ public class Manager
         }
 
         installAuditListeners(asf);
-        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip, as));
+
+        LogicalGroupCache lgc = new LogicalGroupCache(isf, typeCache, asf);
+        sessionFactoryHolders.put(asf, new SessionFactoryHolder(asf, lgip, lgc, as));
     }
 
     public synchronized boolean unregister(SessionFactory sf) throws Exception
@@ -323,6 +327,9 @@ public class Manager
         uninstallAuditListeners(sfi);
         sfh.sessionFactory = null;
         sfh.logicalGroupProvider = null;
+        sfh.logicalGroupCache.clear();
+        sfh.logicalGroupCache = null;
+
         return true;
     }
 
@@ -427,6 +434,21 @@ public class Manager
     }
 
     /**
+     * May return null, if audited session factory is unknown.
+     */
+    public LogicalGroupCache getLogicalGroupCache(SessionFactoryImpl asf)
+    {
+        SessionFactoryHolder sfh = sessionFactoryHolders.get(asf);
+
+        if (sfh == null)
+        {
+            return null;
+        }
+
+        return sfh.logicalGroupCache;
+    }
+
+    /**
      * May return a disabled WriteCollisionDetector, but never null.
      */
     public WriteCollisionDetector getWriteCollisionDetector()
@@ -479,7 +501,7 @@ public class Manager
         }
         finally
         {
-            if (leaveSessionOpen)
+            if (leaveSessionOpen && queryResult != null)
             {
                 queryResult.setSession(s);
             }
@@ -553,7 +575,10 @@ public class Manager
                 else if (ChangeType.INSERT.equals(ct))
                 {
                     // 'INSERT' always overwrites an 'UPDATE' as event type
-                    ed.setChangeType(ChangeType.INSERT);
+                    if (ChangeType.UPDATE.equals(ed.getChangeType()))
+                    {
+                        ed.setChangeType(ChangeType.INSERT);
+                    }
                 }
 
                 List<AuditEventPair> pairs = ae.getPairs();
@@ -718,6 +743,7 @@ public class Manager
      * @return null if it cannot figure it out.
      */
     public AuditLogicalGroup getLogicalGroup(EventSource es, Serializable id, Object entity)
+            throws Exception
     {
         SessionFactoryImpl sf = (SessionFactoryImpl)es.getSessionFactory();
         SessionFactoryHolder sfh = sessionFactoryHolders.get(sf);
@@ -735,12 +761,7 @@ public class Manager
             return null;
         }
 
-        // TODO wrap it into an AuditLogicalGroup, using the write-once cache most likely https://jira.novaordis.org/browse/HBA-178
-        // This implememntation is broken, will produce duplicates in the database
-        AuditLogicalGroup alg = new AuditLogicalGroup();
-        alg.setId(lg.getId());
-        alg.setType(lg.getType());
-        return alg;
+        return sfh.logicalGroupCache.getLogicalGroup(lg);
     }
 
     /**
@@ -905,14 +926,17 @@ public class Manager
     {
         SessionFactoryImpl sessionFactory;
         LogicalGroupProvider logicalGroupProvider;
+        LogicalGroupCache logicalGroupCache;
         AuditSelector auditSelector;
 
         SessionFactoryHolder(SessionFactoryImpl sessionFactory,
                              LogicalGroupProvider logicalGroupProvider,
+                             LogicalGroupCache logicalGroupCache,
                              AuditSelector auditSelector)
         {
             this.sessionFactory = sessionFactory;
             this.logicalGroupProvider = logicalGroupProvider;
+            this.logicalGroupCache = logicalGroupCache;
             this.auditSelector = auditSelector;
         }
     }

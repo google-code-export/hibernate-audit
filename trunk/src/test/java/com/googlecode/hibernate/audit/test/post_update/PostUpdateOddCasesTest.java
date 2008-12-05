@@ -1,7 +1,6 @@
 package com.googlecode.hibernate.audit.test.post_update;
 
 import org.testng.annotations.Test;
-import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
@@ -33,8 +32,6 @@ import java.util.Set;
 public class PostUpdateOddCasesTest extends JTATransactionTest
 {
     // Constants -----------------------------------------------------------------------------------
-
-    private static final Logger log = Logger.getLogger(PostUpdateOddCasesTest.class);
 
     // Static --------------------------------------------------------------------------------------
 

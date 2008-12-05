@@ -19,6 +19,8 @@ import com.googlecode.hibernate.audit.model.AuditTypeField;
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.AuditEventPair;
 import com.googlecode.hibernate.audit.model.QueryResult;
+import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
+import com.googlecode.hibernate.audit.model.LogicalGroupCache;
 import com.googlecode.hibernate.audit.util.Reflections;
 import com.googlecode.hibernate.audit.util.Hibernate;
 import com.googlecode.hibernate.audit.delta.TransactionDelta;
@@ -439,10 +441,10 @@ public final class HibernateAudit
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group.
      */
-    public static List<AuditTransaction> getTransactionsByLogicalGroup(Serializable lgId)
+    public static List<AuditTransaction> getTransactionsByLogicalGroup(LogicalGroup lg)
         throws Exception
     {
-        return getTransactionsByLogicalGroup(lgId, null);
+        return getTransactionsByLogicalGroup(lg, null);
     }
 
     /**
@@ -455,7 +457,7 @@ public final class HibernateAudit
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group, satisfying the filter.
      */
-    public static List<AuditTransaction> getTransactionsByLogicalGroup(Serializable lgId,
+    public static List<AuditTransaction> getTransactionsByLogicalGroup(LogicalGroup lg,
                                                                        TransactionFilter filter)
         throws Exception
     {
@@ -482,6 +484,23 @@ public final class HibernateAudit
 
         try
         {
+            // TODO LGSVT
+            // use the logical group cache
+
+            // TODO we assume there's a single registered audited session factory
+            Set<SessionFactoryImpl> asfs = m.getAuditedSessionFactories();
+            if (asfs.size() != 1)
+            {
+                throw new RuntimeException("NOT YET IMPLEMENTED");
+            }
+
+            LogicalGroupCache lgc = m.getLogicalGroupCache(asfs.iterator().next());
+            AuditLogicalGroup alg = lgc.getLogicalGroup(lg, false);
+
+            if (alg == null)
+            {
+                return Collections.emptyList();
+            }
 
             if (entityTypeId == null)
             {
@@ -489,10 +508,10 @@ public final class HibernateAudit
                     "from AuditTransaction as t where " +
                     "t.timestamp >= :from and " +
                     "t.timestamp <= :to and " +
-                    "t in (select transaction from AuditEvent where logicalGroupId = :lgId ) " +
+                    "t in (select transaction from AuditEvent where logicalGroup = :alg ) " +
                     "order by t.id";
 
-                qr = m.query(qs, true, from, to, lgId);
+                qr = m.query(qs, true, from, to, alg);
                 return qr.getResult();
             }
             else
@@ -502,10 +521,10 @@ public final class HibernateAudit
                     "e.transaction = tx and " +
                     "e.targetType = t and " +
                     "t.id = :entityTypeId and " +
-                    "e.logicalGroupId = :lgId " +
+                    "e.logicalGroup = :alg " +
                     "order by tx.id";
 
-                qr = m.query(qs, true, lgId, entityTypeId);
+                qr = m.query(qs, true, entityTypeId, alg);
 
                 List result = qr.getResult();
 
@@ -561,7 +580,7 @@ public final class HibernateAudit
      *
      * @exception IllegalStateException if the audit runtime was not started.
      */
-    public static AuditTransaction getLatestTransactionForLogicalGroup(Serializable lgId)
+    public static AuditTransaction getLatestTransactionForLogicalGroup(LogicalGroup lg)
         throws Exception
     {
         Manager m = getManagerOrFail();
@@ -570,13 +589,33 @@ public final class HibernateAudit
 
         try
         {
+            // TODO AGZ
+
+            // we assume there's only one audites session factory, this is WRONG
+            Set<SessionFactoryImpl> asfs = m.getAuditedSessionFactories();
+            EntityPersister ep =
+                    asfs.iterator().next().getEntityPersister(lg.getDefiningEntityName());
+            Class ec = ep.getMappedClass(EntityMode.POJO);
+            Class idc = ep.getIdentifierType().getReturnedClass();
+            AuditType lgat = m.getTypeCache().getAuditEntityType(idc, ec, false);
+
+            if (lgat == null)
+            {
+                // unknown logical group
+                return null;
+            }
+
+            // end of TODO AGZ
+
             String qs =
                 "from AuditTransaction " +
                 " where id = " +
                 " ( select max(e.transaction.id) from AuditEvent as e " +
-                "   where e.logicalGroupId = :lgId )";
+                "   where e.logicalGroup = " +
+                "         ( from AuditLogicalGroup as alg " +
+                "           where alg.externalId = :lgid and alg.auditType = :lgat ) )";
 
-            qr = m.query(qs, true, lgId);
+            qr = m.query(qs, true, lg.getLogicalGroupId(), lgat);
             List result = qr.getResult();
 
             if (result.isEmpty())
