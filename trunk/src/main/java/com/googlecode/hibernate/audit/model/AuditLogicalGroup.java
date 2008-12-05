@@ -55,7 +55,7 @@ public class AuditLogicalGroup implements LogicalGroup
                     generator = "audit-logical-group-seqhilo-generator")
     private Long internalId;
 
-    @Column(name = "LOGICAL_GROUP_EXTERNAL_ID", columnDefinition="NUMBER(30, 0)", nullable = false)
+    @Column(name = "EXTERNAL_ID", columnDefinition="NUMBER(30, 0)", nullable = false)
     private Long externalId;
 
     @ManyToOne(optional = false)
