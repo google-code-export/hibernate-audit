@@ -434,7 +434,10 @@ public final class HibernateAudit
     }
 
     /**
-     * Specialized query.
+     * Specialized query. It assumes there's only one audited session factory. If there are more
+     * then one, use
+     * getTransactionsByLogicalGroup(SessionFactory sf, LogicalGroup lg, TransactionFilter f),
+     * otherwise this method invocation will fall will a "not unique" runtime exception.
      *
      * TODO add tests.
      *
@@ -442,11 +445,38 @@ public final class HibernateAudit
      *
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group.
+     *
+     * @exception IllegalStateException if there are zero or more than one registered audited
+     *            session factories.
      */
     public static List<AuditTransaction> getTransactionsByLogicalGroup(LogicalGroup lg)
         throws Exception
     {
         return getTransactionsByLogicalGroup(lg, null);
+    }
+
+    /**
+     * Specialized query. It assumes there's only one audited session factory. If there are more
+     * then one, use
+     * getTransactionsByLogicalGroup(SessionFactory sf, LogicalGroup lg, TransactionFilter f),
+     * otherwise this method invocation will fall will a "not unique" runtime exception.
+     *
+     * TODO add tests.
+     *
+     * TODO - loads lazy relationships - potential performance hit.
+     *
+     * @return the list of transactions that have been applied to entities belonging to the
+     *         specified logical group, satisfying the filter.
+     *
+     * @exception IllegalStateException if there are zero or more than one registered audited
+     *            session factories.
+     */
+    public static List<AuditTransaction> getTransactionsByLogicalGroup(LogicalGroup lg,
+                                                                       TransactionFilter filter)
+        throws Exception
+    {
+        SessionFactoryImpl asf = getTheUniqueAuditedSessionFactory();
+        return getTransactionsByLogicalGroup(asf, lg, filter);
     }
 
     /**
@@ -456,10 +486,13 @@ public final class HibernateAudit
      *
      * TODO - loads lazy relationships - potential performance hit.
      *
+     * @param asf - the audited session factory to perform the query for.
+     *
      * @return the list of transactions that have been applied to entities belonging to the
      *         specified logical group, satisfying the filter.
      */
-    public static List<AuditTransaction> getTransactionsByLogicalGroup(LogicalGroup lg,
+    public static List<AuditTransaction> getTransactionsByLogicalGroup(SessionFactory asf,
+                                                                       LogicalGroup lg,
                                                                        TransactionFilter filter)
         throws Exception
     {
@@ -488,15 +521,7 @@ public final class HibernateAudit
         {
 
             // use the logical group cache
-
-            // TODO OASF - we assume there's a single registered audited session factory
-            Set<SessionFactoryImpl> asfs = m.getAuditedSessionFactories();
-            if (asfs.size() != 1)
-            {
-                throw new RuntimeException("NOT YET IMPLEMENTED");
-            }
-
-            LogicalGroupCache lgc = m.getLogicalGroupCache(asfs.iterator().next());
+            LogicalGroupCache lgc = m.getLogicalGroupCache((SessionFactoryImpl)asf);
             AuditLogicalGroup alg = lgc.getLogicalGroup(lg, false);
 
             if (alg == null)
@@ -577,12 +602,35 @@ public final class HibernateAudit
     }
 
     /**
+     * This invocation assumes there's only one audited session factory. If there are more
+     * then one, use
+     * getLatestTransactionForLogicalGroup(SessionFactory sf, LogicalGroup lg), otherwise the
+     * invocation will fall will a "not unique" runtime exception.
+     *
+     * @return the latest (most recent) recorded transaction for this specific logical group or
+     *         null if there's not such transaction.
+     *
+     * @exception IllegalStateException 1) if the audit runtime was not started. 2) if there are
+     *            zero or more than one registered audited session factories.
+
+     */
+    public static AuditTransaction getLatestTransactionForLogicalGroup(LogicalGroup lg)
+        throws Exception
+    {
+        SessionFactoryImpl asf = getTheUniqueAuditedSessionFactory();
+        return getLatestTransactionForLogicalGroup(asf, lg);
+    }
+
+    /**
+     * @param asf - the audited session factory to perform the query for.
+     *
      * @return the latest (most recent) recorded transaction for this specific logical group or
      *         null if there's not such transaction.
      *
      * @exception IllegalStateException if the audit runtime was not started.
      */
-    public static AuditTransaction getLatestTransactionForLogicalGroup(LogicalGroup lg)
+    public static AuditTransaction getLatestTransactionForLogicalGroup(SessionFactory asf,
+                                                                       LogicalGroup lg)
         throws Exception
     {
         Manager m = getManagerOrFail();
@@ -591,12 +639,7 @@ public final class HibernateAudit
 
         try
         {
-            // TODO OASF
-            // we assume there's only one audites session factory, this is WRONG
-            Set<SessionFactoryImpl> asfs = m.getAuditedSessionFactories();
-            SessionFactoryImpl asf = asfs.iterator().next();
-            LogicalGroupCache lgc = m.getLogicalGroupCache(asf);
-
+            LogicalGroupCache lgc = m.getLogicalGroupCache((SessionFactoryImpl)asf);
             AuditLogicalGroup alg = lgc.getLogicalGroup(lg, false);
 
             if (alg == null)
@@ -873,6 +916,26 @@ public final class HibernateAudit
         }
 
         return m;
+    }
+
+    /**
+     * @throws IllegalStateException if there are zero or more than one registered session
+     * factories.
+     */
+    private static SessionFactoryImpl getTheUniqueAuditedSessionFactory()
+    {
+        Manager m = getManagerOrFail();
+
+        Set<SessionFactoryImpl> asfs = m.getAuditedSessionFactories();
+
+        if (asfs.size() != 1)
+        {
+            throw new IllegalStateException(asfs.size() == 0 ?
+                "no audited session factories registered" :
+                "more than one audited session factory registered");
+        }
+
+        return asfs.iterator().next();
     }
 
     // Inner classes -------------------------------------------------------------------------------
