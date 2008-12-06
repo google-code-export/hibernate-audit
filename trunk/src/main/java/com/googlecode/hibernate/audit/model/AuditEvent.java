@@ -63,7 +63,7 @@ public class AuditEvent
     @ForeignKey(name = "FK_AUDIT_TRANSACTION_EVENT")
     private AuditTransaction transaction;
 
-    @Column(name = "EVENT_TYPE", nullable = false)
+    @Column(name = "EVENT_TYPE_NM", nullable = false)
     @Enumerated(EnumType.STRING)
     private ChangeType type;
 

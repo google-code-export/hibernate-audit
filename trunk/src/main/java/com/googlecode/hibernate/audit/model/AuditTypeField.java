@@ -54,10 +54,10 @@ public class AuditTypeField
     @ForeignKey(name = "FK_AUDIT_TYPE_FIELD")
     private AuditType type;
 
-    @Column(name = "FIELD_NAME", nullable = false)
+    @Column(name = "FIELD_NM", nullable = false)
     private String name;
 
-    @Column(name = "LABEL")
+    @Column(name = "LABEL_NM")
     private String label;
 
     // Constructors --------------------------------------------------------------------------------

@@ -42,7 +42,7 @@ import javax.persistence.DiscriminatorValue;
                       @Parameter(name = "max_lo", value = "10000")
                   })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "IS_COLLECTION", discriminatorType = DiscriminatorType.CHAR)
+@DiscriminatorColumn(name = "IS_COLLECTION_IND", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("N")
 public class AuditEventPair
 {
@@ -70,7 +70,7 @@ public class AuditEventPair
     @ForeignKey(name = "FK_AUDIT_TYPE_FIELD_EVNT_PAIR")
     private AuditTypeField field;
 
-    @Column(name = "STRING_VALUE", length=3000)
+    @Column(name = "STRING_VALUE_TXT", length=3000)
     private String stringValue;
 
     // Constructors --------------------------------------------------------------------------------
