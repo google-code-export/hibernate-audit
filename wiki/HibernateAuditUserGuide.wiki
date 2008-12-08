@@ -25,8 +25,11 @@ See https://jira.novaordis.org/browse/HBA-78
 
 HBA looks into environment for a certain number of properties during the initialization phase and uses the value of those properties to configure various aspects of its engine.
 
-The name of the properties HBA cares about starts with `"hba."`. 
+The name of the properties HBA cares about starts with `"hba."`. There are two categories of "hba." properties: properties that have corresponding Hibernate counterparts, and properties specific to HBA. 
 
+In case of a "hba." property that has a corresponding Hibernate counterpart, the value of the property will be used during the engine initialization to configure the internal Hibernate session factory.
+
+==Hibernate-specific Properties==
 
 {{{
 hbm.hbm2ddl.auto=validate|update|create|create-drop
