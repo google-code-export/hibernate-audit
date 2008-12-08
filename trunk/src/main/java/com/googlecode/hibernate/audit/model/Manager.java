@@ -198,8 +198,12 @@ public class Manager
 
         if (asettf.isWriteCollisionDetectionEnable())
         {
-            getWriteCollisionDetector().setWriteCollisionDetectionEnabled(true);
+            writeCollisionDetector.setWriteCollisionDetectionEnabled(true);
         }
+
+        log.debug("HBA write collision detection is " +
+            (writeCollisionDetector.isWriteCollisionDetectionEnabled() ?
+            "enabled" : "disabled"));
 
         log.debug(this + " started");
     }
