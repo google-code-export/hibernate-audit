@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
 
 /**
  * The main programmatic entry point. This class allows turning audit on/off at runtime, and various
@@ -335,6 +336,9 @@ public final class HibernateAudit
     /**
      * A general purpose query facility. Understands HQL. Does close the query session on exit
      * so it cannot be used to explore lazily loaded relationships.
+     *
+     * Note: If you want to pass the argument as a timestamp, use a java.sql.Timestamp instance. If
+     *       you pass a Date instance, the result of the query will be most likely compromised. 
      */
     public static List query(String query, Object... args) throws Exception
     {
@@ -499,21 +503,21 @@ public final class HibernateAudit
 
         Manager m = getManagerOrFail();
 
-        Date from = null;
-        Date to = null;
         String user = null;
+        Date toDate = null;
+        Date fromDate = null;
         Long entityTypeId = null;
 
         if (filter != null)
         {
-            from = filter.getFromDate();
-            to = filter.getToDate();
+            toDate = filter.getToDate();
+            fromDate = filter.getFromDate();
             user = filter.getUser();
             entityTypeId = filter.getAuditEntityTypeId();
         }
 
-        from = from == null ? new Date(0) : from;
-        to = to == null ? new Date(Long.MAX_VALUE) : to;
+        Timestamp from = new Timestamp(fromDate == null ? 0 : fromDate.getTime());
+        Timestamp to = new Timestamp(toDate == null ? Long.MAX_VALUE : toDate.getTime());        
 
         QueryResult qr = null;
 

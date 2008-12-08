@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Query;
 import org.hibernate.event.EventSource;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.post_insert.data.A;
@@ -23,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 /**
  *@author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -48,7 +51,7 @@ public class TransactionFilterTest extends JTATransactionTest
 
     // Public --------------------------------------------------------------------------------------
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFilterDate() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();
@@ -143,6 +146,7 @@ public class TransactionFilterTest extends JTATransactionTest
             });
 
             Date t1 = new Date();
+
             Thread.sleep(1000);
 
             Session s = sf.openSession();
@@ -157,7 +161,9 @@ public class TransactionFilterTest extends JTATransactionTest
             s.getTransaction().commit();
 
             Thread.sleep(1000);
+
             Date t2 = new Date();
+
             Thread.sleep(1000);
 
             s.beginTransaction();
@@ -171,7 +177,9 @@ public class TransactionFilterTest extends JTATransactionTest
             s.getTransaction().commit();
 
             Thread.sleep(1000);
+
             Date t3 = new Date();
+            
             Thread.sleep(1000);
 
             // test (infinty - t1]
@@ -183,10 +191,39 @@ public class TransactionFilterTest extends JTATransactionTest
 
             // test (infinty - t2]
 
+            // "raw" test, left here since debugging https://jira.novaordis.org/browse/HBA-143
+            // This works:
+            // SELECT AUDIT_TRANSACTION_ID FROM AUDIT_TRANSACTION WHERE TRANSACTION_TMSTP >= TO_TIMESTAMP('31-DEC-69 04:00.00.000000 AM') AND TRANSACTION_TMSTP <= TO_TIMESTAMP('08-DEC-08 12:46:00.000000 PM');
+
+            Date infinity = new Date(0);
+
+            SessionFactory isf = HibernateAudit.getManager().getSessionFactory();
+            Session is = isf.openSession();
+            is.beginTransaction();
+            Query q = is.createQuery(
+                "from AuditTransaction as t where t.timestamp >= ? and t.timestamp <= ? ");
+            q.setTimestamp(0, new Timestamp(infinity.getTime()));
+            q.setTimestamp(1, new Timestamp(t2.getTime()));
+            List qresult = q.list();
+            is.getTransaction().commit();
+
+            assert qresult.size() == 1;
+
+            qresult = HibernateAudit.query(
+                "from AuditTransaction as t where t.timestamp >= :from and t.timestamp <= :to",
+                new Timestamp(infinity.getTime()), new Timestamp(t2.getTime()));
+
+            log.debug("t1: " + infinity);
+            log.debug("t2: " + t2);
+
+            assert qresult.size() == 1;
+
             f = new TransactionFilter(null, t2);
 
             txs = HibernateAudit.getTransactionsByLogicalGroup(lg, f);
+
             assert txs.size() == 1;
+
             AuditTransaction tx = txs.get(0);
             TransactionDelta td = HibernateAudit.getDelta(tx.getId());
             Set<EntityDelta> eds = td.getEntityDeltas();
@@ -300,13 +337,13 @@ public class TransactionFilterTest extends JTATransactionTest
         }
     }
 
-//    @Test(enabled = false) TODO https://jira.novaordis.org/browse/HBA-144
+//    @Test(enabled = true) TODO https://jira.novaordis.org/browse/HBA-144
 //    public void testFilterUser() throws Exception
 //    {
 //        throw new NotYetImplementedException();
 //    }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testFilterAuditEntityTypeId() throws Exception
     {
         AnnotationConfiguration config = new AnnotationConfiguration();

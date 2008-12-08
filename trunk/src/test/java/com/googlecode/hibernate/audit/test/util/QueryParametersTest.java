@@ -8,6 +8,7 @@ import com.googlecode.hibernate.audit.util.QueryParameter;
 
 import java.util.List;
 import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
@@ -293,6 +294,26 @@ public class QueryParametersTest
         assert p.isNamed();
         assert "b".equals(p.getName());
         assert 2 == p.getPosition();
+    }
+
+    @Test(enabled = true)
+    public void testFillTimestamp() throws Exception
+    {
+        Query q = MockQuery.newInstance("something :?");
+        QueryParameters.fill(q, new Timestamp(111));
+
+        List<InvocationRecord> history = ((InvocationHistory)q).getHistory();
+        assert history.size() == 1;
+
+        InvocationRecord r = history.get(0);
+
+        assert "setParameter".equals(r.getMethodName());
+        Object[] args = r.getArguments();
+
+        assert args.length == 2;
+
+        assert "?".equals(args[0]);
+        assert new Timestamp(111).equals(args[1]);
     }
 
     // Package protected ---------------------------------------------------------------------------
