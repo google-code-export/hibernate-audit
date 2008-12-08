@@ -203,7 +203,7 @@ public class Manager
 
         log.debug("HBA write collision detection is " +
             (writeCollisionDetector.isWriteCollisionDetectionEnabled() ?
-            "enabled" : "disabled"));
+            "ENABLED" : "DISABLED"));
 
         log.debug(this + " started");
     }

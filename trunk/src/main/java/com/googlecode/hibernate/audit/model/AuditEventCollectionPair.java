@@ -36,7 +36,7 @@ public class AuditEventCollectionPair extends AuditEventPair
     @CollectionOfElements(fetch = FetchType.EAGER) // TODO https://jira.novaordis.org/browse/HBA-68
     @JoinTable(name = "AUDIT_EVENT_PAIR_COLLECTION",
                joinColumns = @JoinColumn(name = "AUDIT_EVENT_PAIR_ID"))
-    @Column(name = "COLLECTION_ENTITY_ID", nullable = false)
+    @Column(name = "COLLECTION_ENTITY_ID", nullable = false, columnDefinition="NUMBER(30, 0)")
     @ForeignKey(name = "FK_AUDIT_EVENT_PAIR_COLLECTION")
     private List<Long> ids;
 

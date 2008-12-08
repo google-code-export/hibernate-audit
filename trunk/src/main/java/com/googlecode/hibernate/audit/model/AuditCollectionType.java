@@ -29,7 +29,7 @@ public class AuditCollectionType extends AuditType
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Column(name = "COLLECTION_CLASS_NM")
+    @Column(name = "COLLECTION_CLASS_NAME")
     private String collectionClassName;
 
     @Transient

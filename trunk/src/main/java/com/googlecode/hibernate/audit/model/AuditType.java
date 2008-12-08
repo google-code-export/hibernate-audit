@@ -44,7 +44,7 @@ import java.math.BigDecimal;
                       @Parameter(name = "sequence", value = "AUDIT_TYPE_SEQ"),
                       @Parameter(name = "max_lo", value = "1000")
                   })
-@DiscriminatorColumn(name = "DTYPE_CD", discriminatorType = DiscriminatorType.CHAR)
+@DiscriminatorColumn(name = "DTYPE_CODE", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("P")
 //@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class AuditType
@@ -69,10 +69,10 @@ public class AuditType
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit-type-seqhilo-generator")
     private Long id;
 
-    @Column(name = "CLASS_NM", nullable = false)
+    @Column(name = "CLASS_NAME", nullable = false)
     private String className;
 
-    @Column(name = "LABEL_NM")
+    @Column(name = "LABEL_NAME")
     private String label;
 
     @Transient

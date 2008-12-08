@@ -61,7 +61,7 @@ public class AuditLogicalGroup implements LogicalGroup
     @ManyToOne(optional = false)
     @Cascade(CascadeType.SAVE_UPDATE)
     @JoinColumn(name = "AUDIT_TYPE_ID")
-    @ForeignKey(name = "FK_AUDIT_TYPE_LOGICAL_GROUP")
+    @ForeignKey(name = "FK_AUDIT_TYPE_LOGICAL_GRP")
     private AuditType auditType;
 
     @Transient

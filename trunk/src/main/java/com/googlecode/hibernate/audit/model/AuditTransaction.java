@@ -70,7 +70,7 @@ public class AuditTransaction implements Synchronization
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
 
-    @Column(name = "TRANSACTION_USER_NM")
+    @Column(name = "TRANSACTION_USER_NAME")
     private String user;
 
     // the events are stored in the order they were initially logged in the database.

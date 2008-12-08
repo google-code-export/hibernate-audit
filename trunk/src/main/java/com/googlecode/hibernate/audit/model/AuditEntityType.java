@@ -29,7 +29,7 @@ public class AuditEntityType extends AuditType
 
     // Attributes ----------------------------------------------------------------------------------
 
-    @Column(name = "ENTITY_ID_CLASS_NN")
+    @Column(name = "ENTITY_ID_CLASS_NAME")
     private String idClassName;
 
     @Transient
