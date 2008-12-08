@@ -29,17 +29,32 @@ The name of the properties HBA cares about starts with `"hba."`. There are two c
 
 In case of a "hba." property that has a corresponding Hibernate counterpart, the value of the property will be used during the engine initialization to configure the internal Hibernate session factory.
 
-==Hibernate-specific Properties==
+==Hibernate-Specific Properties==
 
 ===`hbm.hbm2ddl.auto`===
+
+
+`hbm.hbm2ddl.auto` controls automatic audit schema creation. Has the same meaning as "hibernate.hbm2ddl.auto", but applied to the internal audit tables. 
 
 {{{
 hbm.hbm2ddl.auto=validate|update|create|create-drop
 }}}
 
-controls automatic audit schema creation. Has the same meaning as "hibernate.hbm2ddl.auto", but applied to the internal audit tables. 
 
 Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), so all audit information will be lost.
+
+==HBA-Specific Properties==
+
+===`hbm.write.collision.detection.enable`===
+
+`hbm.write.collision.detection.enable` enables HBA-based write collision detection mechanism.
+
+{{{
+hbm.write.collision.detection.enable=true
+}}}
+
+By default, write collision detection is disabled.
+
 
 
 =Implementation Details=
