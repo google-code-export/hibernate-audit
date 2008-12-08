@@ -53,7 +53,7 @@ Be aware that using "create-drop" will cause automatic dropping of audit tables 
 hbm.write.collision.detection.enable=true
 }}}
 
-By default, write collision detection is disabled.
+By default, write collision detection is disabled. If property is set, the engine must go through a start-up cycle for the change to take effect.
 
 
 
