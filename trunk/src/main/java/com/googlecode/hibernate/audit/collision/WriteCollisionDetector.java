@@ -20,7 +20,7 @@ public class WriteCollisionDetector
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(WriteCollisionDetector.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ public class WriteCollisionDetector
     {
         if (!enabled)
         {
-            if (traceEnabled) { log.debug("write collision detection disabled"); }
+            if (traceEnabled) { log.trace("write collision detection disabled"); }
             return;
         }
 

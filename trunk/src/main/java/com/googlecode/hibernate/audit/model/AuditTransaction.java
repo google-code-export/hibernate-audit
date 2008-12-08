@@ -47,7 +47,7 @@ public class AuditTransaction implements Synchronization
     // Static --------------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(AuditTransaction.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     private static final Comparator<AuditEvent> insertFirstEventComparator =
        new Comparator<AuditEvent>()
@@ -123,7 +123,7 @@ public class AuditTransaction implements Synchronization
         // if we're in a JTA environment and there's an active JTA transaction, we'll just enroll
         internalSession.beginTransaction();
 
-        if (traceEnabled) { log.debug(this + " registering itself as synchronization on " + this.hibernateTransaction); }
+        if (traceEnabled) { log.trace(this + " registering itself as synchronization on " + this.hibernateTransaction); }
 
         this.hibernateTransaction.registerSynchronization(this);
 
@@ -141,7 +141,7 @@ public class AuditTransaction implements Synchronization
         {
             internalSession.getTransaction().commit();
             
-            if (traceEnabled) { log.debug(this + " committed"); }
+            if (traceEnabled) { log.trace(this + " committed"); }
 
             internalSession.close();
             internalSession = null;
@@ -155,7 +155,7 @@ public class AuditTransaction implements Synchronization
 
     public void afterCompletion(int i)
     {
-        if (traceEnabled) { log.debug("after completion, commit status " + i); }
+        if (traceEnabled) { log.trace("after completion, commit status " + i); }
 
         // no matter what happens, disassociate myself from the thread
         Manager.setCurrentAuditTransaction(null);
@@ -229,7 +229,7 @@ public class AuditTransaction implements Synchronization
 
         internalSession.save(event);
 
-        if (traceEnabled) { log.debug(this + " logged " + event); }
+        if (traceEnabled) { log.trace(this + " logged " + event); }
     }
 
     /**
@@ -252,7 +252,7 @@ public class AuditTransaction implements Synchronization
 
         internalSession.save(pair);
 
-        if (traceEnabled) { log.debug(this + " logged " + pair); }
+        if (traceEnabled) { log.trace(this + " logged " + pair); }
     }
 
     /**

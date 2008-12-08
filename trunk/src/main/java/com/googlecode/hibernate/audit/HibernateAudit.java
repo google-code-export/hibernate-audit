@@ -931,7 +931,7 @@ public final class HibernateAudit
         if (asfs.size() != 1)
         {
             throw new IllegalStateException(asfs.size() == 0 ?
-                "no audited session factories registered" :
+                "no audited session factory registered" :
                 "more than one audited session factory registered");
         }
 

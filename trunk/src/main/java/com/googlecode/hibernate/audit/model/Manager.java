@@ -72,7 +72,7 @@ public class Manager
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(Manager.class);
-    private static final boolean traceEnabled = log.isDebugEnabled();
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -106,17 +106,17 @@ public class Manager
                 return;
             }
 
-            if (traceEnabled) { log.debug("disassociating " + crt + " from current thread " + Thread.currentThread()); }
+            if (traceEnabled) { log.trace("disassociating " + crt + " from current thread " + Thread.currentThread()); }
         }
         else if (traceEnabled)
         {
             if (crt == null)
             {
-                log.debug("associating " + at + " with current thread " + Thread.currentThread());
+                log.trace("associating " + at + " with current thread " + Thread.currentThread());
             }
             else
             {
-                log.debug("replacing " + crt + " with " + at + " on current thread " +
+                log.trace("replacing " + crt + " with " + at + " on current thread " +
                           Thread.currentThread());
             }
         }

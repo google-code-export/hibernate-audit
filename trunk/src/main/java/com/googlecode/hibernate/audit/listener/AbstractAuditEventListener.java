@@ -48,7 +48,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
     // Static --------------------------------------------------------------------------------------
 
-    private static final boolean traceEnabled = log.isDebugEnabled();
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
     // Attributes ----------------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
             }
 
             // calling from inside the try block, exceptions could be thrown even by this
-            if (traceEnabled) { log.debug(this + "." + methodName + "(" + event + ")"); }
+            if (traceEnabled) { log.trace(this + "." + methodName + "(" + event + ")"); }
 
             listenerTypeDependentLog(event);
 
@@ -204,7 +204,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         if (alg != null)
         {
-            if (traceEnabled) { log.debug("current logical group " + alg); }
+            if (traceEnabled) { log.trace("current logical group " + alg); }
             c.auditEvent.setLogicalGroup(alg);
         }
 
@@ -269,7 +269,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
 
         if (at != null)
         {
-            if (traceEnabled) { log.debug(this + " found existing audit transaction " + at + " associated with thread"); }
+            if (traceEnabled) { log.trace(this + " found existing audit transaction " + at + " associated with thread"); }
 
             // already logged
             Transaction prevht = at.getTransaction();
@@ -321,7 +321,7 @@ abstract class AbstractAuditEventListener implements AuditEventListener
         Principal p = m.getPrincipal();
         SessionFactory isf = m.getSessionFactory();
 
-        if (traceEnabled) { log.debug(this + " creating a new audit transaction instance"); }
+        if (traceEnabled) { log.trace(this + " creating a new audit transaction instance"); }
 
         at = new AuditTransaction(ht, p, isf);
         Manager.setCurrentAuditTransaction(at);
