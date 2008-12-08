@@ -3,7 +3,6 @@ package com.googlecode.hibernate.audit.model;
 import org.apache.log4j.Logger;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.cfg.Settings;
-import org.hibernate.cfg.SettingsFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.connection.ConnectionProvider;
@@ -165,8 +164,8 @@ public class Manager
     {
         log.debug(this + " starting ...");
 
-        SettingsFactory settf = new AuditSettingsFactory(settings);
-        ic = new AnnotationConfiguration(settf);
+        AuditSettingsFactory asettf = new AuditSettingsFactory(settings);
+        ic = new AnnotationConfiguration(asettf);
         installMappings(ic);
 
         try
@@ -182,6 +181,7 @@ public class Manager
             log.debug("Cannot instantiate a security information provider", e);
         }
 
+        // this is where AuditSettingsFactory.buildSettings() is called ...
         isf = (SessionFactoryImpl)ic.buildSessionFactory();
 
         typeCache = new TypeCache(isf);
@@ -194,6 +194,11 @@ public class Manager
         {
             log.warn("Exception propagation and automatic transaction rollback on audit failure " + 
                      " is suppressed! DO NOT USE THIS OPTION IN PRODUCTION!");
+        }
+
+        if (asettf.isWriteCollisionDetectionEnable())
+        {
+            getWriteCollisionDetector().setWriteCollisionDetectionEnabled(true);
         }
 
         log.debug(this + " started");
@@ -213,6 +218,9 @@ public class Manager
         {
             unregister(sf);
         }
+
+        writeCollisionDetector.setWriteCollisionDetectionEnabled(false);
+        writeCollisionDetector = null;
 
         settings = null;
         securityInformationProvider = null;

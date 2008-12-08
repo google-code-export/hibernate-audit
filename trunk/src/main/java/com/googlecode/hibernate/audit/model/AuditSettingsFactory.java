@@ -11,14 +11,12 @@ import org.apache.log4j.Logger;
 
 import java.util.Properties;
 import java.util.Set;
-import java.util.HashSet;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
 import com.googlecode.hibernate.audit.DelegateConnectionProvider;
 import com.googlecode.hibernate.audit.AuditEnvironment;
 import com.googlecode.hibernate.audit.HibernateAuditEnvironment;
 import com.googlecode.hibernate.audit.util.SyntheticTransactionManagerLookup;
+import com.googlecode.hibernate.audit.util.Hibernate;
 
 import javax.transaction.TransactionManager;
 
@@ -48,6 +46,11 @@ class AuditSettingsFactory extends SettingsFactory
     private Settings sourceSettings;
     private String userTransactionNameFromProperties;
 
+    private boolean buildSettingsExecuted;
+
+    // HBA-specific settings, queried later by Manager, or whoever needs them
+    private boolean writeCollisionDetectionEnable;
+
     // Constructors --------------------------------------------------------------------------------
 
     AuditSettingsFactory(Settings sourceSettings)
@@ -67,45 +70,16 @@ class AuditSettingsFactory extends SettingsFactory
         // filter properties, replacing the values of "interesting" properties with those inferred
         // from sourceSettings
 
-        Set<String> hibernateProperties = new HashSet<String>();
-        Field[] fields = Environment.class.getFields();
-        for(Field f: fields)
-        {
-            int mod = f.getModifiers();
-            if (!Modifier.isPublic(mod) || !Modifier.isStatic(mod) || !Modifier.isFinal(mod))
-            {
-                continue;
-            }
-
-            String value = null;
-            try
-            {
-                Object o = f.get(null);
-
-                if (!(o instanceof String))
-                {
-                    continue;
-                }
-
-                value = (String)o;
-            }
-            catch(Exception e)
-            {
-                // ignore, we're not interested in this field
-                continue;
-            }
-
-            hibernateProperties.add(value);
-        }
+        Set<String> hibernatePropertyNames = Hibernate.getHibernatePropertyNames();
 
         // get rid of all hibernate properties ...
-        for(String hibernatePropertyName: hibernateProperties)
+        for(String hpn: hibernatePropertyNames)
         {
-            Object o = copy.remove(hibernatePropertyName);
+            Object o = copy.remove(hpn);
 
             if (o != null)
             {
-                log.debug("got rid of " + hibernatePropertyName + "=" + o);
+                log.debug("got rid of " + hpn + "=" + o);
             }
         }
 
@@ -134,68 +108,106 @@ class AuditSettingsFactory extends SettingsFactory
         copy.setProperty(Environment.SHOW_SQL, "true");
 
         // look for "hba." properties and overwrite correspoding "hibernate." properties (HBA-102)
-        // TODO not sure if I am supposed to look within System, and not use the passed copy
         Properties systemProperties = System.getProperties();
         for(Object o: systemProperties.keySet())
         {
             String key = (String)o;
 
-            if (key.startsWith(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX))
+            if (!key.startsWith(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX))
             {
+                // not interesting, next
+                continue;
+            }
+            
+            // first we look for interesting HBA-specific properties ...
+
+            if (HibernateAuditEnvironment.WRITE_COLLISION_DETECTION_ENABLE.equals(key))
+            {
+                writeCollisionDetectionEnable = Boolean.getBoolean(key);
+            }
+            else
+            {
+                // ... and then for properties that have a Hibernate counterpart
+
                 String root = key.substring(HibernateAuditEnvironment.HBA_PROPERTY_PREFIX.length());
 
                 String hibernatePropertyName = root;
 
-                if (!hibernateProperties.contains(hibernatePropertyName))
+                if (!hibernatePropertyNames.contains(hibernatePropertyName))
                 {
                     hibernatePropertyName = "hibernate." + root;
 
-                    if (!hibernateProperties.contains(hibernatePropertyName))
+                    if (!hibernatePropertyNames.contains(hibernatePropertyName))
                     {
                         hibernatePropertyName = null;
                     }
                 }
 
-                if (hibernatePropertyName != null)
+                if (hibernatePropertyName == null)
                 {
-                    String hbaPropertyValue = System.getProperty(key);
+                    // no corresponding Hibernate property, next
+                    continue;
+                }
 
-                    if (hbaPropertyValue != null)
+                // we have a corresponding Hibernate property name ...
+
+                String hbaPropertyValue = System.getProperty(key);
+
+                if (hbaPropertyValue == null)
+                {
+                    // nothing to work with, next
+                    continue;
+                }
+
+                // valid "hba." property, use its value
+
+                if (HibernateAuditEnvironment.HBM2DDL_AUTO.equals(key))
+                {
+                    // extra checks for "hbm2ddl.auto", older code but valid check
+
+                    if (!"validate".equals(hbaPropertyValue) &&
+                            !"update".equals(hbaPropertyValue) &&
+                            !"create".equals(hbaPropertyValue) &&
+                            !"create-drop".equals(hbaPropertyValue))
                     {
-                        // valid "hba." property, use its value
+                        log.warn(
+                                "'" + hbaPropertyValue + "' is an invalid " +
+                                        HibernateAuditEnvironment.HBA_PROPERTY_PREFIX +
+                                        root + " value, will be ignored!");
 
-                        if (HibernateAuditEnvironment.HBM2DDL_AUTO.equals(key))
-                        {
-                            // extra checks for "hbm2ddl.auto", older code but valid check
-
-                            if (!"validate".equals(hbaPropertyValue) &&
-                                !"update".equals(hbaPropertyValue) &&
-                                !"create".equals(hbaPropertyValue) &&
-                                !"create-drop".equals(hbaPropertyValue))
-                            {
-                                log.warn(
-                                    "'" + hbaPropertyValue + "' is an invalid " +
-                                    HibernateAuditEnvironment.HBA_PROPERTY_PREFIX +
-                                    root + " value, will be ignored!");
-
-                                continue;
-                            }
-                        }
-                        else if (HibernateAuditEnvironment.USER_TRANSACTION.equals(key))
-                        {
-                            userTransactionNameFromProperties = hbaPropertyValue;
-                        }
-
-                        copy.setProperty(hibernatePropertyName, hbaPropertyValue);
+                        continue;
                     }
                 }
+                else if (HibernateAuditEnvironment.USER_TRANSACTION.equals(key))
+                {
+                    userTransactionNameFromProperties = hbaPropertyValue;
+                }
+
+                copy.setProperty(hibernatePropertyName, hbaPropertyValue);
             }
         }
 
+        buildSettingsExecuted = true;
         return super.buildSettings(copy);
     }
 
     // Package protected ---------------------------------------------------------------------------
+
+    /**
+     * @return whether the external settings indicate to enable write collision detection or not.
+     *
+     * @throws IllegalStateException in case this mehtod is called before buildSettings() was
+     *         invoked on this instance, so the instance hasn't had a chance to update its state.
+     */
+    boolean isWriteCollisionDetectionEnable()
+    {
+        if (!buildSettingsExecuted)
+        {
+            throw new IllegalStateException("buildSettings() not invoked on this instance");
+        }
+
+        return writeCollisionDetectionEnable;
+    }
 
     // Protected -----------------------------------------------------------------------------------
 

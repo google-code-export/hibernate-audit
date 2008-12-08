@@ -8,6 +8,7 @@ import org.hibernate.type.Type;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.EntityMode;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.Environment;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.transaction.JTATransaction;
@@ -19,6 +20,10 @@ import javax.transaction.TransactionManager;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Collections;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import com.googlecode.hibernate.audit.model.AuditType;
 import com.googlecode.hibernate.audit.model.TypeCache;
@@ -198,6 +203,55 @@ public class Hibernate
         }
 
         return auditType;
+    }
+
+    private static Set<String> hibernatePropertyNames;
+
+    /**
+     * Returns a Set of Hibernate property names, as declared in Hibernate's Environment class:
+     * 'hibernate.max_fetch_depth', 'hibernate.hbm2ddl.auto' etc. The method caches statically,
+     * as we don't expect to hot redeploy Hibernate. Returns an unmodifiable Set.
+     */
+    public synchronized static Set<String> getHibernatePropertyNames()
+    {
+        if (hibernatePropertyNames == null)
+        {
+            hibernatePropertyNames = new HashSet<String>();
+            Field[] fields = Environment.class.getFields();
+            for(Field f: fields)
+            {
+                int mod = f.getModifiers();
+                if (!Modifier.isPublic(mod) || !Modifier.isStatic(mod) || !Modifier.isFinal(mod))
+                {
+                    continue;
+                }
+
+                String value = null;
+
+                try
+                {
+                    Object o = f.get(null);
+
+                    if (!(o instanceof String))
+                    {
+                        continue;
+                    }
+
+                    value = (String)o;
+                }
+                catch(Exception e)
+                {
+                    // ignore, we're not interested in this field
+                    continue;
+                }
+
+                hibernatePropertyNames.add(value);
+            }
+
+            hibernatePropertyNames = Collections.unmodifiableSet(hibernatePropertyNames);
+        }
+
+        return hibernatePropertyNames;
     }
 
     // Attributes ----------------------------------------------------------------------------------

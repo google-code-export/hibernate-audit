@@ -67,3 +67,4 @@ TARGET_CLASS=ExternalDDLFileTest
 #TARGET_CLASS=TypicalAuditTest
 #TARGET_CLASS=AuditedAnnotationTest
 #TARGET_CLASS=AuditSelectorTest
+TARGET_CLASS=AuditSettingsFactoryTest
