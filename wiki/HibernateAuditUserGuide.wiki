@@ -23,6 +23,11 @@ See https://jira.novaordis.org/browse/HBA-78
 
 =Configuration=
 
+HBA looks into environment for a certain number of properties during the initialization phase and uses the value of those properties to configure various aspects of its engine.
+
+The name of the properties HBA cares about starts with `"hba."`. 
+
+
 {{{
 hbm.hbm2ddl.auto=validate|update|create|create-drop
 }}}
