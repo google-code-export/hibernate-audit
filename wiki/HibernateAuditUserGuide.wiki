@@ -31,6 +31,8 @@ In case of a "hba." property that has a corresponding Hibernate counterpart, the
 
 ==Hibernate-specific Properties==
 
+===`hbm.hbm2ddl.auto`===
+
 {{{
 hbm.hbm2ddl.auto=validate|update|create|create-drop
 }}}
