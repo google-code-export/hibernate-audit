@@ -14,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+import javax.persistence.UniqueConstraint;
 
 
 /**
@@ -26,7 +27,9 @@ import javax.persistence.JoinColumn;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_TYPE_FIELD")
+@Table(name = "AUDIT_TYPE_FIELD",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"AUDIT_TYPE_ID",
+                                                            "FIELD_NAME"}))
 @GenericGenerator(name = "audit-type-field-seqhilo-generator",
                   strategy = "seqhilo",
                   parameters =

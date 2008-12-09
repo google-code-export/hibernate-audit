@@ -188,6 +188,45 @@ public class Key
 
         return hashCode.intValue();
     }
+
+    private String toStringCache;
+
+    @Override
+    public String toString()
+    {
+        // Because it is immutable, it makes sense to cache the toString result
+
+        if (toStringCache != null)
+        {
+            return toStringCache;
+        }
+
+        try
+        {
+            StringBuffer sb = new StringBuffer("Key[");
+
+            int i = 0;
+            for(Iterator<String> is = names.iterator(); is.hasNext(); i++)
+            {
+                String n = is.next();
+                sb.append(n).append("=").append(values.get(i));
+                if (is.hasNext())
+                {
+                    sb.append(", ");
+                }
+            }
+            
+            sb.append("]");
+            toStringCache = sb.toString();
+            return toStringCache;
+        }
+        catch(Throwable e)
+        {
+            return "failed to evaluate key " +
+                   Integer.toHexString(System.identityHashCode(this)) + ": " +
+                   e.getMessage();
+        }
+    }
     
     // Package protected ---------------------------------------------------------------------------
 

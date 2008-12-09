@@ -16,6 +16,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.UniqueConstraint;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
@@ -35,7 +36,11 @@ import java.math.BigDecimal;
  * $Id$
  */
 @Entity
-@Table(name = "AUDIT_TYPE")
+@Table(name = "AUDIT_TYPE",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"DTYPE_CODE",
+                                                            "CLASS_NAME",
+                                                            "ENTITY_ID_CLASS_NAME",
+                                                            "COLLECTION_CLASS_NAME"}))
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @GenericGenerator(name = "audit-type-seqhilo-generator",
                   strategy = "seqhilo",

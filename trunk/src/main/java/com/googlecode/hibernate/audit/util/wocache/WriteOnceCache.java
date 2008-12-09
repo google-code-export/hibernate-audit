@@ -4,6 +4,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
 import org.hibernate.StatelessSession;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.impl.StatelessSessionImpl;
 import org.hibernate.impl.SessionFactoryImpl;
 import org.apache.log4j.Logger;
@@ -38,6 +39,7 @@ public class WriteOnceCache<P>
     // Constants -----------------------------------------------------------------------------------
 
     private static final Logger log = Logger.getLogger(WriteOnceCache.class);
+    private static final boolean isTraceEnabled = log.isTraceEnabled();
 
     // Static --------------------------------------------------------------------------------------
 
@@ -92,122 +94,181 @@ public class WriteOnceCache<P>
 
         synchronized(instanceLock)
         {
-            P result = committedCache.get(key);
+            // attempt to read from cache in a loop, more than one attempts will be made in case a
+            // parallel transaction tries to insert the same thing. The first one that commit
+            // successfully places the instance in the database (and in cache), the second and
+            // possibly others get a ConstraintViolationException and loop to/ read existing value
+            // from the cache again.
 
-            if (result != null)
-            {
-                return result;
-            }
-
+            StatelessSessionImpl ss = null;
             Transaction tx = null;
             boolean failure = false;
             boolean weStartedTransaction = false;
             javax.transaction.Transaction jtaTx = null;
 
-            try
+            while(true)
             {
-                // we don't use the intuitive StatelessSession because we need access to
-                // isTransactionInProgress() and StatelessSession doesn't expose it
-                StatelessSessionImpl ss = (StatelessSessionImpl)sf.openStatelessSession();
-
-                // if no transaction was already started, write down the information that we are
-                // starting it and start it, otherwise join ...
-                if (!ss.isTransactionInProgress())
+                try
                 {
-                    weStartedTransaction = true;
-                }
-
-                tx = ss.beginTransaction();
-                jtaTx = Hibernate.getUnderlyingTransaction(sf, tx);
-
-                if (jtaTx == null)
-                {
-                    throw new IllegalStateException("null JTA transaction");
-                }
-
-                // not in committed cache, next look in transaction-associated syncronization (if
-                // any) and try to get it from there first
-
-                PerTransactionCache txCache = perTxCache.get(jtaTx);
-
-                if (txCache == null)
-                {
-                    txCache = new PerTransactionCache(ss);
-                    tx.registerSynchronization(txCache);
-                    perTxCache.put(jtaTx, txCache);
-                }
-                else
-                {
-                    result = txCache.get(key);
+                    P result = committedCache.get(key);
 
                     if (result != null)
                     {
-                        return result;
+                        if (isTraceEnabled) { log.trace("cache hit, returning from cache: " + result); }
+                        return result; // exit the loop
                     }
+
+                    if (isTraceEnabled) { log.trace("cache miss for " + key); }
+
+                    // create a session only the first time we loop, otherwise reuse it
+                    if (ss == null)
+                    {
+                        ss = (StatelessSessionImpl)sf.openStatelessSession();
+
+                        // if no transaction was already started, write down the information that
+                        // we are starting it and start it, otherwise join ...
+                        if (!ss.isTransactionInProgress())
+                        {
+                            weStartedTransaction = true;
+                        }
+
+                        tx = ss.beginTransaction();
+                        jtaTx = Hibernate.getUnderlyingTransaction(sf, tx);
+
+                        if (jtaTx == null)
+                        {
+                            throw new IllegalStateException("null JTA transaction");
+                        }
+                    }
+
+                    // not in committed cache, next look in transaction-associated syncronization
+                    // (if any) and try to get it from there first
+
+                    PerTransactionCache txCache = perTxCache.get(jtaTx);
+
+                    if (txCache == null)
+                    {
+                        txCache = new PerTransactionCache(ss);
+                        tx.registerSynchronization(txCache);
+                        perTxCache.put(jtaTx, txCache);
+                    }
+                    else
+                    {
+                        result = txCache.get(key);
+
+                        if (result != null)
+                        {
+                            return result; // exit the loop
+                        }
+                    }
+
+                    // not in any transaction-associated synchronization, look in the database and
+                    // get it from there
+
+                    Criteria c = cacheQuery.generateCriteria(ss);
+
+                    P newInstance = null;
+
+                    P dbValue = (P)c.uniqueResult(); // more than one record with identical keys
+                                                     // will throw an exception
+                    if (dbValue != null)
+                    {
+
+                        if (isTraceEnabled) { log.trace("found in database, returning " + dbValue); }
+                        txCache.put(key, dbValue);
+                        return dbValue; // exit the loop
+                    }
+
+                    // not in the database
+
+                    if (!cacheQuery.isInsert())
+                    {
+                        // don't insert it in the database, just return null
+
+                        if (isTraceEnabled) { log.trace("not in database, insert not required, returning null"); }
+                        return null; // exit the loop
+                    }
+                    else
+                    {
+                        // insert it in the database
+
+                        if (newInstance == null)
+                        {
+                            newInstance = cacheQuery.createMatchingInstance();
+                        }
+
+                        if (isTraceEnabled) { log.trace("instance corresponding to " + key + " not in database, inserting " + newInstance); }
+
+                        ss.insert(newInstance);
+
+                        if (isTraceEnabled) { log.trace("attempting to execute batch ..."); }
+
+                        // can't configure StatelessSession not to use batching, I have to manually
+                        // execute the batch, otherwise I run into
+                        // https://jira.novaordis.org/browse/HBA-127
+
+                        // if persistent entities kept in cache have unique constraints on key
+                        // members (and they should, to avoid duplication), this statement will
+                        // block until a parallel transaction releases the lock.
+                        // See https://jira.novaordis.org/browse/HBA-129
+
+                        try
+                        {
+                            ss.getBatcher().executeBatch();
+                            if (isTraceEnabled) { log.trace("executed batch on internal cache session"); }
+                        }
+                        catch(ConstraintViolationException e)
+                        {
+                            String constraintName = e.getConstraintName();
+                            log.debug("This is a RECOVERABLE CONDITION, HBA will try again:\n\n" +
+                                      "Constraint " +
+                                      (constraintName == null ? "" : constraintName + " ") +
+                                      "violation, most likely due to equivalent entry " +
+                                      "already present in the database, attempting another read.\n",
+                                      e);
+                            continue;
+                        }
+
+                        txCache.put(key, newInstance);
+
+                        if (isTraceEnabled) { log.trace("inserted in database and returning " + newInstance); }
+
+                        return newInstance;
+                    }
+
                 }
-
-                // not in any transaction-associated synchronization, look in the database and get
-                // it from there
-
-                Criteria c = cacheQuery.generateCriteria(ss);
-
-                P dbValue = (P)c.uniqueResult(); // more than one record with identical keys will
-                                                 // throw an exception
-                if (dbValue != null)
+                catch(Throwable t)
                 {
-                    txCache.put(key, dbValue);
-                    return dbValue;
+                    failure = true;
+
+                    // we double-log because the thrown exception may be swallowed if a rollback failure
+                    // happens
+
+                    String msg =
+                        "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
+                        " from/to database: " + t.getMessage();
+                    log.error(msg, t);
+                    throw new WriteOnceCacheException(msg, t); // exit the loop
                 }
-
-                // not in the database
-
-                if (!cacheQuery.isInsert())
+                finally
                 {
-                    // don't insert it in the database, just return null
-                    return null;
+                    if (tx != null)
+                    {
+                        if (failure)
+                        {
+                            tx.rollback();
+                        }
+                        else if (weStartedTransaction)
+                        {
+                            // commit the transaction only if we started transaction, otherwise
+                            // it will be committed by whoever started it
+                            tx.commit();
+                        }
+                    }
+
+                    // session will be closed in synchronization, DO NOT close it here
+                    
                 }
-                else
-                {
-                    // insert it in the database
-
-                    P newInstance = cacheQuery.createMatchingInstance();
-                    ss.insert(newInstance);
-
-                    // can't configure StatelessSession not to use batching, so I have to manually
-                    // execute the batch, otherwise I run into https://jira.novaordis.org/browse/HBA-127
-                    ss.getBatcher().executeBatch();
-
-                    txCache.put(key, newInstance);
-                    return newInstance;
-                }
-            }
-            catch(Throwable t)
-            {
-                failure = true;
-
-                // we double-log because the thrown exception may be swallowed if a rollback failure
-                // happens
-
-                String msg =
-                    "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
-                    " from/to database: " + t.getMessage();
-                log.error(msg, t);
-                throw new WriteOnceCacheException(msg, t);
-            }
-            finally
-            {
-                if (failure)
-                {
-                    tx.rollback();
-                }
-                else if (weStartedTransaction)
-                {
-                    // commit the transaction only if we started transaction, otherwise it will be
-                    // committed by whoever started it
-                    tx.commit();
-                }
-
-                // session will be closed in synchronization, DO NOT close it here
             }
         }
     }

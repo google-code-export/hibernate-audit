@@ -441,11 +441,11 @@
   <component name="libraryTable">
     <library name="hibernate">
       <CLASSES>
-        <root url="jar://C:/work/hibernate-3.3.1.GA/hibernate3.jar!/" />
+        <root url="jar://$HIBERNATE_HOME$/hibernate3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://C:/work/hibernate-3.3.1.GA/project/core/src/main/java" />
+        <root url="file://$HIBERNATE_HOME$/project/core/src/main/java" />
       </SOURCES>
     </library>
     <library name="testng-5.7-jdk15">
@@ -500,5 +500,8 @@
       <SOURCES />
     </library>
   </component>
+  <UsedPathMacros>
+    <macro name="HIBERNATE_HOME" />
+  </UsedPathMacros>
 </project>
 
