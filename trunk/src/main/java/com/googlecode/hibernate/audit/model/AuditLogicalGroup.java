@@ -38,7 +38,7 @@ import java.io.Serializable;
                   strategy = "seqhilo",
                   parameters =
                   {
-                      @Parameter(name = "sequence", value = "AUDIT_LOGICAL_GROUP_SEQ"),
+                      @Parameter(name = "sequence", value = "AUDIT_LOGICAL_GROUP_ID_SEQ"),
                       @Parameter(name = "max_lo", value = "100")
                   })
 public class AuditLogicalGroup implements LogicalGroup
