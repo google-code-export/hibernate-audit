@@ -133,6 +133,13 @@ public class TypeCache
     public AuditTypeField getAuditTypeField(String fieldName, AuditType fieldType, boolean insert)
          throws Exception
     {
+        // a few "fail-early" tests
+        if (fieldName == null || fieldName.length() == 0)
+        {
+            throw new IllegalArgumentException(
+                "invalid field name: " + fieldName == null ? null : "'" + fieldName + "'");
+        }
+
         CacheQuery<AuditTypeField> cq =
             new CacheQuery<AuditTypeField>(AuditTypeField.class, insert, fif,
                                            "name", fieldName, "type", fieldType);

@@ -22,6 +22,11 @@ import com.googlecode.hibernate.audit.util.Hibernate;
  *
  * P stands for persistent type.
  *
+ * Note: In order to prevent duplicate rows containing identical keys from being entered in the
+ *       database, WriteOnceCache relies on the fact that the table has a UNIQUE constraint defined.
+ *       The UNIQUE constraint must include all keys components. In this case, the cache will detect
+ *       insert collisions and retry. See https://jira.novaordis.org/browse/HBA-129.
+ *
  * TODO: Test and make sure is consistent for a multi-process use case.
  *
  * TODO: Test and make sure it works when accessed in the context of a local Hibernate transaction.
@@ -40,6 +45,8 @@ public class WriteOnceCache<P>
 
     private static final Logger log = Logger.getLogger(WriteOnceCache.class);
     private static final boolean isTraceEnabled = log.isTraceEnabled();
+
+    private static final int MAX_RETRY_COUNT = 3;
 
     // Static --------------------------------------------------------------------------------------
 
@@ -105,10 +112,12 @@ public class WriteOnceCache<P>
             boolean failure = false;
             boolean weStartedTransaction = false;
             javax.transaction.Transaction jtaTx = null;
+            int retryCount = 0;
 
-            while(true)
+            try
             {
-                try
+
+                while(true)
                 {
                     P result = committedCache.get(key);
 
@@ -169,11 +178,11 @@ public class WriteOnceCache<P>
 
                     P newInstance = null;
 
-                    P dbValue = (P)c.uniqueResult(); // more than one record with identical keys
-                                                     // will throw an exception
+                    // more than one record with identical keys will throw an exception
+                    P dbValue = (P)c.uniqueResult();
+
                     if (dbValue != null)
                     {
-
                         if (isTraceEnabled) { log.trace("found in database, returning " + dbValue); }
                         txCache.put(key, dbValue);
                         return dbValue; // exit the loop
@@ -219,13 +228,21 @@ public class WriteOnceCache<P>
                         }
                         catch(ConstraintViolationException e)
                         {
+                            retryCount ++;
+                            if (retryCount == MAX_RETRY_COUNT)
+                            {
+                                throw e;
+                            }
+
                             String constraintName = e.getConstraintName();
-                            log.debug("This is a RECOVERABLE CONDITION, HBA will try again:\n\n" +
+                            log.debug("This is a RECOVERABLE CONDITION, HBA will try again " +
+                                      "(" + retryCount + " attempts so far):\n\n" +
                                       "Constraint " +
                                       (constraintName == null ? "" : constraintName + " ") +
                                       "violation, most likely due to equivalent entry " +
                                       "already present in the database, attempting another read.\n",
                                       e);
+
                             continue;
                         }
 
@@ -235,40 +252,39 @@ public class WriteOnceCache<P>
 
                         return newInstance;
                     }
-
                 }
-                catch(Throwable t)
-                {
-                    failure = true;
+            }
+            catch(Throwable t)
+            {
+                failure = true;
 
-                    // we double-log because the thrown exception may be swallowed if a rollback failure
-                    // happens
+                // we double-log because the thrown exception may be swallowed if a rollback failure
+                // happens
 
-                    String msg =
-                        "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
-                        " from/to database: " + t.getMessage();
-                    log.error(msg, t);
-                    throw new WriteOnceCacheException(msg, t); // exit the loop
-                }
-                finally
+                String msg =
+                    "failed to retrieve or write WriteOnce type " + cacheQuery.getType().getName() +
+                    " from/to database: " + t.getMessage();
+                log.error(msg, t);
+                throw new WriteOnceCacheException(msg, t); // exit the loop
+            }
+            finally
+            {
+                if (tx != null)
                 {
-                    if (tx != null)
+                    if (failure)
                     {
-                        if (failure)
-                        {
-                            tx.rollback();
-                        }
-                        else if (weStartedTransaction)
-                        {
-                            // commit the transaction only if we started transaction, otherwise
-                            // it will be committed by whoever started it
-                            tx.commit();
-                        }
+                        tx.rollback();
                     }
-
-                    // session will be closed in synchronization, DO NOT close it here
-                    
+                    else if (weStartedTransaction)
+                    {
+                        // commit the transaction only if we started transaction, otherwise
+                        // it will be committed by whoever started it
+                        tx.commit();
+                    }
                 }
+
+                // session will be closed in synchronization, DO NOT close it here
+
             }
         }
     }
