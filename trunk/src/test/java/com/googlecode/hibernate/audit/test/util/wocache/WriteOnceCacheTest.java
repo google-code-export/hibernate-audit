@@ -11,6 +11,7 @@ import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.util.wocache.data.A;
 import com.googlecode.hibernate.audit.test.util.wocache.data.E;
 import com.googlecode.hibernate.audit.test.util.wocache.data.D;
+import com.googlecode.hibernate.audit.test.util.wocache.data.G;
 import com.googlecode.hibernate.audit.util.wocache.WriteOnceCache;
 import com.googlecode.hibernate.audit.util.wocache.CacheQuery;
 import com.googlecode.hibernate.audit.util.wocache.WriteOnceCacheException;
@@ -1035,6 +1036,70 @@ public class WriteOnceCacheTest extends JTATransactionTest
         }
         finally
         {
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testKeyWithMultipleProperties() throws Throwable
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(G.class);
+        SessionFactory sf = null;
+        Session s = null;
+
+        try
+        {
+            sf = config.buildSessionFactory();
+            s = sf.openSession();
+
+            WriteOnceCache<G> cache = new WriteOnceCache<G>(sf);
+
+            s.beginTransaction();
+            G gone = cache.get(new CacheQuery<G>(G.class, "s1", "blah"));
+            s.getTransaction().commit();
+
+            assert gone.getId() != null;
+            assert "blah".equals(gone.getS1());
+            assert gone.getS2() == null;
+            assert gone.getS3() == null;
+
+            s.beginTransaction();
+            G gtwo = cache.get(new CacheQuery<G>(G.class, "s1", "blah", "s2", "clah"));
+            s.getTransaction().commit();
+
+            assert !gtwo.getId().equals(gone.getId());
+            assert "blah".equals(gtwo.getS1());
+            assert "clah".equals(gtwo.getS2());
+            assert gtwo.getS3() == null;
+
+
+            // hit the cache again, outside a transaction
+
+            G ggone = cache.get(new CacheQuery<G>(G.class, "s1", "blah"));
+            G ggtwo = cache.get(new CacheQuery<G>(G.class, "s1", "blah", "s2", "clah"));
+
+            assert ggone.getId().equals(gone.getId());
+            assert "blah".equals(ggone.getS1());
+            assert ggone.getS2() == null;
+            assert ggone.getS3() == null;
+
+            assert ggtwo.getId().equals(gtwo.getId());
+            assert "blah".equals(ggtwo.getS1());
+            assert "clah".equals(ggtwo.getS2());
+            assert ggtwo.getS3() == null;
+        }
+        finally
+        {
+            if (s != null)
+            {
+                s.close();
+            }
+            
             if (sf != null)
             {
                 sf.close();
