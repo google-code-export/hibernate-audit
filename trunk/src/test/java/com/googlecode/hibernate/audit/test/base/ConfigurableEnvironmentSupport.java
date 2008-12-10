@@ -43,7 +43,7 @@ public abstract class ConfigurableEnvironmentSupport
      * Relative to the classpath.
      */
     public static final String DEFAULT_DDL_FILE_NAME = "test_ddl.sql";
-    public static final boolean DEFAULT_USE_EXTERNALLY_CREATED_SCHEMA = false;
+    public static final boolean DEFAULT_USE_EXTERNALLY_CREATED_SCHEMA = true;
 
     // Static --------------------------------------------------------------------------------------
 

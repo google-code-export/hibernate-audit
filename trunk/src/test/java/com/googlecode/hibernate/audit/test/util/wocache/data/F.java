@@ -35,12 +35,13 @@ public class F
 
     public F()
     {
-        this(null);
+        this(null, null);
     }
 
-    public F(String s)
+    public F(String s, Integer i)
     {
         this.s = s;
+        this.i = i;
     }
 
     // Public --------------------------------------------------------------------------------------
@@ -78,7 +79,7 @@ public class F
     @Override
     public String toString()
     {
-        return "F[id=" + id + ", s=" + s + ",i=" + i + "]";
+        return "F[id=" + id + ", s=" + s + ", i=" + i + "]";
     }
 
     // Package protected ---------------------------------------------------------------------------

@@ -116,7 +116,6 @@ public class WriteOnceCache<P>
 
             try
             {
-
                 while(true)
                 {
                     P result = committedCache.get(key);
