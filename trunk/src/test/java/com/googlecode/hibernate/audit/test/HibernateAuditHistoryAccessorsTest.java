@@ -9,7 +9,14 @@ import org.hibernate.HibernateException;
 import com.googlecode.hibernate.audit.test.base.JTATransactionTest;
 import com.googlecode.hibernate.audit.test.data.A;
 import com.googlecode.hibernate.audit.test.data.B;
+import com.googlecode.hibernate.audit.test.data.C;
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.LogicalGroup;
+import com.googlecode.hibernate.audit.LogicalGroupImpl;
+import com.googlecode.hibernate.audit.LogicalGroupProvider;
+import com.googlecode.hibernate.audit.RootProvider;
+import com.googlecode.hibernate.audit.delta.TransactionDelta;
+import com.googlecode.hibernate.audit.delta.ChangeType;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 import java.util.List;
@@ -860,6 +867,143 @@ public class HibernateAuditHistoryAccessorsTest extends JTATransactionTest
 //            }
 //        }
 //    }
+
+    @Test(enabled = true)
+    public void testGetTransactionsForLogicalGroupSince_HBANotStarted() throws Exception
+    {
+        try
+        {
+            HibernateAudit.getTransactionsForLogicalGroup(null, 0);
+            throw new Error("should have failed");
+        }
+        catch(IllegalStateException e)
+        {
+            log.debug(">>> " + e.getMessage());
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetTransactionsForLogicalGroupSince_EmptyAuditTables() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(C.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            HibernateAudit.startRuntime(sf.getSettings());
+            HibernateAudit.register(sf);
+
+            LogicalGroup lg = new LogicalGroupImpl(new Long(1), C.class.getName());
+            List<AuditTransaction> ats = HibernateAudit.getTransactionsForLogicalGroup(lg, 0);
+            assert ats.isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
+
+    @Test(enabled = true)
+    public void testGetTransactionsForLogicalGroupSince() throws Exception
+    {
+        AnnotationConfiguration config = new AnnotationConfiguration();
+        config.configure(getHibernateConfigurationFileName());
+        config.addAnnotatedClass(A.class);
+        config.addAnnotatedClass(B.class);
+        SessionFactoryImplementor sf = null;
+
+        try
+        {
+            sf = (SessionFactoryImplementor)config.buildSessionFactory();
+            HibernateAudit.startRuntime(sf.getSettings());
+
+            A a = new A();
+
+            LogicalGroupProvider lgp = new RootProvider(a);
+            HibernateAudit.register(sf, lgp);
+
+            long t1 = System.currentTimeMillis();
+
+            Session s = sf.openSession();
+            s.beginTransaction();
+            s.save(a);
+            s.getTransaction().commit();
+            s.close();
+
+            Thread.sleep(300);
+
+            long t2 = System.currentTimeMillis();
+
+            s = sf.openSession();
+            s.beginTransaction();
+            a = (A)s.get(A.class, a.getId());
+            a.setS("blah");
+            s.update(a);
+            s.getTransaction().commit();
+            s.close();
+
+            Thread.sleep(300);
+
+            long t3 = System.currentTimeMillis();
+
+            LogicalGroup lg = new LogicalGroupImpl(a.getId(), A.class.getName());
+
+            List<AuditTransaction> ats = HibernateAudit.getTransactionsForLogicalGroup(lg, 0);
+            assert ats.size() == 2;
+
+            // make sure transactions are returned in order
+            AuditTransaction t = ats.get(0);
+            TransactionDelta td = HibernateAudit.getDelta(t.getId());
+            assert ChangeType.INSERT.
+                equals(td.getEntityDelta(a.getId(), A.class.getName()).getChangeType());
+            t = ats.get(1);
+            td = HibernateAudit.getDelta(t.getId());
+            assert ChangeType.UPDATE.
+                equals(td.getEntityDelta(a.getId(), A.class.getName()).getChangeType());
+
+            ats = HibernateAudit.getTransactionsForLogicalGroup(lg, t1);
+            assert ats.size() == 2;
+
+            // make sure transactions are returned in order
+            t = ats.get(0);
+            td = HibernateAudit.getDelta(t.getId());
+            assert ChangeType.INSERT.
+                equals(td.getEntityDelta(a.getId(), A.class.getName()).getChangeType());
+            t = ats.get(1);
+            td = HibernateAudit.getDelta(t.getId());
+            assert ChangeType.UPDATE.
+                equals(td.getEntityDelta(a.getId(), A.class.getName()).getChangeType());
+
+            ats = HibernateAudit.getTransactionsForLogicalGroup(lg, t2);
+            assert ats.size() == 1;
+
+            // make sure transactions are returned in order
+            t = ats.get(0);
+            td = HibernateAudit.getDelta(t.getId());
+            assert ChangeType.UPDATE.
+                equals(td.getEntityDelta(a.getId(), A.class.getName()).getChangeType());
+
+            ats = HibernateAudit.getTransactionsForLogicalGroup(lg, t3);
+            assert ats.isEmpty();
+        }
+        finally
+        {
+            HibernateAudit.stopRuntime();
+
+            if (sf != null)
+            {
+                sf.close();
+            }
+        }
+    }
 
     // Package protected ---------------------------------------------------------------------------
 

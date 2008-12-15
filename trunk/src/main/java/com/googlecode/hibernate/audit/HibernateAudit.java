@@ -210,12 +210,14 @@ public final class HibernateAudit
         register(auditedSessionFactory, null, null);
     }
 
-    public static void register(SessionFactory auditedSessionFactory, LogicalGroupProvider lgip) throws Exception
+    public static void register(SessionFactory auditedSessionFactory, LogicalGroupProvider lgip)
+        throws Exception
     {
         register(auditedSessionFactory, lgip, null);
     }
 
-    public static void register(SessionFactory auditedSessionFactory, AuditSelector as) throws Exception
+    public static void register(SessionFactory auditedSessionFactory, AuditSelector as)
+        throws Exception
     {
         register(auditedSessionFactory, null, as);
     }
@@ -672,6 +674,91 @@ public final class HibernateAudit
             tx.getEvents().isEmpty();
             
             return tx;
+        }
+        finally
+        {
+            // make sure the transaction is committed and query session is closed
+
+            if (qr != null)
+            {
+                Session qs = qr.getSession();
+
+                if (qs != null)
+                {
+                    Transaction ht = qs.getTransaction();
+
+                    if (ht != null)
+                    {
+                        ht.commit();
+                    }
+
+                    qs.close();
+                }
+            }
+        }
+    }
+
+    /**
+     * This invocation assumes there's only one audited session factory. If there are more
+     * then one, use
+     * getLatestTransactionsForLogicalGroup(SessionFactory sf, LogicalGroup lg, long since),
+     * otherwise the invocation will fall will a "not unique" runtime exception.
+     *
+     * @return all recorded transactions with a timestamp equal or greater than 'since', or an
+     *         empty list if there are no such transactions. The transactions are sorted in
+     *         ascending order of their timestamp (id).
+     *
+     * @exception IllegalStateException 1) if the audit runtime was not started. 2) if there are
+     *            zero or more than one registered audited session factories.
+     */
+    public static List<AuditTransaction> getTransactionsForLogicalGroup(LogicalGroup lg, long since)
+        throws Exception
+    {
+        SessionFactoryImpl asf = getTheUniqueAuditedSessionFactory();
+        return getTransactionsForLogicalGroup(asf, lg, since);
+    }
+
+    /**
+     * @param asf - the audited session factory to perform the query for.
+     *
+     * @return all recorded transactions with a timestamp equal or greater than 'since', or an
+     *         empty list if there are no such transactions. The transactions are sorted in
+     *         ascending order of their timestamp (id).
+     *
+     * @exception IllegalStateException if the audit runtime was not started.
+     */
+    public static List<AuditTransaction> getTransactionsForLogicalGroup(SessionFactory asf,
+                                                                        LogicalGroup lg,
+                                                                        long since)
+        throws Exception
+    {
+        Manager m = getManagerOrFail();
+
+        QueryResult qr = null;
+
+        try
+        {
+            LogicalGroupCache lgc = m.getLogicalGroupCache((SessionFactoryImpl)asf);
+            AuditLogicalGroup alg = lgc.getLogicalGroup(lg, false);
+
+            if (alg == null)
+            {
+                return Collections.emptyList();
+            }
+
+            String qs =
+                "from AuditTransaction " +
+                "     where " +
+                "     timestamp >= :since and " +
+                "     id in ( select e.transaction.id from AuditEvent as e " +
+                "                    where e.logicalGroup = :alg ) " +
+                " order by id";
+
+            qr = m.query(qs, true, new Timestamp(since), alg);
+
+            List result = qr.getResult(); 
+            
+            return (List<AuditTransaction>)result;
         }
         finally
         {
