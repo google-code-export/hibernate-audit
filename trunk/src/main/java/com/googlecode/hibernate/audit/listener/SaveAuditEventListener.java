@@ -67,7 +67,11 @@ public class SaveAuditEventListener
     protected boolean isDisabledOn(AbstractEvent event)
     {
         SaveOrUpdateEvent soue = (SaveOrUpdateEvent)event;
-        Class c = soue.getEntity().getClass();
+
+        // getEntity() may return null if the entity entry wasn't created yet, getObject() doesn't
+        Object target = soue.getObject();
+        Class c = target.getClass();
+
         return isDisabledOn(c, event.getSession().getFactory());
     }
 

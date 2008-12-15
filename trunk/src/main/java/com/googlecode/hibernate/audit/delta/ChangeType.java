@@ -15,5 +15,24 @@ public enum ChangeType
     
     INSERT,
     UPDATE,
-    DELETE
+    DELETE;
+
+    public static char toCode(ChangeType ct)
+    {
+        if (INSERT.equals(ct))
+        {
+            return 'C';
+        }
+        else if (UPDATE.equals(ct))
+        {
+            return 'U';
+        }
+        else if (DELETE.equals(ct))
+        {
+            return 'D';
+        }
+
+        throw new IllegalArgumentException("Unknown change type: " + ct);
+    }
+
 }
