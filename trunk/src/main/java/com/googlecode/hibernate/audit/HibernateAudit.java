@@ -718,6 +718,13 @@ public final class HibernateAudit
         return getTransactionsForLogicalGroup(asf, lg, since);
     }
 
+    public static List<AuditTransaction> getTransactionsForLogicalGroupAfterTransactionId(LogicalGroup lg, long transactionId)
+    throws Exception
+	{
+	    SessionFactoryImpl asf = getTheUniqueAuditedSessionFactory();
+	    return getTransactionsForLogicalGroupAfterTransactionId(asf, lg, transactionId);
+	}
+    
     /**
      * @param asf - the audited session factory to perform the query for.
      *
@@ -782,6 +789,51 @@ public final class HibernateAudit
             }
         }
     }
+
+    public static List<AuditTransaction> getTransactionsForLogicalGroupAfterTransactionId(
+			SessionFactory asf, LogicalGroup lg, long transactionId) throws Exception {
+		Manager m = getManagerOrFail();
+
+		QueryResult qr = null;
+
+		try {
+			LogicalGroupCache lgc = m
+					.getLogicalGroupCache((SessionFactoryImpl) asf);
+			AuditLogicalGroup alg = lgc.getLogicalGroup(lg, false);
+
+			if (alg == null) {
+				return Collections.emptyList();
+			}
+
+			String qs = "from AuditTransaction where id > :transactionId and " +
+                "     id in ( select e.transaction.id from AuditEvent as e " +
+                "                    where e.logicalGroup = :alg ) " +
+                " order by id";
+
+			qr = m.query(qs, true, new Long(transactionId), alg);
+
+			List result = qr.getResult();
+
+			return (List<AuditTransaction>) result;
+		} finally {
+			// make sure the transaction is committed and query session is
+			// closed
+
+			if (qr != null) {
+				Session qs = qr.getSession();
+
+				if (qs != null) {
+					Transaction ht = qs.getTransaction();
+
+					if (ht != null) {
+						ht.commit();
+					}
+
+					qs.close();
+				}
+			}
+		}
+	}
 
     /**
      * @return the latest (most recent) recorded transaction for this specific entity, or null if

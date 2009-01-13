@@ -112,8 +112,7 @@ public class WriteCollisionDetector
         Object referenceValue =
             HibernateAudit.getValue(sf, entityName, entityId, fieldName, referenceVersion);
 
-        if ((preUpdateValue != null || referenceValue != null) &&
-            !preUpdateValue.equals(referenceValue))
+        if (!equals(preUpdateValue, referenceValue))
         {
             throw new WriteCollisionException(
                 entityName + "["  + entityId + "]." + fieldName + " has been changed from " +
@@ -127,5 +126,12 @@ public class WriteCollisionDetector
 
     // Private -------------------------------------------------------------------------------------
 
+    private boolean equals(Object obj1, Object obj2) {
+    	if (obj1 == null) {
+    		return obj2 == null;
+    	}
+		return obj1.equals(obj2);
+    }
+    
     // Inner classes -------------------------------------------------------------------------------
 }
