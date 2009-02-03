@@ -85,26 +85,8 @@ public class AuditTypeTest extends AuditTypeTestBase
         String timeZone = Formats.timeZone.format(d);
 
         log.debug(">>> Mon Jul 07 00:00:00 " + timeZone + " 2008 = " + type.valueToString(d));
-        assert ("Mon Jul 07 00:00:00 " + timeZone + " 2008").equals(type.valueToString(d));
-        assert d.equals(type.stringToValue("Mon Jul 07 00:00:00 " + timeZone + " 2008"));
-    }
-
-    @Test(enabled = true)
-    public void testTypeConversion_Date_CustomFormat() throws Exception
-    {
-        AuditType type = new AuditType();
-        type.setClassName(Date.class.getName());
-
-        Date d = Formats.testDateFormat.parse("12/31/2008");
-        String timeZone = Formats.timeZone.format(d);
-
-        String valueToString = type.valueToString(d);
-        log.debug(">>> " + valueToString);
-        assert ("Wed Dec 31 00:00:00 " + timeZone + " 2008").equals(type.valueToString(d));
-
-        Date stringToValue = (Date)type.stringToValue("2008-12-31");
-        log.debug(">>> " + stringToValue);        
-        assert d.equals(stringToValue);
+        assert ("2008-07-07T00:00:00.000" + timeZone).equals(type.valueToString(d));
+        assert d.equals(type.stringToValue("2008-07-07T00:00:00.000" + timeZone));
     }
 
     @Test(enabled = true)

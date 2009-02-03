@@ -18,7 +18,7 @@ public class Formats
 
     public static final DateFormat testDateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
-    public static final DateFormat timeZone = new SimpleDateFormat("zzz");
+    public static final DateFormat timeZone = new SimpleDateFormat("Z");
 
     // Static --------------------------------------------------------------------------------------
 
