@@ -7,7 +7,7 @@
 
 
 
-    <version>r446</version>
+    <version>r447</version>
 
 
     
@@ -47,6 +47,15 @@
 			 <enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>ibiblio</id>
+			<layout>default</layout>
+			<url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
+			<snapshots>
+			 <enabled>false</enabled>
+			</snapshots>
+		</repository>
+		
 	</repositories>
 
     <build>

@@ -19,7 +19,9 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.UniqueConstraint;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Calendar;
 import java.util.Date;
+import java.text.DateFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -59,11 +61,8 @@ public class AuditType
     private static final Logger log = Logger.getLogger(AuditType.class);
 
     // date format supported by "stringToValue()"
-    public static final Format oracleDateFormat =
-        new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
-
-    // date format supported by "stringToValue()"
-    public static final Format customDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    public static final DateFormat DATE_FORMAT =
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSSZ");
 
     // Static --------------------------------------------------------------------------------------
 
@@ -196,7 +195,13 @@ public class AuditType
             throw new IllegalArgumentException(
                 "the argument is not a " + classInstance.getName() + " instance");
         }
-
+        if (o instanceof Calendar) {
+        	return DATE_FORMAT.format(((Calendar)o).getTime());
+        }
+        if (o instanceof Date) {
+        	return DATE_FORMAT.format((Date)o);
+        }
+        
         try
         {
             Method m = classInstance.getMethod("toString");
@@ -253,7 +258,7 @@ public class AuditType
 
             try
             {
-                return (Date)oracleDateFormat.parseObject(s);
+                return (Date)DATE_FORMAT.parse(s);
             }
             catch(ParseException e)
             {
@@ -261,9 +266,25 @@ public class AuditType
                 pe = e;
             }
 
+            // didn't find one that match
+            throw new IllegalArgumentException(
+                "conversion of '" + s + "' to a Date value failed", pe);
+        } 
+        else if (Calendar.class == classInstance)
+        {
+            // TODO the implementation is very limiting, come up with a generic date conversion
+            //      mechanism, all sort of date format that make sense should be supported
+            //      automatically
+
+            ParseException pe = null;
+
             try
             {
-                return (Date)customDateFormat.parseObject(s);
+            	
+            	DateFormat calendarFormat = (DateFormat)DATE_FORMAT.clone();
+            	calendarFormat.setLenient(false);
+            	calendarFormat.parse(s);
+            	return calendarFormat.getCalendar();
             }
             catch(ParseException e)
             {

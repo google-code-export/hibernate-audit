@@ -426,14 +426,16 @@ public final class HibernateAudit
 
                 if (qs != null)
                 {
-                    Transaction ht = qs.getTransaction();
-
-                    if (ht != null)
-                    {
-                        ht.commit();
-                    }
-
-                    qs.close();
+                	try {
+	                    Transaction ht = qs.getTransaction();
+	
+	                    if (ht != null)
+	                    {
+	                        ht.commit();
+	                    }
+                	} finally {
+                		qs.close();
+                	}
                 }
             }
         }
@@ -594,14 +596,16 @@ public final class HibernateAudit
 
                 if (qs != null)
                 {
-                    Transaction ht = qs.getTransaction();
-
-                    if (ht != null)
-                    {
-                        ht.commit();
-                    }
-
-                    qs.close();
+                	try {
+	                    Transaction ht = qs.getTransaction();
+	
+	                    if (ht != null)
+	                    {
+	                        ht.commit();
+	                    }
+                	} finally {
+                		qs.close();
+                	}
                 }
             }
         }
@@ -685,14 +689,16 @@ public final class HibernateAudit
 
                 if (qs != null)
                 {
-                    Transaction ht = qs.getTransaction();
-
-                    if (ht != null)
-                    {
-                        ht.commit();
-                    }
-
-                    qs.close();
+                	try {
+	                    Transaction ht = qs.getTransaction();
+	
+	                    if (ht != null)
+	                    {
+	                        ht.commit();
+	                    }
+                	} finally {
+                		qs.close();
+                	}
                 }
             }
         }
@@ -777,14 +783,16 @@ public final class HibernateAudit
 
                 if (qs != null)
                 {
-                    Transaction ht = qs.getTransaction();
-
-                    if (ht != null)
-                    {
-                        ht.commit();
-                    }
-
-                    qs.close();
+                	try {
+	                    Transaction ht = qs.getTransaction();
+	
+	                    if (ht != null)
+	                    {
+	                        ht.commit();
+	                    }
+                	} finally {
+                		qs.close();
+                	}
                 }
             }
         }
@@ -823,13 +831,15 @@ public final class HibernateAudit
 				Session qs = qr.getSession();
 
 				if (qs != null) {
-					Transaction ht = qs.getTransaction();
-
-					if (ht != null) {
-						ht.commit();
+					try {
+						Transaction ht = qs.getTransaction();
+	
+						if (ht != null) {
+							ht.commit();
+						}
+					} finally {
+						qs.close();
 					}
-
-					qs.close();
 				}
 			}
 		}
