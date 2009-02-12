@@ -14,6 +14,18 @@
 	<prerequisites>
 		<maven>2.0.8</maven>
 	</prerequisites>
+	<scm>
+		<connection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</connection>
+		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</developerConnection>
+		<url>https://hibernate-audit.googlecode.com/</url>
+	</scm>
+	<developers>
+		<developer>
+			<id>kchobantonov</id>
+			<name>Krasimir Chobantonov</name>
+			<email>kchobantonov@yahoo.com</email>
+		</developer>
+	</developers>
 
 	<repositories>
 		<repository>
