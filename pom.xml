@@ -17,17 +17,6 @@
 
 	<repositories>
 		<repository>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>internal</id>
-			<name>internal</name>
-			<url>http://llrda3000.wellsfargo.com/maven/repositories/external/releases/third-party</url>
-		</repository>
-		<repository>
 			<id>central</id>
 			<name>Maven Repository Switchboard</name>
 			<layout>default</layout>
@@ -187,37 +176,12 @@
 			<artifactId>log4j</artifactId>
 		</dependency>
 
-
-		<dependency>
-			<groupId>com.wellsfargo.core</groupId>
-			<artifactId>com.wellsfargo.core.entity.service</artifactId>
-			<version>16.0.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.wellsfargo.core</groupId>
-			<artifactId>com.wellsfargo.core.data.model</artifactId>
-			<version>16.0.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.wellsfargo.core</groupId>
-			<artifactId>com.wellsfargo.core.test.entity.model</artifactId>
-			<version>16.0.0</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-core</artifactId>
-				<version>3.3.1.GA-HHH-1015-HHH-3544-v4</version>
-
-				<!--  
 				<version>3.3.1.GA</version>
-				-->
-
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>
