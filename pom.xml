@@ -300,7 +300,7 @@
 		<hibernate.cache.provider_configuration_file_resource_path>ehcache.xml</hibernate.cache.provider_configuration_file_resource_path>
 
 		<hibernate.show_sql>true</hibernate.show_sql>
-		<hibernate.hbm2ddl.auto>validate</hibernate.hbm2ddl.auto> <!-- update -->
+		<hibernate.hbm2ddl.auto>update</hibernate.hbm2ddl.auto> <!-- update -->
 	</properties>
 
 </project>
