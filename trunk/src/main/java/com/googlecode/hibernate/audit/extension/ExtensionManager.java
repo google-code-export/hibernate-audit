@@ -8,6 +8,8 @@ import com.googlecode.hibernate.audit.extension.event.AuditLogicalGroupProvider;
 import com.googlecode.hibernate.audit.extension.event.DefaultAuditLogicalGroupProvider;
 import com.googlecode.hibernate.audit.extension.security.DefaultSecurityInformationProvider;
 import com.googlecode.hibernate.audit.extension.security.SecurityInformationProvider;
+import com.googlecode.hibernate.audit.extension.syncronization.DefaultTransactionSyncronization;
+import com.googlecode.hibernate.audit.extension.syncronization.TransactionSyncronization;
 import com.googlecode.hibernate.audit.extension.transaction.AuditTransactionAttributeProvider;
 import com.googlecode.hibernate.audit.extension.transaction.DefaultAuditTransactionAttributeProvider;
 
@@ -17,6 +19,7 @@ public final class ExtensionManager {
 	private AuditLogicalGroupProvider auditLogicalGroupProvider = new DefaultAuditLogicalGroupProvider();
 	private SecurityInformationProvider securityInformationProvider = new DefaultSecurityInformationProvider();
 	private AuditTransactionAttributeProvider auditTransactionAttributeProvider = new DefaultAuditTransactionAttributeProvider();
+	private TransactionSyncronization transactionSyncronization = new DefaultTransactionSyncronization();
 
 	public SecurityInformationProvider getSecurityInformationProvider() {
 		return securityInformationProvider;
@@ -67,4 +70,12 @@ public final class ExtensionManager {
 		this.auditTransactionAttributeProvider = auditTransactionAttributeProvider;
 	}
 
+	public TransactionSyncronization getTransactionSyncronization() {
+		return transactionSyncronization;
+	}
+
+	public void setTransactionSyncronization(
+			TransactionSyncronization transactionSyncronization) {
+		this.transactionSyncronization = transactionSyncronization;
+	}
 }

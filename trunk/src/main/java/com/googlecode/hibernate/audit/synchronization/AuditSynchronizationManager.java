@@ -12,7 +12,7 @@ public final class AuditSynchronizationManager {
 	private final Map<Transaction, AuditSynchronization> syncronizations = new ConcurrentReferenceHashMap<Transaction, AuditSynchronization>(
 			16, ConcurrentReferenceHashMap.ReferenceType.WEAK,
 			ConcurrentReferenceHashMap.ReferenceType.STRONG);
-	
+
 	private AuditConfiguration auditConfiguration;
 
 	public AuditSynchronizationManager(AuditConfiguration auditConfiguration) {
@@ -27,7 +27,9 @@ public final class AuditSynchronizationManager {
 			synchronization = new AuditSynchronization(this, session);
 			syncronizations.put(transaction, synchronization);
 
-			transaction.registerSynchronization(synchronization);
+			auditConfiguration.getExtensionManager()
+					.getTransactionSyncronization().registerSynchronization(
+							session, synchronization);
 		}
 
 		return synchronization;
