@@ -14,12 +14,32 @@
 	<prerequisites>
 		<maven>2.0.8</maven>
 	</prerequisites>
-	
+
+	<distributionManagement>
+		<repository>
+			<id>hibernate-audit-release-repository</id>
+			<name>Hibernate Audit release repository</name>
+			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>hibernate-audit-snapshot-repository</id>
+			<name>Hibernate Audit snapshot repository</name>
+			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/snapshots</url>
+			<uniqueVersion>true</uniqueVersion>
+		</snapshotRepository>
+		<site>
+			<id>hibernate-audit-website</id>
+			<name>Hibernate Audit - Maven web site</name>
+			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/site/reference/${pom.version}/</url>
+		</site>
+	</distributionManagement>
+
 	<scm>
 		<connection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</connection>
 		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</developerConnection>
 		<url>https://hibernate-audit.googlecode.com/</url>
 	</scm>
+
 	<developers>
 		<developer>
 			<id>kchobantonov</id>
