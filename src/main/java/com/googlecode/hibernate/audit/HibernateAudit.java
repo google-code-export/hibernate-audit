@@ -8,55 +8,52 @@ import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 
 public final class HibernateAudit {
-	public static final String AUDIT_ENTITY_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
-
-	public static final String AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.AuditLogicalGroup.query";
-
 	public static final String AUDIT_CONFIGURATION_OBSERVER_PROPERTY = "hba.configuration.observer.clazz";
 	public static final String AUDIT_CONCURRENT_MODIFICATION_CHECK_PROPERTY = "hba.concurrent.modification.check";
+
+	private static final String SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup";
+	private static final String SELECT_AUDIT_TYPE_BY_CLASS_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditType";
+	private static final String SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditField";
+
+	public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
 
 	private HibernateAudit() {
 	}
 
 	public static AuditLogicalGroup getAuditLogicalGroup(Session session,
 			AuditType auditType, String externalId) {
-		Query getAuditLogicalGroupQuery = session.createQuery("from "
-				+ AuditLogicalGroup.class.getName()
-				+ " where auditType = :auditType and externalId = :externalId");
-		getAuditLogicalGroupQuery.setParameter("auditType", auditType);
-		getAuditLogicalGroupQuery.setParameter("externalId", externalId);
-		getAuditLogicalGroupQuery.setCacheable(true);
-		getAuditLogicalGroupQuery
-				.setCacheRegion(AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION);
-		AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) getAuditLogicalGroupQuery
-				.uniqueResult();
+		Query query = session
+				.getNamedQuery(SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID);
 
-		if (storedAuditLogicalGroup == null) {
-			session.getSessionFactory().evictQueries(
-					AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION);
-		}
+		query.setParameter("auditType", auditType);
+		query.setParameter("externalId", externalId);
+		AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) query
+				.uniqueResult();
 		return storedAuditLogicalGroup;
 	}
 
 	public static AuditType getAuditType(Session session, String className) {
-		Query query = session.createQuery("from " + AuditType.class.getName()
-				+ " where className = :className");
+		Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
 		query.setParameter("className", className);
+		
 		query.setCacheable(true);
-		query.setCacheRegion(HibernateAudit.AUDIT_ENTITY_QUERY_CACHE_REGION);
+		query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+		
 		AuditType auditType = (AuditType) query.uniqueResult();
 		return auditType;
 	}
 
 	public static AuditTypeField getAuditField(Session session,
 			String className, String propertyName) {
-		Query query = session.createQuery("from "
-				+ AuditTypeField.class.getName()
-				+ " where ownerType.className = :className and name = :name");
+		Query query = session
+				.getNamedQuery(SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
+
 		query.setParameter("className", className);
 		query.setParameter("name", propertyName);
+		
 		query.setCacheable(true);
-		query.setCacheRegion(HibernateAudit.AUDIT_ENTITY_QUERY_CACHE_REGION);
+		query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+		
 		AuditTypeField auditField = (AuditTypeField) query.uniqueResult();
 		return auditField;
 	}
