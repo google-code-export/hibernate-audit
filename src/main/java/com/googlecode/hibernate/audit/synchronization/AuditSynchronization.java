@@ -7,11 +7,14 @@
 package com.googlecode.hibernate.audit.synchronization;
 
 import java.security.Principal;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.transaction.Synchronization;
 
@@ -68,8 +71,14 @@ public class AuditSynchronization implements Synchronization {
 
 		try {
 			AuditWorkUnit workUnit;
-			Set<AuditLogicalGroup> auditLogicalGroups = new HashSet<AuditLogicalGroup>();
-
+			SortedSet<AuditLogicalGroup> auditLogicalGroups = new TreeSet<AuditLogicalGroup>(new Comparator<AuditLogicalGroup>() {
+				// sort audit logical groups in order to minimize database dead lock conditions. 
+				public int compare(AuditLogicalGroup o1, AuditLogicalGroup o2) {
+					// note that both entities should already be persistent so they must have ids
+					return o1.getId().compareTo(o2.getId());
+				};
+			});
+			
 			AuditTransaction auditTransaction = new AuditTransaction();
 			auditTransaction.setTimestamp(new Date());
 			Principal principal = auditConfiguration.getExtensionManager()
