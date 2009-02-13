@@ -48,7 +48,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 		initializeAuditMetatdata(sessionfactory);
 
 		Statistics statistics = sessionfactory.getStatistics();
-		
+
 		if (observer != null) {
 			observer.sessionFactoryCreated(sessionfactory);
 		}
@@ -114,7 +114,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 			auditType.setType(AuditType.ENTITY_TYPE);
 
 			session.save(auditType);
-			metaModelUpdated(session);
+			updateMetaModel(session);
 		}
 
 		if (initializeProperties) {
@@ -146,7 +146,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 			componentAuditType.setClassName(returnedClass.getName());
 			componentAuditType.setType(AuditType.COMPONENT_TYPE);
 			session.save(componentAuditType);
-			metaModelUpdated(session);
+			updateMetaModel(session);
 		}
 
 		String[] componentPropertyNames = type.getPropertyNames();
@@ -174,7 +174,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 				auditType.setType(AuditType.PRIMITIVE_TYPE);
 			}
 			session.save(auditType);
-			metaModelUpdated(session);
+			updateMetaModel(session);
 		}
 
 		return auditType;
@@ -225,19 +225,18 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 
 			auditField.setFieldType(auditFieldType);
 			session.save(auditField);
-			session.getSessionFactory().evictQueries(
-					HibernateAudit.AUDIT_ENTITY_QUERY_CACHE_REGION);
-			session.getSessionFactory().evictEntity(
-					AuditTypeField.class.getName());
+
+			updateMetaModel(session);
 		}
 
 		return auditField;
 	}
 
-	private void metaModelUpdated(Session session) {
-		session.getSessionFactory().evictQueries(
-				HibernateAudit.AUDIT_ENTITY_QUERY_CACHE_REGION);
-		session.getSessionFactory().evictEntity(AuditType.class.getName());
+	private void updateMetaModel(Session session) {
 		session.flush();
+		session.getSessionFactory().evictQueries(
+				HibernateAudit.AUDIT_META_DATA_QUERY_CACHE_REGION);
+		session.getSessionFactory().evictEntity(AuditType.class.getName());
+		session.getSessionFactory().evictEntity(AuditTypeField.class.getName());
 	}
 }
