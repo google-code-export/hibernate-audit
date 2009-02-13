@@ -222,17 +222,17 @@
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-scm</artifactId>
-				<version>1.0-alpha-7-SNAPSHOT</version>
+				<version>1.0-beta-4</version>
 			</extension>
 			<extension>
 				<groupId>org.apache.maven.scm</groupId>
 				<artifactId>maven-scm-manager-plexus</artifactId>
-				<version>1.0-beta-3-SNAPSHOT</version>
+				<version>1.1</version>
 			</extension>
 			<extension>
 				<groupId>org.apache.maven.scm</groupId>
 				<artifactId>maven-scm-provider-svnexe</artifactId>
-				<version>1.0-beta-3-SNAPSHOT</version>
+				<version>1.1</version>
 			</extension>
 
 		</extensions>
@@ -332,10 +332,25 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jxr-plugin</artifactId>
-				<configuration>
-					<aggregate>true</aggregate>
-				</configuration>
+				<artifactId>maven-changelog-plugin</artifactId>
+				<reportSets>
+					<reportSet>
+						<id>report</id>
+						<configuration>
+							<type>range</type>
+							<range>30</range>
+						</configuration>
+						<reports>
+							<report>changelog</report>
+							<report>file-activity</report>
+							<report>dev-activity</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jdepend-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -348,6 +363,8 @@
 							<report>dependencies</report>
 							<report>project-team</report>
 							<report>mailing-list</report>
+							<report>index</report>
+							<report>summary</report>
 							<report>cim</report>
 							<report>issue-tracking</report>
 							<report>license</report>
