@@ -14,6 +14,7 @@
 	<prerequisites>
 		<maven>2.0.8</maven>
 	</prerequisites>
+	
 	<scm>
 		<connection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</connection>
 		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</developerConnection>
@@ -69,76 +70,86 @@
 
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>hibernate3-maven-plugin</artifactId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0-beta-7</version>
 				<configuration>
-					<components>
-						<component>
-							<name>hbm2ddl</name>
-							<implementation>configuration</implementation>
-						</component>
-					</components>
-					<componentProperties>
-						<configurationfile>${basedir}/src/test/resources/audit-hibernate.cfg.xml</configurationfile>
-						<outputfilename>create-schema.sql</outputfilename>
-						<create>true</create>
-						<update>false</update>
-						<drop>true</drop>
-						<format>false</format>
-					</componentProperties>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<tagBase>
+						https://hibernate-audit.googlecode.com/svn/tags/
+					</tagBase>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>oracle</groupId>
-						<artifactId>classes12</artifactId>
-						<version>10.2.0.2.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.0-beta-1</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<doUpdate>false</doUpdate>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						</manifest>
-						<manifestEntries>
-							<Implementation-Build>${buildNumber}</Implementation-Build>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>hibernate3-maven-plugin</artifactId>
+					<configuration>
+						<components>
+							<component>
+								<name>hbm2ddl</name>
+								<implementation>configuration</implementation>
+							</component>
+						</components>
+						<componentProperties>
+							<configurationfile>${basedir}/src/test/resources/audit-hibernate.cfg.xml</configurationfile>
+							<outputfilename>create-schema.sql</outputfilename>
+							<create>true</create>
+							<update>false</update>
+							<drop>true</drop>
+							<format>false</format>
+						</componentProperties>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>oracle</groupId>
+							<artifactId>classes12</artifactId>
+							<version>10.2.0.2.0</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>buildnumber-maven-plugin</artifactId>
+					<version>1.0-beta-1</version>
+					<executions>
+						<execution>
+							<phase>validate</phase>
+							<goals>
+								<goal>create</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<doCheck>false</doCheck>
+						<doUpdate>false</doUpdate>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+							<manifestEntries>
+								<Implementation-Build>${buildNumber}</Implementation-Build>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -293,7 +304,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>
-						maven-project-info-reports-plugin
+					maven-project-info-reports-plugin
                 </artifactId>
 				<reportSets>
 					<reportSet>
