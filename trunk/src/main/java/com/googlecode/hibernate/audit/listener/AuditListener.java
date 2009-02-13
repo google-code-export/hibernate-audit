@@ -34,6 +34,7 @@ import com.googlecode.hibernate.audit.synchronization.work.AuditWorkUnit;
 import com.googlecode.hibernate.audit.synchronization.work.DeleteAuditWorkUnit;
 import com.googlecode.hibernate.audit.synchronization.work.InsertAuditWorkUnit;
 import com.googlecode.hibernate.audit.synchronization.work.InsertCollectionAuditWorkUnit;
+import com.googlecode.hibernate.audit.synchronization.work.RemoveCollectionAuditWorkUnit;
 import com.googlecode.hibernate.audit.synchronization.work.UpdateAuditWorkUnit;
 import com.googlecode.hibernate.audit.synchronization.work.UpdateCollectionAuditWorkUnit;
 import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
@@ -191,7 +192,7 @@ public class AuditListener implements PostInsertEventListener,
 
 			AuditSynchronization sync = auditConfiguration
 					.getAuditSynchronizationManager().get(event.getSession());
-			UpdateCollectionAuditWorkUnit workUnit = new UpdateCollectionAuditWorkUnit(
+			AuditWorkUnit workUnit = new UpdateCollectionAuditWorkUnit(
 					entityName, event.getAffectedOwnerIdOrNull(), event
 							.getAffectedOwnerOrNull(), event.getCollection());
 
@@ -204,6 +205,13 @@ public class AuditListener implements PostInsertEventListener,
 
 		if (auditConfiguration.getExtensionManager()
 				.getAuditableInformationProvider().isAuditable(entityName)) {
+			AuditSynchronization sync = auditConfiguration
+					.getAuditSynchronizationManager().get(event.getSession());
+			AuditWorkUnit workUnit = new RemoveCollectionAuditWorkUnit(
+					entityName, event.getAffectedOwnerIdOrNull(), event
+							.getAffectedOwnerOrNull(), event.getCollection());
+
+			sync.addWorkUnit(workUnit);
 		}
 	}
 }

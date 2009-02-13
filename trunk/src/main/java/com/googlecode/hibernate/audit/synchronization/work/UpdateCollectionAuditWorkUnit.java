@@ -9,8 +9,6 @@ import org.hibernate.Session;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
-import org.hibernate.type.AbstractComponentType;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -19,14 +17,10 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
-import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
-import com.googlecode.hibernate.audit.model.object.ComponentAuditObject;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
-import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
-import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
-import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
-public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
+public class UpdateCollectionAuditWorkUnit extends
+		AbstractCollectionAuditWorkUnit {
 	private String entityName;
 	private Serializable id;
 	private Object entity;
@@ -34,7 +28,7 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 	private Iterator deletesIterator;
 	private Serializable snapshot;
 	private CollectionPersister collectionPersister;
-	
+
 	private List<Integer> insertIndexes = new ArrayList<Integer>();
 	private List<Integer> updateIndexes = new ArrayList<Integer>();
 
@@ -60,7 +54,8 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 		for (AuditEvent auditEvent : auditEvents) {
 			auditTransaction.getEvents().add(auditEvent);
 			auditEvent.setAuditTransaction(auditTransaction);
-			AuditLogicalGroup logicalGroup = getAuditLogicalGroup(session, auditConfiguration, auditEvent);
+			AuditLogicalGroup logicalGroup = getAuditLogicalGroup(session,
+					auditConfiguration, auditEvent);
 
 			auditEvent.setAuditLogicalGroup(logicalGroup);
 		}
@@ -130,6 +125,19 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 		Type elementType = collectionPersister.getCollectionMetadata()
 				.getElementType();
 
+		processUpdates(session, auditConfiguration, propertyName, auditType,
+				insertAuditEvent, updateAuditEvent, insertAuditObject,
+				updateAuditObject, elementType);
+
+		processDeletes(session, auditConfiguration, propertyName, auditType,
+				elementType);
+	}
+
+	private void processUpdates(Session session,
+			AuditConfiguration auditConfiguration, String propertyName,
+			AuditType auditType, AuditEvent insertAuditEvent,
+			AuditEvent updateAuditEvent, EntityAuditObject insertAuditObject,
+			EntityAuditObject updateAuditObject, Type elementType) {
 		Iterator<? extends Object> iterator = persistentCollection
 				.entries(collectionPersister);
 
@@ -148,8 +156,8 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 				continue;
 			}
 
-			processElement(session, auditConfiguration, element, elementType,
-					propertyName, i, auditObject, auditEvent);
+			processElement(session, auditConfiguration, entity, element,
+					elementType, propertyName, i, auditObject, auditEvent);
 		}
 
 		if (!insertAuditObject.getAuditObjectProperties().isEmpty()) {
@@ -161,7 +169,11 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 			auditEvents.add(updateAuditEvent);
 			updateAuditEvent.setAuditType(auditType);
 		}
+	}
 
+	private void processDeletes(Session session,
+			AuditConfiguration auditConfiguration, String propertyName,
+			AuditType auditType, Type elementType) {
 		if (deletesIterator != null) {
 			if (deletesIterator.hasNext()) {
 				AuditEvent deleteAuditEvent = new AuditEvent();
@@ -192,90 +204,13 @@ public class UpdateCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 							index = i;
 						}
 					}
-					processElement(session, auditConfiguration, element,
-							elementType, propertyName, index,
+					processElement(session, auditConfiguration, entity,
+							element, elementType, propertyName, index,
 							deleteAuditObject, deleteAuditEvent);
 
 					i++;
 				}
 			}
-		}
-	}
-
-	private void processElement(Session session,
-			AuditConfiguration auditConfiguration, Object element,
-			Type elementType, String propertyName, long index,
-			EntityAuditObject auditObject, AuditEvent auditEvent) {
-
-		if (elementType.isEntityType()) {
-			Serializable entityElementId = null;
-
-			if (element != null) {
-				id = session.getSessionFactory().getClassMetadata(
-						((EntityType) elementType).getAssociatedEntityName())
-						.getIdentifier(element, session.getEntityMode());
-			}
-
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entity.getClass().getName(), propertyName);
-
-			EntityObjectProperty property = new EntityObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			property.setTargetEntityId(auditConfiguration.getExtensionManager()
-					.getPropertyValueConverter().toString(id));
-			auditObject.getAuditObjectProperties().add(property);
-		} else if (elementType.isComponentType()) {
-			AbstractComponentType componentType = (AbstractComponentType) elementType;
-
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entity.getClass().getName(), propertyName);
-
-			ComponentObjectProperty property = new ComponentObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			ComponentAuditObject targetComponentAuditObject = null;
-
-			if (element != null) {
-				targetComponentAuditObject = new ComponentAuditObject();
-				targetComponentAuditObject.setAuditEvent(auditEvent);
-				targetComponentAuditObject.setParentAuditObject(auditObject);
-				AuditType auditComponentType = HibernateAudit.getAuditType(
-						session, element.getClass().getName());
-				targetComponentAuditObject.setAuditType(auditComponentType);
-
-				for (int j = 0; j < componentType.getPropertyNames().length; j++) {
-					String componentPropertyName = componentType
-							.getPropertyNames()[j];
-
-					Type componentPropertyType = componentType.getSubtypes()[j];
-					Object componentPropertyValue = componentType
-							.getPropertyValue(element, j,
-									(SessionImplementor) session);
-
-					processProperty(session, auditConfiguration, auditEvent,
-							element, componentPropertyName,
-							componentPropertyValue, componentPropertyType,
-							targetComponentAuditObject);
-				}
-			}
-			property.setTargetComponentAuditObject(targetComponentAuditObject);
-			auditObject.getAuditObjectProperties().add(property);
-		} else if (elementType.isCollectionType()) {
-			// collection of collections
-		} else {
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entity.getClass().getName(), propertyName);
-
-			SimpleObjectProperty property = new SimpleObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			property.setValue(auditConfiguration.getExtensionManager()
-					.getPropertyValueConverter().toString(element));
-			auditObject.getAuditObjectProperties().add(property);
 		}
 	}
 }

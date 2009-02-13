@@ -7,8 +7,6 @@ import org.hibernate.Session;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
-import org.hibernate.type.AbstractComponentType;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -17,14 +15,9 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
-import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
-import com.googlecode.hibernate.audit.model.object.ComponentAuditObject;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
-import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
-import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
-import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
-public class InsertCollectionAuditWorkUnit extends
+public class RemoveCollectionAuditWorkUnit extends
 		AbstractCollectionAuditWorkUnit {
 	private String entityName;
 	private Serializable id;
@@ -33,7 +26,7 @@ public class InsertCollectionAuditWorkUnit extends
 	private AuditEvent auditEvent;
 	private CollectionPersister collectionPersister;
 
-	public InsertCollectionAuditWorkUnit(String entityName, Serializable id,
+	public RemoveCollectionAuditWorkUnit(String entityName, Serializable id,
 			Object entity, PersistentCollection persistentCollection) {
 		this.entityName = entityName;
 		this.id = id;
@@ -82,7 +75,7 @@ public class InsertCollectionAuditWorkUnit extends
 				.getClass().getName());
 		auditEvent = new AuditEvent();
 		auditEvent.setAuditType(auditType);
-		auditEvent.setType(AuditEvent.ADD_AUDIT_EVENT_TYPE);
+		auditEvent.setType(AuditEvent.REMOVE_AUDIT_EVENT_TYPE);
 		auditEvent.setEntityId(id == null ? null : id.toString());
 
 		EntityAuditObject auditObject = new EntityAuditObject();
@@ -93,7 +86,6 @@ public class InsertCollectionAuditWorkUnit extends
 
 		Type elementType = collectionPersister.getCollectionMetadata()
 				.getElementType();
-
 		Iterator<? extends Object> iterator = persistentCollection
 				.entries(collectionPersister);
 
