@@ -18,18 +18,27 @@
 		<repository>
 			<id>hibernate-audit-release-repository</id>
 			<name>Hibernate Audit release repository</name>
+			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
 			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/releases</url>
+			-->
+			<url>file://${basedir}/../maven/repository/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>hibernate-audit-snapshot-repository</id>
 			<name>Hibernate Audit snapshot repository</name>
+			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
 			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/snapshots</url>
+			-->
+			<url>file://${basedir}/../maven/repository/snapshots</url>
 			<uniqueVersion>true</uniqueVersion>
 		</snapshotRepository>
 		<site>
 			<id>hibernate-audit-website</id>
 			<name>Hibernate Audit - Maven web site</name>
+			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
 			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/site/reference/${pom.version}/</url>
+			-->
+			<url>file://${basedir}/../maven/site/reference/${pom.version}/</url>
 		</site>
 	</distributionManagement>
 
