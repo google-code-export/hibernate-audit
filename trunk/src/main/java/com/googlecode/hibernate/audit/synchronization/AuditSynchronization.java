@@ -101,15 +101,17 @@ public class AuditSynchronization implements Synchronization {
 						attributes);
 			}
 
-			for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
-				if (log.isEnabledFor(Level.DEBUG)) {
-					log.debug("lock AuditLogicalGroup with id:"
-							+ storedAuditLogicalGroup.getId());
+			if (auditConfiguration.isConcurrentModificationCheckEnabled()) {
+				for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
+					if (log.isEnabledFor(Level.DEBUG)) {
+						log.debug("lock AuditLogicalGroup with id:"
+								+ storedAuditLogicalGroup.getId());
+					}
+					session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
 				}
-				session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
+				// TODO: Add concurrent modification check..
 			}
-
-			// TODO: Add concurrent modification check..
+			
 			session.save(auditTransaction);
 
 			if (!FlushMode.isManualFlushMode(session.getFlushMode())) {
