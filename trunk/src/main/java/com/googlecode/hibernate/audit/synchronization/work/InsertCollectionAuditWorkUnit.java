@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2009 Krasimir Chobantonov <kchobantonov@yahoo.com>
+ * This file is part of GNU Hibernate Audit.
+
+ * GNU Hibernate Audit is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your
+ * option) any later version.
+ * 
+ * GNU Hibernate Audit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with GNU Hibernate Audit.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package com.googlecode.hibernate.audit.synchronization.work;
 
 import java.io.Serializable;
@@ -7,8 +25,6 @@ import org.hibernate.Session;
 import org.hibernate.collection.PersistentCollection;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
-import org.hibernate.type.AbstractComponentType;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -17,12 +33,7 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
-import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
-import com.googlecode.hibernate.audit.model.object.ComponentAuditObject;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
-import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
-import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
-import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
 public class InsertCollectionAuditWorkUnit extends
 		AbstractCollectionAuditWorkUnit {
