@@ -1,18 +1,28 @@
 /**
- * <copyright>
- * </copyright>
+ * Copyright (C) 2009 Krasimir Chobantonov <kchobantonov@yahoo.com>
+ * This file is part of GNU Hibernate Audit.
+
+ * GNU Hibernate Audit is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your
+ * option) any later version.
+ * 
+ * GNU Hibernate Audit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with GNU Hibernate Audit.  If not, see <http://www.gnu.org/licenses/>.
  *
- * $Id$
  */
 package com.googlecode.hibernate.audit.synchronization;
 
 import java.security.Principal;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -71,14 +81,18 @@ public class AuditSynchronization implements Synchronization {
 
 		try {
 			AuditWorkUnit workUnit;
-			SortedSet<AuditLogicalGroup> auditLogicalGroups = new TreeSet<AuditLogicalGroup>(new Comparator<AuditLogicalGroup>() {
-				// sort audit logical groups in order to minimize database dead lock conditions. 
-				public int compare(AuditLogicalGroup o1, AuditLogicalGroup o2) {
-					// note that both entities should already be persistent so they must have ids
-					return o1.getId().compareTo(o2.getId());
-				};
-			});
-			
+			SortedSet<AuditLogicalGroup> auditLogicalGroups = new TreeSet<AuditLogicalGroup>(
+					new Comparator<AuditLogicalGroup>() {
+						// sort audit logical groups in order to minimize
+						// database dead lock conditions.
+						public int compare(AuditLogicalGroup o1,
+								AuditLogicalGroup o2) {
+							// note that both entities should already be
+							// persistent so they must have ids
+							return o1.getId().compareTo(o2.getId());
+						};
+					});
+
 			AuditTransaction auditTransaction = new AuditTransaction();
 			auditTransaction.setTimestamp(new Date());
 			Principal principal = auditConfiguration.getExtensionManager()
@@ -120,7 +134,7 @@ public class AuditSynchronization implements Synchronization {
 				}
 				// TODO: Add concurrent modification check..
 			}
-			
+
 			session.save(auditTransaction);
 
 			if (!FlushMode.isManualFlushMode(session.getFlushMode())) {
