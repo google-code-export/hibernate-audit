@@ -18,61 +18,112 @@
  */
 package com.googlecode.hibernate.audit;
 
+import java.util.List;
+
 import org.hibernate.Query;
 import org.hibernate.Session;
 
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
+import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 
 public final class HibernateAudit {
-	public static final String AUDIT_CONFIGURATION_OBSERVER_PROPERTY = "hba.configuration.observer.clazz";
-	public static final String AUDIT_CONCURRENT_MODIFICATION_CHECK_PROPERTY = "hba.concurrent.modification.check";
+    public static final String AUDIT_CONFIGURATION_OBSERVER_PROPERTY = "hba.configuration.observer.clazz";
 
-	private static final String SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup";
-	private static final String SELECT_AUDIT_TYPE_BY_CLASS_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditType";
-	private static final String SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditField";
+    private static final String SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup";
+    private static final String SELECT_AUDIT_TYPE_BY_CLASS_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditType";
+    private static final String SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME = "com.googlecode.hibernate.audit.HibernateAudit.getAuditField";
 
-	public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionId";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroup";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_ENTITY = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByProperty";
 
-	private HibernateAudit() {
-	}
+    private static final String SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditTransaction";
+    private static final String SELECT_ALL_AUDIT_TRANSACTIONS_AFTER_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsAfterTransactionId";
 
-	public static AuditLogicalGroup getAuditLogicalGroup(Session session,
-			AuditType auditType, String externalId) {
-		Query query = session
-				.getNamedQuery(SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID);
+    public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
 
-		query.setParameter("auditType", auditType);
-		query.setParameter("externalId", externalId);
-		AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) query
-				.uniqueResult();
-		return storedAuditLogicalGroup;
-	}
+    private HibernateAudit() {
+    }
 
-	public static AuditType getAuditType(Session session, String className) {
-		Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
-		query.setParameter("className", className);
-		
-		query.setCacheable(true);
-		query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
-		
-		AuditType auditType = (AuditType) query.uniqueResult();
-		return auditType;
-	}
+    public static Long getLatestAuditTransactionId(Session session) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID);
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
 
-	public static AuditTypeField getAuditField(Session session,
-			String className, String propertyName) {
-		Query query = session
-				.getNamedQuery(SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
+    }
 
-		query.setParameter("className", className);
-		query.setParameter("name", propertyName);
-		
-		query.setCacheable(true);
-		query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
-		
-		AuditTypeField auditField = (AuditTypeField) query.uniqueResult();
-		return auditField;
-	}
+    public static Long getLatestAuditTransactionIdByAuditLogicalGroup(Session session, AuditLogicalGroup auditLogicalGroup) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP);
+        query.setParameter("auditLogicalGroup", auditLogicalGroup);
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
+    }
+
+    public static Long getLatestAuditTransactionIdByEntity(Session session, AuditType auditType, String targetEntityId) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_ENTITY);
+        query.setParameter("auditType", auditType);
+        query.setParameter("targetEntityId", targetEntityId);
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
+    }
+
+    public static Long getLatestAuditTransactionIdByProperty(Session session, AuditTypeField auditTypeField, String targetEntityId) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY);
+        query.setParameter("auditTypeField", auditTypeField);
+        query.setParameter("targetEntityId", targetEntityId);
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
+    }
+
+    public static AuditTransaction getAuditTransaction(Session session, Long transactionId) {
+        Query query = session.getNamedQuery(SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID);
+
+        query.setParameter("transactionId", transactionId);
+        AuditTransaction auditTransaction = (AuditTransaction) query.uniqueResult();
+        return auditTransaction;
+    }
+
+    public static List<AuditTransaction> getAllAuditTransactionsAfterTransactionId(Session session, Long transactionId) {
+        Query query = session.getNamedQuery(SELECT_ALL_AUDIT_TRANSACTIONS_AFTER_TRANSACTION_ID);
+
+        query.setParameter("transactionId", transactionId);
+        List<AuditTransaction> auditTransactions = (List<AuditTransaction>) query.list();
+        return auditTransactions;
+    }
+
+    public static AuditLogicalGroup getAuditLogicalGroup(Session session, AuditType auditType, String externalId) {
+        Query query = session.getNamedQuery(SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID);
+
+        query.setParameter("auditType", auditType);
+        query.setParameter("externalId", externalId);
+        AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) query.uniqueResult();
+        return storedAuditLogicalGroup;
+    }
+
+    public static AuditType getAuditType(Session session, String className) {
+        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
+        query.setParameter("className", className);
+
+        query.setCacheable(true);
+        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+
+        AuditType auditType = (AuditType) query.uniqueResult();
+        return auditType;
+    }
+
+    public static AuditTypeField getAuditField(Session session, String className, String propertyName) {
+        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
+
+        query.setParameter("className", className);
+        query.setParameter("name", propertyName);
+
+        query.setCacheable(true);
+        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+
+        AuditTypeField auditField = (AuditTypeField) query.uniqueResult();
+        return auditField;
+    }
 }

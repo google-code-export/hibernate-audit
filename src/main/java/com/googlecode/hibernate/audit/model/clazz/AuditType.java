@@ -22,58 +22,58 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AuditType {
-	public static final char ENTITY_TYPE = 'E';
-	public static final char COMPONENT_TYPE = 'C';
-	public static final char COLLECTION_TYPE = 'A';
-	public static final char PRIMITIVE_TYPE = 'P';
+    public static final char ENTITY_TYPE = 'E';
+    public static final char COMPONENT_TYPE = 'C';
+    public static final char COLLECTION_TYPE = 'A';
+    public static final char PRIMITIVE_TYPE = 'P';
 
-	protected Long id;
-	
-	protected String className;
-	protected String label;
-	protected char type;
-	protected List<AuditTypeField> auditFields;
+    protected Long id;
 
-	public List<AuditTypeField> getAuditFields() {
-		if (auditFields == null) {
-			auditFields = new ArrayList<AuditTypeField>();
-		}
-		return auditFields;
-	}
+    protected String className;
+    protected String label;
+    protected char type;
+    protected List<AuditTypeField> auditFields;
 
-	public void setAuditFields(List<AuditTypeField> auditFields) {
-		this.auditFields = auditFields;
-	}
+    public List<AuditTypeField> getAuditFields() {
+        if (auditFields == null) {
+            auditFields = new ArrayList<AuditTypeField>();
+        }
+        return auditFields;
+    }
 
-	public Long getId() {
-		return id;
-	}
+    public void setAuditFields(List<AuditTypeField> auditFields) {
+        this.auditFields = auditFields;
+    }
 
-	public void setId(Long newId) {
-		id = newId;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getClassName() {
-		return className;
-	}
+    public void setId(Long newId) {
+        id = newId;
+    }
 
-	public void setClassName(String newClassName) {
-		className = newClassName;
-	}
+    public String getClassName() {
+        return className;
+    }
 
-	public String getLabel() {
-		return label;
-	}
+    public void setClassName(String newClassName) {
+        className = newClassName;
+    }
 
-	public void setLabel(String newLabel) {
-		label = newLabel;
-	}
+    public String getLabel() {
+        return label;
+    }
 
-	public char getType() {
-		return type;
-	}
+    public void setLabel(String newLabel) {
+        label = newLabel;
+    }
 
-	public void setType(char type) {
-		this.type = type;
-	}
+    public char getType() {
+        return type;
+    }
+
+    public void setType(char type) {
+        this.type = type;
+    }
 }

@@ -26,6 +26,5 @@ import com.googlecode.hibernate.audit.model.AuditTransactionAttribute;
 
 public interface AuditTransactionAttributeProvider {
 
-	List<AuditTransactionAttribute> getAuditTransactionAttributes(
-			Session session);
+    List<AuditTransactionAttribute> getAuditTransactionAttributes(Session session);
 }

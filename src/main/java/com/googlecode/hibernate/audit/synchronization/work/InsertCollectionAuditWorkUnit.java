@@ -35,84 +35,69 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
 
-public class InsertCollectionAuditWorkUnit extends
-		AbstractCollectionAuditWorkUnit {
-	private String entityName;
-	private Serializable id;
-	private Object entity;
-	private PersistentCollection persistentCollection;
-	private AuditEvent auditEvent;
-	private CollectionPersister collectionPersister;
+public class InsertCollectionAuditWorkUnit extends AbstractCollectionAuditWorkUnit {
+    private String entityName;
+    private Serializable id;
+    private Object entity;
+    private PersistentCollection persistentCollection;
+    private AuditEvent auditEvent;
+    private CollectionPersister collectionPersister;
 
-	public InsertCollectionAuditWorkUnit(String entityName, Serializable id,
-			Object entity, PersistentCollection persistentCollection) {
-		this.entityName = entityName;
-		this.id = id;
-		this.entity = entity;
-		this.persistentCollection = persistentCollection;
-	}
+    public InsertCollectionAuditWorkUnit(String entityName, Serializable id, Object entity, PersistentCollection persistentCollection) {
+        this.entityName = entityName;
+        this.id = id;
+        this.entity = entity;
+        this.persistentCollection = persistentCollection;
+    }
 
-	@Override
-	protected String getEntityName() {
-		return entityName;
-	}
+    @Override
+    protected String getEntityName() {
+        return entityName;
+    }
 
-	public void perform(Session session, AuditConfiguration auditConfiguration,
-			AuditTransaction auditTransaction) {
-		initializeAuditEvents(session, auditConfiguration);
-		if (auditEvent != null) {
-			auditEvent.setAuditTransaction(auditTransaction);
-			auditTransaction.getEvents().add(auditEvent);
-			AuditLogicalGroup logicalGroup = getAuditLogicalGroup(session,
-					auditConfiguration, auditEvent);
+    public void perform(Session session, AuditConfiguration auditConfiguration, AuditTransaction auditTransaction) {
+        initializeAuditEvents(session, auditConfiguration);
+        if (auditEvent != null) {
+            auditEvent.setAuditTransaction(auditTransaction);
+            auditTransaction.getEvents().add(auditEvent);
+            AuditLogicalGroup logicalGroup = getAuditLogicalGroup(session, auditConfiguration, auditEvent);
 
-			auditEvent.setAuditLogicalGroup(logicalGroup);
-		}
-	}
+            auditEvent.setAuditLogicalGroup(logicalGroup);
+        }
+    }
 
-	public void init(Session session, AuditConfiguration auditConfiguration) {
-		collectionPersister = ((SessionImplementor) session)
-				.getPersistenceContext().getCollectionEntry(
-						persistentCollection).getCurrentPersister();
-	}
+    public void init(Session session, AuditConfiguration auditConfiguration) {
+        collectionPersister = ((SessionImplementor) session).getPersistenceContext().getCollectionEntry(persistentCollection).getCurrentPersister();
+    }
 
-	private void initializeAuditEvents(Session session,
-			AuditConfiguration auditConfiguration) {
-		String role = collectionPersister.getCollectionMetadata().getRole();
-		String propertyName = role.substring(role.lastIndexOf('.') != -1 ? role
-				.lastIndexOf('.') + 1 : 0, role.length());
+    private void initializeAuditEvents(Session session, AuditConfiguration auditConfiguration) {
+        String role = collectionPersister.getCollectionMetadata().getRole();
+        String propertyName = role.substring(role.lastIndexOf('.') != -1 ? role.lastIndexOf('.') + 1 : 0, role.length());
 
-		if (!auditConfiguration.getExtensionManager()
-				.getAuditableInformationProvider().isAuditable(entityName,
-						propertyName)
-				|| !persistentCollection.wasInitialized()) {
-			return;
-		}
+        if (!auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName, propertyName) || !persistentCollection.wasInitialized()) {
+            return;
+        }
 
-		AuditType auditType = HibernateAudit.getAuditType(session, entity
-				.getClass().getName());
-		auditEvent = new AuditEvent();
-		auditEvent.setAuditType(auditType);
-		auditEvent.setType(AuditEvent.ADD_AUDIT_EVENT_TYPE);
-		auditEvent.setEntityId(id == null ? null : id.toString());
+        AuditType auditType = HibernateAudit.getAuditType(session, entity.getClass().getName());
+        auditEvent = new AuditEvent();
+        auditEvent.setAuditType(auditType);
+        auditEvent.setType(AuditEvent.ADD_AUDIT_EVENT_TYPE);
+        auditEvent.setEntityId(id == null ? null : id.toString());
 
-		EntityAuditObject auditObject = new EntityAuditObject();
-		auditObject.setAuditEvent(auditEvent);
-		auditObject.setAuditType(auditType);
-		auditObject.setTargetEntityId(id == null ? null : id.toString());
-		auditEvent.getAuditObjects().add(auditObject);
+        EntityAuditObject auditObject = new EntityAuditObject();
+        auditObject.setAuditEvent(auditEvent);
+        auditObject.setAuditType(auditType);
+        auditObject.setTargetEntityId(id == null ? null : id.toString());
+        auditEvent.getAuditObjects().add(auditObject);
 
-		Type elementType = collectionPersister.getCollectionMetadata()
-				.getElementType();
+        Type elementType = collectionPersister.getCollectionMetadata().getElementType();
 
-		Iterator<? extends Object> iterator = persistentCollection
-				.entries(collectionPersister);
+        Iterator<? extends Object> iterator = persistentCollection.entries(collectionPersister);
 
-		for (long i = 0; iterator.hasNext(); i++) {
-			Object element = iterator.next();
+        for (long i = 0; iterator.hasNext(); i++) {
+            Object element = iterator.next();
 
-			processElement(session, auditConfiguration, entity, element,
-					elementType, propertyName, i, auditObject, auditEvent);
-		}
-	}
+            processElement(session, auditConfiguration, entity, element, elementType, propertyName, i, auditObject, auditEvent);
+        }
+    }
 }

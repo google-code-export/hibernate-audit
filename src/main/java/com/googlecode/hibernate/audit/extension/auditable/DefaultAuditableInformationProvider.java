@@ -18,40 +18,38 @@
  */
 package com.googlecode.hibernate.audit.extension.auditable;
 
-public class DefaultAuditableInformationProvider implements
-		AuditableInformationProvider {
+public class DefaultAuditableInformationProvider implements AuditableInformationProvider {
 
-	private AuditableInformationProvider provider;
+    private AuditableInformationProvider provider;
 
-	public DefaultAuditableInformationProvider() {
+    public DefaultAuditableInformationProvider() {
 
-	}
+    }
 
-	public DefaultAuditableInformationProvider(
-			AuditableInformationProvider provider) {
-		this.provider = provider;
-	}
+    public DefaultAuditableInformationProvider(AuditableInformationProvider provider) {
+        this.provider = provider;
+    }
 
-	public boolean isAuditable(String entityName) {
-		if (entityName.startsWith("com.googlecode.hibernate.audit.")) {
-			return false;
-		}
+    public boolean isAuditable(String entityName) {
+        if (entityName.startsWith("com.googlecode.hibernate.audit.")) {
+            return false;
+        }
 
-		if (provider != null) {
-			return provider.isAuditable(entityName);
-		}
-		return true;
-	}
+        if (provider != null) {
+            return provider.isAuditable(entityName);
+        }
+        return true;
+    }
 
-	public boolean isAuditable(String entityName, String propertyName) {
-		if (!isAuditable(entityName)) {
-			return false;
-		}
+    public boolean isAuditable(String entityName, String propertyName) {
+        if (!isAuditable(entityName)) {
+            return false;
+        }
 
-		if (provider != null) {
-			return provider.isAuditable(entityName, propertyName);
-		}
-		return true;
-	}
+        if (provider != null) {
+            return provider.isAuditable(entityName, propertyName);
+        }
+        return true;
+    }
 
 }

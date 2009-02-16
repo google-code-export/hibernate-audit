@@ -16,17 +16,11 @@
  * with Hibernate Audit.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package com.googlecode.hibernate.audit.model.object;
+package com.googlecode.hibernate.audit.extension.concurrent;
 
-public class EntityAuditObject extends AuditObject {
-    protected String targetEntityId;
+public interface ConcurrentModificationProvider {
 
-    public String getTargetEntityId() {
-        return targetEntityId;
-    }
+    Long getLoadAuditTransactionId();
 
-    public void setTargetEntityId(String targetEntityId) {
-        this.targetEntityId = targetEntityId;
-    }
-
+    ConcurrentModificationLevelCheck getLevelCheck();
 }

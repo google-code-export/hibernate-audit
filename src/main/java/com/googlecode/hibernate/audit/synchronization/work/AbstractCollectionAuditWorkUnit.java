@@ -37,84 +37,67 @@ import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
 import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
 import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
-public abstract class AbstractCollectionAuditWorkUnit extends
-		AbstractAuditWorkUnit {
-	
-	protected void processElement(Session session,
-			AuditConfiguration auditConfiguration, Object entityOwner, Object element,
-			Type elementType, String propertyName, long index,
-			EntityAuditObject auditObject, AuditEvent auditEvent) {
+public abstract class AbstractCollectionAuditWorkUnit extends AbstractAuditWorkUnit {
 
-		if (elementType.isEntityType()) {
-			Serializable id = null;
-			
-			if (element != null) {
-				id = session.getSessionFactory().getClassMetadata(
-						((EntityType) elementType).getAssociatedEntityName())
-						.getIdentifier(element, session.getEntityMode());
-			}
+    protected void processElement(Session session, AuditConfiguration auditConfiguration, Object entityOwner, Object element, Type elementType, String propertyName, long index,
+            EntityAuditObject auditObject, AuditEvent auditEvent) {
 
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entityOwner.getClass().getName(), propertyName);
+        if (elementType.isEntityType()) {
+            Serializable id = null;
 
-			EntityObjectProperty property = new EntityObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			property.setTargetEntityId(auditConfiguration.getExtensionManager()
-					.getPropertyValueConverter().toString(id));
-			auditObject.getAuditObjectProperties().add(property);
-		} else if (elementType.isComponentType()) {
-			AbstractComponentType componentType = (AbstractComponentType) elementType;
+            if (element != null) {
+                id = session.getSessionFactory().getClassMetadata(((EntityType) elementType).getAssociatedEntityName()).getIdentifier(element, session.getEntityMode());
+            }
 
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entityOwner.getClass().getName(), propertyName);
+            AuditTypeField auditField = HibernateAudit.getAuditField(session, entityOwner.getClass().getName(), propertyName);
 
-			ComponentObjectProperty property = new ComponentObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			ComponentAuditObject targetComponentAuditObject = null;
+            EntityObjectProperty property = new EntityObjectProperty();
+            property.setAuditObject(auditObject);
+            property.setAuditField(auditField);
+            property.setIndex(new Long(index));
+            property.setTargetEntityId(auditConfiguration.getExtensionManager().getPropertyValueConverter().toString(id));
+            auditObject.getAuditObjectProperties().add(property);
+        } else if (elementType.isComponentType()) {
+            AbstractComponentType componentType = (AbstractComponentType) elementType;
 
-			if (element != null) {
-				targetComponentAuditObject = new ComponentAuditObject();
-				targetComponentAuditObject.setAuditEvent(auditEvent);
-				targetComponentAuditObject.setParentAuditObject(auditObject);
-				AuditType auditComponentType = HibernateAudit.getAuditType(
-						session, element.getClass().getName());
-				targetComponentAuditObject.setAuditType(auditComponentType);
+            AuditTypeField auditField = HibernateAudit.getAuditField(session, entityOwner.getClass().getName(), propertyName);
 
-				for (int j = 0; j < componentType.getPropertyNames().length; j++) {
-					String componentPropertyName = componentType
-							.getPropertyNames()[j];
+            ComponentObjectProperty property = new ComponentObjectProperty();
+            property.setAuditObject(auditObject);
+            property.setAuditField(auditField);
+            property.setIndex(new Long(index));
+            ComponentAuditObject targetComponentAuditObject = null;
 
-					Type componentPropertyType = componentType.getSubtypes()[j];
-					Object componentPropertyValue = componentType
-							.getPropertyValue(element, j,
-									(SessionImplementor) session);
+            if (element != null) {
+                targetComponentAuditObject = new ComponentAuditObject();
+                targetComponentAuditObject.setAuditEvent(auditEvent);
+                targetComponentAuditObject.setParentAuditObject(auditObject);
+                AuditType auditComponentType = HibernateAudit.getAuditType(session, element.getClass().getName());
+                targetComponentAuditObject.setAuditType(auditComponentType);
 
-					processProperty(session, auditConfiguration, auditEvent,
-							element, componentPropertyName,
-							componentPropertyValue, componentPropertyType,
-							targetComponentAuditObject);
-				}
-			}
-			property.setTargetComponentAuditObject(targetComponentAuditObject);
-			auditObject.getAuditObjectProperties().add(property);
-		} else if (elementType.isCollectionType()) {
-			// collection of collections
-		} else {
-			AuditTypeField auditField = HibernateAudit.getAuditField(session,
-					entityOwner.getClass().getName(), propertyName);
+                for (int j = 0; j < componentType.getPropertyNames().length; j++) {
+                    String componentPropertyName = componentType.getPropertyNames()[j];
 
-			SimpleObjectProperty property = new SimpleObjectProperty();
-			property.setAuditObject(auditObject);
-			property.setAuditField(auditField);
-			property.setIndex(new Long(index));
-			property.setValue(auditConfiguration.getExtensionManager()
-					.getPropertyValueConverter().toString(element));
-			auditObject.getAuditObjectProperties().add(property);
-		}
-	}
+                    Type componentPropertyType = componentType.getSubtypes()[j];
+                    Object componentPropertyValue = componentType.getPropertyValue(element, j, (SessionImplementor) session);
+
+                    processProperty(session, auditConfiguration, auditEvent, element, componentPropertyName, componentPropertyValue, componentPropertyType, targetComponentAuditObject);
+                }
+            }
+            property.setTargetComponentAuditObject(targetComponentAuditObject);
+            auditObject.getAuditObjectProperties().add(property);
+        } else if (elementType.isCollectionType()) {
+            // collection of collections
+        } else {
+            AuditTypeField auditField = HibernateAudit.getAuditField(session, entityOwner.getClass().getName(), propertyName);
+
+            SimpleObjectProperty property = new SimpleObjectProperty();
+            property.setAuditObject(auditObject);
+            property.setAuditField(auditField);
+            property.setIndex(new Long(index));
+            property.setValue(auditConfiguration.getExtensionManager().getPropertyValueConverter().toString(element));
+            auditObject.getAuditObjectProperties().add(property);
+        }
+    }
 
 }
