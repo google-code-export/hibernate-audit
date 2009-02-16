@@ -27,6 +27,6 @@ public class DefaultTransactionSyncronization implements TransactionSyncronizati
 
     public void registerSynchronization(EventSource eventSource, Synchronization synchronization) {
         Transaction transaction = eventSource.getTransaction();
-
+        transaction.registerSynchronization(synchronization);
     }
 }
