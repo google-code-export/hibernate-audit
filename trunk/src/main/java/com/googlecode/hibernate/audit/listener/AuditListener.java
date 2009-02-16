@@ -18,6 +18,7 @@
  */
 package com.googlecode.hibernate.audit.listener;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
@@ -37,6 +38,7 @@ import org.hibernate.event.PreCollectionRemoveEvent;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEvent;
 import org.hibernate.event.PreCollectionUpdateEventListener;
+import org.hibernate.mapping.PersistentClass;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.Version;
@@ -75,6 +77,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
         }
         Version.touch();
         auditConfiguration = new AuditConfiguration(conf);
+
         conf.addResource(AUDIT_MODEL_HBM_LOCATION);
 
         conf.buildMappings();

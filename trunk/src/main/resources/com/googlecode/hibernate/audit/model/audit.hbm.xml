@@ -130,7 +130,7 @@
 
 	<class name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
 		entity-name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
-		lazy="true" table="`AUDIT_LOGICAL_GROUP`">
+		lazy="true" table="`AUDIT_LOGICAL_GROUP`" mutable="false">
 		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model" />
 		<id name="id" type="java.lang.Long">
 			<column name="`AUDIT_LOGICAL_GROUP_ID`" sql-type="NUMBER(30)" />
@@ -141,12 +141,12 @@
 				<param name="increment_size">50</param>
 			</generator>
 		</id>
-		<many-to-one name="auditType"
+		<many-to-one name="auditType" update="false"
 			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
 			not-null="true">
 			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</many-to-one>
-		<property name="externalId" lazy="false" not-null="true"
+		<property name="externalId" lazy="false" not-null="true" update="false"
 			type="java.lang.String">
 			<column name="`EXTERNAL_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</property>
@@ -384,7 +384,7 @@
 		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="targetEntityId" type="java.lang.String"/>
-			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId 
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.auditType = :auditType and auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId 
 	</query>
 
 	<query
