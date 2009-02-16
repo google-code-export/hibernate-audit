@@ -39,6 +39,7 @@ import org.hibernate.event.PreCollectionUpdateEvent;
 import org.hibernate.event.PreCollectionUpdateEventListener;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.Version;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.configuration.AuditConfigurationObserver;
 import com.googlecode.hibernate.audit.synchronization.AuditSynchronization;
@@ -72,6 +73,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             // already initialized
             return;
         }
+        Version.touch();
         auditConfiguration = new AuditConfiguration(conf);
         conf.addResource(AUDIT_MODEL_HBM_LOCATION);
 

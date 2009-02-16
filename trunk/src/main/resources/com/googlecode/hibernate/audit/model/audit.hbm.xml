@@ -384,7 +384,7 @@
 		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="targetEntityId" type="java.lang.String"/>
-			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId 
 	</query>
 
 	<query
