@@ -23,6 +23,5 @@ import javax.transaction.Synchronization;
 import org.hibernate.event.EventSource;
 
 public interface TransactionSyncronization {
-	void registerSynchronization(EventSource eventSource,
-			Synchronization synchronization);
+    void registerSynchronization(EventSource eventSource, Synchronization synchronization);
 }

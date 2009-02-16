@@ -25,5 +25,5 @@ import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 
 public interface AuditLogicalGroupProvider {
 
-	AuditLogicalGroup getAuditLogicalGroup(Session session, AuditEvent auditEvent);
+    AuditLogicalGroup getAuditLogicalGroup(Session session, AuditEvent auditEvent);
 }

@@ -27,37 +27,34 @@ import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 
 public final class AuditSynchronizationManager {
-	private final Map<Transaction, AuditSynchronization> syncronizations = new ConcurrentReferenceHashMap<Transaction, AuditSynchronization>(
-			16, ConcurrentReferenceHashMap.ReferenceType.WEAK,
-			ConcurrentReferenceHashMap.ReferenceType.STRONG);
+    private final Map<Transaction, AuditSynchronization> syncronizations = new ConcurrentReferenceHashMap<Transaction, AuditSynchronization>(16, ConcurrentReferenceHashMap.ReferenceType.WEAK,
+            ConcurrentReferenceHashMap.ReferenceType.STRONG);
 
-	private AuditConfiguration auditConfiguration;
+    private AuditConfiguration auditConfiguration;
 
-	public AuditSynchronizationManager(AuditConfiguration auditConfiguration) {
-		this.auditConfiguration = auditConfiguration;
-	}
+    public AuditSynchronizationManager(AuditConfiguration auditConfiguration) {
+        this.auditConfiguration = auditConfiguration;
+    }
 
-	public AuditSynchronization get(EventSource session) {
-		Transaction transaction = session.getTransaction();
+    public AuditSynchronization get(EventSource session) {
+        Transaction transaction = session.getTransaction();
 
-		AuditSynchronization synchronization = syncronizations.get(transaction);
-		if (synchronization == null) {
-			synchronization = new AuditSynchronization(this, session);
-			syncronizations.put(transaction, synchronization);
+        AuditSynchronization synchronization = syncronizations.get(transaction);
+        if (synchronization == null) {
+            synchronization = new AuditSynchronization(this, session);
+            syncronizations.put(transaction, synchronization);
 
-			auditConfiguration.getExtensionManager()
-					.getTransactionSyncronization().registerSynchronization(
-							session, synchronization);
-		}
+            auditConfiguration.getExtensionManager().getTransactionSyncronization().registerSynchronization(session, synchronization);
+        }
 
-		return synchronization;
-	}
+        return synchronization;
+    }
 
-	public void remove(Transaction transaction) {
-		syncronizations.remove(transaction);
-	}
+    public void remove(Transaction transaction) {
+        syncronizations.remove(transaction);
+    }
 
-	public AuditConfiguration getAuditConfiguration() {
-		return auditConfiguration;
-	}
+    public AuditConfiguration getAuditConfiguration() {
+        return auditConfiguration;
+    }
 }

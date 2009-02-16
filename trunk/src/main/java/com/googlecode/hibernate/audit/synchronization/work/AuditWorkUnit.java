@@ -27,10 +27,9 @@ import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 
 public interface AuditWorkUnit {
-	void init(Session session, AuditConfiguration auditConfiguration);
+    void init(Session session, AuditConfiguration auditConfiguration);
 
-	void perform(Session session, AuditConfiguration auditConfiguration,
-			AuditTransaction auditTransaction);
+    void perform(Session session, AuditConfiguration auditConfiguration, AuditTransaction auditTransaction);
 
-	List<AuditLogicalGroup> getAuditLogicalGroups();
+    List<AuditLogicalGroup> getAuditLogicalGroups();
 }
