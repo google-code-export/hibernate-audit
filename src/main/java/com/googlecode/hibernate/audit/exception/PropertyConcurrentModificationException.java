@@ -8,7 +8,7 @@ public class PropertyConcurrentModificationException extends ConcurrentModificat
     private String id;
 
     public PropertyConcurrentModificationException(String className, String propertyName, String classLabel, String propertyLabel, String id) {
-        super("Property " + (propertyLabel != null ? propertyLabel : propertyName) + " in entity " + (classLabel != null ? classLabel : className) + " [id='" + id + "'] is modified.");
+        super("Property " + (propertyLabel != null ? propertyLabel : propertyName) + " in entity " + (classLabel != null ? classLabel : className) + " [id='" + id + "'] is already modified.");
         this.className = className;
         this.propertyName = propertyName;
         this.classLabel = classLabel;

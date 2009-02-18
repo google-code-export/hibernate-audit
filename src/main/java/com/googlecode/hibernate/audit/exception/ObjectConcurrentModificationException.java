@@ -6,7 +6,7 @@ public class ObjectConcurrentModificationException extends ConcurrentModificatio
     private String id;
 
     public ObjectConcurrentModificationException(String className, String classLabel, String id) {
-        super("Entity " + (classLabel != null ? classLabel : className) + "[id='" + id + "'] is modified.");
+        super("Entity " + (classLabel != null ? classLabel : className) + "[id='" + id + "'] is already modified.");
         this.className = className;
         this.classLabel = classLabel;
         this.id = id;

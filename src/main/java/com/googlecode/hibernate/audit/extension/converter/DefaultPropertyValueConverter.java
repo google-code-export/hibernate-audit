@@ -46,6 +46,10 @@ public class DefaultPropertyValueConverter implements PropertyValueConverter {
     }
 
     public Object valueOf(Class type, String str) {
+        if (str == null) {
+            return null;
+        }
+        
         if (Integer.class.equals(type)) {
             return Integer.valueOf(str);
         } else if (Long.class.equals(type)) {

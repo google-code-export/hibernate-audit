@@ -215,7 +215,9 @@ public class AuditSynchronization implements Synchronization {
 
                     if (!ConcurrentModificationLevelCheck.PROPERTY.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLevelCheck())) {
                         // only object level should be checked
-                        session.getTransaction().rollback();
+                        if (session.getTransaction().isActive()) {
+                            session.getTransaction().rollback();
+                        }
                         throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
                     } else {
                         // property level is going to be checked - validate only
@@ -227,7 +229,9 @@ public class AuditSynchronization implements Synchronization {
                             for (AuditEvent event : latestEntityTransaction.getEvents()) {
                                 if (event.getEntityId() != null && event.getEntityId().equals(targetEntityId) && event.getAuditType().getClassName().equals(auditType.getClassName())) {
                                     if (AuditEvent.DELETE_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                                        session.getTransaction().rollback();
+                                        if (session.getTransaction().isActive()) {
+                                            session.getTransaction().rollback();
+                                        }
                                         throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
                                     }
                                 }
@@ -248,7 +252,9 @@ public class AuditSynchronization implements Synchronization {
 
                         // object level check and we detected that we have
                         // changed object that matches..
-                        session.getTransaction().rollback();
+                        if (session.getTransaction().isActive()) {
+                            session.getTransaction().rollback();
+                        }
                         throw new PropertyConcurrentModificationException(auditObjectProperty.getAuditField().getOwnerType().getClassName(), auditObjectProperty.getAuditField().getName(),
                                 auditObjectProperty.getAuditField().getOwnerType().getLabel(), auditObjectProperty.getAuditField().getLabel(), e.getEntityId());
                     }

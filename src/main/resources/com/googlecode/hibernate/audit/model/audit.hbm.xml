@@ -182,7 +182,7 @@
 			not-null="true" lazy="proxy">
 			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</many-to-one>
-		<bag name="auditObjectProperties" cascade="all" inverse="true"
+		<bag name="auditObjectProperties" cascade="all" inverse="true" order-by="IDX"
 			lazy="true">
 			<key column="`AUDIT_OBJECT_ID`" />
 			<one-to-many
@@ -244,6 +244,10 @@
 			not-null="true" lazy="proxy">
 			<column name="`AUDIT_TYPE_FIELD_ID`" sql-type="NUMBER(30)"
 				not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy">
+			<column name="`RUNTIME_AUDIT_TYPE_ID`" sql-type="NUMBER(30)"/>
 		</many-to-one>
 		<property name="index" lazy="false" type="java.lang.Long">
 			<column name="`IDX`" sql-type="NUMBER(30)" />
@@ -404,6 +408,28 @@
 		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsAfterTransactionId">
 			<query-param name="transactionId" type="java.lang.Long"/>
 			from com.googlecode.hibernate.audit.model.AuditTransaction where id > :transactionId order by id
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsForEntity">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			select t from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event where event.auditType = :auditType and event.entityId = :externalId  order by t.id desc
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditEventsForEntity">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			select event from com.googlecode.hibernate.audit.model.AuditEvent as event where event.auditType = :auditType and event.entityId = :externalId  order by event.auditTransaction.id asc, event.id asc
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditEventsForEntityUntilTransactionId">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			<query-param name="transactionId" type="java.lang.Long"/>
+			select event from com.googlecode.hibernate.audit.model.AuditEvent as event where event.auditType = :auditType and event.entityId = :externalId  and event.auditTransaction.id &lt;= :transactionId order by event.auditTransaction.id asc, event.id asc
 	</query>
 	
 </hibernate-mapping>

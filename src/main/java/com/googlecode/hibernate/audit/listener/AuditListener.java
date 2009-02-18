@@ -18,7 +18,6 @@
  */
 package com.googlecode.hibernate.audit.listener;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
@@ -38,7 +37,6 @@ import org.hibernate.event.PreCollectionRemoveEvent;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEvent;
 import org.hibernate.event.PreCollectionUpdateEventListener;
-import org.hibernate.mapping.PersistentClass;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.Version;
@@ -139,7 +137,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
         if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
             AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
-
+            
             AuditWorkUnit workUnit = new UpdateAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister(), event.getOldState(), event.getState());
             sync.addWorkUnit(workUnit);
         }

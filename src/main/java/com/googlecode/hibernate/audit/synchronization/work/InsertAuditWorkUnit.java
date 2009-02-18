@@ -33,6 +33,9 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
+import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
+import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
+import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
 public class InsertAuditWorkUnit extends AbstractAuditWorkUnit {
     private String entityName;
@@ -97,27 +100,35 @@ public class InsertAuditWorkUnit extends AbstractAuditWorkUnit {
     }
 
     @Override
-    protected void processEntityProperty(Session session, AuditConfiguration auditConfiguration, Object object, String propertyName, Object propertyValue, Type propertyType, AuditObject auditObject) {
+    protected EntityObjectProperty processEntityProperty(Session session, AuditConfiguration auditConfiguration, Object object, String propertyName, Object propertyValue, Type propertyType,
+            AuditObject auditObject) {
         if (propertyValue != null) {
             // only record not null values
-            super.processEntityProperty(session, auditConfiguration, object, propertyName, propertyValue, propertyType, auditObject);
+            return super.processEntityProperty(session, auditConfiguration, object, propertyName, propertyValue, propertyType, auditObject);
         }
+
+        return null;
     }
 
     @Override
-    protected void processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity, String propertyName,
-            Object component, AbstractComponentType componentType) {
+    protected ComponentObjectProperty processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity,
+            String propertyName, Object component, AbstractComponentType componentType) {
         if (component != null) {
             // only record not null values
-            super.processComponentValue(session, auditConfiguration, auditEvent, auditObject, entityName, entity, propertyName, component, componentType);
+            return super.processComponentValue(session, auditConfiguration, auditEvent, auditObject, entityName, entity, propertyName, component, componentType);
         }
+
+        return null;
     }
 
     @Override
-    protected void createSimpleValue(Session session, AuditConfiguration auditConfiguration, AuditObject auditObject, String entityName, Object entity, String propertyName, Object propertyValue) {
+    protected SimpleObjectProperty createSimpleValue(Session session, AuditConfiguration auditConfiguration, AuditObject auditObject, String entityName, Object entity, String propertyName,
+            Object propertyValue) {
         if (propertyValue != null) {
             // only record not null values
-            super.createSimpleValue(session, auditConfiguration, auditObject, entityName, entity, propertyName, propertyValue);
+            return super.createSimpleValue(session, auditConfiguration, auditObject, entityName, entity, propertyName, propertyValue);
         }
+
+        return null;
     }
 }
