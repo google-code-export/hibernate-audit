@@ -84,8 +84,6 @@ public class UpdateCollectionAuditWorkUnit extends AbstractCollectionAuditWorkUn
         for (int i = 0; iterator.hasNext(); i++) {
             Object element = iterator.next();
 
-            AuditEvent auditEvent = null;
-            EntityAuditObject auditObject = null;
             if (persistentCollection.needsInserting(element, i, elementType)) {
                 insertIndexes.add(new Integer(i));
             } else if (persistentCollection.needsUpdating(element, i, elementType)) {

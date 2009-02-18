@@ -18,6 +18,7 @@
  */
 package com.googlecode.hibernate.audit.model.property;
 
+import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 
@@ -25,6 +26,8 @@ public abstract class AuditObjectProperty {
     protected Long id;
     protected AuditObject auditObject;
     protected AuditTypeField auditField;
+    protected AuditType auditType;
+
     protected Long index;
 
     public Long getId() {
@@ -57,5 +60,13 @@ public abstract class AuditObjectProperty {
 
     public void setIndex(Long index) {
         this.index = index;
+    }
+
+    public AuditType getAuditType() {
+        return auditType;
+    }
+
+    public void setAuditType(AuditType auditType) {
+        this.auditType = auditType;
     }
 }

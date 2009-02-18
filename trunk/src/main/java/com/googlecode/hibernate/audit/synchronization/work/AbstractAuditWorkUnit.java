@@ -38,6 +38,7 @@ import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 import com.googlecode.hibernate.audit.model.object.ComponentAuditObject;
+import com.googlecode.hibernate.audit.model.property.AuditObjectProperty;
 import com.googlecode.hibernate.audit.model.property.ComponentObjectProperty;
 import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
 import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
@@ -52,43 +53,63 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         if (!auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(getEntityName(), propertyName)) {
             return;
         }
+        AuditObjectProperty property = null;
+
         if (propertyType.isEntityType()) {
-            processEntityProperty(session, auditConfiguration, object, propertyName, propertyValue, propertyType, auditObject);
+            property = processEntityProperty(session, auditConfiguration, object, propertyName, propertyValue, propertyType, auditObject);
         } else if (propertyType.isCollectionType()) {
             // collection will be handled by collection event listeners
         } else if (propertyType.isComponentType()) {
-            processComponentValue(session, auditConfiguration, auditEvent, auditObject, getEntityName(), object, propertyName, propertyValue, (AbstractComponentType) propertyType);
+            property = processComponentValue(session, auditConfiguration, auditEvent, auditObject, getEntityName(), object, propertyName, propertyValue, (AbstractComponentType) propertyType);
         } else {
-            createSimpleValue(session, auditConfiguration, auditObject, getEntityName(), object, propertyName, propertyValue);
+            property = createSimpleValue(session, auditConfiguration, auditObject, getEntityName(), object, propertyName, propertyValue);
+        }
+
+        if (property != null) {
+            AuditType auditType = null;
+            if (propertyValue != null) {
+                auditType = HibernateAudit.getAuditType(session, propertyValue.getClass().getName());
+                if (auditType == null) {
+                    // subclass that was not registered in the audit metadata - use the base class
+                    auditType = property.getAuditField().getFieldType();
+                }
+            }
+
+            property.setAuditType(auditType);
+            auditObject.getAuditObjectProperties().add(property);
         }
     }
 
-    protected void processEntityProperty(Session session, AuditConfiguration auditConfiguration, Object object, String propertyName, Object propertyValue, Type propertyType, AuditObject auditObject) {
+    protected EntityObjectProperty processEntityProperty(Session session, AuditConfiguration auditConfiguration, Object object, String propertyName, Object propertyValue, Type propertyType,
+            AuditObject auditObject) {
         String entityName = ((EntityType) propertyType).getAssociatedEntityName();
 
         Serializable id = null;
+        AuditTypeField auditField = HibernateAudit.getAuditField(session, object.getClass().getName(), propertyName);
 
         if (propertyValue != null) {
             id = session.getSessionFactory().getClassMetadata(entityName).getIdentifier(propertyValue, session.getEntityMode());
         }
-        AuditTypeField auditField = HibernateAudit.getAuditField(session, object.getClass().getName(), propertyName);
-
         EntityObjectProperty property = new EntityObjectProperty();
         property.setAuditObject(auditObject);
         property.setAuditField(auditField);
         property.setIndex(null);
         property.setTargetEntityId(auditConfiguration.getExtensionManager().getPropertyValueConverter().toString(id));
-        auditObject.getAuditObjectProperties().add(property);
+
+        return property;
     }
 
-    protected void processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity, String propertyName,
-            Object component, AbstractComponentType componentType) {
+    protected ComponentObjectProperty processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity,
+            String propertyName, Object component, AbstractComponentType componentType) {
         AuditTypeField auditField = HibernateAudit.getAuditField(session, entity.getClass().getName(), propertyName);
 
         ComponentObjectProperty property = new ComponentObjectProperty();
         property.setAuditObject(auditObject);
         property.setAuditField(auditField);
         property.setIndex(null);
+        if (component != null) {
+            property.setAuditType(HibernateAudit.getAuditType(session, component.getClass().getName()));
+        }
 
         ComponentAuditObject targetComponentAuditObject = null;
 
@@ -110,10 +131,11 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         }
         property.setTargetComponentAuditObject(targetComponentAuditObject);
 
-        auditObject.getAuditObjectProperties().add(property);
+        return property;
     }
 
-    protected void createSimpleValue(Session session, AuditConfiguration auditConfiguration, AuditObject auditObject, String entityName, Object entity, String propertyName, Object propertyValue) {
+    protected SimpleObjectProperty createSimpleValue(Session session, AuditConfiguration auditConfiguration, AuditObject auditObject, String entityName, Object entity, String propertyName,
+            Object propertyValue) {
         AuditTypeField auditField = HibernateAudit.getAuditField(session, entity.getClass().getName(), propertyName);
 
         SimpleObjectProperty property = new SimpleObjectProperty();
@@ -121,7 +143,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         property.setAuditField(auditField);
         property.setIndex(null);
         property.setValue(auditConfiguration.getExtensionManager().getPropertyValueConverter().toString(propertyValue));
-        auditObject.getAuditObjectProperties().add(property);
+
+        return property;
     }
 
     public List<AuditLogicalGroup> getAuditLogicalGroups() {

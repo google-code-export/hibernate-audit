@@ -20,6 +20,7 @@ package com.googlecode.hibernate.audit.listener;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -43,9 +44,13 @@ import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
+import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 
 public class AuditSessionFactoryObserver implements SessionFactoryObserver {
     private static final Logger log = Logger.getLogger(AuditSessionFactoryObserver.class);
+
+    private static final Map<SessionFactory, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<SessionFactory, AuditConfiguration>(16,
+            ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
 
     private SessionFactoryObserver observer;
     private AuditConfiguration auditConfiguration;
@@ -65,14 +70,21 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         if (observer != null) {
             observer.sessionFactoryCreated(sessionfactory);
         }
+        
+        CONFIGURATION_MAP.put(sessionfactory, auditConfiguration);
     }
 
     public void sessionFactoryClosed(SessionFactory sessionfactory) {
         if (observer != null) {
             observer.sessionFactoryClosed(sessionfactory);
         }
+        CONFIGURATION_MAP.remove(sessionfactory);
     }
 
+    public static AuditConfiguration getAuditConfiguration(SessionFactory sessionFactory) {
+        return CONFIGURATION_MAP.get(sessionFactory);
+    }
+    
     private void initializeAuditMetatdata(SessionFactory sessionFactory) {
         Collection<ClassMetadata> allClassMetadata = sessionFactory.getAllClassMetadata().values();
 
