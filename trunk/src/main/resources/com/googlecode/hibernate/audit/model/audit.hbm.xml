@@ -143,11 +143,11 @@
 		</id>
 		<many-to-one name="auditType" update="false"
 			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
-			not-null="true">
+			not-null="true" unique-key="`AUDIT_TYPE_ID_EXTERNAL_ID_IDX`" >
 			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</many-to-one>
 		<property name="externalId" lazy="false" not-null="true" update="false"
-			type="java.lang.String">
+			type="java.lang.String" unique-key="`AUDIT_TYPE_ID_EXTERNAL_ID_IDX`" >
 			<column name="`EXTERNAL_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</property>
 	</class>

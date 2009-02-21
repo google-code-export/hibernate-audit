@@ -22,9 +22,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.transaction.InvalidTransactionException;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.EntityType;
@@ -44,6 +51,8 @@ import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
 import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
 public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
+    private static final Logger log = Logger.getLogger(AbstractAuditWorkUnit.class);
+
     protected abstract String getEntityName();
 
     private List<AuditLogicalGroup> auditLogicalGroups = new ArrayList<AuditLogicalGroup>();
@@ -70,7 +79,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
             if (propertyValue != null) {
                 auditType = HibernateAudit.getAuditType(session, propertyValue.getClass().getName());
                 if (auditType == null) {
-                    // subclass that was not registered in the audit metadata - use the base class
+                    // subclass that was not registered in the audit metadata -
+                    // use the base class
                     auditType = property.getAuditField().getFieldType();
                 }
             }
@@ -164,7 +174,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
             result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
             if (result == null) {
-                createAduitLogicalGroup(session, logicalGroup, auditType);
+                createAuditLogicalGroup(session, logicalGroup, auditType);
                 result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
                 auditLogicalGroups.add(result);
@@ -175,24 +185,46 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         return result;
     }
 
-    private void createAduitLogicalGroup(Session session, AuditLogicalGroup logicalGroup, AuditType auditType) {
-        try {
-            Session newSession = null;
+    private void createAuditLogicalGroup(Session session, AuditLogicalGroup logicalGroup, AuditType auditType) {
+        Session newSession = null;
 
+        TransactionManager txManager = null;
+        javax.transaction.Transaction suspendedTransaction = null;
+
+        try {
+            txManager = ((SessionFactoryImplementor) session.getSessionFactory()).getTransactionManager();
+            if (txManager != null) {
+                try {
+                    suspendedTransaction = txManager.suspend();
+                } catch (SystemException e) {
+                    throw new HibernateException(e);
+                }
+            }
             try {
                 newSession = session.getSessionFactory().openSession();
                 Transaction tx = newSession.beginTransaction();
                 logicalGroup.setAuditType(auditType);
                 newSession.save(logicalGroup);
                 tx.commit();
+            } catch (HibernateException ignored) {
             } finally {
                 if (newSession != null) {
-                    newSession.close();
+                    try {
+                        newSession.close();
+                    } catch (HibernateException ignored) {
+                    }
                 }
             }
-        } catch (HibernateException e) {
-            // ignore any database generated exceptions because of concurrent
-            // add.
+        } finally {
+            if (txManager != null && suspendedTransaction != null) {
+                try {
+                    txManager.resume(suspendedTransaction);
+                } catch (SystemException e) {
+                    throw new HibernateException(e);
+                } catch (InvalidTransactionException e) {
+                    throw new HibernateException(e);
+                }
+            }
         }
     }
 
