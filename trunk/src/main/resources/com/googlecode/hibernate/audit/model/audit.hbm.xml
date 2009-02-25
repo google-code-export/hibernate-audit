@@ -44,7 +44,7 @@
 		<property name="username" lazy="false" type="java.lang.String">
 			<column name="`TRANSACTION_USER_NAME`" length="255" />
 		</property>
-		<bag name="events" cascade="all" inverse="true" lazy="true">
+		<bag name="events" cascade="all" inverse="true" lazy="true" order-by="`AUDIT_EVENT_ID`">
 			<key column="`AUDIT_TRANSACTION_ID`" />
 			<one-to-many class="com.googlecode.hibernate.audit.model.AuditEvent" />
 		</bag>
