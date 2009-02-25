@@ -39,6 +39,7 @@ import org.hibernate.Transaction;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
+import com.googlecode.hibernate.audit.exception.ConcurrentModificationException;
 import com.googlecode.hibernate.audit.exception.ObjectConcurrentModificationException;
 import com.googlecode.hibernate.audit.exception.PropertyConcurrentModificationException;
 import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationLevelCheck;
@@ -135,8 +136,14 @@ public class AuditSynchronization implements Synchronization {
                     }
                     session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
                 }
-
-                concurrentModificationCheck(session, auditTransaction, loadAuditTransactionId);
+                try {
+                    concurrentModificationCheck(session, auditTransaction, loadAuditTransactionId);
+                } catch (ConcurrentModificationException ce) {
+                    if (log.isEnabledFor(Level.DEBUG)) {
+                        log.debug(ce);
+                    }
+                    throw ce;
+                }
             }
 
             session.save(auditTransaction);
