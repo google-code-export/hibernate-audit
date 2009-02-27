@@ -20,6 +20,8 @@ package com.googlecode.hibernate.audit.listener;
 
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.cfg.Configuration;
@@ -55,6 +57,8 @@ import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 public class AuditListener implements PostInsertEventListener, PostUpdateEventListener, PostDeleteEventListener, PreCollectionUpdateEventListener, PreCollectionRemoveEventListener,
         PostCollectionRecreateEventListener, Initializable, Destructible {
 
+    private static final Logger log = Logger.getLogger(AuditListener.class);
+
     private static final Map<Configuration, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<Configuration, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
 
@@ -69,23 +73,30 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
     }
 
     public void initialize(Configuration conf) {
-        if (CONFIGURATION_MAP.containsKey(conf)) {
-            // already initialized
-            return;
+        try {
+            if (CONFIGURATION_MAP.containsKey(conf)) {
+                // already initialized
+                return;
+            }
+            Version.touch();
+            auditConfiguration = new AuditConfiguration(conf);
+
+            conf.addResource(AUDIT_MODEL_HBM_LOCATION);
+
+            conf.buildMappings();
+
+            SessionFactoryObserver sessionFactoryObserver = new AuditSessionFactoryObserver(conf.getSessionFactoryObserver(), auditConfiguration, conf);
+            conf.setSessionFactoryObserver(sessionFactoryObserver);
+
+            CONFIGURATION_MAP.put(conf, auditConfiguration);
+
+            processAuditConfigurationObserver(conf);
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
-        Version.touch();
-        auditConfiguration = new AuditConfiguration(conf);
-
-        conf.addResource(AUDIT_MODEL_HBM_LOCATION);
-
-        conf.buildMappings();
-
-        SessionFactoryObserver sessionFactoryObserver = new AuditSessionFactoryObserver(conf.getSessionFactoryObserver(), auditConfiguration, conf);
-        conf.setSessionFactoryObserver(sessionFactoryObserver);
-
-        CONFIGURATION_MAP.put(conf, auditConfiguration);
-
-        processAuditConfigurationObserver(conf);
     }
 
     private void processAuditConfigurationObserver(Configuration conf) {
@@ -122,69 +133,111 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
     }
 
     public void onPostInsert(PostInsertEvent event) {
-        String entityName = event.getPersister().getEntityName();
+        try {
+            String entityName = event.getPersister().getEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
 
-            AuditWorkUnit workUnit = new InsertAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister());
-            sync.addWorkUnit(workUnit);
+                AuditWorkUnit workUnit = new InsertAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister());
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 
     public void onPostUpdate(PostUpdateEvent event) {
-        String entityName = event.getPersister().getEntityName();
+        try {
+            String entityName = event.getPersister().getEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
-            
-            AuditWorkUnit workUnit = new UpdateAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister(), event.getOldState(), event.getState());
-            sync.addWorkUnit(workUnit);
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+
+                AuditWorkUnit workUnit = new UpdateAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister(), event.getOldState(), event.getState());
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 
     public void onPostDelete(PostDeleteEvent event) {
-        String entityName = event.getPersister().getEntityName();
+        try {
+            String entityName = event.getPersister().getEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
 
-            AuditWorkUnit workUnit = new DeleteAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister());
-            sync.addWorkUnit(workUnit);
+                AuditWorkUnit workUnit = new DeleteAuditWorkUnit(entityName, event.getId(), event.getEntity(), event.getPersister());
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 
     public void onPostRecreateCollection(PostCollectionRecreateEvent event) {
-        String entityName = event.getAffectedOwnerEntityName();
+        try {
+            String entityName = event.getAffectedOwnerEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
 
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
-            AuditWorkUnit workUnit = new InsertCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
-            sync.addWorkUnit(workUnit);
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+                AuditWorkUnit workUnit = new InsertCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 
     public void onPreUpdateCollection(PreCollectionUpdateEvent event) {
-        String entityName = event.getAffectedOwnerEntityName();
+        try {
+            String entityName = event.getAffectedOwnerEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
 
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
-            AuditWorkUnit workUnit = new UpdateCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+                AuditWorkUnit workUnit = new UpdateCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
 
-            sync.addWorkUnit(workUnit);
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 
     public void onPreRemoveCollection(PreCollectionRemoveEvent event) {
-        String entityName = event.getAffectedOwnerEntityName();
+        try {
+            String entityName = event.getAffectedOwnerEntityName();
 
-        if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-            AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
-            AuditWorkUnit workUnit = new RemoveCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+                AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
+                AuditWorkUnit workUnit = new RemoveCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
 
-            sync.addWorkUnit(workUnit);
+                sync.addWorkUnit(workUnit);
+            }
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            throw e;
         }
     }
 }
