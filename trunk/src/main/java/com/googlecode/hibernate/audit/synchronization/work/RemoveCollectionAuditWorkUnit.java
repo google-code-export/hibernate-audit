@@ -67,7 +67,7 @@ public class RemoveCollectionAuditWorkUnit extends AbstractCollectionAuditWorkUn
     }
 
     public void init(Session session, AuditConfiguration auditConfiguration) {
-        collectionPersister = ((SessionImplementor) session).getPersistenceContext().getCollectionEntry(persistentCollection).getCurrentPersister();
+        collectionPersister = ((SessionImplementor) session).getPersistenceContext().getCollectionEntry(persistentCollection).getLoadedPersister();
     }
 
     private void initializeAuditEvents(Session session, AuditConfiguration auditConfiguration) {
