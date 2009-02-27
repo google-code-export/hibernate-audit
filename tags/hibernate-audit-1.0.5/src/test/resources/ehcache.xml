@@ -1,0 +1,12 @@
+<ehcache>
+
+	<diskStore path="java.io.tmpdir"/>
+	<defaultCache maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="1" timeToLiveSeconds="1" overflowToDisk="true" diskPersistent="false" diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LRU"/>
+	
+    <cache name="com.googlecode.hibernate.audit.model.clazz" maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="0" timeToLiveSeconds="43200" overflowToDisk="true" diskPersistent="false" diskExpiryThreadIntervalSeconds="3600" memoryStoreEvictionPolicy="LRU"/>
+    
+    <cache name="com.googlecode.hibernate.audit.model" maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="0" timeToLiveSeconds="43200" overflowToDisk="true" diskPersistent="false" diskExpiryThreadIntervalSeconds="3600" memoryStoreEvictionPolicy="LRU"/>
+    <cache name="com.googlecode.hibernate.audit.model.query" maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="0" timeToLiveSeconds="43200" overflowToDisk="true" diskPersistent="false" diskExpiryThreadIntervalSeconds="3600" memoryStoreEvictionPolicy="LRU"/>   
+    
+    <cache name="com.googlecode.hibernate.audit.model.AuditLogicalGroup.query" maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="0" timeToLiveSeconds="43200" overflowToDisk="true" diskPersistent="false" diskExpiryThreadIntervalSeconds="3600" memoryStoreEvictionPolicy="LRU"/>   
+</ehcache>
