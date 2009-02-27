@@ -18,6 +18,7 @@
  */
 package com.googlecode.hibernate.audit.listener;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Level;
@@ -39,6 +40,7 @@ import org.hibernate.event.PreCollectionRemoveEvent;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEvent;
 import org.hibernate.event.PreCollectionUpdateEventListener;
+import org.hibernate.mapping.PersistentClass;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.Version;
@@ -81,8 +83,9 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             Version.touch();
             auditConfiguration = new AuditConfiguration(conf);
 
-            conf.addResource(AUDIT_MODEL_HBM_LOCATION);
+            processDynamicUpdate(conf);
 
+            conf.addResource(AUDIT_MODEL_HBM_LOCATION);
             conf.buildMappings();
 
             SessionFactoryObserver sessionFactoryObserver = new AuditSessionFactoryObserver(conf.getSessionFactoryObserver(), auditConfiguration, conf);
@@ -96,6 +99,20 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 log.error(e);
             }
             throw e;
+        }
+    }
+
+    private void processDynamicUpdate(Configuration conf) {
+        if (conf.getProperty(HibernateAudit.AUDIT_SET_DYNAMIC_UPDATE_FOR_AUDITED_MODEL_PROPERTY) != null
+                && Boolean.valueOf(conf.getProperty(HibernateAudit.AUDIT_SET_DYNAMIC_UPDATE_FOR_AUDITED_MODEL_PROPERTY)).booleanValue()) {
+            Iterator<PersistentClass> auditedPersistentClassesIterator = conf.getClassMappings();
+            while (auditedPersistentClassesIterator.hasNext()) {
+                PersistentClass persistentClass = auditedPersistentClassesIterator.next();
+                persistentClass.setDynamicUpdate(true);
+                if (log.isInfoEnabled()) {
+                    log.info("Set dynamic-update to true for entity: " + persistentClass.getEntityName());
+                }
+            }
         }
     }
 
