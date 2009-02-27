@@ -36,6 +36,7 @@ import org.hibernate.FlushMode;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.engine.SessionFactoryImplementor;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
@@ -79,7 +80,32 @@ public class AuditSynchronization implements Synchronization {
         if (workUnits.size() == 0) {
             return;
         }
-        executeInSession(auditedSession);
+        try {
+            executeInSession(auditedSession);
+        } catch (RuntimeException e) {
+            if (log.isEnabledFor(Level.ERROR)) {
+                log.error(e);
+            }
+            rollback();
+            throw e;
+        }
+    }
+
+    private void rollback() {
+        try {
+            if (auditedSession != null && auditedSession.getTransaction() != null && auditedSession.getTransaction().isActive()) {
+                auditedSession.getTransaction().rollback();
+            } else if (auditedSession != null && ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getTransactionManager() != null) {
+                ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getTransactionManager().setRollbackOnly();
+            }
+        } catch (Exception se) {
+            if (log.isEnabledFor(Level.WARN)) {
+                // this is the best that we can do - we've tried to mark
+                // the transaction as rolled back but we failed - the
+                // only thing left if to throw the exception
+                log.warn(se);
+            }
+        }
     }
 
     public void afterCompletion(int arg0) {
