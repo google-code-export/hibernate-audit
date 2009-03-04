@@ -21,6 +21,8 @@ package com.googlecode.hibernate.audit.extension.concurrent;
 public interface ConcurrentModificationProvider {
 
     Long getLoadAuditTransactionId();
-
+    
     ConcurrentModificationLevelCheck getLevelCheck();
+    
+    ConcurrentModificationBehavior getCheckBehavior();
 }
