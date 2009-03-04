@@ -26,7 +26,6 @@ import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -177,9 +176,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 createAuditLogicalGroup(session, logicalGroup, auditType);
                 result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
-                auditLogicalGroups.add(result);
             }
-
+            auditLogicalGroups.add(result);
         }
 
         return result;

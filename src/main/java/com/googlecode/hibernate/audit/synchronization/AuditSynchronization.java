@@ -43,6 +43,7 @@ import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.exception.ConcurrentModificationException;
 import com.googlecode.hibernate.audit.exception.ObjectConcurrentModificationException;
 import com.googlecode.hibernate.audit.exception.PropertyConcurrentModificationException;
+import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationBehavior;
 import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationLevelCheck;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
@@ -248,10 +249,16 @@ public class AuditSynchronization implements Synchronization {
 
                     if (!ConcurrentModificationLevelCheck.PROPERTY.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLevelCheck())) {
                         // only object level should be checked
-                        if (session.getTransaction().isActive()) {
-                            session.getTransaction().rollback();
+                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                            if (session.getTransaction().isActive()) {
+                                session.getTransaction().rollback();
+                            }
+                            throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
+                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                            if (log.isEnabledFor(Level.WARN)) {
+                                log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId=" + targetEntityId);
+                            }
                         }
-                        throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
                     } else {
                         // property level is going to be checked - validate only
                         // if the object was not deleted because in this case no
@@ -262,10 +269,19 @@ public class AuditSynchronization implements Synchronization {
                             for (AuditEvent event : latestEntityTransaction.getEvents()) {
                                 if (event.getEntityId() != null && event.getEntityId().equals(targetEntityId) && event.getAuditType().getClassName().equals(auditType.getClassName())) {
                                     if (AuditEvent.DELETE_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                                        if (session.getTransaction().isActive()) {
-                                            session.getTransaction().rollback();
+                                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider()
+                                                .getCheckBehavior())) {
+                                            if (session.getTransaction().isActive()) {
+                                                session.getTransaction().rollback();
+                                            }
+                                            throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
+                                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider()
+                                                .getCheckBehavior())) {
+                                            if (log.isEnabledFor(Level.WARN)) {
+                                                log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId="
+                                                        + targetEntityId);
+                                            }
                                         }
-                                        throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
                                     }
                                 }
                             }
@@ -285,11 +301,19 @@ public class AuditSynchronization implements Synchronization {
 
                         // object level check and we detected that we have
                         // changed object that matches..
-                        if (session.getTransaction().isActive()) {
-                            session.getTransaction().rollback();
+                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider())) {
+                            if (session.getTransaction().isActive()) {
+                                session.getTransaction().rollback();
+                            }
+                            throw new PropertyConcurrentModificationException(auditObjectProperty.getAuditField().getOwnerType().getClassName(), auditObjectProperty.getAuditField().getName(),
+                                    auditObjectProperty.getAuditField().getOwnerType().getLabel(), auditObjectProperty.getAuditField().getLabel(), e.getEntityId());
+                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                            if (log.isEnabledFor(Level.WARN)) {
+                                log.warn("Concurrent modification detected: className=" + auditObjectProperty.getAuditField().getOwnerType().getClassName() + ",field name="
+                                        + auditObjectProperty.getAuditField().getName() + ",class label=" + auditObjectProperty.getAuditField().getOwnerType().getLabel() + ",field label="
+                                        + auditObjectProperty.getAuditField().getLabel() + ",entity id=" + e.getEntityId());
+                            }
                         }
-                        throw new PropertyConcurrentModificationException(auditObjectProperty.getAuditField().getOwnerType().getClassName(), auditObjectProperty.getAuditField().getName(),
-                                auditObjectProperty.getAuditField().getOwnerType().getLabel(), auditObjectProperty.getAuditField().getLabel(), e.getEntityId());
                     }
                 }
             }

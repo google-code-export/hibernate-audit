@@ -27,4 +27,7 @@ public class DefaultConcurrentModificationProvider implements ConcurrentModifica
         return ConcurrentModificationLevelCheck.OBJECT;
     }
 
+    public ConcurrentModificationBehavior getCheckBehavior() {
+        return ConcurrentModificationBehavior.THROW_EXCEPTION;
+    }
 }
