@@ -130,7 +130,7 @@
 
 	<class name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
 		entity-name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
-		lazy="true" table="`AUDIT_LOGICAL_GROUP`" mutable="false">
+		lazy="true" table="`AUDIT_LOGICAL_GROUP`" mutable="true"> <!-- Note that mutable true is required because of the locking -->
 		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model" />
 		<id name="id" type="java.lang.Long">
 			<column name="`AUDIT_LOGICAL_GROUP_ID`" sql-type="NUMBER(30)" />
