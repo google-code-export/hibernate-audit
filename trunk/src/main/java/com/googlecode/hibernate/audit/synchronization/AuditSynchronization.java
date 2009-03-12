@@ -28,7 +28,10 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.transaction.Status;
 import javax.transaction.Synchronization;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -36,7 +39,9 @@ import org.hibernate.FlushMode;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.TransactionException;
 import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.util.JTAHelper;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
@@ -81,15 +86,34 @@ public class AuditSynchronization implements Synchronization {
         if (workUnits.size() == 0) {
             return;
         }
-        try {
-            executeInSession(auditedSession);
-        } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+        if (!isMarkedForRollback(auditedSession)) {
+            try {
+                executeInSession(auditedSession);
+            } catch (RuntimeException e) {
+                if (log.isEnabledFor(Level.ERROR)) {
+                    log.error(e);
+                }
+                rollback();
+                throw e;
             }
-            rollback();
-            throw e;
         }
+    }
+
+    private boolean isMarkedForRollback(Session session) {
+        TransactionManager manager = ((SessionFactoryImplementor) session.getSessionFactory()).getTransactionManager();
+        if (manager != null) {
+            try {
+                if (JTAHelper.isRollback(manager.getStatus())) {
+                    return true;
+                }
+            } catch (SystemException e) {
+                throw new TransactionException("Unable to get the transaction status.", e);
+            }
+        } else {
+            return session.getTransaction().wasRolledBack();
+        }
+
+        return false;
     }
 
     private void rollback() {
@@ -103,7 +127,7 @@ public class AuditSynchronization implements Synchronization {
             if (log.isEnabledFor(Level.WARN)) {
                 // this is the best that we can do - we've tried to mark
                 // the transaction as rolled back but we failed - the
-                // only thing left if to throw the exception
+                // only thing left if to log the exception
                 log.warn(se);
             }
         }
