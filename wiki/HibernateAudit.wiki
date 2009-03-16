@@ -26,7 +26,11 @@ svn co http://hibernate-audit.googlecode.com/svn/trunk ./hibernate-audit-read-on
 svn checkout --username <your_google_account> https://hibernate-audit.googlecode.com/svn/trunk/ ./hibernate-audit 
 }}}
 
-== How do I build? ==
+== How to obtain the hibernate-audit release ==
+
+Check the [http://hibernate-audit.googlecode.com/svn/repository/releases/ Hibernate-audit maven repository] for the latest release.
+
+== How do I build? (for development only)==
 
 {{{
 cd ./hibernate-audit
