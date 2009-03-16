@@ -75,6 +75,10 @@ Using a custom `AuditConfigurationObserver` the application can specify applicat
 
 `hba.audited-model.dynamic-update` controll whether the audit framework will set the dynamic-update for every audited entity to true - Note that this property have effect only when its value is true. Using the property set to true will guarantee that the audit will capture all updates that happend for the audited domain (this statement does not include explicitly not audited entities/properties which are always excluded from the audit) - enabling this will cause some performance penalties because Hibernate will not use a single update statement for a particular entity type but it will use dynamic update statement that will be generated on the fly based on which entity properties were modified. For more information check the [http://www.hibernate.org Hibernate site]
 
+{{{
+hba.audited-model.dynamic-update=true
+}}}
+
 ===`hba.mappingfile`===
 
 `hba.mappingfile` if set this specified the HBM location for the hibernate entities configuration. This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not uses hibernate annotations so you can control all mapping information from the HBM file only.
