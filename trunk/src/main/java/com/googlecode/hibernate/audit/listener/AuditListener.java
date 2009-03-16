@@ -64,7 +64,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
     private static final Map<Configuration, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<Configuration, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
 
-    private static final String AUDIT_MODEL_HBM_LOCATION = "com/googlecode/hibernate/audit/model/audit.hbm.xml";
+    private static final String DEFAULT_AUDIT_MODEL_HBM_LOCATION = "com/googlecode/hibernate/audit/model/audit.hbm.xml";
 
     private AuditConfiguration auditConfiguration;
 
@@ -85,7 +85,11 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
             processDynamicUpdate(conf);
 
-            conf.addResource(AUDIT_MODEL_HBM_LOCATION);
+            if (conf.getProperty(HibernateAudit.AUDIT_MAPPING_FILE_PROPERTY) != null) {
+                conf.addResource(conf.getProperty(HibernateAudit.AUDIT_MAPPING_FILE_PROPERTY));
+            } else {
+                conf.addResource(DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+            }
             conf.buildMappings();
 
             SessionFactoryObserver sessionFactoryObserver = new AuditSessionFactoryObserver(conf.getSessionFactoryObserver(), auditConfiguration, conf);
