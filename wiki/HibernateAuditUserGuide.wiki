@@ -69,7 +69,7 @@ you are using Spring to instantiate the session factory then you can do the foll
 hba.configuration.observer.clazz=com.myapp.MyAppAuditSessionFactoryObserver
 }}}
 
-Using a custom AuditConfigurationObserver the application can specify application specific implementation that controls all extensions. The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the SessionFactory initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
+Using a custom `AuditConfigurationObserver` the application can specify application specific implementation that controls all extensions. The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the `SessionFactory` initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
  
 ===`hba.audited-model.dynamic-update`===
 
