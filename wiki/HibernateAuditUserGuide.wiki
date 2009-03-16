@@ -1,86 +1,84 @@
 =Deployment=
 
-Add `hba.jar` in your Hibernate application classpath.
+Add `hibernate-audit.jar` in your Hibernate application classpath.
 
-=Run time activation=
+=Activation=
 
-Call
+Register {{{com.googlecode.hibernate.audit.listener.AuditListener}}} as a listerner to your session factory for the following events:
+
+    * post-insert
+    * post-update
+    * post-delete
+    * pre-collection-update
+    * pre-collection-remove
+    * post-collection-recreate
+
+You can register the listener directly in your session factory configuration or if 
+you are using Spring to instantiate the session factory then you can do the following in the spring configuration XML which containts your {{{LocalSessionFactoryBean}}} bean
 
 {{{
-HibernateAudit.enable(SessionFactory auditedSessionFactory)
+     ....
+     <bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+
+       ... application specific session factory properties......
+
+       <property name="eventListeners">
+            <map>
+                <entry key="post-insert">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+                <entry key="post-update">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+                <entry key="post-delete">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+                <entry key="pre-collection-update">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+                <entry key="pre-collection-remove">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+                <entry key="post-collection-recreate">
+                    <list>
+                        <ref local="com.googlecode.hibernate.audit.listener.AuditListener" />
+                    </list>
+                </entry>
+              </map>
+        </property>
+    </bean>
 }}}
+
+=HBA-Specific Properties=
+
+===`hba.configuration.observer.clazz`===
+
+`hba.configuration.observer.clazz` specifies application specific implementation of {{{com.googlecode.hibernate.audit.configuration.AuditConfigurationObserver}}} interface.
+
+{{{
+hba.configuration.observer.clazz=com.myapp.MyAppAuditSessionFactoryObserver
+}}}
+
+Using a custom AuditConfigurationObserver the application can specify application specific implementation that controls all extensions. The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the SessionFactory initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
+ 
+===`hba.audited-model.dynamic-update`===
+
+`hba.audited-model.dynamic-update` controll whether the audit framework will set the dynamic-update for every audited entity to true - Note that this property have effect only when its value is true. Using the property set to true will guarantee that the audit will capture all updates that happend for the audited domain (this statement does not include explicitly not audited entities/properties which are always excluded from the audit) - enabling this will cause some performance penalties because Hibernate will not use a single update statement for a particular entity type but it will use dynamic update statement that will be generated on the fly based on which entity properties were modified. For more information check the [http://www.hibernate.org Hibernate site]
+
+===`hba.mappingfile`===
+
+`hba.mappingfile` if set this specified the HBM location for the hibernate entities configuration. This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not uses hibernate annotations so you can control all mapping information from the HBM file only.
+
+=Application Extensions=
 
 =Error Handling=
-
-Describe `HibernateAuditException` and handling (transaction behavior, etc).
-
-If anything unbecoming happens inside an audit listener, the following are guaranteed:
- # the current transaction is rolled back
- # a HibernateAuditException bubbles up
- # the HibernateAuditException contains the Throwable instance that caused it all (accessible via getCause()).
-
-See https://jira.novaordis.org/browse/HBA-78
-
-=Configuration=
-
-HBA looks into environment for a certain number of properties during the initialization phase and uses the value of those properties to configure various aspects of its engine.
-
-The name of the properties HBA cares about starts with `"hba."`. There are two categories of "hba." properties: properties that have corresponding Hibernate counterparts, and properties specific to HBA. 
-
-In case of a "hba." property that has a corresponding Hibernate counterpart, the value of the property will be used during the engine initialization to configure the internal Hibernate session factory.
-
-==Hibernate-Specific Properties==
-
-===`hbm.hbm2ddl.auto`===
-
-
-`hbm.hbm2ddl.auto` controls automatic audit schema creation. Has the same meaning as "hibernate.hbm2ddl.auto", but applied to the internal audit tables. 
-
-{{{
-hbm.hbm2ddl.auto=validate|update|create|create-drop
-}}}
-
-
-Be aware that using "create-drop" will cause automatic dropping of audit tables when invoking HibernateAudit.stopRuntime(), so all audit information will be lost.
-
-==HBA-Specific Properties==
-
-===`hbm.write.collision.detection.enable`===
-
-`hbm.write.collision.detection.enable` enables HBA-based write collision detection mechanism.
-
-{{{
-hbm.write.collision.detection.enable=true
-}}}
-
-By default, write collision detection is disabled. If property is set, the engine must go through a start-up cycle for the change to take effect.
-
-
-
-=Implementation Details=
-
-Collection directionality information is not maintained in the original model, so that's why we introduced the AUDIT_EVENT_PAIR_COLLECTION table. 
-
-If a collection item is removed from a collection, there are at least two ways to express this change:
-
-1. UPDATE and the delta is the remaining collection content. It's easier to implement, because this is the information Hibernate pushes to its listener. HBA uses this method.
-
-2. REMOVE and the delta is the removed member. This is a lot better in expressing the semantic of the change, and also in terms of space used, but it's difficult to figure out the delta, unless going even deeper within hibernate.
-
-==Logical Group Id Support==
-
-A "logical group id" is a concept introduced by the audit framework to allow to group audit entities in so called "logical groups", as a way to optimize some queries and avoid laborious full-extent tree walking.
-
-Providing the logical group id is optional, as it is just an optimization. The audit framework will work fine without it, just that some queries would be slower.
-
-The id of the logical group an entity is part of must be provided by the application, via an implementation of `LogicalGroupIdProvider` interface. The instance of the application-provided `LogicalGroupIdProvided` interface must be registered at the same time the `SessionFactory` is registered with the audit runtime, by using the following API call:
-
-{{{
-    HibernateAudit.register(SessionFactory sf, LogicalGroupIdProvider lgip);
-}}}
-
-Multiple logical groups per transaction are supported. 
-
-The current limitation (which is more likely to stay permanently) is that a Hibernate audit event can be associated with one, and only one logical group id, which is a pretty reasonable granularity level. 
-
-As per 1.0 release, the audit framework doesn't make any assumption, nor it tries to enforce any consistency criteria, it just records the logical groups as they are being passed by the upper layer. We acknowledge that this is potentially dangerous, as it could lead to a "logically corrupted" audit trail. Further research will be done on the subject.
