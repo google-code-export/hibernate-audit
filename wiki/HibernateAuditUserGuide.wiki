@@ -85,4 +85,19 @@ hba.audited-model.dynamic-update=true
 
 =Application Extensions=
 
+===AuditableInformationProvider===
+
+===ConcurrentModificationProvider===
+
+===PropertyValueConverter===
+
+===AuditLogicalGroupProvider===
+
+===SecurityInformationProvider===
+
+===TransactionSyncronization===
+
+===AuditTransactionAttributeProvider===
+
+
 =Error Handling=
