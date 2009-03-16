@@ -1,6 +1,6 @@
 =Deployment=
 
-Add `hibernate-audit.jar` in your Hibernate application classpath.
+Add `hibernate-audit.jar` in your Hibernate application classpath. You can get the jar file from the hibernate-audit maven repository located here: http://hibernate-audit.googlecode.com/svn/repository/releases
 
 =Activation=
 
