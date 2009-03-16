@@ -7,6 +7,8 @@ The project provides auditing capabilities to Hibernate. It uses a set of tables
 = Resources ==
 
   * Issue Tracking: [http://code.google.com/p/hibernate-audit/issues/list]
+  * Maven Repository: [http://hibernate-audit.googlecode.com/svn/repository/releases/]
+  * Maven Site: [http://hibernate-audit.googlecode.com/svn/site/reference/]
   * Mail List TBD
 
 
@@ -30,73 +32,3 @@ svn checkout --username <your_google_account> https://hibernate-audit.googlecode
 cd ./hibernate-audit
 mvn clean install
 }}}
-
-= How do I test? =
-
-==Automated create-drop==
-
-Make sure 'useExternallyCreatedSchema' is 'false' in `ConfigurableEnvironmentSupport.java`. Then:
-
-{{{
-    mvn clean test
-}}}
-
-==External DDL File==
-
-In order to create the database tables and sequences based on the DDL script, the procedure is the following:
-
- * Hardcode 'useExternallyCreatedSchema' to 'true' in `ConfigurableEnvironmentSupport.java` (as per pre-1.0.0.Beta1, in the future, this will be configurable)
- * Make sure the DDL file with the schema you want to use only contains CREATE and ALTER statements. 
- * Manually copy the DDL file containing the schema you want to use under `src/test/resources` as 'test_ddl.sql'.
-
-Successful external DDL-based table creation generates this kind of statements in the log:
-
-{{{
-@main [DDLSchema] executing DDL statement: DROP SEQUENCE AUDIT_TYPE_SEQ
-[...]
-@main [DDLSchema] executing DDL statement: DROP TABLE AUDIT_TYPE_FIELD CASCADE CONSTRAINTS
-[...]
-@main [DDLSchema] executing DDL statement: create table AUDIT_EVENT (AUDIT_EVENT_ID NUMBER(30, 0) not null, LOGICAL_GROUP_ID NUMBER(30, 0), TARGET_ENTITY_ID NUMBER(30, 0) not null, EVENT_TYPE varchar2(255 char) not null, AUDIT_TYPE_ID NUMBER(30, 0) not null, AUDIT_TRANSACTION_ID NUMBER(30, 0) not null, constraint PK_AUDIT_EVENT primary key (AUDIT_EVENT_ID))
-[...]
-}}}
-
-=Release Process=
-
-1. Run a full testsuite and record the results in the "Test Situation" section
-
-2. Make sure all JIRA issues for the release are resolved. Shift to the next release anything that is still open.
-
-3. Synchronize work area with the SVN repository.
-
-4. Tag:
-{{{
-    svn copy https://hibernate-audit.googlecode.com/svn/trunk https://hibernate-audit.googlecode.com/svn/tags/HBA_1_0_0_Alpha5 -m "releasing ..."
-}}}
-
-5. Build the binary jar and the source jar for export to various repositories.
-
-6. Increment the version in the main pom.xml and com/googlecode/hibernate/audit/pom.xml
-
-7. Release in JIRA
-
-
-==Branches==
-
-{{{
-           | 10/30/08 r323     Branch_Supressed_Exceptions
-           o---------------------+
-           |                     | r324
-           |                     V
-           V
-}}}
-
-==Test Situation==
-
- * 07/26/08 pre-1.0.0.Alpha5 101/0/0
- * 08/09/08 1.0.0.Alpha5 120/1/0
- * 08/12/08 1.0.0.Alpha6 125/1/0
- * 08/21/08 1.0.0.Alpha7 144/1/0/11
-
-==Latest Test Snapshot==
-
-12/15/08 314/0/0
