@@ -8,6 +8,7 @@ The project provides auditing capabilities to Hibernate. It uses a set of tables
   * Maven Repository: [http://hibernate-audit.googlecode.com/svn/repository/releases/]
   * Maven Site: [http://hibernate-audit.googlecode.com/svn/site/reference/]
   * Issue Tracking: [http://code.google.com/p/hibernate-audit/issues/list]
+  * Guide: HibernateAuditUserGuide
   * Mail List TBD 
 
 
