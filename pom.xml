@@ -74,6 +74,18 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>audit-third-party</id>
+			<name>audit-third-party</name>
+			<url>http://hibernate-audit.googlecode.com/svn/repository/third-party</url>
+		</repository>
 	</repositories>
 
 	<build>
