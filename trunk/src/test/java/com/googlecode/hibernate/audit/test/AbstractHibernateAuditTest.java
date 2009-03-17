@@ -100,7 +100,9 @@ public abstract class AbstractHibernateAuditTest {
             int length = listeners != null ? listeners.length + 1 : 1;
             Object[] newListeners = new Object[length + 1];
             for (int i = 0; i < length; i++) {
-                newListeners[i] = listeners[i];
+                if (listeners != null && listeners.length > i) {
+                    newListeners[i] = listeners[i];
+                }
             }
             newListeners[length - 1] = listener;
 
