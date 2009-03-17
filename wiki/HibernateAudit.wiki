@@ -36,7 +36,7 @@ Check the [http://hibernate-audit.googlecode.com/svn/repository/releases/ hibern
 hibernate-audit depends on Oracle JDBC driver during the testing. Oracle JDBC driver is not provided in any maven public repositories so you need to download the driver from [http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html Oracle JDBC driver page] and use the maven install plugin to install the JDBC driver in your local maven repository. Here is an example maven install command that can do that (note that the jar file should be in the current directory and named classes12.jar - otherwise you need to adjust the maven command)
 
 {{{
-   mvn install:install-file -Dfile=classes12.jar -DgroupId=oracle -DartifactId=classes12 -Dversion=10.2.0.2.0 -Dpackaging=jar -DcreateChecksum=true
+mvn install:install-file -Dfile=classes12.jar -DgroupId=oracle -DartifactId=classes12 -Dversion=10.2.0.2.0 -Dpackaging=jar -DcreateChecksum=true
 }}}
 
 hibernate-audit also uses Oracle database for the test cases (you can change the database and use a different database but you need to change the JDBC driver, possibly the audit HBM file and of course to set the correct DB URL and Hibernate dialect). You can download and install Oracle XE database from [http://www.oracle.com/technology/products/database/xe/index.html here]. Then you need to create a new user called {{{hba}}} with password {{{hba}}}. You also need to give the hba user admin permissions if you want Hibernate to be able to automatically create/update the database schema for you ( see the hibernate.hbm2ddl.auto in the pom.xml). 
