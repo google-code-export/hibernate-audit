@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+  <groupId>org.eclipse.emf</groupId>
+  <artifactId>org.eclipse.emf.compare</artifactId>
+  <version>0.8.0</version>
+  <versioning>
+    <versions>
+      <version>0.8.0</version>
+    </versions>
+    <lastUpdated>20080628040715</lastUpdated>
+  </versioning>
+</metadata>
