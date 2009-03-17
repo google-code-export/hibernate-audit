@@ -19,6 +19,7 @@
 package com.googlecode.hibernate.audit.test;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -27,6 +28,7 @@ import org.eclipse.emf.teneo.hibernate.HbDataStore;
 import org.eclipse.emf.teneo.hibernate.HbDataStoreFactory;
 import org.eclipse.emf.teneo.hibernate.HbHelper;
 import org.eclipse.emf.teneo.hibernate.HbSessionDataStore;
+import org.hibernate.event.PostCollectionRecreateEventListener;
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEventListener;
@@ -79,26 +81,28 @@ public abstract class AbstractHibernateAuditTest {
             // programatically add the audit listener
             AuditListener auditListener = new AuditListener();
 
+            // explicitly cast the auditListener so that the generic function
+            // will have the correct type.
             getConfiguration().getEventListeners().setPostInsertEventListeners(
-                    (PostInsertEventListener[]) addListener(getConfiguration().getEventListeners().getPostInsertEventListeners(), auditListener));
+                    addListener(getConfiguration().getEventListeners().getPostInsertEventListeners(), (PostInsertEventListener) auditListener));
             getConfiguration().getEventListeners().setPostUpdateEventListeners(
-                    (PostUpdateEventListener[]) addListener(getConfiguration().getEventListeners().getPostUpdateEventListeners(), auditListener));
+                    addListener(getConfiguration().getEventListeners().getPostUpdateEventListeners(), (PostUpdateEventListener) auditListener));
             getConfiguration().getEventListeners().setPostDeleteEventListeners(
-                    (PostDeleteEventListener[]) addListener(getConfiguration().getEventListeners().getPostDeleteEventListeners(), auditListener));
+                    addListener(getConfiguration().getEventListeners().getPostDeleteEventListeners(), (PostDeleteEventListener) auditListener));
 
             getConfiguration().getEventListeners().setPreCollectionUpdateEventListeners(
-                    (PreCollectionUpdateEventListener[]) addListener(getConfiguration().getEventListeners().getPreCollectionUpdateEventListeners(), auditListener));
+                    addListener(getConfiguration().getEventListeners().getPreCollectionUpdateEventListeners(), (PreCollectionUpdateEventListener) auditListener));
             getConfiguration().getEventListeners().setPreCollectionRemoveEventListeners(
-                    (PreCollectionRemoveEventListener[]) addListener(getConfiguration().getEventListeners().getPreCollectionRemoveEventListeners(), auditListener));
-            getConfiguration().getEventListeners().setPreCollectionRecreateEventListeners(
-                    (PreCollectionRecreateEventListener[]) addListener(getConfiguration().getEventListeners().getPreCollectionRecreateEventListeners(), auditListener));
+                    addListener(getConfiguration().getEventListeners().getPreCollectionRemoveEventListeners(), (PreCollectionRemoveEventListener) auditListener));
+            getConfiguration().getEventListeners().setPostCollectionRecreateEventListeners(
+                    addListener(getConfiguration().getEventListeners().getPostCollectionRecreateEventListeners(), (PostCollectionRecreateEventListener) auditListener));
 
             setSessionFactory(getConfiguration().buildSessionFactory());
         }
 
-        private Object[] addListener(Object[] listeners, Object listener) {
+        private <T> T[] addListener(T[] listeners, T listener) {
             int length = listeners != null ? listeners.length + 1 : 1;
-            Object[] newListeners = new Object[length + 1];
+            T[] newListeners = (T[]) Array.newInstance(listener.getClass(), length);
             for (int i = 0; i < length; i++) {
                 if (listeners != null && listeners.length > i) {
                     newListeners[i] = listeners[i];
