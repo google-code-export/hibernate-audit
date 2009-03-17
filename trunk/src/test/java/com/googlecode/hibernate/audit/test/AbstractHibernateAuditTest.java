@@ -40,13 +40,13 @@ import com.googlecode.hibernate.audit.test.model1.Model1Package;
 public abstract class AbstractHibernateAuditTest {
     protected final Logger LOG = Logger.getLogger(getClass());
 
-    protected final static HbDataStore dataStore = init();
-
     private static HbDataStoreFactory emfDataStoreFactory = new HbDataStoreFactory() {
         public HbDataStore createHbDataStore() {
             return new SessionFactory();
         }
     };
+
+    protected final static HbDataStore dataStore = init();
 
     // init method
     private static HbDataStore init() {
