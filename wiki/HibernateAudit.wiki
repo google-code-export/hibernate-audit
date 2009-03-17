@@ -39,14 +39,13 @@ hibernate-audit depends on Oracle JDBC driver during the testing. Oracle JDBC dr
 mvn install:install-file -Dfile=classes12.jar -DgroupId=oracle -DartifactId=classes12 -Dversion=10.2.0.2.0 -Dpackaging=jar -DcreateChecksum=true
 }}}
 
-hibernate-audit also uses Oracle database for the test cases (you can change the database and use a different database but you need to change the JDBC driver, possibly the audit HBM file and of course to set the correct DB URL and Hibernate dialect). You can download and install Oracle XE database from [http://www.oracle.com/technology/products/database/xe/index.html here]. Then you need to create a new user called {{{hba}}} with password {{{hba}}}. You also need to give the hba user admin permissions if you want Hibernate to be able to automatically create/update the database schema for you ( see the hibernate.hbm2ddl.auto in the pom.xml). 
-If you want to create the schema manually and not give the hba user DBA admin permission then you can use 
+hibernate-audit also uses Oracle database for the test cases (you can change the database and use a different database but you need to change the JDBC driver, possibly the audit HBM file and of course to set the correct DB URL and Hibernate dialect). You can download and install Oracle XE database from [http://www.oracle.com/technology/products/database/xe/index.html here]. Then you need to create a new user called {{{hba}}} with password {{{hba}}}. You also need to give the hba user admin permissions.
+
+If you want to see the production hibernate-audit DDL then you can execute 
 
 {{{
 mvn hibernate3:hbm2ddl
 }}} 
-
-to generate the DDL and then execute the DDL using a DBA admin user - note that you have to change the hibernate.hbm2ddl.auto value to validate in the pom.xml file (better in the maven settings.xml)
 
 The username and password hba/hba are also configurable in the pom.xml file - Note that instead of changing the pom.xml file you can change the maven settings.xml file which is much better than changing the pom.xml file to provide environment specific settings - for more information how to do that please check [http://maven.apache.org Maven site].
  
