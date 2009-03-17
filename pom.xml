@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<version>1.0.10-SNAPSHOT</version>
@@ -18,16 +19,20 @@
 		<repository>
 			<id>hibernate-audit-release-repository</id>
 			<name>Hibernate Audit release repository</name>
-			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
-			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/releases</url>
+			<!--
+				use local repository and manually synchronize until we have
+				wagon-scm 1.0-beta-5
+				<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/releases</url>
 			-->
 			<url>file://${basedir}/../maven/repository/releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>hibernate-audit-snapshot-repository</id>
 			<name>Hibernate Audit snapshot repository</name>
-			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
-			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/snapshots</url>
+			<!--
+				use local repository and manually synchronize until we have
+				wagon-scm 1.0-beta-5
+				<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/repository/snapshots</url>
 			-->
 			<url>file://${basedir}/../maven/repository/snapshots</url>
 			<uniqueVersion>true</uniqueVersion>
@@ -35,8 +40,10 @@
 		<site>
 			<id>hibernate-audit-website</id>
 			<name>Hibernate Audit - Maven web site</name>
-			<!-- use local repository and manually synchronize until we have wagon-scm 1.0-beta-5
-			<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/site/reference/${pom.version}/</url>
+			<!--
+				use local repository and manually synchronize until we have
+				wagon-scm 1.0-beta-5
+				<url>scm:svn:https://hibernate-audit.googlecode.com/svn/maven/site/reference/${pom.version}/</url>
 			-->
 			<url>file://${basedir}/../maven/site/reference/${pom.version}/</url>
 		</site>
@@ -254,11 +261,16 @@
 			<artifactId>org.eclipse.emf.teneo.hibernate</artifactId>
 			<scope>test</scope>
 		</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<scope>test</scope>
-			</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
@@ -299,6 +311,12 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-log4j12</artifactId>
 				<version>1.5.3</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>javassist</groupId>
+				<artifactId>javassist</artifactId>
+				<version>3.4.GA</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
