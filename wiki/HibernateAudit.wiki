@@ -48,7 +48,7 @@ mvn hibernate3:hbm2ddl
 to generate the DDL and execute that manually. 
 Note that you have to change the hibernate.hbm2ddl.auto value to validate in the pom.xml file. 
 
-The username and password hba/hba are also configurable in the pom.xml file - Note that instead of changing the pom.xml file you can change the maven settings.xml file which is much better than changing the pom.xml file to provide environment specific settings - for more information how to do that please check the [http://maven.apache.org maven site].
+The username and password hba/hba are also configurable in the pom.xml file - Note that instead of changing the pom.xml file you can change the maven settings.xml file which is much better than changing the pom.xml file to provide environment specific settings - for more information how to do that please check [http://maven.apache.org Maven site].
  
 ===Perform a build===
 Go to the main hibernate-audit directory which contains the pom.xml file and execute
