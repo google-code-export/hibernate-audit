@@ -18,15 +18,19 @@
  */
 package com.googlecode.hibernate.audit.test;
 
+import java.util.Iterator;
+
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.googlecode.hibernate.audit.test.model1.Model1Package;
+import com.googlecode.hibernate.audit.HibernateAudit;
+import com.googlecode.hibernate.audit.HibernateAuditInstantiator;
+import com.googlecode.hibernate.audit.model.clazz.AuditType;
 
 public class InsertTest extends AbstractHibernateAuditTest {
 
@@ -40,16 +44,40 @@ public class InsertTest extends AbstractHibernateAuditTest {
     @Test(dataProvider = "xmiTemplates")
     public void simpleInsert(String resource) {
 
-        EList<EObject> eObjects = EMFUtil.toEObject(loadResource(resource), true, new EPackage[] { Model1Package.eINSTANCE });
+        String loadedXmi = loadResource(resource);
+        EList<EObject> eObjects = EMFUtil.toEObject(loadedXmi, true, dataStore.getEPackages());
 
         Session session = null;
         try {
             session = dataStore.getSessionFactory().openSession();
             Transaction tx = session.beginTransaction();
+
+            Long latestTransactionIdBeforeInsert = HibernateAudit.getLatestAuditTransactionId(session);
+            Assert.assertNotNull(latestTransactionIdBeforeInsert);
+
             for (EObject obj : eObjects) {
                 session.save(obj);
+                Iterator<EObject> objContentIterator = obj.eAllContents();
+                while (objContentIterator.hasNext()) {
+                    EObject dependentEObject = objContentIterator.next();
+                    session.save(dependentEObject);
+                }
             }
 
+            tx.commit();
+
+            tx = session.beginTransaction();
+            Long latestTransactionIdAfterInsert = HibernateAudit.getLatestAuditTransactionId(session);
+
+            Assert.assertNotNull(latestTransactionIdAfterInsert);
+            Assert.assertTrue(latestTransactionIdAfterInsert > latestTransactionIdBeforeInsert);
+
+            for (EObject eObj : eObjects) {
+                AuditType auditType = HibernateAudit.getAuditType(session, eObj.getClass().getName());
+                EObject auditEObject = (EObject) HibernateAuditInstantiator.getEntity(session, auditType, eObj.eGet(eObj.eClass().getEIDAttribute()) + "", latestTransactionIdAfterInsert);
+
+                assertEquals(resource, loadedXmi, EMFUtil.toXMI(auditEObject, dataStore.getEPackages()));
+            }
             tx.commit();
         } finally {
             if (session != null) {
