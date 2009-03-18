@@ -18,7 +18,11 @@
  */
 package com.googlecode.hibernate.audit.test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Array;
 import java.util.Properties;
 
@@ -32,7 +36,6 @@ import org.hibernate.event.PostCollectionRecreateEventListener;
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEventListener;
-import org.hibernate.event.PreCollectionRecreateEventListener;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEventListener;
 
@@ -49,6 +52,32 @@ public abstract class AbstractHibernateAuditTest {
     };
 
     protected final static HbDataStore dataStore = init();
+
+    protected String loadResource(String xmi) {
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream(xmi);
+        if (in == null) {
+            throw new IllegalArgumentException("Unable to locate resource " + xmi);
+        }
+        String result = null;
+        try {
+            result = readContentAsString(new BufferedReader(new InputStreamReader(in)));
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("Unable to read resource " + xmi, ex);
+        }
+
+        return result;
+    }
+
+    private static String readContentAsString(Reader reader) throws IOException {
+        StringBuffer result = new StringBuffer(1000);
+        char[] buf = new char[1024];
+        int numRead = 0;
+        while ((numRead = reader.read(buf)) != -1) {
+            result.append(buf, 0, numRead);
+        }
+        reader.close();
+        return result.toString();
+    }
 
     // init method
     private static HbDataStore init() {

@@ -44,6 +44,15 @@ public interface Model1Factory extends EFactory {
     Model1Child createModel1Child();
 
     /**
+     * Returns a new object of class '<em>Person</em>'.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @return a new object of class '<em>Person</em>'.
+     * @generated
+     */
+    Model1Person createModel1Person();
+
+    /**
      * Returns the package supported by this factory.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->

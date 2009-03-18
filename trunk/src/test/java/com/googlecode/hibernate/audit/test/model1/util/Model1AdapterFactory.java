@@ -80,6 +80,10 @@ public class Model1AdapterFactory extends AdapterFactoryImpl {
                 return createModel1ChildAdapter();
             }
             @Override
+            public Adapter caseModel1Person(Model1Person object) {
+                return createModel1PersonAdapter();
+            }
+            @Override
             public Adapter defaultCase(EObject object) {
                 return createEObjectAdapter();
             }
@@ -124,6 +128,20 @@ public class Model1AdapterFactory extends AdapterFactoryImpl {
      * @generated
      */
     public Adapter createModel1ChildAdapter() {
+        return null;
+    }
+
+    /**
+     * Creates a new adapter for an object of class '{@link com.googlecode.hibernate.audit.test.model1.Model1Person <em>Person</em>}'.
+     * <!-- begin-user-doc -->
+     * This default implementation returns null so that we can easily ignore cases;
+     * it's useful to ignore a case when inheritance will catch all the cases anyway.
+     * <!-- end-user-doc -->
+     * @return the new adapter.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person
+     * @generated
+     */
+    public Adapter createModel1PersonAdapter() {
         return null;
     }
 

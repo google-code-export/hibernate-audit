@@ -24,7 +24,7 @@ import org.eclipse.emf.ecore.EObject;
  * @model
  * @generated
  */
-public interface Model1Child extends EObject {
+public interface Model1Child extends Model1Person {
     /**
      * Returns the value of the '<em><b>Parent</b></em>' container reference.
      * It is bidirectional and its opposite is '{@link com.googlecode.hibernate.audit.test.model1.Model1Parent#getChildren <em>Children</em>}'.

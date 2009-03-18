@@ -11,6 +11,8 @@ import com.googlecode.hibernate.audit.test.model1.Model1Factory;
 import com.googlecode.hibernate.audit.test.model1.Model1Package;
 import com.googlecode.hibernate.audit.test.model1.Model1Parent;
 
+import com.googlecode.hibernate.audit.test.model1.Model1Person;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
@@ -37,6 +39,13 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
      * @generated
      */
     private EClass model1ChildEClass = null;
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    private EClass model1PersonEClass = null;
 
     /**
      * Creates an instance of the model <b>Package</b>, registered with
@@ -147,6 +156,33 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
      * <!-- end-user-doc -->
      * @generated
      */
+    public EClass getModel1Person() {
+        return model1PersonEClass;
+    }
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    public EAttribute getModel1Person_Id() {
+        return (EAttribute)model1PersonEClass.getEStructuralFeatures().get(0);
+    }
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    public EAttribute getModel1Person_Name() {
+        return (EAttribute)model1PersonEClass.getEStructuralFeatures().get(1);
+    }
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
     public Model1Factory getModel1Factory() {
         return (Model1Factory)getEFactoryInstance();
     }
@@ -175,6 +211,10 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
 
         model1ChildEClass = createEClass(MODEL1_CHILD);
         createEReference(model1ChildEClass, MODEL1_CHILD__PARENT);
+
+        model1PersonEClass = createEClass(MODEL1_PERSON);
+        createEAttribute(model1PersonEClass, MODEL1_PERSON__ID);
+        createEAttribute(model1PersonEClass, MODEL1_PERSON__NAME);
     }
 
     /**
@@ -205,6 +245,8 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
         // Set bounds for type parameters
 
         // Add supertypes to classes
+        model1ParentEClass.getESuperTypes().add(this.getModel1Person());
+        model1ChildEClass.getESuperTypes().add(this.getModel1Person());
 
         // Initialize classes and features; add operations and parameters
         initEClass(model1ParentEClass, Model1Parent.class, "Model1Parent", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -212,6 +254,10 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
 
         initEClass(model1ChildEClass, Model1Child.class, "Model1Child", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
         initEReference(getModel1Child_Parent(), this.getModel1Parent(), this.getModel1Parent_Children(), "parent", null, 1, 1, Model1Child.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+        initEClass(model1PersonEClass, Model1Person.class, "Model1Person", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+        initEAttribute(getModel1Person_Id(), ecorePackage.getELongObject(), "id", null, 0, 1, Model1Person.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+        initEAttribute(getModel1Person_Name(), ecorePackage.getEString(), "name", null, 0, 1, Model1Person.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
         // Create resource
         createResource(eNS_URI);
