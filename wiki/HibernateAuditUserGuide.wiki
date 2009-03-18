@@ -87,9 +87,13 @@ hba.audited-model.dynamic-update=true
 
 ===`AuditableInformationProvider`===
 
+Hibernate audit framework will use this provider to determine if a particular entity or entity/property needs to be audited. By default all entities and entity/properties are audited except for the hibernate audit entities - also you can't override this behaviour because it prevents infinite loop.
+
 ===`ConcurrentModificationProvider`===
 
 ===`PropertyValueConverter`===
+
+Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. 
 
 ===`AuditLogicalGroupProvider`===
 
