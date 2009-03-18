@@ -26,7 +26,7 @@ import org.eclipse.emf.ecore.EObject;
  * @model
  * @generated
  */
-public interface Model1Parent extends EObject {
+public interface Model1Parent extends Model1Person {
     /**
      * Returns the value of the '<em><b>Children</b></em>' containment reference list.
      * The list contents are of type {@link com.googlecode.hibernate.audit.test.model1.Model1Child}.

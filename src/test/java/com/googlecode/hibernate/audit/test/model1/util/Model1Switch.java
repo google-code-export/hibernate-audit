@@ -90,12 +90,20 @@ public class Model1Switch<T> {
             case Model1Package.MODEL1_PARENT: {
                 Model1Parent model1Parent = (Model1Parent)theEObject;
                 T result = caseModel1Parent(model1Parent);
+                if (result == null) result = caseModel1Person(model1Parent);
                 if (result == null) result = defaultCase(theEObject);
                 return result;
             }
             case Model1Package.MODEL1_CHILD: {
                 Model1Child model1Child = (Model1Child)theEObject;
                 T result = caseModel1Child(model1Child);
+                if (result == null) result = caseModel1Person(model1Child);
+                if (result == null) result = defaultCase(theEObject);
+                return result;
+            }
+            case Model1Package.MODEL1_PERSON: {
+                Model1Person model1Person = (Model1Person)theEObject;
+                T result = caseModel1Person(model1Person);
                 if (result == null) result = defaultCase(theEObject);
                 return result;
             }
@@ -130,6 +138,21 @@ public class Model1Switch<T> {
      * @generated
      */
     public T caseModel1Child(Model1Child object) {
+        return null;
+    }
+
+    /**
+     * Returns the result of interpreting the object as an instance of '<em>Person</em>'.
+     * <!-- begin-user-doc -->
+     * This implementation returns null;
+     * returning a non-null result will terminate the switch.
+     * <!-- end-user-doc -->
+     * @param object the target of the switch.
+     * @return the result of interpreting the object as an instance of '<em>Person</em>'.
+     * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+     * @generated
+     */
+    public T caseModel1Person(Model1Person object) {
         return null;
     }
 

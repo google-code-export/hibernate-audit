@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
  *
  * @generated
  */
-public class Model1ChildImpl extends EObjectImpl implements Model1Child {
+public class Model1ChildImpl extends Model1PersonImpl implements Model1Child {
     /**
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->

@@ -62,6 +62,7 @@ public class Model1FactoryImpl extends EFactoryImpl implements Model1Factory {
         switch (eClass.getClassifierID()) {
             case Model1Package.MODEL1_PARENT: return createModel1Parent();
             case Model1Package.MODEL1_CHILD: return createModel1Child();
+            case Model1Package.MODEL1_PERSON: return createModel1Person();
             default:
                 throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
         }
@@ -85,6 +86,16 @@ public class Model1FactoryImpl extends EFactoryImpl implements Model1Factory {
     public Model1Child createModel1Child() {
         Model1ChildImpl model1Child = new Model1ChildImpl();
         return model1Child;
+    }
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    public Model1Person createModel1Person() {
+        Model1PersonImpl model1Person = new Model1PersonImpl();
+        return model1Person;
     }
 
     /**

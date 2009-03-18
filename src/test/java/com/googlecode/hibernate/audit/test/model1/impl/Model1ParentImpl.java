@@ -37,7 +37,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *
  * @generated
  */
-public class Model1ParentImpl extends EObjectImpl implements Model1Parent {
+public class Model1ParentImpl extends Model1PersonImpl implements Model1Parent {
     /**
      * The cached value of the '{@link #getChildren() <em>Children</em>}' containment reference list.
      * <!-- begin-user-doc -->

@@ -6,6 +6,7 @@
  */
 package com.googlecode.hibernate.audit.test.model1;
 
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
@@ -59,6 +60,43 @@ public interface Model1Package extends EPackage {
     Model1Package eINSTANCE = com.googlecode.hibernate.audit.test.model1.impl.Model1PackageImpl.init();
 
     /**
+     * The meta object id for the '{@link com.googlecode.hibernate.audit.test.model1.impl.Model1PersonImpl <em>Person</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see com.googlecode.hibernate.audit.test.model1.impl.Model1PersonImpl
+     * @see com.googlecode.hibernate.audit.test.model1.impl.Model1PackageImpl#getModel1Person()
+     * @generated
+     */
+    int MODEL1_PERSON = 2;
+
+    /**
+     * The feature id for the '<em><b>Id</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PERSON__ID = 0;
+
+    /**
+     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PERSON__NAME = 1;
+
+    /**
+     * The number of structural features of the '<em>Person</em>' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PERSON_FEATURE_COUNT = 2;
+
+    /**
      * The meta object id for the '{@link com.googlecode.hibernate.audit.test.model1.impl.Model1ParentImpl <em>Parent</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -69,13 +107,31 @@ public interface Model1Package extends EPackage {
     int MODEL1_PARENT = 0;
 
     /**
+     * The feature id for the '<em><b>Id</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PARENT__ID = MODEL1_PERSON__ID;
+
+    /**
+     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PARENT__NAME = MODEL1_PERSON__NAME;
+
+    /**
      * The feature id for the '<em><b>Children</b></em>' containment reference list.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      * @ordered
      */
-    int MODEL1_PARENT__CHILDREN = 0;
+    int MODEL1_PARENT__CHILDREN = MODEL1_PERSON_FEATURE_COUNT + 0;
 
     /**
      * The number of structural features of the '<em>Parent</em>' class.
@@ -84,7 +140,7 @@ public interface Model1Package extends EPackage {
      * @generated
      * @ordered
      */
-    int MODEL1_PARENT_FEATURE_COUNT = 1;
+    int MODEL1_PARENT_FEATURE_COUNT = MODEL1_PERSON_FEATURE_COUNT + 1;
 
     /**
      * The meta object id for the '{@link com.googlecode.hibernate.audit.test.model1.impl.Model1ChildImpl <em>Child</em>}' class.
@@ -97,13 +153,31 @@ public interface Model1Package extends EPackage {
     int MODEL1_CHILD = 1;
 
     /**
+     * The feature id for the '<em><b>Id</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_CHILD__ID = MODEL1_PERSON__ID;
+
+    /**
+     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_CHILD__NAME = MODEL1_PERSON__NAME;
+
+    /**
      * The feature id for the '<em><b>Parent</b></em>' container reference.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      * @ordered
      */
-    int MODEL1_CHILD__PARENT = 0;
+    int MODEL1_CHILD__PARENT = MODEL1_PERSON_FEATURE_COUNT + 0;
 
     /**
      * The number of structural features of the '<em>Child</em>' class.
@@ -112,7 +186,7 @@ public interface Model1Package extends EPackage {
      * @generated
      * @ordered
      */
-    int MODEL1_CHILD_FEATURE_COUNT = 1;
+    int MODEL1_CHILD_FEATURE_COUNT = MODEL1_PERSON_FEATURE_COUNT + 1;
 
 
     /**
@@ -156,6 +230,38 @@ public interface Model1Package extends EPackage {
      * @generated
      */
     EReference getModel1Child_Parent();
+
+    /**
+     * Returns the meta object for class '{@link com.googlecode.hibernate.audit.test.model1.Model1Person <em>Person</em>}'.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @return the meta object for class '<em>Person</em>'.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person
+     * @generated
+     */
+    EClass getModel1Person();
+
+    /**
+     * Returns the meta object for the attribute '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getId <em>Id</em>}'.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @return the meta object for the attribute '<em>Id</em>'.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person#getId()
+     * @see #getModel1Person()
+     * @generated
+     */
+    EAttribute getModel1Person_Id();
+
+    /**
+     * Returns the meta object for the attribute '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getName <em>Name</em>}'.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @return the meta object for the attribute '<em>Name</em>'.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person#getName()
+     * @see #getModel1Person()
+     * @generated
+     */
+    EAttribute getModel1Person_Name();
 
     /**
      * Returns the factory that creates the instances of the model.
@@ -214,6 +320,32 @@ public interface Model1Package extends EPackage {
          * @generated
          */
         EReference MODEL1_CHILD__PARENT = eINSTANCE.getModel1Child_Parent();
+
+        /**
+         * The meta object literal for the '{@link com.googlecode.hibernate.audit.test.model1.impl.Model1PersonImpl <em>Person</em>}' class.
+         * <!-- begin-user-doc -->
+         * <!-- end-user-doc -->
+         * @see com.googlecode.hibernate.audit.test.model1.impl.Model1PersonImpl
+         * @see com.googlecode.hibernate.audit.test.model1.impl.Model1PackageImpl#getModel1Person()
+         * @generated
+         */
+        EClass MODEL1_PERSON = eINSTANCE.getModel1Person();
+
+        /**
+         * The meta object literal for the '<em><b>Id</b></em>' attribute feature.
+         * <!-- begin-user-doc -->
+         * <!-- end-user-doc -->
+         * @generated
+         */
+        EAttribute MODEL1_PERSON__ID = eINSTANCE.getModel1Person_Id();
+
+        /**
+         * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+         * <!-- begin-user-doc -->
+         * <!-- end-user-doc -->
+         * @generated
+         */
+        EAttribute MODEL1_PERSON__NAME = eINSTANCE.getModel1Person_Name();
 
     }
 
