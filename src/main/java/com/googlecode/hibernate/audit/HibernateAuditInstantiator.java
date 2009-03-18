@@ -175,21 +175,23 @@ public final class HibernateAuditInstantiator {
                     Object collectionValue = classMetadata.getPropertyValue(entityObject, prop.getAuditField().getName(), EntityMode.POJO);
                     if (collectionValue instanceof Collection) {
                         Collection collection = ((Collection) collectionValue);
-                        List newCollectionValue = new ArrayList((Collection) collectionValue);
                         if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
+                            List newCollectionValue = new ArrayList((Collection) collectionValue);
                             newCollectionValue.add(entityValue);
+                            // explicitly invoke the set method so that the
+                            // tuplizer
+                            // can be involved as well.
+                            classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                         } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             long index = 0;
-                            for (Iterator i = newCollectionValue.iterator(); i.hasNext(); index++) {
+                            for (Iterator i = collection.iterator(); i.hasNext(); index++) {
+                                i.next();
                                 if (index == prop.getIndex()) {
                                     i.remove();
                                     break;
                                 }
                             }
                         }
-                        // explicitly invoke the set method so that the tuplizer
-                        // can be involved as well.
-                        classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                     } else {
                         throw new HibernateException("The property " + prop.getAuditField().getName() + " has multiple values but we currently only support " + Collection.class.getName() + " types.");
                     }
@@ -254,23 +256,25 @@ public final class HibernateAuditInstantiator {
 
                         if (collectionValue instanceof Collection) {
                             Collection collection = ((Collection) collectionValue);
-                            List newCollectionValue = new ArrayList((Collection) collectionValue);
                             if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
+                                List newCollectionValue = new ArrayList((Collection) collectionValue);
                                 newCollectionValue.add(component);
+                                // explicitly invoke the set method so that the
+                                // tuplizer can be involved as well.
+                                classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                             } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                                 long index = 0;
-                                for (Iterator i = newCollectionValue.iterator(); i.hasNext(); index++) {
+                                for (Iterator i = collection.iterator(); i.hasNext(); index++) {
+                                    i.next();
                                     if (index == prop.getIndex()) {
                                         i.remove();
                                         break;
                                     }
                                 }
                             }
-                            // explicitly invoke the set method so that the
-                            // tuplizer can be involved as well.
-                            classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                         } else {
-                            throw new HibernateException("The property " + prop.getAuditField().getName() + " has multiple values but we currently only support " + Collection.class.getName() + " types.");
+                            throw new HibernateException("The property " + prop.getAuditField().getName() + " has multiple values but we currently only support " + Collection.class.getName()
+                                    + " types.");
                         }
                     }
                 } catch (InstantiationException e) {
