@@ -23,16 +23,24 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.googlecode.hibernate.audit.test.model1.Model1Package;
 
 public class InsertTest extends AbstractHibernateAuditTest {
 
-    @Test
-    public void simpleInsert() {
+    @DataProvider(name = "xmiTemplates")
+    public Object[][] getXmiTemplates() throws Exception {
+        Object[][] data = new Object[1][1];
+        data[0][0] = "xmi/Model1Parent.xmi";
+        return data;
+    }
 
-        EList<EObject> eObjects = EMFUtil.toEObject(loadResource("xmi/Model1Parent.xmi"), true, new EPackage[] { Model1Package.eINSTANCE });
+    @Test(dataProvider = "xmiTemplates")
+    public void simpleInsert(String resource) {
+
+        EList<EObject> eObjects = EMFUtil.toEObject(loadResource(resource), true, new EPackage[] { Model1Package.eINSTANCE });
 
         Session session = null;
         try {
