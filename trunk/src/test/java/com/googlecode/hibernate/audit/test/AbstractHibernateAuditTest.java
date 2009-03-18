@@ -106,7 +106,7 @@ public abstract class AbstractHibernateAuditTest {
             options.put("match.ignore.id", Boolean.TRUE);
             options.put("match.ignore.xmi.id", Boolean.TRUE);
 
-            MatchModel match = MatchService.doMatch(model1, model2, options);
+            MatchModel match = MatchService.doContentMatch(model1, model2, options);
             List<UnMatchElement> elements = match.getUnMatchedElements();
 
             Assert.assertTrue(elements.isEmpty(), "resourceURI=" + resourceURI + ",loadedXmi=\n" + loadedXmi + "\nstoredXmi=\n" + storedXmi + "\n");
