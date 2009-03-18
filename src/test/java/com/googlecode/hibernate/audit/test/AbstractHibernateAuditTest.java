@@ -19,15 +19,26 @@
 package com.googlecode.hibernate.audit.test;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.eclipse.emf.compare.match.metamodel.MatchModel;
+import org.eclipse.emf.compare.match.metamodel.UnMatchElement;
+import org.eclipse.emf.compare.match.service.MatchService;
+import org.eclipse.emf.compare.util.ModelUtils;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.teneo.hibernate.HbDataStore;
 import org.eclipse.emf.teneo.hibernate.HbDataStoreFactory;
 import org.eclipse.emf.teneo.hibernate.HbHelper;
@@ -38,6 +49,7 @@ import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEventListener;
+import org.testng.Assert;
 
 import com.googlecode.hibernate.audit.listener.AuditListener;
 import com.googlecode.hibernate.audit.test.model1.Model1Package;
@@ -77,6 +89,32 @@ public abstract class AbstractHibernateAuditTest {
         }
         reader.close();
         return result.toString();
+    }
+
+    protected void assertEquals(String resourceURI, String loadedXmi, String storedXmi) {
+        try {
+            final ResourceSet resourceSet = new ResourceSetImpl();
+            for (EPackage ePackage : dataStore.getEPackages()) {
+                resourceSet.getPackageRegistry().put(ePackage.getNsURI(), ePackage);
+            }
+            
+            final EObject model1 = ModelUtils.load(new ByteArrayInputStream(loadedXmi.getBytes()), "loadedXmi.xmi", resourceSet);
+            final EObject model2 = ModelUtils.load(new ByteArrayInputStream(storedXmi.getBytes()), "storedXmi.xmi", resourceSet);
+
+            // Matching model elements
+            Map<String, Object> options = new HashMap<String, Object>();
+            options.put("match.ignore.id", Boolean.TRUE);
+            options.put("match.ignore.xmi.id", Boolean.TRUE);
+
+            MatchModel match = MatchService.doMatch(model1, model2, options);
+            List<UnMatchElement> elements = match.getUnMatchedElements();
+
+            Assert.assertTrue(elements.isEmpty(), "resourceURI=" + resourceURI + ",loadedXmi=\n" + loadedXmi + "\nstoredXmi=\n" + storedXmi + "\n");
+        } catch (IOException e) {
+            LOG.error(e);
+        } catch (InterruptedException e) {
+            LOG.error(e);
+        }
     }
 
     // init method
