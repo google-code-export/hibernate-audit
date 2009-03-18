@@ -77,7 +77,7 @@ public class UpdateCollectionAuditWorkUnit extends AbstractCollectionAuditWorkUn
 
     public void init(Session session, AuditConfiguration auditConfiguration) {
         collectionPersister = ((SessionImplementor) session).getPersistenceContext().getCollectionEntry(persistentCollection).getCurrentPersister();
-        this.deletesIterator = persistentCollection.getDeletes(collectionPersister, false);
+        this.deletesIterator = persistentCollection.getDeletes(collectionPersister, true);
         Iterator<? extends Object> iterator = persistentCollection.entries(collectionPersister);
         Type elementType = collectionPersister.getCollectionMetadata().getElementType();
 
