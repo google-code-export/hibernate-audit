@@ -107,7 +107,7 @@ Hibernate audit will delegate the transaction synchronization registration to th
 eventSource.getTransaction().registerSynchronization(synchronization);
 }}}
 
-<b>NOTE:</b> If you are using automatic Hibernate session management (e.g. do not explicitly have session.close() methods in your code for example when you are using software like Spring) that closes the session before all transaction sychronization hooks receive the beforeCompletion notification then you MUST provide a custom TransactionSynchronization that will make sure that the audit synchronziation hook is called. 
+<b>NOTE:</b> If you are using automatic Hibernate session management (e.g. you do not explicitly have session.close() method calls in your code - for example when you are using software like Spring) that closes the session before all transaction sychronization hooks receive the beforeCompletion notification then you MUST provide a custom hibernate-audit TransactionSynchronization that will make sure that the audit synchronziation hook is called before the session is closed. 
 
 For example if you are using Spring then in this implementation you should use 
 {{{
