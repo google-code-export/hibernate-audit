@@ -101,7 +101,23 @@ Whenever a value that is not entity or component needs to be stored in the audit
 
 ===`TransactionSyncronization`===
 
+Hibernate audit will delegate the transaction synchronization registration to this provider. The default implementation uses 
+
+{{{
+eventSource.getTransaction().registerSynchronization(synchronization);
+}}}
+
+<b>NOTE:</b> If you are using automatic Hibernate session management (e.g. do not explicitly have session.close() methods in your code for example when you are using software like Spring) that closes the session before all transaction sychronization hooks receive the beforeCompletion notification then you MUST provide a custom TransactionSynchronization that will make sure that the audit synchronziation hook is called. 
+
+For example if you are using Spring then in this implementation you should use 
+{{{
+org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(springSyncronization)
+}}}
+
+Where the springSynchronization should be a wrapper of the synchrozation parameter but will also provide order (e.g. the wrapper class should also implement {{{{org.springframework.core.Ordered}}} Spring interface)
+
 ===`AuditTransactionAttributeProvider`===
 
+Provided a collection of entities that can be stored and associated to a particular audit transaction. The hibernate audit will call the provider to get the list of entites that need to be persisted as part of the audit transaction. Default provider returns {{{null}} so no audit transaction attributes will be stored in the audit tables.
 
 =Error Handling=
