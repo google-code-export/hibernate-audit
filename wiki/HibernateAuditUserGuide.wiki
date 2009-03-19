@@ -118,6 +118,6 @@ Where the springSynchronization should be a wrapper of the synchrozation paramet
 
 ===`AuditTransactionAttributeProvider`===
 
-Provides collection of entities that can be stored and associated to a particular audit transaction. The hibernate audit will call the provider to get the list of entites that need to be persisted as part of the audit transaction. Default provider returns {{{null}} so no audit transaction attributes will be stored in the audit tables.
+Provides collection of entities that can be stored and associated to the current audit transaction. The hibernate audit will call the provider to get the list of entites that need to be persisted as part of the audit transaction. Default provider returns {{{null}} so no audit transaction attributes will be stored in the audit tables.
 
 =Error Handling=
