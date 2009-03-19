@@ -13,11 +13,29 @@ Register {{{com.googlecode.hibernate.audit.listener.AuditListener}}} as a lister
     * pre-collection-remove
     * post-collection-recreate
 
-You can register the listener directly in your session factory configuration or if 
-you are using Spring to instantiate the session factory then you can do the following in the spring configuration XML which containts your {{{LocalSessionFactoryBean}}} bean
+*Hibernate configuration
+{{{
+...
+<hibernate-configuration>
+    <session-factory>
+....
 
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="post-insert"/>
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="post-update"/>
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="post-delete"/>
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="pre-collection-update"/>
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="pre-collection-remove"/>
+        <listener class="com.googlecode.hibernate.audit.listener.AuditListener"  type="post-collection-recreate"/>
+    </session-factory>
+</hibernate-configuration>
+}}}
+
+*Spring LocalSessionFactoryBean
 {{{
      ....
+
+    <bean id="com.googlecode.hibernate.audit.listener.AuditListener" class="com.googlecode.hibernate.audit.listener.AuditListener" scope="singleton"/>
+
      <bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
 
        ... application specific session factory properties......
