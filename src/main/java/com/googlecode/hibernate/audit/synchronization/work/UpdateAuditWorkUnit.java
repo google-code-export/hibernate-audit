@@ -91,7 +91,7 @@ public class UpdateAuditWorkUnit extends AbstractAuditWorkUnit {
 
     private void processProperties(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, EntityPersister persister, Object entity, AuditObject auditObject) {
 
-        int[] changedPropertyIndexes = persister.findDirty(oldState, newState, entity, (SessionImplementor) session);
+        int[] changedPropertyIndexes = persister.findDirty(newState, oldState, entity, (SessionImplementor) session);
 
         String[] propertyNames = persister.getPropertyNames();
 
