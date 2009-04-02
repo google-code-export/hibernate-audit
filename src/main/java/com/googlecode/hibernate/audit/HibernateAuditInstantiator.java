@@ -176,12 +176,20 @@ public final class HibernateAuditInstantiator {
                     if (collectionValue instanceof Collection) {
                         Collection collection = ((Collection) collectionValue);
                         if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                            List newCollectionValue = new ArrayList((Collection) collectionValue);
-                            newCollectionValue.add(entityValue);
+                            Collection newCollectionValue = null;
+                            if (collection == null || collection.isEmpty()) {
+                                newCollectionValue = new ArrayList();
+                                newCollectionValue.add(entityValue);
+                                classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                            } else {
+                                collection.add(entityValue);
+                            }
+                            
                             // explicitly invoke the set method so that the
                             // tuplizer
                             // can be involved as well.
-                            classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                            //classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                            
                         } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             long index = 0;
                             for (Iterator i = collection.iterator(); i.hasNext(); index++) {
@@ -257,11 +265,16 @@ public final class HibernateAuditInstantiator {
                         if (collectionValue instanceof Collection) {
                             Collection collection = ((Collection) collectionValue);
                             if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                                List newCollectionValue = new ArrayList((Collection) collectionValue);
-                                newCollectionValue.add(component);
+                                if (collection == null || collection.isEmpty()) {
+                                    Collection newCollectionValue = new ArrayList();
+                                    newCollectionValue.add(component);
+                                    classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                                } else {
+                                    collection.add(component);
+                                }
                                 // explicitly invoke the set method so that the
                                 // tuplizer can be involved as well.
-                                classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                                //classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                             } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                                 long index = 0;
                                 for (Iterator i = collection.iterator(); i.hasNext(); index++) {
