@@ -25,7 +25,9 @@ import org.hibernate.property.PropertyAccessor;
 import org.hibernate.property.Setter;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AbstractComponentType;
+import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
+import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.model.AuditEvent;
@@ -173,12 +175,15 @@ public final class HibernateAuditInstantiator {
                     classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), entityValue, EntityMode.POJO);
                 } else {
                     Object collectionValue = classMetadata.getPropertyValue(entityObject, prop.getAuditField().getName(), EntityMode.POJO);
-                    if (collectionValue instanceof Collection) {
+                    Type colType = classMetadata.getPropertyType(prop.getAuditField().getName());
+                    if (colType instanceof CollectionType && collectionValue instanceof Collection) {
+                        CollectionType collectionType = (CollectionType) colType;
+                        
                         Collection collection = ((Collection) collectionValue);
                         if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             Collection newCollectionValue = null;
                             if (collection == null || collection.isEmpty()) {
-                                newCollectionValue = new ArrayList();
+                                newCollectionValue = (Collection)collectionType.instantiate(1);
                                 newCollectionValue.add(entityValue);
                                 classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                             } else {
@@ -261,12 +266,14 @@ public final class HibernateAuditInstantiator {
                         classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), component, EntityMode.POJO);
                     } else {
                         Object collectionValue = classMetadata.getPropertyValue(entityObject, prop.getAuditField().getName(), EntityMode.POJO);
+                        Type colType = classMetadata.getPropertyType(prop.getAuditField().getName());
 
-                        if (collectionValue instanceof Collection) {
+                        if (colType instanceof CollectionType && collectionValue instanceof Collection) {
+                            CollectionType collectionType = (CollectionType)colType;
                             Collection collection = ((Collection) collectionValue);
                             if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                                 if (collection == null || collection.isEmpty()) {
-                                    Collection newCollectionValue = new ArrayList();
+                                    Collection newCollectionValue = (Collection)collectionType.instantiate(1);
                                     newCollectionValue.add(component);
                                     classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                                 } else {
