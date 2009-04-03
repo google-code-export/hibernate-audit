@@ -168,6 +168,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Model1Child child = storedParent.getChildren().remove(0);
             
             session.delete(child);
+            session.flush();
             loadedXmi = EMFUtil.toXMI(storedParent, dataStore.getEPackages());
             tx.commit();
 

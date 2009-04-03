@@ -7,7 +7,11 @@
       nsPrefix="model1">
     <eClassifiers xsi:type="ecore:EClass" name="Model1Parent" eSuperTypes="#//model1/Model1Person">
       <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
-          eType="#//model1/Model1Child" containment="true" eOpposite="#//model1/Model1Child/parent"/>
+          eType="#//model1/Model1Child" containment="true" eOpposite="#//model1/Model1Child/parent">
+        <eAnnotations source="teneo.jpa">
+          <details key="appinfo" value="@OneToMany(mappedBy = &quot;parent&quot;, indexed=false)"/>
+        </eAnnotations>
+      </eStructuralFeatures>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="Model1Child" eSuperTypes="#//model1/Model1Person">
       <eStructuralFeatures xsi:type="ecore:EReference" name="parent" lowerBound="1"
