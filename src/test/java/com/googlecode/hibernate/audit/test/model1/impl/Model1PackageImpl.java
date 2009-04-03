@@ -261,6 +261,26 @@ public class Model1PackageImpl extends EPackageImpl implements Model1Package {
 
         // Create resource
         createResource(eNS_URI);
+
+        // Create annotations
+        // teneo.jpa
+        createTeneoAnnotations();
+    }
+
+    /**
+     * Initializes the annotations for <b>teneo.jpa</b>.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    protected void createTeneoAnnotations() {
+        String source = "teneo.jpa";		
+        addAnnotation
+          (getModel1Parent_Children(), 
+           source, 
+           new String[] {
+             "appinfo", "@OneToMany(mappedBy = \"parent\", indexed=false)"
+           });
     }
 
 } //Model1PackageImpl

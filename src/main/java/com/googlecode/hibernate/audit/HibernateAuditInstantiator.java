@@ -26,6 +26,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
+import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
@@ -177,31 +178,40 @@ public final class HibernateAuditInstantiator {
                     Type colType = classMetadata.getPropertyType(prop.getAuditField().getName());
                     if (colType instanceof CollectionType && collectionValue instanceof Collection) {
                         CollectionType collectionType = (CollectionType) colType;
-                        
+
                         Collection collection = ((Collection) collectionValue);
                         if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             Collection newCollectionValue = null;
                             if (collection == null || collection.isEmpty()) {
-                                newCollectionValue = (Collection)collectionType.instantiate(1);
+                                newCollectionValue = (Collection) collectionType.instantiate(1);
                                 newCollectionValue.add(entityValue);
                                 classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                             } else {
                                 collection.add(entityValue);
                             }
-                            
-                            // explicitly invoke the set method so that the
-                            // tuplizer
-                            // can be involved as well.
-                            //classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
-                            
+
                         } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                            long index = 0;
-                            for (Iterator i = collection.iterator(); i.hasNext(); index++) {
-                                i.next();
-                                if (index == prop.getIndex()) {
+                            Type elementType = collectionType.getElementType((SessionFactoryImplementor) session.getSessionFactory());
+
+                            ClassMetadata elementClassMetadata = session.getSessionFactory().getClassMetadata(((EntityType) elementType).getAssociatedEntityName());
+                            Serializable deletedElementId = (Serializable) auditConfiguration.getExtensionManager().getPropertyValueConverter().valueOf(
+                                    elementClassMetadata.getIdentifierType().getReturnedClass(), prop.getTargetEntityId());
+
+                            boolean elementFound = false;
+                            for (Iterator i = collection.iterator(); i.hasNext();) {
+                                Object existingElement = i.next();
+
+                                Serializable existingElementId = ((AbstractEntityPersister) elementClassMetadata).getIdentifier(existingElement, EntityMode.POJO);
+                                if (deletedElementId != null && deletedElementId.equals(existingElementId)) {
                                     i.remove();
+                                    elementFound = true;
                                     break;
                                 }
+                            }
+
+                            if (!elementFound) {
+                                throw new HibernateException("Unable to find entity with id " + deletedElementId + " in collection " + prop.getAuditField().getOwnerType().getClassName() + "."
+                                        + prop.getAuditField().getName() + " collection");
                             }
                         }
                     } else {
@@ -268,11 +278,11 @@ public final class HibernateAuditInstantiator {
                         Type colType = classMetadata.getPropertyType(prop.getAuditField().getName());
 
                         if (colType instanceof CollectionType && collectionValue instanceof Collection) {
-                            CollectionType collectionType = (CollectionType)colType;
+                            CollectionType collectionType = (CollectionType) colType;
                             Collection collection = ((Collection) collectionValue);
                             if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                                 if (collection == null || collection.isEmpty()) {
-                                    Collection newCollectionValue = (Collection)collectionType.instantiate(1);
+                                    Collection newCollectionValue = (Collection) collectionType.instantiate(1);
                                     newCollectionValue.add(component);
                                     classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
                                 } else {
@@ -280,7 +290,9 @@ public final class HibernateAuditInstantiator {
                                 }
                                 // explicitly invoke the set method so that the
                                 // tuplizer can be involved as well.
-                                //classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                                // classMetadata.setPropertyValue(entityObject,
+                                // prop.getAuditField().getName(),
+                                // newCollectionValue, EntityMode.POJO);
                             } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                                 long index = 0;
                                 for (Iterator i = collection.iterator(); i.hasNext(); index++) {

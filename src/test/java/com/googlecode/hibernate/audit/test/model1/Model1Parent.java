@@ -41,6 +41,7 @@ public interface Model1Parent extends Model1Person {
      * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Parent_Children()
      * @see com.googlecode.hibernate.audit.test.model1.Model1Child#getParent
      * @model opposite="parent" containment="true"
+     *        annotation="teneo.jpa appinfo='@OneToMany(mappedBy = \"parent\", indexed=false)'"
      * @generated
      */
     EList<Model1Child> getChildren();
