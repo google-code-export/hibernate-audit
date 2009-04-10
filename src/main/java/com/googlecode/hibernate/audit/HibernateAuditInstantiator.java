@@ -50,6 +50,13 @@ public final class HibernateAuditInstantiator {
         }
     };
 
+    private static final ThreadLocal<Map<EntityKey, Object>> DELETED_KEY_TO_OBJECT_CONTEXT = new ThreadLocal<Map<EntityKey, Object>>() {
+        @Override
+        protected Map<EntityKey, Object> initialValue() {
+            return new HashMap<EntityKey, Object>();
+        }
+    };
+
     private HibernateAuditInstantiator() {
     }
 
@@ -65,7 +72,7 @@ public final class HibernateAuditInstantiator {
     public static Object getEntity(Session session, AuditType auditType, String externalId, Long transactionId) {
         AuditConfiguration auditConfiguration = HibernateAudit.getAuditConfiguration(session);
         KEY_TO_OBJECT_CONTEXT.get().clear();
-
+        DELETED_KEY_TO_OBJECT_CONTEXT.get().clear();
         Object result;
         try {
             result = doGetEntity(session, auditType, externalId, transactionId, auditConfiguration);
@@ -74,6 +81,7 @@ public final class HibernateAuditInstantiator {
             throw new HibernateException(e);
         } finally {
             KEY_TO_OBJECT_CONTEXT.get().clear();
+            DELETED_KEY_TO_OBJECT_CONTEXT.get().clear();
         }
     }
 
@@ -103,38 +111,39 @@ public final class HibernateAuditInstantiator {
                         // initialized correctly.
 
                         KEY_TO_OBJECT_CONTEXT.get().put(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()), entityObject);
-                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata);
+                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata, transactionId);
                     } else if (AuditEvent.UPDATE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                         entityObject = KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
 
                         String entityName = HibernateAudit.getEntityName(auditConfiguration, session, entity.getAuditType().getClassName());
                         ClassMetadata classMetadata = session.getSessionFactory().getClassMetadata(entityName);
 
-                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata);
+                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata, transactionId);
                     } else if (AuditEvent.DELETE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                         // need to remove all references
-                        KEY_TO_OBJECT_CONTEXT.get().remove(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
+                        Object removedEntity = KEY_TO_OBJECT_CONTEXT.get().remove(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
+                        DELETED_KEY_TO_OBJECT_CONTEXT.get().put(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()), removedEntity);
                     } else if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                         entityObject = KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
 
                         String entityName = HibernateAudit.getEntityName(auditConfiguration, session, entity.getAuditType().getClassName());
                         ClassMetadata classMetadata = session.getSessionFactory().getClassMetadata(entityName);
 
-                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata);
+                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata, transactionId);
                     } else if (AuditEvent.MODIFY_AUDIT_EVENT_TYPE.equals(event.getType())) {
                         entityObject = KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
 
                         String entityName = HibernateAudit.getEntityName(auditConfiguration, session, entity.getAuditType().getClassName());
                         ClassMetadata classMetadata = session.getSessionFactory().getClassMetadata(entityName);
 
-                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata);
+                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata, transactionId);
                     } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                         entityObject = KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(entity.getAuditType().getClassName(), entity.getTargetEntityId()));
 
                         String entityName = HibernateAudit.getEntityName(auditConfiguration, session, entity.getAuditType().getClassName());
                         ClassMetadata classMetadata = session.getSessionFactory().getClassMetadata(entityName);
 
-                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata);
+                        initializeProperties(session, auditConfiguration, event, object, entityObject, classMetadata, transactionId);
                     }
                 }
             }
@@ -143,8 +152,8 @@ public final class HibernateAuditInstantiator {
         return KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(auditType.getClassName(), externalId));
     }
 
-    private static void initializeProperties(Session session, AuditConfiguration auditConfiguration, AuditEvent event, AuditObject object, Object entityObject, ClassMetadata classMetadata)
-            throws ClassNotFoundException {
+    private static void initializeProperties(Session session, AuditConfiguration auditConfiguration, AuditEvent event, AuditObject object, Object entityObject, ClassMetadata classMetadata,
+            Long transactionId) throws ClassNotFoundException {
         for (AuditObjectProperty property : object.getAuditObjectProperties()) {
             property = instantiate(property);
 
@@ -154,18 +163,19 @@ public final class HibernateAuditInstantiator {
                 AuditType propertyFieldType = prop.getAuditType();
                 Object entityValue = null;
                 if (propertyFieldType != null) {
-                    entityValue = doGetEntity(session, propertyFieldType, prop.getTargetEntityId(), event.getAuditTransaction().getId(), auditConfiguration);
+                    entityValue = doGetEntity(session, propertyFieldType, prop.getTargetEntityId(), transactionId, auditConfiguration);
 
                     if (entityValue == null) {
-                        String entityName = HibernateAudit.getEntityName(auditConfiguration, session, propertyFieldType.getClassName());
-                        ClassMetadata metadata = session.getSessionFactory().getClassMetadata(entityName);
+                        if (DELETED_KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(propertyFieldType.getClassName(), prop.getTargetEntityId())) == null) {
+                            // the object was not detected to be deleted so
+                            // check if it is a config data..
 
-                        Serializable id = (Serializable) auditConfiguration.getExtensionManager().getPropertyValueConverter().valueOf(metadata.getIdentifierType().getReturnedClass(),
-                                prop.getTargetEntityId());
+                            String entityName = HibernateAudit.getEntityName(auditConfiguration, session, propertyFieldType.getClassName());
+                            ClassMetadata metadata = session.getSessionFactory().getClassMetadata(entityName);
 
-                        if (propertyFieldType.getClassName().startsWith("com.wellsfargo.core.entity.model.deal.")) {
-                            entityValue = ((AbstractEntityPersister) metadata).getEntityMetamodel().getTuplizer(EntityMode.POJO).instantiate(id);
-                        } else {
+                            Serializable id = (Serializable) auditConfiguration.getExtensionManager().getPropertyValueConverter().valueOf(metadata.getIdentifierType().getReturnedClass(),
+                                    prop.getTargetEntityId());
+
                             entityValue = session.get(entityName, id);
                         }
                     }
@@ -182,14 +192,15 @@ public final class HibernateAuditInstantiator {
                         Collection collection = ((Collection) collectionValue);
                         if (AuditEvent.ADD_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             Collection newCollectionValue = null;
-                            if (collection == null || collection.isEmpty()) {
-                                newCollectionValue = (Collection) collectionType.instantiate(1);
-                                newCollectionValue.add(entityValue);
-                                classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
-                            } else {
-                                collection.add(entityValue);
+                            if (DELETED_KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(propertyFieldType.getClassName(), prop.getTargetEntityId())) == null) {
+                                if (collection == null || collection.isEmpty()) {
+                                    newCollectionValue = (Collection) collectionType.instantiate(1);
+                                    newCollectionValue.add(entityValue);
+                                    classMetadata.setPropertyValue(entityObject, prop.getAuditField().getName(), newCollectionValue, EntityMode.POJO);
+                                } else {
+                                    collection.add(entityValue);
+                                }
                             }
-
                         } else if (AuditEvent.REMOVE_AUDIT_EVENT_TYPE.equals(event.getType())) {
                             Type elementType = collectionType.getElementType((SessionFactoryImplementor) session.getSessionFactory());
 
@@ -209,7 +220,7 @@ public final class HibernateAuditInstantiator {
                                 }
                             }
 
-                            if (!elementFound) {
+                            if (!elementFound && (DELETED_KEY_TO_OBJECT_CONTEXT.get().get(new EntityKey(propertyFieldType.getClassName(), prop.getTargetEntityId())) == null)) {
                                 throw new HibernateException("Unable to find entity with id " + deletedElementId + " in collection " + prop.getAuditField().getOwnerType().getClassName() + "."
                                         + prop.getAuditField().getName() + " collection");
                             }
@@ -237,8 +248,7 @@ public final class HibernateAuditInstantiator {
                         if (componentProperty instanceof EntityObjectProperty) {
                             EntityObjectProperty componentProp = (EntityObjectProperty) componentProperty;
 
-                            Object entityValue = doGetEntity(session, componentProp.getAuditField().getFieldType(), componentProp.getTargetEntityId(), event.getAuditTransaction().getId(),
-                                    auditConfiguration);
+                            Object entityValue = doGetEntity(session, componentProp.getAuditField().getFieldType(), componentProp.getTargetEntityId(), transactionId, auditConfiguration);
                             for (int i = 0; i < propertyNames.length; i++) {
                                 if (propertyNames[i].equals(componentProp.getAuditField().getName())) {
                                     values[i] = entityValue;
