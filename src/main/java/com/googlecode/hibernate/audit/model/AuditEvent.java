@@ -18,13 +18,14 @@
  */
 package com.googlecode.hibernate.audit.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 
-public class AuditEvent {
+public class AuditEvent implements Serializable {
     public static final String INSERT_AUDIT_EVENT_TYPE = "I";
     public static final String UPDATE_AUDIT_EVENT_TYPE = "U";
     public static final String DELETE_AUDIT_EVENT_TYPE = "D";

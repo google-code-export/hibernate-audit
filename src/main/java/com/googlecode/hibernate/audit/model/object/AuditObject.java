@@ -18,6 +18,7 @@
  */
 package com.googlecode.hibernate.audit.model.object;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.property.AuditObjectProperty;
 
-public abstract class AuditObject {
+public abstract class AuditObject implements Serializable {
     protected Long id;
 
     protected AuditEvent auditEvent;
