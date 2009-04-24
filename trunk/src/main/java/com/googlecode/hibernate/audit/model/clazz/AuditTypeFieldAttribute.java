@@ -16,16 +16,19 @@
  * with Hibernate Audit.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package com.googlecode.hibernate.audit.model;
+package com.googlecode.hibernate.audit.model.clazz;
 
 import java.io.Serializable;
 
-import com.googlecode.hibernate.audit.model.clazz.AuditType;
-
-public class AuditLogicalGroup implements Serializable {
+/**
+ * Entity that represents additional meta information that is attached to a
+ * field.
+ */
+public class AuditTypeFieldAttribute implements Serializable {
     protected Long id;
-    protected AuditType auditType;
-    protected String externalId;
+    protected AuditTypeField auditTypeField;
+    protected Long attributeId;
+    protected String attributeValue;
 
     public Long getId() {
         return id;
@@ -35,19 +38,27 @@ public class AuditLogicalGroup implements Serializable {
         this.id = id;
     }
 
-    public AuditType getAuditType() {
-        return auditType;
+    public AuditTypeField getAuditTypeField() {
+        return auditTypeField;
     }
 
-    public void setAuditType(AuditType auditType) {
-        this.auditType = auditType;
+    public void setAuditTypeField(AuditTypeField auditTypeField) {
+        this.auditTypeField = auditTypeField;
     }
 
-    public String getExternalId() {
-        return externalId;
+    public Long getAttributeId() {
+        return attributeId;
     }
 
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
+    public void setAttributeId(Long attributeId) {
+        this.attributeId = attributeId;
+    }
+
+    public String getAttributeValue() {
+        return attributeValue;
+    }
+
+    public void setAttributeValue(String attributeValue) {
+        this.attributeValue = attributeValue;
     }
 }

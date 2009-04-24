@@ -18,7 +18,9 @@
  */
 package com.googlecode.hibernate.audit.model;
 
-public class AuditTransactionAttribute {
+import java.io.Serializable;
+
+public class AuditTransactionAttribute implements Serializable {
     protected Long id;
     protected AuditTransaction auditTransaction;
     protected Long attributeId;

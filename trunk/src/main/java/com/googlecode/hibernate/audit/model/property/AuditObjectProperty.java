@@ -18,11 +18,13 @@
  */
 package com.googlecode.hibernate.audit.model.property;
 
+import java.io.Serializable;
+
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 
-public abstract class AuditObjectProperty {
+public abstract class AuditObjectProperty implements Serializable {
     protected Long id;
     protected AuditObject auditObject;
     protected AuditTypeField auditField;

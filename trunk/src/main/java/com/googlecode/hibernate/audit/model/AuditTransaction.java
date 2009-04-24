@@ -18,11 +18,12 @@
  */
 package com.googlecode.hibernate.audit.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class AuditTransaction {
+public class AuditTransaction implements Serializable {
 
     protected Long id;
     protected Date timestamp;

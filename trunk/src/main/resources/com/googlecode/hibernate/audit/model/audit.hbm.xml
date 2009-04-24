@@ -318,8 +318,44 @@
 			<one-to-many
 				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeField" />
 		</bag>
+		<bag name="auditTypeAttributes" cascade="all" inverse="true"
+			lazy="true">
+			<key column="`AUDIT_TYPE_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute" />
+		</bag>
 	</class>
 
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute"
+		table="`AUDIT_TYPE_ATTRIBUTE`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_ATTRIBUTE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_ATTRIBUTE_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<property name="attributeId" lazy="false" type="java.lang.Long"
+			not-null="true">
+			<column name="`ATTRIBUTE_REF_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</property>
+		<property name="attributeValue" lazy="false" type="java.lang.String"
+			not-null="true">
+			<column name="`ATTRIBUTE_VALUE_TXT`" length="4000" not-null="true" />
+		</property>
+	</class>
+	
 	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"
 		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"
 		lazy="true" table="`AUDIT_TYPE_FIELD`" mutable="false">
@@ -350,6 +386,42 @@
 		</property>
 		<property name="label" lazy="false" type="java.lang.String">
 			<column name="`LABEL_NAME`" length="255" />
+		</property>
+		<bag name="auditTypeFieldAttributes" cascade="all" inverse="true"
+			lazy="true">
+			<key column="`AUDIT_TYPE_FIELD_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute" />
+		</bag>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute"
+		table="`AUDIT_TYPE_FIELD_ATTRIBUTE`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_FIELD_ATTRIBUTE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_FIELD_ATTRIBUTE_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditTypeField"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditTypeField" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TYPE_FIELD_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<property name="attributeId" lazy="false" type="java.lang.Long"
+			not-null="true">
+			<column name="`ATTRIBUTE_REF_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</property>
+		<property name="attributeValue" lazy="false" type="java.lang.String"
+			not-null="true">
+			<column name="`ATTRIBUTE_VALUE_TXT`" length="4000" not-null="true" />
 		</property>
 	</class>
 

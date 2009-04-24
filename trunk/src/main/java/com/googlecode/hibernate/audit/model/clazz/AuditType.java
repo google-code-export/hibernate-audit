@@ -18,10 +18,14 @@
  */
 package com.googlecode.hibernate.audit.model.clazz;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AuditType {
+/**
+ * Entity that represents audit class meta data information.
+ */
+public class AuditType implements Serializable {
     public static final char ENTITY_TYPE = 'E';
     public static final char COMPONENT_TYPE = 'C';
     public static final char COLLECTION_TYPE = 'A';
@@ -33,6 +37,18 @@ public class AuditType {
     protected String label;
     protected char type;
     protected List<AuditTypeField> auditFields;
+    protected List<AuditTypeAttribute> auditTypeAttributes;
+
+    public List<AuditTypeAttribute> getAuditTypeAttributes() {
+        if (auditTypeAttributes == null) {
+            auditTypeAttributes = new ArrayList<AuditTypeAttribute>();
+        }
+        return auditTypeAttributes;
+    }
+
+    public void setAuditTypeAttributes(List<AuditTypeAttribute> auditTypeAttributes) {
+        this.auditTypeAttributes = auditTypeAttributes;
+    }
 
     public List<AuditTypeField> getAuditFields() {
         if (auditFields == null) {
