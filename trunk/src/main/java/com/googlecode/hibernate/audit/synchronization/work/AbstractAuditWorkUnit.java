@@ -198,13 +198,17 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                     throw new HibernateException(e);
                 }
             }
+            Transaction tx = null;
             try {
                 newSession = session.getSessionFactory().openSession();
-                Transaction tx = newSession.beginTransaction();
+                tx = newSession.beginTransaction();
                 logicalGroup.setAuditType(auditType);
                 newSession.save(logicalGroup);
                 tx.commit();
             } catch (HibernateException ignored) {
+                if (tx != null) {
+                    tx.rollback();
+                }
             } finally {
                 if (newSession != null) {
                     try {
