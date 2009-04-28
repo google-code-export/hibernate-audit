@@ -229,7 +229,7 @@ public class AuditSynchronization implements Synchronization {
 
                 Long latestLogicalGroupTransactionId = auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
 
-                if (latestLogicalGroupTransactionId != null && latestLogicalGroupTransactionId.equals(loadAuditTransactionId)) {
+                if (latestLogicalGroupTransactionId == null || latestLogicalGroupTransactionId.equals(loadAuditTransactionId)) {
                     // performance optimization
                     continue;
                 }
