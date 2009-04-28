@@ -457,6 +457,13 @@
 	</query>
 
 	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId">
+			<query-param name="auditLogicalGroup" type="com.googlecode.hibernate.audit.model.AuditLogicalGroup"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event where event.auditLogicalGroup = :auditLogicalGroup and t.id &gt; :afterAuditTransactionId
+	</query>
+	
+	<query
 		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="targetEntityId" type="java.lang.String"/>
@@ -503,5 +510,4 @@
 			<query-param name="transactionId" type="java.lang.Long"/>
 			select event from com.googlecode.hibernate.audit.model.AuditEvent as event where event.auditType = :auditType and event.entityId = :externalId  and event.auditTransaction.id &lt;= :transactionId order by event.auditTransaction.id asc, event.id asc
 	</query>
-	
 </hibernate-mapping>

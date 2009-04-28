@@ -223,7 +223,8 @@ public class AuditSynchronization implements Synchronization {
             AuditLogicalGroup auditLogicalGroup = e.getAuditLogicalGroup();
             if (auditLogicalGroup != null) {
                 if (!auditLogicalGroupToAuditTransactionId.containsKey(auditLogicalGroup)) {
-                    auditLogicalGroupToAuditTransactionId.put(auditLogicalGroup, HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroup(session, auditLogicalGroup));
+                    auditLogicalGroupToAuditTransactionId.put(auditLogicalGroup, HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId(session, auditLogicalGroup,
+                            loadAuditTransactionId));
                 }
 
                 Long latestLogicalGroupTransactionId = auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
