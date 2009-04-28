@@ -471,10 +471,26 @@
 	</query>
 
 	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntityAndAfterAuditTransactionId">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.auditType = :auditType and auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId and t.id &gt; :afterAuditTransactionId  
+	</query>
+	
+	<query
 		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByProperty">
 			<query-param name="auditTypeField" type="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"/>
 			<query-param name="targetEntityId" type="java.lang.String"/>
 			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty where auditObjectProperty.auditField = :auditTypeField and event.entityId = :targetEntityId 
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId">
+			<query-param name="auditTypeField" type="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty where auditObjectProperty.auditField = :auditTypeField and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
 	</query>
 
 	<query

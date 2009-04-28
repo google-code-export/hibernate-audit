@@ -268,47 +268,16 @@ public class AuditSynchronization implements Synchronization {
                     targetEntityId = ((EntityAuditObject) entity).getTargetEntityId();
                 }
 
-                Long latestEntityTransactionId = HibernateAudit.getLatestAuditTransactionIdByEntity(session, auditType, targetEntityId);
+                Long latestEntityTransactionId = HibernateAudit.getLatestAuditTransactionIdByEntityAndAfterAuditTransactionId(session, auditType, targetEntityId, loadAuditTransactionId);
                 if (latestEntityTransactionId != null && !latestEntityTransactionId.equals(loadAuditTransactionId)) {
-
-                    if (!ConcurrentModificationLevelCheck.PROPERTY.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLevelCheck())) {
-                        // only object level should be checked
-                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                            if (session.getTransaction().isActive()) {
-                                session.getTransaction().rollback();
-                            }
-                            throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
-                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                            if (log.isEnabledFor(Level.WARN)) {
-                                log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId=" + targetEntityId);
-                            }
+                    if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                        if (session.getTransaction().isActive()) {
+                            session.getTransaction().rollback();
                         }
-                    } else {
-                        // property level is going to be checked - validate only
-                        // if the object was not deleted because in this case no
-                        // properties are going to be inserted.
-
-                        AuditTransaction latestEntityTransaction = HibernateAudit.getAuditTransaction(session, latestEntityTransactionId);
-                        if (latestEntityTransaction != null) {
-                            for (AuditEvent event : latestEntityTransaction.getEvents()) {
-                                if (event.getEntityId() != null && event.getEntityId().equals(targetEntityId) && event.getAuditType().getClassName().equals(auditType.getClassName())) {
-                                    if (AuditEvent.DELETE_AUDIT_EVENT_TYPE.equals(event.getType())) {
-                                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider()
-                                                .getCheckBehavior())) {
-                                            if (session.getTransaction().isActive()) {
-                                                session.getTransaction().rollback();
-                                            }
-                                            throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
-                                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider()
-                                                .getCheckBehavior())) {
-                                            if (log.isEnabledFor(Level.WARN)) {
-                                                log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId="
-                                                        + targetEntityId);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
+                    } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                        if (log.isEnabledFor(Level.WARN)) {
+                            log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId=" + targetEntityId);
                         }
                     }
                 }
@@ -319,7 +288,7 @@ public class AuditSynchronization implements Synchronization {
                 // find if there are fields that were modified
                 for (AuditObjectProperty auditObjectProperty : auditObject.getAuditObjectProperties()) {
 
-                    Long latestEntityTransactionId = HibernateAudit.getLatestAuditTransactionIdByProperty(session, auditObjectProperty.getAuditField(), e.getEntityId());
+                    Long latestEntityTransactionId = HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId(session, auditObjectProperty.getAuditField(), e.getEntityId(), loadAuditTransactionId);
 
                     if (latestEntityTransactionId != null && !latestEntityTransactionId.equals(loadAuditTransactionId)) {
 
