@@ -50,7 +50,9 @@ public final class HibernateAudit {
     private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroup";
     private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP_AND_AFTER_AUDIT_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId";
     private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_ENTITY = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_ENTITY_AND_AFTER_AUDIT_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntityAndAfterAuditTransactionId";
     private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByProperty";
+    private static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY_AND_AFTER_AUDIT_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId";
 
     private static final String SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditTransaction";
     private static final String SELECT_ALL_AUDIT_TRANSACTIONS_AFTER_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsAfterTransactionId";
@@ -94,6 +96,16 @@ public final class HibernateAudit {
         return auditTransactionId;
     }
 
+    public static Long getLatestAuditTransactionIdByEntityAndAfterAuditTransactionId(Session session, AuditType auditType, String targetEntityId, Long afterAuditTransactionId) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_ENTITY_AND_AFTER_AUDIT_TRANSACTION_ID);
+        query.setParameter("auditType", auditType);
+        query.setParameter("targetEntityId", targetEntityId);
+        query.setParameter("afterAuditTransactionId", afterAuditTransactionId);
+        
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
+    }
+    
     public static Long getLatestAuditTransactionIdByProperty(Session session, AuditTypeField auditTypeField, String targetEntityId) {
         Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY);
         query.setParameter("auditTypeField", auditTypeField);
@@ -102,6 +114,16 @@ public final class HibernateAudit {
         return auditTransactionId;
     }
 
+    public static Long getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId(Session session, AuditTypeField auditTypeField, String targetEntityId, Long afterAuditTransactionId) {
+        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY_AND_AFTER_AUDIT_TRANSACTION_ID);
+        query.setParameter("auditTypeField", auditTypeField);
+        query.setParameter("targetEntityId", targetEntityId);
+        query.setParameter("afterAuditTransactionId", afterAuditTransactionId);
+        
+        Long auditTransactionId = (Long) query.uniqueResult();
+        return auditTransactionId;
+    }
+    
     public static AuditTransaction getAuditTransaction(Session session, Long transactionId) {
         Query query = session.getNamedQuery(SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID);
 
