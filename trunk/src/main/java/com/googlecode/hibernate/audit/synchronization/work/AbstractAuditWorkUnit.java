@@ -26,6 +26,7 @@ import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -205,9 +206,21 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 logicalGroup.setAuditType(auditType);
                 newSession.save(logicalGroup);
                 tx.commit();
-            } catch (HibernateException ignored) {
+            } catch (HibernateException e) {
+                if (log.isEnabledFor(Level.DEBUG)) {
+                    // log the exception is debug level because this most likely
+                    // will indicate that there was a concurrent insert and we
+                    // are prepared to handle such calls. If this is not the
+                    // case and we want to troubleshoot where is the problem
+                    // then at least log the exception is DEBUG level so we can
+                    // see it.
+                    log.debug(e);
+                }
                 if (tx != null) {
-                    tx.rollback();
+                    try {
+                        tx.rollback();
+                    } catch (HibernateException ignored) {
+                    }
                 }
             } finally {
                 if (newSession != null) {
