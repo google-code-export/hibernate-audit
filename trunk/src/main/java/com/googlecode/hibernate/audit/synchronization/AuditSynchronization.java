@@ -294,7 +294,7 @@ public class AuditSynchronization implements Synchronization {
 
                         // object level check and we detected that we have
                         // changed object that matches..
-                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider())) {
+                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
                             if (session.getTransaction().isActive()) {
                                 session.getTransaction().rollback();
                             }
