@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><metadata>
   <groupId>com.googlecode</groupId>
   <artifactId>hibernate-audit</artifactId>
-  <version>1.0.16</version>
+  <version>1.0.17</version>
   <versioning>
-    <release>1.0.16</release>
+    <release>1.0.17</release>
     <versions>
-      <version>1.0.16</version>
+      <version>1.0.17</version>
     </versions>
-    <lastUpdated>20090501021857</lastUpdated>
+    <lastUpdated>20090519173129</lastUpdated>
   </versioning>
 </metadata>
