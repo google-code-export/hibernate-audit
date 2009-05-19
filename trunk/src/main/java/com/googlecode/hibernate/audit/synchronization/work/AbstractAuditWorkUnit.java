@@ -175,6 +175,13 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
 
             if (result == null) {
                 createAuditLogicalGroup(session, logicalGroup, auditType);
+                // remove the cached query (possibly null) results so that the result after that is not null. 
+                String cacheRegion = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID).getCacheRegion();
+                if (cacheRegion != null) {
+                    session.getSessionFactory().evictQueries(cacheRegion);
+                } else {
+                    session.getSessionFactory().evictQueries();
+                }
                 result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
             }
