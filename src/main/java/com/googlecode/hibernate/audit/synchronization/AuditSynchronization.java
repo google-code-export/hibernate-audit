@@ -21,10 +21,8 @@ package com.googlecode.hibernate.audit.synchronization;
 import java.security.Principal;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -184,7 +182,9 @@ public class AuditSynchronization implements Synchronization {
                     if (log.isEnabledFor(Level.DEBUG)) {
                         log.debug("lock AuditLogicalGroup with id:" + storedAuditLogicalGroup.getId());
                     }
-                    session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
+                    //session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
+                    //not the audit logical group is not immutable
+                    session.refresh(storedAuditLogicalGroup, LockMode.UPGRADE);
                 }
                 try {
                     concurrentModificationCheck(session, auditTransaction, loadAuditTransactionId);
@@ -197,7 +197,10 @@ public class AuditSynchronization implements Synchronization {
             }
 
             session.save(auditTransaction);
-
+            for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
+                storedAuditLogicalGroup.setLastUpdatedAuditTransactionId(auditTransaction.getId());
+            }
+            
             if (!FlushMode.isManualFlushMode(session.getFlushMode())) {
                 session.flush();
             }
@@ -210,7 +213,7 @@ public class AuditSynchronization implements Synchronization {
 
     private void concurrentModificationCheck(Session session, AuditTransaction auditTransaciton, Long loadAuditTransactionId) {
 
-        Map<AuditLogicalGroup, Long> auditLogicalGroupToAuditTransactionId = new IdentityHashMap<AuditLogicalGroup, Long>();
+        //Map<AuditLogicalGroup, Long> auditLogicalGroupToAuditTransactionId = new IdentityHashMap<AuditLogicalGroup, Long>();
 
         Long latestTransaction = HibernateAudit.getLatestAuditTransactionId(session);
         if (latestTransaction != null && latestTransaction.equals(loadAuditTransactionId)) {
@@ -222,12 +225,12 @@ public class AuditSynchronization implements Synchronization {
         for (AuditEvent e : auditTransaciton.getEvents()) {
             AuditLogicalGroup auditLogicalGroup = e.getAuditLogicalGroup();
             if (auditLogicalGroup != null) {
-                if (!auditLogicalGroupToAuditTransactionId.containsKey(auditLogicalGroup)) {
+/*                if (!auditLogicalGroupToAuditTransactionId.containsKey(auditLogicalGroup)) {
                     auditLogicalGroupToAuditTransactionId.put(auditLogicalGroup, HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId(session, auditLogicalGroup,
                             loadAuditTransactionId));
                 }
-
-                Long latestLogicalGroupTransactionId = auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
+*/
+                Long latestLogicalGroupTransactionId = auditLogicalGroup.getLastUpdatedAuditTransactionId();//auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
 
                 if (latestLogicalGroupTransactionId == null || latestLogicalGroupTransactionId.equals(loadAuditTransactionId)) {
                     // performance optimization

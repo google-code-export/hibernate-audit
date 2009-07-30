@@ -26,6 +26,7 @@ public class AuditLogicalGroup implements Serializable {
     protected Long id;
     protected AuditType auditType;
     protected String externalId;
+    protected Long lastUpdatedAuditTransactionId;
 
     public Long getId() {
         return id;
@@ -49,5 +50,13 @@ public class AuditLogicalGroup implements Serializable {
 
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    public Long getLastUpdatedAuditTransactionId() {
+        return lastUpdatedAuditTransactionId;
+    }
+
+    public void setLastUpdatedAuditTransactionId(Long lastUpdatedAuditTransactionId) {
+        this.lastUpdatedAuditTransactionId = lastUpdatedAuditTransactionId;
     }
 }

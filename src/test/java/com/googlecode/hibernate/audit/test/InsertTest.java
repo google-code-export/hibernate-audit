@@ -45,7 +45,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
         return data;
     }
 
-    @Test(dataProvider = "xmiTemplates")
+    @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsert(String resource) {
 
         String loadedXmi = loadResource(resource);
@@ -90,7 +90,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
         }
     }
 
-    @Test(dataProvider = "xmiTemplates")
+    @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsertUpdate(String resource) {
 
         String loadedXmi = loadResource(resource);
@@ -117,7 +117,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Assert.assertNotNull(storedParent);
 
             storedParent.setName(storedParent.getName() + "-New name");
-            
+
             loadedXmi = EMFUtil.toXMI(storedParent, dataStore.getEPackages());
             tx.commit();
 
@@ -139,7 +139,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
         }
     }
 
-    @Test(dataProvider = "xmiTemplates")
+    @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsertDelete(String resource) {
 
         String loadedXmi = loadResource(resource);
@@ -166,7 +166,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Assert.assertNotNull(storedParent);
 
             Model1Child child = storedParent.getChildren().remove(0);
-            
+
             session.delete(child);
             session.flush();
             loadedXmi = EMFUtil.toXMI(storedParent, dataStore.getEPackages());
