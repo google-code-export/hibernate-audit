@@ -185,6 +185,9 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
             }
+            if (result == null) {
+                throw new HibernateException("AuditLogicalGroup is null");
+            }
             auditLogicalGroups.add(result);
         }
 
@@ -211,6 +214,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 newSession = session.getSessionFactory().openSession();
                 tx = newSession.beginTransaction();
                 logicalGroup.setAuditType(auditType);
+                // when we are creating the audit logical group for the first time we set it to 0, this is before even we may have transaction record - this is executed in separate transaction
+                logicalGroup.setLastUpdatedAuditTransactionId(Long.valueOf(0)); 
                 newSession.save(logicalGroup);
                 tx.commit();
             } catch (HibernateException e) {

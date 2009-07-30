@@ -150,6 +150,10 @@
 			type="java.lang.String" unique-key="`AUDIT_TYPE_ID_EXTERNAL_ID_IDX`" >
 			<column name="`EXTERNAL_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</property>
+		<property name="lastUpdatedAuditTransactionId" lazy="false" not-null="true" update="true"
+			type="java.lang.Long">
+			<column name="`LAST_UPD_AUDIT_TRANSACTION_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</property>
 	</class>
 
 	<!--  OBJECT  -->
@@ -426,7 +430,7 @@
 	</class>
 
 	<query
-		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.AuditLogicalGroup.query" >
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="externalId" type="java.lang.String"/>
 			from com.googlecode.hibernate.audit.model.AuditLogicalGroup where auditType = :auditType and externalId = :externalId 

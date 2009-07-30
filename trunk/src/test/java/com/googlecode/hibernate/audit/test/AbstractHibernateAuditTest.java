@@ -63,7 +63,7 @@ public abstract class AbstractHibernateAuditTest {
         }
     };
 
-    protected final static HbDataStore dataStore = init();
+    protected static final HbDataStore dataStore = init();
 
     protected String loadResource(String xmi) {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(xmi);

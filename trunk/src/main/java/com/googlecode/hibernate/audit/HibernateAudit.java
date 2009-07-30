@@ -74,10 +74,11 @@ public final class HibernateAudit {
     }
 
     public static Long getLatestAuditTransactionIdByAuditLogicalGroup(Session session, AuditLogicalGroup auditLogicalGroup) {
-        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP);
+/*        Query query = session.getNamedQuery(SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_AUDIT_LOGICAL_GROUP);
         query.setParameter("auditLogicalGroup", auditLogicalGroup);
         Long auditTransactionId = (Long) query.uniqueResult();
-        return auditTransactionId;
+*/        
+        return auditLogicalGroup.getLastUpdatedAuditTransactionId();
     }
 
     public static Long getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId(Session session, AuditLogicalGroup auditLogicalGroup, Long afterAuditTransactionId) {
