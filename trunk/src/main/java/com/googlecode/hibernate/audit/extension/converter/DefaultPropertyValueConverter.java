@@ -28,18 +28,22 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DefaultPropertyValueConverter implements PropertyValueConverter {
-    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSSZ");
+    private static final ThreadLocal<DateFormat> DATE_FORMAT = new ThreadLocal<DateFormat>() {
+        protected DateFormat initialValue() {
+            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSSZ");
+        }
+    };
 
     public String toString(Object obj) {
         if (obj == null) {
             return null;
         }
         if (obj instanceof Calendar) {
-            return DATE_FORMAT.format(((Calendar) obj).getTime());
+            return DATE_FORMAT.get().format(((Calendar) obj).getTime());
         }
 
         if (obj instanceof Date) {
-            return DATE_FORMAT.format((Date) obj);
+            return DATE_FORMAT.get().format((Date) obj);
         }
 
         return obj.toString();
@@ -49,7 +53,7 @@ public class DefaultPropertyValueConverter implements PropertyValueConverter {
         if (str == null) {
             return null;
         }
-        
+
         if (Integer.class.equals(type)) {
             return Integer.valueOf(str);
         } else if (Long.class.equals(type)) {
@@ -66,7 +70,7 @@ public class DefaultPropertyValueConverter implements PropertyValueConverter {
             return Boolean.valueOf(str);
         } else if (Calendar.class.equals(type)) {
             try {
-                DateFormat calendarFormat = (DateFormat) DATE_FORMAT.clone();
+                DateFormat calendarFormat = (DateFormat) DATE_FORMAT.get().clone();
                 calendarFormat.setLenient(false);
                 calendarFormat.parse(str);
                 return calendarFormat.getCalendar();
@@ -75,7 +79,7 @@ public class DefaultPropertyValueConverter implements PropertyValueConverter {
             }
         } else if (Date.class.equals(type)) {
             try {
-                return (Date) DATE_FORMAT.parse(str);
+                return (Date) DATE_FORMAT.get().parse(str);
             } catch (ParseException e) {
                 throw new IllegalArgumentException(e);
             }
