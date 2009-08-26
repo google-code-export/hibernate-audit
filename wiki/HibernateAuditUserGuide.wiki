@@ -138,6 +138,23 @@ Where the springSynchronization should be a wrapper of the synchrozation paramet
 
 Provides collection of entities that can be stored and associated to the current audit transaction. The hibernate audit will call the provider to get the list of entites that need to be persisted as part of the audit transaction. Default provider returns {{{null}} so no audit transaction attributes will be stored in the audit tables.
 
+=Loading Data from Hibernate Audit tables=
+There are two ways that you can use to load the data from the Audit Hibernate tables:
+  * Directly querying the Hibernate Audit tables by using Hibernate API and the Hibernate Audit entities - you do that the same way as you are loading your custom entities. All Hibernate Audit entities will be automatically published in the same SessionFactory/Session as your application. All Hibernate Audit entity names are using fully qualified names (the name of the class of the entity) - this way we can guarantee that we do not have entity name collisions.
+  * Also you can use Hibernate Audit {{{HibernateAuditInstantiator}}} class to intantiate an entity from a specific audit revision. Here is an example code : assuming that the implementation class of your entity that you need to load is com.example.entity.model.DemoEntity and it has primary key with id value 101. For the example will use audit transaction id of 23001
+{{{
+      Session session = .... ; // obtain your application Hibernate Session 
+      com.example.entity.model.DemoEntity demoEntityAtRevision23001 = null;
+
+      AuditType demoEntityAuditType = HibernateAudit.getAuditType(session, com.example.entity.model.DemoEntity.class.getName());
+      demoEntityAtRevision23001 = (DemoEntity)HibernateAuditInstantiator.getEntity(session, demoEntityAuditType, "101", Long.valueOf(23001));
+      
+      // here you can access you entity as usual - note that any modifications to 
+      // the entity won't be synhronized to the database. Exception to that rule are all entities that "reference" entities - Reference entity means that there won't be any representations for this entity in the Hibernate Audit tables so we are going to load the entity directly from the original table for that entity - then such entity will be actually managed by Hibernate and any modification will be synchronized to the database.
+}}}
+
+*Note:* Currently the {{{HibernateAuditInstantiator}}} only supports eager load - this means that any references to other entities will be loaded as well. Depend on the connected graph of object at particular audit transaction a single load of an entity might involve loading of multiple other entities (from the same class or different classes). In future Hibernate Audit implementation this may change and instead of loading all connected entities to provide smart proxies that will load the necessary data only when it is needed.
+
 =Error Handling=
 
 All exceptions are logged. You need to setup correctly the Log4j library before you can see those log messages. All Hibernate Audit log categories starts with 
@@ -203,4 +220,3 @@ This implementation will re-throw any RuntimeException when the ThrowableInforma
     # Currently there is no workaround solution without modifying the Hibernate Audit framework
   * Hibernate Audit framework currently does not support entity/component attribute values (that are not references to entity or component or collection of such) for which the {{{java.lang.String}}} representation is greater than 4000 chars (all entities and componenets are supported). All such properties must not be marked as auditted because of potential RuntimeExceptions that may be raise during the save to the database.
     # There is a workaround for this without modifying the Hibernate Audit library. You need override the Hibernate Audit entity mapping document and to change the type of the {{{ATTRIBUTE_VALUE_TXT}}} column from {{{VARCHAR(4000)}}} to CLOB and also to use custom {{{UserType}}} - {{{org.hibernate.type.StringClobType}}}, then you need to make sure that you are using this new mapping file by using the {{{hba.mappingfile}}} property. You also need to provide the a custom implementation of {{{com.googlecode.hibernate.audit.extension.event.AuditLogicalGroupProvider}}} and register that approperiately with the Hiberate Audit framework if your entity property type can't be converted properly to java.lang.String - for example {{{java.io.InputStream}}} and etc. *Note:* This workaround has disadvantages - the performance will not be very good compared to the original implementation.
-
