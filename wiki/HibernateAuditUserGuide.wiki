@@ -196,3 +196,11 @@ public final class AuditExceptionPropagation {
 
 
 This implementation will re-throw any RuntimeException when the ThrowableInformation is provided (make sure that you do not have custom Log4j exception handling that will remove this information from the {{{LoggginEvent}}}.
+
+=Known Limitations and Workarounds=
+
+  * Hibernate Audit framework currently does not capture {{{java.util.Map}}} entity persistence attributes.
+    # Currently there is no workaround solution without modifying the Hibernate Audit framework
+  * Hibernate Audit framework currently does not support entity/component attribute values (that are not references to entity or component or collection of such) for which the {{{java.lang.String}}} representation is greater than 4000 chars (all entities and componenets are supported). All such properties must not be marked as auditted because of potential RuntimeExceptions that may be raise during the save to the database.
+    # There is a workaround for this without modifying the Hibernate Audit library. You need override the Hibernate Audit entity mapping document and to change the type of the {{{ATTRIBUTE_VALUE_TXT}}} column from {{{VARCHAR(4000)}}} to CLOB and also to use custom {{{UserType}}} - {{{org.hibernate.type.StringClobType}}}, then you need to make sure that you are using this new mapping file by using the {{{hba.mappingfile}}} property. You also need to provide the a custom implementation of {{{com.googlecode.hibernate.audit.extension.event.AuditLogicalGroupProvider}}} and register that approperiately with the Hiberate Audit framework if your entity property type can't be converted properly to java.lang.String - for example {{{java.io.InputStream}}} and etc. *Note:* This workaround has disadvantages - the performance will not be very good compared to the original implementation.
+
