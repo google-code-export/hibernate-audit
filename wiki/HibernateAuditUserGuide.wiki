@@ -179,7 +179,7 @@ There are two ways that you can use to load the data from the Audit Hibernate ta
 
 =Error Handling=
 
-All exceptions are logged. You need to setup correctly the Log4j library before you can see those log messages. All Hibernate Audit log categories starts with 
+All exceptions are logged and if they are not recoverable then they are passed to the Hibernate and then to the application. You need to setup correctly the Log4j library before you can see those log messages. All Hibernate Audit log categories starts with 
 {{{com.googlecode.hibernate.audit}}}
 
 *Note:* [http://www.hibernate.org Hibernate] and [http://www.springframework.org Spring Framework] will notify all {{{javax.transaction.Synchronization}}} for before and after completion in {{{try/catch}}} block that swallows {{{java.lang.Throwable}}} and only logging then in ERROR level. This means that if the Hibernate Audit synchronization throws an exception then this exception won't be propagated to the client - the only thing that the Hibernate Audit framework can do when such exception occurs is to try to mark the current transaction for rollback. If you are using Log4j as your logging framework then you can fix this problem using the following workaround: Create a new class that you can invoke after the Log4j is initialized and add Log4j special appenders for both Hibernate and Spring loggers (assuming that you do have both frameworks)
