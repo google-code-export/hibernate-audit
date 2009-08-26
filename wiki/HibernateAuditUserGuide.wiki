@@ -110,8 +110,8 @@ You can use the HBM file provided in the JAR file as a template and modify it ac
 
 ===`AuditableInformationProvider`===
 
-Hibernate audit framework will use this provider to determine if a particular entity or entity/property needs to be audited. 
-By default all entities and entity/properties are audited except for the hibernate audit entities - also you can't override this behaviour because it prevents infinite loop.
+Hibernate Audit framework will use this provider to determine if a particular entity or entity/property needs to be audited. 
+By default all entities and entity/properties are audited except for the hibernate audit entities - also you can't override this behavior because it prevents infinite loop.
 
 ===`ConcurrentModificationProvider`===
 
