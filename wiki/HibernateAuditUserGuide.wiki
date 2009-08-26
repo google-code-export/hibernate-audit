@@ -87,11 +87,14 @@ Register {{{com.googlecode.hibernate.audit.listener.AuditListener}}} as a lister
 hba.configuration.observer.clazz=com.myapp.MyAppAuditSessionFactoryObserver
 }}}
 
-Using a custom `AuditConfigurationObserver` the application can specify application specific implementation that controls all extensions. The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the `SessionFactory` initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
+Using a custom `AuditConfigurationObserver` the application can specify application specific implementation that controls all extensions. 
+The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the `SessionFactory` initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
  
 ===`hba.audited-model.dynamic-update`===
 
-`hba.audited-model.dynamic-update` controll whether the audit framework will set the dynamic-update for every audited entity to true - Note that this property have effect only when its value is true. Using the property set to true will guarantee that the audit will capture all updates that happend for the audited domain (this statement does not include explicitly not audited entities/properties which are always excluded from the audit) - enabling this will cause some performance penalties because Hibernate will not use a single update statement for a particular entity type but it will use dynamic update statement that will be generated on the fly based on which entity properties were modified. For more information check the [http://www.hibernate.org Hibernate site]
+`hba.audited-model.dynamic-update` controll whether the audit framework will set the dynamic-update for every audited entity to true - note that this property have effect only when its value is true. 
+Using the property set to true will guarantee that the audit will capture all updates that happend for the audited domain (this statement does not include explicitly not audited entities/properties which are always excluded from the audit) - enabling this will cause some performance penalties because Hibernate will not use a single update statement for a particular entity type but it will use dynamic update statement that will be generated on the fly based on which entity properties were modified. 
+For more information check the [http://www.hibernate.org Hibernate site]
 
 {{{
 hba.audited-model.dynamic-update=true
@@ -99,22 +102,31 @@ hba.audited-model.dynamic-update=true
 
 ===`hba.mappingfile`===
 
-`hba.mappingfile` if set this specified the HBM location for the hibernate entities configuration. This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not use hibernate annotations so you can control all mapping information from the HBM file only.
+`hba.mappingfile` if set this specified the HBM location for the hibernate entities configuration. 
+This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. 
+You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not use hibernate annotations so you can control all mapping information from the HBM file only.
 
 =Application Extensions=
 
 ===`AuditableInformationProvider`===
 
-Hibernate audit framework will use this provider to determine if a particular entity or entity/property needs to be audited. By default all entities and entity/properties are audited except for the hibernate audit entities - also you can't override this behaviour because it prevents infinite loop.
+Hibernate audit framework will use this provider to determine if a particular entity or entity/property needs to be audited. 
+By default all entities and entity/properties are audited except for the hibernate audit entities - also you can't override this behaviour because it prevents infinite loop.
 
 ===`ConcurrentModificationProvider`===
 
 ===`PropertyValueConverter`===
 
-Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. If you do have property values that can't be converted property to its String representation then you may consider to override the default implementation.
+Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. 
+If you do have property values that can't be converted property to its String representation then you may consider to override the default implementation.
 
 ===`AuditLogicalGroupProvider`===
-If you want to have logical entity groups in your entity model where each logical group has only one root entity then you can provide a custom AuditLogicalGroupProvider implementation that will determine for each Hibernate AuditEvent what is the corresponding AuditLogicalGroup - the AuditLogicalGroup will define the type of the root entity class as well as its primary key id. This is useful if you want to support fast lookups for related audit entities - for example if you have User entity domain then the root entity may be the User entity then you can quickly find all User related entities that were modified during a specified timeframe. If AuditLogicalGroups are used then the HibernateAudit optimistic concurrency will use that to speed up the process of checkin for any concurrency issues.
+If you want to have logical entity groups in your entity model where each logical group
+has only one root entity then you can provide a custom AuditLogicalGroupProvider implementation that will determine for each Hibernate AuditEvent what is 
+the corresponding AuditLogicalGroup - the AuditLogicalGroup will define the type of the root entity class as well as its primary key id. 
+This is useful if you want to support fast lookups for related audit entities and reliable HibernateAudit optimistic concurrency (if enabled) - 
+for example if you have User entity domain then the root entity may be the User entity then you can quickly find all User related entities that were modified during a specified timeframe. 
+If AuditLogicalGroups are used then the HibernateAudit optimistic concurrency will use that to speed up the process of checkin for any concurrency issues.
 
 ===`SecurityInformationProvider`===
 If you want to capture who modified particular auditted entity then you have to provide custom application specific implementation of {{{com.googlecode.hibernate.audit.extension.security.SecurityInformationProvider}}}. You need also the register that so that Hibernate Audit will use the new implementation.
