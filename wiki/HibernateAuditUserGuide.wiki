@@ -111,11 +111,13 @@ Hibernate audit framework will use this provider to determine if a particular en
 
 ===`PropertyValueConverter`===
 
-Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. 
+Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. If you do have property values that can't be converted property to its String representation then you may consider to override the default implementation.
 
 ===`AuditLogicalGroupProvider`===
+If you want to have logical entity groups in your entity model where each logical group has only one root entity then you can provide a custom AuditLogicalGroupProvider implementation that will determine for each Hibernate AuditEvent what is the corresponding AuditLogicalGroup - the AuditLogicalGroup will define the type of the root entity class as well as its primary key id. This is useful if you want to support fast lookups for related audit entities - for example if you have User entity domain then the root entity may be the User entity then you can quickly find all User related entities that were modified during a specified timeframe. If AuditLogicalGroups are used then the HibernateAudit optimistic concurrency will use that to speed up the process of checkin for any concurrency issues.
 
 ===`SecurityInformationProvider`===
+If you want to capture who modified particular auditted entity then you have to provide custom application specific implementation of {{{com.googlecode.hibernate.audit.extension.security.SecurityInformationProvider}}}. You need also the register that so that Hibernate Audit will use the new implementation.
 
 ===`TransactionSyncronization`===
 
