@@ -236,6 +236,8 @@ public final class AuditExceptionPropagation {
 
 This implementation will re-throw any RuntimeException when the ThrowableInformation is provided (make sure that you do not have custom Log4j exception handling that will remove this information from the {{{LoggginEvent}}}.
 
+For more information about Hibernate and this problem check [http://opensource.atlassian.com/projects/hibernate/browse/HHH-3543 Hibernate JIRA issue HHH-3543]
+
 =Known Limitations and Workarounds=
 
   * Hibernate Audit framework currently does not capture {{{java.util.Map}}} entity persistence attributes.
