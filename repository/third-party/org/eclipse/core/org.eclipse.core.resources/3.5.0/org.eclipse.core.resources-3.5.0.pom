@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.core</groupId>
-  <artifactId>resources</artifactId>
+  <artifactId>org.eclipse.core.resources</artifactId>
+  <version>3.5.0</version>
   <name>Core Resource Management</name>
-  <version>3.3.0-v20070604</version>
   <licenses>
     <license>
       <name>Eclipse Public License - v 1.0</name>
@@ -13,23 +15,23 @@
   <dependencies>
     <dependency>
       <groupId>org.eclipse.ant</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>org.eclipse.ant.core</artifactId>
       <version>[3.1.0,4.0.0)</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
-      <artifactId>expressions</artifactId>
-      <version>[3.1.0,4.0.0)</version>
+      <artifactId>org.eclipse.core.expressions</artifactId>
+      <version>[3.2.0,4.0.0)</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
-      <artifactId>filesystem</artifactId>
-      <version>[1.0.0,2.0.0)</version>
+      <artifactId>org.eclipse.core.filesystem</artifactId>
+      <version>[1.1.0,2.0.0)</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
-      <artifactId>runtime</artifactId>
+      <artifactId>org.eclipse.core.runtime</artifactId>
       <version>[3.2.0,4.0.0)</version>
     </dependency>
   </dependencies>
