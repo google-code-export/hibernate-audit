@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.core</groupId>
-  <artifactId>org.eclipse.core.filesystem</artifactId>
-  <version>1.2.0</version>
-  <name>Core File Systems</name>
+  <artifactId>org.eclipse.core.contenttype</artifactId>
+  <version>3.4.0</version>
+  <name>Eclipse Content Mechanism</name>
   <licenses>
     <license>
       <name>Eclipse Public License - v 1.0</name>
@@ -15,7 +15,7 @@
   <dependencies>
     <dependency>
       <groupId>org.eclipse.equinox</groupId>
-      <artifactId>org.eclipse.equinox.common</artifactId>
+      <artifactId>org.eclipse.equinox.preferences</artifactId>
       <version>[3.2.0,4.0.0)</version>
     </dependency>
     <dependency>
@@ -24,8 +24,8 @@
       <version>[3.2.0,4.0.0)</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.osgi</groupId>
-      <artifactId>org.eclipse.osgi</artifactId>
+      <groupId>org.eclipse.equinox</groupId>
+      <artifactId>org.eclipse.equinox.common</artifactId>
       <version>[3.2.0,4.0.0)</version>
     </dependency>
   </dependencies>
