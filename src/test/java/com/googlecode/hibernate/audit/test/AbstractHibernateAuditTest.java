@@ -32,7 +32,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.compare.match.metamodel.MatchModel;
-import org.eclipse.emf.compare.match.metamodel.UnMatchElement;
+import org.eclipse.emf.compare.match.metamodel.UnmatchElement;
 import org.eclipse.emf.compare.match.service.MatchService;
 import org.eclipse.emf.compare.util.ModelUtils;
 import org.eclipse.emf.ecore.EObject;
@@ -107,7 +107,7 @@ public abstract class AbstractHibernateAuditTest {
             options.put("match.ignore.xmi.id", Boolean.TRUE);
 
             MatchModel match = MatchService.doContentMatch(model1, model2, options);
-            List<UnMatchElement> elements = match.getUnMatchedElements();
+            List<UnmatchElement> elements = match.getUnmatchedElements();
 
             Assert.assertTrue(elements.isEmpty(), "resourceURI=" + resourceURI + ",loadedXmi=\n" + loadedXmi + "\nstoredXmi=\n" + storedXmi + "\n");
         } catch (IOException e) {
