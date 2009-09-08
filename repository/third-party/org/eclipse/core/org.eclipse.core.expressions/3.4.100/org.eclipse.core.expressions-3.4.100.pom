@@ -16,7 +16,7 @@
     <dependency>
       <groupId>org.eclipse.core</groupId>
       <artifactId>org.eclipse.core.runtime</artifactId>
-      <version>[3.3.0,4.0.0)</version>
+      <version>3.5.0</version>
     </dependency>
   </dependencies>
 </project>
