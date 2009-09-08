@@ -19,6 +19,7 @@
 package com.googlecode.hibernate.audit;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -27,14 +28,16 @@ public class Version {
     private static final Logger log = Logger.getLogger(Version.class);
 
     static {
-        Properties prop = new Properties();
-        if (Version.class.getResourceAsStream("meta-inf/MANIFEST.MF") != null) {
+        final Properties prop = new Properties();
+        final InputStream in = Version.class.getResourceAsStream("/meta-inf/Manifest.mf");
+        if (in != null) {
             try {
-                prop.load(Version.class.getResourceAsStream("meta-inf/MANIFEST.MF"));
+                prop.load(in);
             } catch (IOException e) {
             }
         }
-        log.info("Hibernate Audit " + prop.getProperty("Implementation-Version") + "");
+        final String version = prop.getProperty("Implementation-Version");
+        log.info("Hibernate Audit " + version != null ? version : "");
     }
 
     public static void touch() {
