@@ -497,6 +497,24 @@
 			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty where auditObjectProperty.auditField = :auditTypeField and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
 	</query>
 
+	<query 
+		name="com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditObjectProperties">
+			<query-param name="auditTypeFields" type="java.util.List"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			
+			select distinct auditObjectProperty from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty join auditObjectProperty.auditField as auditField where auditField in (:auditTypeFields) and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
+	</query>
+
+	<query 
+		name="com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditTypeFields">
+			<query-param name="auditTypeFields" type="java.util.List"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			
+			select distinct auditField from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty join auditObjectProperty.auditField as auditField where auditField in (:auditTypeFields) and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
+	</query>
+
 	<query
 		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditTransaction">
 			<query-param name="transactionId" type="java.lang.Long"/>

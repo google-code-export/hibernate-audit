@@ -116,7 +116,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Model1Parent storedParent = (Model1Parent) session.get(strategy.toEntityName(Model1Package.eINSTANCE.getModel1Parent()), parent.getId());
             Assert.assertNotNull(storedParent);
 
-            storedParent.setName(storedParent.getName() + "-New name");
+            storedParent.setFirstName(storedParent.getFirstName() + "-New name");
 
             loadedXmi = EMFUtil.toXMI(storedParent, dataStore.getEPackages());
             tx.commit();

@@ -17,7 +17,8 @@ import org.eclipse.emf.ecore.EObject;
  * The following features are supported:
  * <ul>
  *   <li>{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getId <em>Id</em>}</li>
- *   <li>{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getName <em>Name</em>}</li>
+ *   <li>{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getFirstName <em>First Name</em>}</li>
+ *   <li>{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getLastName <em>Last Name</em>}</li>
  * </ul>
  * </p>
  *
@@ -53,29 +54,55 @@ public interface Model1Person extends EObject {
     void setId(Long value);
 
     /**
-     * Returns the value of the '<em><b>Name</b></em>' attribute.
+     * Returns the value of the '<em><b>First Name</b></em>' attribute.
      * <!-- begin-user-doc -->
      * <p>
-     * If the meaning of the '<em>Name</em>' attribute isn't clear,
+     * If the meaning of the '<em>First Name</em>' attribute isn't clear,
      * there really should be more of a description here...
      * </p>
      * <!-- end-user-doc -->
-     * @return the value of the '<em>Name</em>' attribute.
-     * @see #setName(String)
-     * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Person_Name()
+     * @return the value of the '<em>First Name</em>' attribute.
+     * @see #setFirstName(String)
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Person_FirstName()
      * @model
      * @generated
      */
-    String getName();
+    String getFirstName();
 
     /**
-     * Sets the value of the '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getName <em>Name</em>}' attribute.
+     * Sets the value of the '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getFirstName <em>First Name</em>}' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @param value the new value of the '<em>Name</em>' attribute.
-     * @see #getName()
+     * @param value the new value of the '<em>First Name</em>' attribute.
+     * @see #getFirstName()
      * @generated
      */
-    void setName(String value);
+    void setFirstName(String value);
+
+    /**
+     * Returns the value of the '<em><b>Last Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <p>
+     * If the meaning of the '<em>Last Name</em>' attribute isn't clear,
+     * there really should be more of a description here...
+     * </p>
+     * <!-- end-user-doc -->
+     * @return the value of the '<em>Last Name</em>' attribute.
+     * @see #setLastName(String)
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Person_LastName()
+     * @model
+     * @generated
+     */
+    String getLastName();
+
+    /**
+     * Sets the value of the '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getLastName <em>Last Name</em>}' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @param value the new value of the '<em>Last Name</em>' attribute.
+     * @see #getLastName()
+     * @generated
+     */
+    void setLastName(String value);
 
 } // Model1Person

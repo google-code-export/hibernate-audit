@@ -34,6 +34,7 @@ import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
+import com.googlecode.hibernate.audit.model.property.AuditObjectProperty;
 
 public final class HibernateAudit {
     private static final Logger log = Logger.getLogger(HibernateAudit.class);
@@ -54,6 +55,9 @@ public final class HibernateAudit {
     public static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByProperty";
     public static final String SELECT_LATEST_AUDIT_TRANSACTION_ID_BY_PROPERTY_AND_AFTER_AUDIT_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId";
 
+    public static final String SELECT_MODIFIED_AUDIT_OBJECT_PROPERTIES = "com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditObjectProperties";
+    public static final String SELECT_MODIFIED_AUDIT_TYPE_FIELDS = "com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditTypeFields";
+        
     public static final String SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAuditTransaction";
     public static final String SELECT_ALL_AUDIT_TRANSACTIONS_AFTER_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsAfterTransactionId";
 
@@ -125,6 +129,26 @@ public final class HibernateAudit {
         return auditTransactionId;
     }
 
+    public static List<AuditObjectProperty> getModifiedAuditObjectProperties(Session session, List<AuditTypeField> auditTypeFieldsToCheck, String targetEntityId, Long afterAuditTransactionId) {
+        Query query = session.getNamedQuery(SELECT_MODIFIED_AUDIT_OBJECT_PROPERTIES);
+        query.setParameterList("auditTypeFields", auditTypeFieldsToCheck);
+        query.setParameter("targetEntityId", targetEntityId);
+        query.setParameter("afterAuditTransactionId", afterAuditTransactionId);
+
+        List<AuditObjectProperty> result = (List<AuditObjectProperty>) query.list();
+        return result;
+    }
+    
+    public static List<AuditTypeField> getModifiedAuditTypeFields(Session session, List<AuditTypeField> auditTypeFieldsToCheck, String targetEntityId, Long afterAuditTransactionId) {
+        Query query = session.getNamedQuery(SELECT_MODIFIED_AUDIT_TYPE_FIELDS);
+        query.setParameterList("auditTypeFields", auditTypeFieldsToCheck);
+        query.setParameter("targetEntityId", targetEntityId);
+        query.setParameter("afterAuditTransactionId", afterAuditTransactionId);
+
+        List<AuditTypeField> result = (List<AuditTypeField>) query.list();
+        return result;
+    }
+    
     public static AuditTransaction getAuditTransaction(Session session, Long transactionId) {
         Query query = session.getNamedQuery(SELECT_AUDIT_TRANSACTION_BY_TRANSACTION_ID);
 
