@@ -19,8 +19,10 @@
 package com.googlecode.hibernate.audit.synchronization;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -52,6 +54,7 @@ import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditTransactionAttribute;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
+import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.model.object.AuditObject;
 import com.googlecode.hibernate.audit.model.object.ComponentAuditObject;
 import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
@@ -182,8 +185,8 @@ public class AuditSynchronization implements Synchronization {
                     if (log.isEnabledFor(Level.DEBUG)) {
                         log.debug("lock AuditLogicalGroup with id:" + storedAuditLogicalGroup.getId());
                     }
-                    //session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
-                    //not the audit logical group is not immutable
+                    // session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
+                    // not the audit logical group is not immutable
                     session.refresh(storedAuditLogicalGroup, LockMode.UPGRADE);
                 }
                 try {
@@ -200,7 +203,7 @@ public class AuditSynchronization implements Synchronization {
             for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
                 storedAuditLogicalGroup.setLastUpdatedAuditTransactionId(auditTransaction.getId());
             }
-            
+
             if (!FlushMode.isManualFlushMode(session.getFlushMode())) {
                 session.flush();
             }
@@ -213,7 +216,8 @@ public class AuditSynchronization implements Synchronization {
 
     private void concurrentModificationCheck(Session session, AuditTransaction auditTransaciton, Long loadAuditTransactionId) {
 
-        //Map<AuditLogicalGroup, Long> auditLogicalGroupToAuditTransactionId = new IdentityHashMap<AuditLogicalGroup, Long>();
+        // Map<AuditLogicalGroup, Long> auditLogicalGroupToAuditTransactionId =
+        // new IdentityHashMap<AuditLogicalGroup, Long>();
 
         Long latestTransaction = HibernateAudit.getLatestAuditTransactionId(session);
         if (latestTransaction != null && latestTransaction.equals(loadAuditTransactionId)) {
@@ -225,12 +229,15 @@ public class AuditSynchronization implements Synchronization {
         for (AuditEvent e : auditTransaciton.getEvents()) {
             AuditLogicalGroup auditLogicalGroup = e.getAuditLogicalGroup();
             if (auditLogicalGroup != null) {
-/*                if (!auditLogicalGroupToAuditTransactionId.containsKey(auditLogicalGroup)) {
-                    auditLogicalGroupToAuditTransactionId.put(auditLogicalGroup, HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId(session, auditLogicalGroup,
-                            loadAuditTransactionId));
-                }
-*/
-                Long latestLogicalGroupTransactionId = auditLogicalGroup.getLastUpdatedAuditTransactionId();//auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
+                /*
+                 * if(!auditLogicalGroupToAuditTransactionId.containsKey(
+                 * auditLogicalGroup)) {
+                 * auditLogicalGroupToAuditTransactionId.put(auditLogicalGroup,
+                 * HibernateAudit.
+                 * getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId
+                 * (session, auditLogicalGroup, loadAuditTransactionId)); }
+                 */
+                Long latestLogicalGroupTransactionId = auditLogicalGroup.getLastUpdatedAuditTransactionId();// auditLogicalGroupToAuditTransactionId.get(auditLogicalGroup);
 
                 if (latestLogicalGroupTransactionId == null || latestLogicalGroupTransactionId.equals(loadAuditTransactionId)) {
                     // performance optimization
@@ -287,28 +294,30 @@ public class AuditSynchronization implements Synchronization {
             }
 
             if (ConcurrentModificationLevelCheck.PROPERTY.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLevelCheck())) {
-
                 // find if there are fields that were modified
+
+                List<AuditTypeField> fieldsToCheck = new ArrayList<AuditTypeField>();
                 for (AuditObjectProperty auditObjectProperty : auditObject.getAuditObjectProperties()) {
+                    fieldsToCheck.add(auditObjectProperty.getAuditField());
+                }
 
-                    Long latestEntityTransactionId = HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId(session, auditObjectProperty.getAuditField(), e.getEntityId(), loadAuditTransactionId);
+                List<AuditTypeField> modifiedAuditTypeFields = HibernateAudit.getModifiedAuditTypeFields(session, fieldsToCheck, e.getEntityId(), loadAuditTransactionId);
+                Iterator<AuditTypeField> modifiedAuditTypeFieldsIterator = modifiedAuditTypeFields.iterator();
 
-                    if (latestEntityTransactionId != null && !latestEntityTransactionId.equals(loadAuditTransactionId)) {
+                if (modifiedAuditTypeFieldsIterator.hasNext()) {
+                    AuditTypeField firstDetectedmodifiedAuditTypeField = modifiedAuditTypeFieldsIterator.next();
 
-                        // object level check and we detected that we have
-                        // changed object that matches..
-                        if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                            if (session.getTransaction().isActive()) {
-                                session.getTransaction().rollback();
-                            }
-                            throw new PropertyConcurrentModificationException(auditObjectProperty.getAuditField().getOwnerType().getClassName(), auditObjectProperty.getAuditField().getName(),
-                                    auditObjectProperty.getAuditField().getOwnerType().getLabel(), auditObjectProperty.getAuditField().getLabel(), e.getEntityId());
-                        } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                            if (log.isEnabledFor(Level.WARN)) {
-                                log.warn("Concurrent modification detected: className=" + auditObjectProperty.getAuditField().getOwnerType().getClassName() + ",field name="
-                                        + auditObjectProperty.getAuditField().getName() + ",class label=" + auditObjectProperty.getAuditField().getOwnerType().getLabel() + ",field label="
-                                        + auditObjectProperty.getAuditField().getLabel() + ",entity id=" + e.getEntityId());
-                            }
+                    if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                        if (session.getTransaction().isActive()) {
+                            session.getTransaction().rollback();
+                        }
+                        throw new PropertyConcurrentModificationException(firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName(), firstDetectedmodifiedAuditTypeField.getName(),
+                                firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel(), firstDetectedmodifiedAuditTypeField.getLabel(), e.getEntityId());
+                    } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+                        if (log.isEnabledFor(Level.WARN)) {
+                            log.warn("Concurrent modification detected: className=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName() + ",field name="
+                                    + firstDetectedmodifiedAuditTypeField.getName() + ",class label=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel() + ",field label="
+                                    + firstDetectedmodifiedAuditTypeField.getLabel() + ",entity id=" + e.getEntityId());
                         }
                     }
                 }

@@ -79,13 +79,22 @@ public interface Model1Package extends EPackage {
     int MODEL1_PERSON__ID = 0;
 
     /**
-     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * The feature id for the '<em><b>First Name</b></em>' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      * @ordered
      */
-    int MODEL1_PERSON__NAME = 1;
+    int MODEL1_PERSON__FIRST_NAME = 1;
+
+    /**
+     * The feature id for the '<em><b>Last Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PERSON__LAST_NAME = 2;
 
     /**
      * The number of structural features of the '<em>Person</em>' class.
@@ -94,7 +103,7 @@ public interface Model1Package extends EPackage {
      * @generated
      * @ordered
      */
-    int MODEL1_PERSON_FEATURE_COUNT = 2;
+    int MODEL1_PERSON_FEATURE_COUNT = 3;
 
     /**
      * The meta object id for the '{@link com.googlecode.hibernate.audit.test.model1.impl.Model1ParentImpl <em>Parent</em>}' class.
@@ -116,13 +125,22 @@ public interface Model1Package extends EPackage {
     int MODEL1_PARENT__ID = MODEL1_PERSON__ID;
 
     /**
-     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * The feature id for the '<em><b>First Name</b></em>' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      * @ordered
      */
-    int MODEL1_PARENT__NAME = MODEL1_PERSON__NAME;
+    int MODEL1_PARENT__FIRST_NAME = MODEL1_PERSON__FIRST_NAME;
+
+    /**
+     * The feature id for the '<em><b>Last Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_PARENT__LAST_NAME = MODEL1_PERSON__LAST_NAME;
 
     /**
      * The feature id for the '<em><b>Children</b></em>' containment reference list.
@@ -162,13 +180,22 @@ public interface Model1Package extends EPackage {
     int MODEL1_CHILD__ID = MODEL1_PERSON__ID;
 
     /**
-     * The feature id for the '<em><b>Name</b></em>' attribute.
+     * The feature id for the '<em><b>First Name</b></em>' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      * @ordered
      */
-    int MODEL1_CHILD__NAME = MODEL1_PERSON__NAME;
+    int MODEL1_CHILD__FIRST_NAME = MODEL1_PERSON__FIRST_NAME;
+
+    /**
+     * The feature id for the '<em><b>Last Name</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     * @ordered
+     */
+    int MODEL1_CHILD__LAST_NAME = MODEL1_PERSON__LAST_NAME;
 
     /**
      * The feature id for the '<em><b>Parent</b></em>' container reference.
@@ -253,15 +280,26 @@ public interface Model1Package extends EPackage {
     EAttribute getModel1Person_Id();
 
     /**
-     * Returns the meta object for the attribute '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getName <em>Name</em>}'.
+     * Returns the meta object for the attribute '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getFirstName <em>First Name</em>}'.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @return the meta object for the attribute '<em>Name</em>'.
-     * @see com.googlecode.hibernate.audit.test.model1.Model1Person#getName()
+     * @return the meta object for the attribute '<em>First Name</em>'.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person#getFirstName()
      * @see #getModel1Person()
      * @generated
      */
-    EAttribute getModel1Person_Name();
+    EAttribute getModel1Person_FirstName();
+
+    /**
+     * Returns the meta object for the attribute '{@link com.googlecode.hibernate.audit.test.model1.Model1Person#getLastName <em>Last Name</em>}'.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @return the meta object for the attribute '<em>Last Name</em>'.
+     * @see com.googlecode.hibernate.audit.test.model1.Model1Person#getLastName()
+     * @see #getModel1Person()
+     * @generated
+     */
+    EAttribute getModel1Person_LastName();
 
     /**
      * Returns the factory that creates the instances of the model.
@@ -340,12 +378,20 @@ public interface Model1Package extends EPackage {
         EAttribute MODEL1_PERSON__ID = eINSTANCE.getModel1Person_Id();
 
         /**
-         * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+         * The meta object literal for the '<em><b>First Name</b></em>' attribute feature.
          * <!-- begin-user-doc -->
          * <!-- end-user-doc -->
          * @generated
          */
-        EAttribute MODEL1_PERSON__NAME = eINSTANCE.getModel1Person_Name();
+        EAttribute MODEL1_PERSON__FIRST_NAME = eINSTANCE.getModel1Person_FirstName();
+
+        /**
+         * The meta object literal for the '<em><b>Last Name</b></em>' attribute feature.
+         * <!-- begin-user-doc -->
+         * <!-- end-user-doc -->
+         * @generated
+         */
+        EAttribute MODEL1_PERSON__LAST_NAME = eINSTANCE.getModel1Person_LastName();
 
     }
 

@@ -60,7 +60,7 @@ public class Model1ChildImpl extends Model1PersonImpl implements Model1Child {
      * @generated
      */
     public Model1Parent getParent() {
-        if (eContainerFeatureID != Model1Package.MODEL1_CHILD__PARENT) return null;
+        if (eContainerFeatureID() != Model1Package.MODEL1_CHILD__PARENT) return null;
         return (Model1Parent)eContainer();
     }
 
@@ -80,7 +80,7 @@ public class Model1ChildImpl extends Model1PersonImpl implements Model1Child {
      * @generated
      */
     public void setParent(Model1Parent newParent) {
-        if (newParent != eInternalContainer() || (eContainerFeatureID != Model1Package.MODEL1_CHILD__PARENT && newParent != null)) {
+        if (newParent != eInternalContainer() || (eContainerFeatureID() != Model1Package.MODEL1_CHILD__PARENT && newParent != null)) {
             if (EcoreUtil.isAncestor(this, newParent))
                 throw new IllegalArgumentException("Recursive containment not allowed for " + toString());
             NotificationChain msgs = null;
@@ -132,7 +132,7 @@ public class Model1ChildImpl extends Model1PersonImpl implements Model1Child {
      */
     @Override
     public NotificationChain eBasicRemoveFromContainerFeature(NotificationChain msgs) {
-        switch (eContainerFeatureID) {
+        switch (eContainerFeatureID()) {
             case Model1Package.MODEL1_CHILD__PARENT:
                 return eInternalContainer().eInverseRemove(this, Model1Package.MODEL1_PARENT__CHILDREN, Model1Parent.class, msgs);
         }

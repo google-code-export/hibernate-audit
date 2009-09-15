@@ -30,7 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggingEvent;
 import org.eclipse.emf.compare.match.metamodel.MatchModel;
 import org.eclipse.emf.compare.match.metamodel.UnmatchElement;
 import org.eclipse.emf.compare.match.service.MatchService;
@@ -49,6 +52,7 @@ import org.hibernate.event.PostInsertEventListener;
 import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.PreCollectionRemoveEventListener;
 import org.hibernate.event.PreCollectionUpdateEventListener;
+import org.hibernate.transaction.JDBCTransaction;
 import org.testng.Assert;
 
 import com.googlecode.hibernate.audit.listener.AuditListener;
@@ -63,7 +67,40 @@ public abstract class AbstractHibernateAuditTest {
         }
     };
 
+    private static final Logger HIBERNATE_TRANSACTION_LOG = Logger.getLogger(JDBCTransaction.class);
+
+    
     protected static final HbDataStore dataStore = init();
+    
+    static {
+        // this will ensure that we will get concurrency exceptions
+        interceptLog(HIBERNATE_TRANSACTION_LOG);
+    }
+    
+    private static void interceptLog(Logger logger) {
+        if (Level.OFF.equals(logger.getLevel())) {
+            logger.setLevel(Level.ERROR);
+        }
+
+        logger.addAppender(new AppenderSkeleton() {
+
+            @Override
+            public boolean requiresLayout() {
+                return false;
+            }
+
+            @Override
+            public void close() {
+            }
+
+            @Override
+            protected void append(LoggingEvent event) {
+                if (event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() instanceof RuntimeException) {
+                    throw (RuntimeException) event.getThrowableInformation().getThrowable();
+                }
+            }
+        });
+    }
 
     protected String loadResource(String xmi) {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(xmi);

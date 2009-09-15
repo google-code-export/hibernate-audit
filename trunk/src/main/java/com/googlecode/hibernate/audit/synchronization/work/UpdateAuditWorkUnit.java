@@ -90,10 +90,19 @@ public class UpdateAuditWorkUnit extends AbstractAuditWorkUnit {
     }
 
     private void processProperties(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, EntityPersister persister, Object entity, AuditObject auditObject) {
-
-        int[] changedPropertyIndexes = persister.findDirty(newState, oldState, entity, (SessionImplementor) session);
-
         String[] propertyNames = persister.getPropertyNames();
+        
+        int[] changedPropertyIndexes = null;
+        if (oldState == null) {
+            // if the old state does not exist - for example directly updating an entity that is not associated with the session before that.
+            changedPropertyIndexes = new int[propertyNames.length];
+            for (int i = 0; i < propertyNames.length; i++) {
+                changedPropertyIndexes[i] = i;
+            }
+        } else {
+            changedPropertyIndexes = persister.findDirty(newState, oldState, entity, (SessionImplementor) session);
+        }
+        
 
         for (int i = 0; i < changedPropertyIndexes.length; i++) {
             String propertyName = propertyNames[changedPropertyIndexes[i]];
