@@ -301,25 +301,27 @@ public class AuditSynchronization implements Synchronization {
                     fieldsToCheck.add(auditObjectProperty.getAuditField());
                 }
 
-                List<AuditTypeField> modifiedAuditTypeFields = HibernateAudit.getModifiedAuditTypeFields(session, fieldsToCheck, e.getEntityId(), loadAuditTransactionId);
-                Iterator<AuditTypeField> modifiedAuditTypeFieldsIterator = modifiedAuditTypeFields.iterator();
-
-                if (modifiedAuditTypeFieldsIterator.hasNext()) {
-                    AuditTypeField firstDetectedmodifiedAuditTypeField = modifiedAuditTypeFieldsIterator.next();
-
-                    if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                        if (session.getTransaction().isActive()) {
-                            session.getTransaction().rollback();
-                        }
-                        throw new PropertyConcurrentModificationException(firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName(), firstDetectedmodifiedAuditTypeField.getName(),
-                                firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel(), firstDetectedmodifiedAuditTypeField.getLabel(), e.getEntityId());
-                    } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-                        if (log.isEnabledFor(Level.WARN)) {
-                            log.warn("Concurrent modification detected: className=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName() + ",field name="
-                                    + firstDetectedmodifiedAuditTypeField.getName() + ",class label=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel() + ",field label="
-                                    + firstDetectedmodifiedAuditTypeField.getLabel() + ",entity id=" + e.getEntityId());
-                        }
-                    }
+                if (!fieldsToCheck.isEmpty()) {
+	                List<AuditTypeField> modifiedAuditTypeFields = HibernateAudit.getModifiedAuditTypeFields(session, fieldsToCheck, e.getEntityId(), loadAuditTransactionId);
+	                Iterator<AuditTypeField> modifiedAuditTypeFieldsIterator = modifiedAuditTypeFields.iterator();
+	
+	                if (modifiedAuditTypeFieldsIterator.hasNext()) {
+	                    AuditTypeField firstDetectedmodifiedAuditTypeField = modifiedAuditTypeFieldsIterator.next();
+	
+	                    if (ConcurrentModificationBehavior.THROW_EXCEPTION.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+	                        if (session.getTransaction().isActive()) {
+	                            session.getTransaction().rollback();
+	                        }
+	                        throw new PropertyConcurrentModificationException(firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName(), firstDetectedmodifiedAuditTypeField.getName(),
+	                                firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel(), firstDetectedmodifiedAuditTypeField.getLabel(), e.getEntityId());
+	                    } else if (ConcurrentModificationBehavior.LOG.equals(manager.getAuditConfiguration().getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
+	                        if (log.isEnabledFor(Level.WARN)) {
+	                            log.warn("Concurrent modification detected: className=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName() + ",field name="
+	                                    + firstDetectedmodifiedAuditTypeField.getName() + ",class label=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel() + ",field label="
+	                                    + firstDetectedmodifiedAuditTypeField.getLabel() + ",entity id=" + e.getEntityId());
+	                        }
+	                    }
+	                }
                 }
             }
         }
