@@ -175,7 +175,7 @@ There are two ways that you can use to load the data from the Audit Hibernate ta
       // the entity won't be synhronized to the database. Exception to that rule are all entities that "reference" entities - Reference entity means that there won't be any representations for this entity in the Hibernate Audit tables so we are going to load the entity directly from the original table for that entity - then such entity will be actually managed by Hibernate and any modification will be synchronized to the database.
 }}}
 
-*Note:* Currently the {{{HibernateAuditInstantiator}}} only supports eager load - this means that any references to other entities will be loaded as well. Depend on the connected graph of object at particular audit transaction a single load of an entity might involve loading of multiple other entities (from the same class or different classes). In future Hibernate Audit implementation this may change and instead of loading all connected entities to provide smart proxies that will load the necessary data only when it is needed.
+*Note:* Currently the {{{HibernateAuditInstantiator}}} only supports eager load - this means that any references to other entities will be loaded as well. Depend on the connected graph of objects at particular audit transaction a single load of an entity might involve loading of multiple other entities (from the same class or different classes). In future Hibernate Audit implementations this may change and instead of loading all connected entities to provide smart proxies that will load the necessary data only when it is needed.
 
 =Error Handling=
 
