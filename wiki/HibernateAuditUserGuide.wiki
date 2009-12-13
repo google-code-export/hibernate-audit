@@ -126,7 +126,7 @@ If you want to use the Hibernate Audit optimistic concurrency solution then you 
 ===`PropertyValueConverter`===
 
 Whenever a value that is not entity or component needs to be stored in the audit tables then the audit will invoke this converter to convert object value into String. 
-If you do have property values that can't be converted property to its String representation then you may consider to override the default implementation.
+If you do have property values that can't be converted properly to its String representation then you may consider to override the default implementation.
 
 ===`AuditLogicalGroupProvider`===
 If you want to have logical entity groups in your entity model where each logical group
