@@ -110,7 +110,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 
                 tx.commit();
             } finally {
-                if (session != null) {
+                if (session != null && session.isOpen()) {
                     session.close();
                 }
             }

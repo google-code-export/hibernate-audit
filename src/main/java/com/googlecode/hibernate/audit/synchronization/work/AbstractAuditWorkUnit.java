@@ -235,7 +235,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                     }
                 }
             } finally {
-                if (newSession != null) {
+                if (newSession != null && newSession.isOpen()) {
                     try {
                         newSession.close();
                     } catch (HibernateException ignored) {
