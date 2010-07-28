@@ -18,31 +18,36 @@
  */
 package com.googlecode.hibernate.audit;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.apache.log4j.Logger;
 
 public class Version {
-    private static final Logger log = Logger.getLogger(Version.class);
+	private static final Logger log = Logger.getLogger(Version.class);
 
-    static {
-    	String version = null;
-    	
-    	final InputStream in = Version.class.getResourceAsStream("/META-INF/MANIFEST.MF");
-        if (in != null) {
-            try {
-            	Manifest manifest = new Manifest(in);
-            	Attributes attributes = manifest.getMainAttributes();
-            	version =  attributes.getValue("Implementation-Version");
-            } catch (IOException e) {
-            }
-        }
-        log.info("Hibernate Audit " + version != null ? version : "");
-    }
+	static {
+		String version = null;
 
-    public static void touch() {
-    }
+		try {
+			URL versionUrl = Version.class.getResource("/" + Version.class.getName().replaceAll("\\.", "/") + ".class");
+			if (versionUrl != null) {
+				String cp = versionUrl.toString();
+				String packageLocation = Version.class.getPackage().getName().replaceAll("\\.", "/");
+
+				if (cp.indexOf(packageLocation) != -1) {
+					cp = cp.substring(0, cp.indexOf(packageLocation)) + "META-INF/MANIFEST.MF";
+					Manifest manifest = new Manifest((new URL(cp)).openStream());
+					Attributes attributes = manifest.getMainAttributes();
+					version = attributes.getValue("Implementation-Version");
+				}
+			}
+		} catch (Throwable ignored) {
+		}
+		log.info("Hibernate Audit " + version != null ? version : "");
+	}
+
+	public static void touch() {
+	}
 }
