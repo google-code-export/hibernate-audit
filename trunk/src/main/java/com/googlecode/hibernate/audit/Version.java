@@ -20,7 +20,8 @@ package com.googlecode.hibernate.audit;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import org.apache.log4j.Logger;
 
@@ -28,15 +29,17 @@ public class Version {
     private static final Logger log = Logger.getLogger(Version.class);
 
     static {
-        final Properties prop = new Properties();
-        final InputStream in = Version.class.getResourceAsStream("/meta-inf/Manifest.mf");
+    	String version = null;
+    	
+    	final InputStream in = Version.class.getResourceAsStream("/META-INF/MANIFEST.MF");
         if (in != null) {
             try {
-                prop.load(in);
+            	Manifest manifest = new Manifest(in);
+            	Attributes attributes = manifest.getMainAttributes();
+            	version =  attributes.getValue("Implementation-Version");
             } catch (IOException e) {
             }
         }
-        final String version = prop.getProperty("Implementation-Version");
         log.info("Hibernate Audit " + version != null ? version : "");
     }
 
