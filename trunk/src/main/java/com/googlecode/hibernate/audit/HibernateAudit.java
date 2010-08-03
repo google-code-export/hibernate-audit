@@ -66,6 +66,7 @@ public final class HibernateAudit {
     public static final String SELECT_AUDIT_EVENTS_FOR_ENTITY_UNTIL_TRANSACTION_ID = "com.googlecode.hibernate.audit.HibernateAudit.getAllAuditEventsForEntityUntilTransactionId";
 
     public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
+    public static final String AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.AuditLogicalGroup.query";
 
     private HibernateAudit() {
     }
@@ -223,6 +224,10 @@ public final class HibernateAudit {
 
         query.setParameter("auditType", auditType);
         query.setParameter("externalId", externalId);
+        
+        query.setCacheable(true);
+        query.setCacheRegion(AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION);
+        
         AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) query.uniqueResult();
         return storedAuditLogicalGroup;
     }
