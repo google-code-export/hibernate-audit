@@ -19,9 +19,12 @@
 package com.googlecode.hibernate.audit;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.mapping.PersistentClass;
@@ -68,6 +71,9 @@ public final class HibernateAudit {
     public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
     public static final String AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.AuditLogicalGroup.query";
 
+    private static final Map<String, AuditType> AUDIT_TYPE_CACHE = new HashMap<String, AuditType>();
+    private static final Map<String, AuditTypeField> AUDIT_TYPE_FIELD_CACHE = new HashMap<String, AuditTypeField>();
+    
     private HibernateAudit() {
     }
 
@@ -233,27 +239,58 @@ public final class HibernateAudit {
     }
 
     public static AuditType getAuditType(Session session, String className) {
-        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
-        query.setParameter("className", className);
-
-        query.setCacheable(true);
-        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
-
-        AuditType auditType = (AuditType) query.uniqueResult();
-        return auditType;
+    	AuditType result = AUDIT_TYPE_CACHE.get(className);
+    	if (result != null) {
+    		return result;
+    	} else {
+	        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
+	        query.setParameter("className", className);
+	
+	        query.setCacheable(true);
+	        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+	
+	        result = (AuditType) query.uniqueResult();
+	        
+	        if (result != null) {
+	        	// eager load all collections because of the internal cache
+	        	for (AuditTypeField f: result.getAuditFields()) {
+		        	if (!Hibernate.isInitialized(f.getAuditTypeFieldAttributes())) {
+		        		Hibernate.initialize(f.getAuditTypeFieldAttributes());
+		        	}
+	        		AUDIT_TYPE_FIELD_CACHE.put(className + ":" + f.getName(), f);
+	        	}
+	        	if (!Hibernate.isInitialized(result.getAuditTypeAttributes())) {
+	        		Hibernate.initialize(result.getAuditTypeAttributes());
+	        	}
+	        	AUDIT_TYPE_CACHE.put(className, result);
+	        }
+	        return result;
+    	}
     }
 
     public static AuditTypeField getAuditField(Session session, String className, String propertyName) {
-        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
-
-        query.setParameter("className", className);
-        query.setParameter("name", propertyName);
-
-        query.setCacheable(true);
-        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
-
-        AuditTypeField auditField = (AuditTypeField) query.uniqueResult();
-        return auditField;
+    	AuditTypeField result = AUDIT_TYPE_FIELD_CACHE.get(className + ":" + propertyName);
+    	if (result != null) {
+    		return result;
+    	} else {
+	        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
+	
+	        query.setParameter("className", className);
+	        query.setParameter("name", propertyName);
+	
+	        query.setCacheable(true);
+	        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+	
+	        result = (AuditTypeField) query.uniqueResult();
+	        if (result != null) {
+	        	// eager load all collections because of the internal cache
+	        	if (!Hibernate.isInitialized(result.getAuditTypeFieldAttributes())) {
+	        		Hibernate.initialize(result.getAuditTypeFieldAttributes());
+	        	}
+	        	AUDIT_TYPE_FIELD_CACHE.put(className + ":" + propertyName, result);
+	        }
+	        return result;
+    	}
     }
 
     public static String getEntityName(AuditConfiguration configuration, Session session, String implementationClass) {
