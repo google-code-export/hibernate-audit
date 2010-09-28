@@ -219,13 +219,14 @@ public class AuditSynchronization implements Synchronization {
 		// Map<AuditLogicalGroup, Long> auditLogicalGroupToAuditTransactionId =
 		// new IdentityHashMap<AuditLogicalGroup, Long>();
 
-		Long latestTransaction = HibernateAudit.getLatestAuditTransactionId(session);
+/*		Do not hit the database table audit_transaction because it can be large table
+  		Long latestTransaction = HibernateAudit.getLatestAuditTransactionId(session);
 		if (latestTransaction != null && latestTransaction.equals(loadAuditTransactionId)) {
 			// performance optimization - check the global transaction id - not
 			// filtered by audit logical group
 			return;
 		}
-
+*/
 		for (AuditEvent e : auditTransaciton.getEvents()) {
 			AuditLogicalGroup auditLogicalGroup = e.getAuditLogicalGroup();
 			if (auditLogicalGroup != null) {
