@@ -20,7 +20,9 @@ package com.googlecode.hibernate.audit.extension;
 
 import com.googlecode.hibernate.audit.extension.auditable.AuditableInformationProvider;
 import com.googlecode.hibernate.audit.extension.auditable.DefaultAuditableInformationProvider;
+import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationCheckProvider;
 import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationProvider;
+import com.googlecode.hibernate.audit.extension.concurrent.DefaultConcurrentModificationCheckProvider;
 import com.googlecode.hibernate.audit.extension.concurrent.DefaultConcurrentModificationProvider;
 import com.googlecode.hibernate.audit.extension.converter.DefaultPropertyValueConverter;
 import com.googlecode.hibernate.audit.extension.converter.PropertyValueConverter;
@@ -41,6 +43,7 @@ public final class ExtensionManager {
     private AuditTransactionAttributeProvider auditTransactionAttributeProvider = new DefaultAuditTransactionAttributeProvider();
     private TransactionSyncronization transactionSyncronization = new DefaultTransactionSyncronization();
     private ConcurrentModificationProvider concurrentModificationProvider = new DefaultConcurrentModificationProvider();
+    private ConcurrentModificationCheckProvider concurrentModificationCheckProvider = new DefaultConcurrentModificationCheckProvider();
 
     public SecurityInformationProvider getSecurityInformationProvider() {
         return securityInformationProvider;
@@ -100,4 +103,13 @@ public final class ExtensionManager {
     public void setConcurrentModificationProvider(ConcurrentModificationProvider concurrentModificationProvider) {
         this.concurrentModificationProvider = concurrentModificationProvider;
     }
+    
+    public ConcurrentModificationCheckProvider getConcurrentModificationCheckProvider() {
+		return concurrentModificationCheckProvider;
+	}
+    
+    public void setConcurrentModificationCheckProvider(
+			ConcurrentModificationCheckProvider concurrentModificationCheckProvider) {
+		this.concurrentModificationCheckProvider = concurrentModificationCheckProvider;
+	}
 }
