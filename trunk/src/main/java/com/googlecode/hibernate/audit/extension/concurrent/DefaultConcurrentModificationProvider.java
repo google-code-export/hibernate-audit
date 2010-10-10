@@ -18,7 +18,9 @@
  */
 package com.googlecode.hibernate.audit.extension.concurrent;
 
+
 public class DefaultConcurrentModificationProvider implements ConcurrentModificationProvider {
+	
     public Long getLoadAuditTransactionId() {
         return null;
     }
@@ -30,4 +32,5 @@ public class DefaultConcurrentModificationProvider implements ConcurrentModifica
     public ConcurrentModificationBehavior getCheckBehavior() {
         return ConcurrentModificationBehavior.THROW_EXCEPTION;
     }
+
 }
