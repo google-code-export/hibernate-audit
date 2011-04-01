@@ -67,7 +67,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
     private static final String DEFAULT_AUDIT_MODEL_HBM_LOCATION = "com/googlecode/hibernate/audit/model/audit.hbm.xml";
 
     private AuditConfiguration auditConfiguration;
-
+    private boolean recordEmptyCollectionsOnInsert = true;
+    
     public void cleanup() {
         if (auditConfiguration != null && auditConfiguration.getAuditedConfiguration() != null) {
             CONFIGURATION_MAP.remove(auditConfiguration.getAuditedConfiguration());
@@ -98,6 +99,10 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             CONFIGURATION_MAP.put(conf, auditConfiguration);
 
             processAuditConfigurationObserver(conf);
+            
+            if (conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY) != null) {
+            	recordEmptyCollectionsOnInsert = Boolean.valueOf(conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY)).booleanValue();
+            }
         } catch (RuntimeException e) {
             if (log.isEnabledFor(Level.ERROR)) {
                 log.error(e);
@@ -211,8 +216,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
         try {
             String entityName = event.getAffectedOwnerEntityName();
 
-            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-
+            if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName) && (recordEmptyCollectionsOnInsert || !event.getCollection().empty())) {
                 AuditSynchronization sync = auditConfiguration.getAuditSynchronizationManager().get(event.getSession());
                 AuditWorkUnit workUnit = new InsertCollectionAuditWorkUnit(entityName, event.getAffectedOwnerIdOrNull(), event.getAffectedOwnerOrNull(), event.getCollection());
                 sync.addWorkUnit(workUnit);
