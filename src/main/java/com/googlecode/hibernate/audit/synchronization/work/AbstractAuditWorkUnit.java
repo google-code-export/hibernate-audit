@@ -174,8 +174,9 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
 
             result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
+            HibernateException createAuditLogicalGroupException = null;
             if (result == null) {
-                createAuditLogicalGroup(session, logicalGroup, auditType);
+            	createAuditLogicalGroupException = createAuditLogicalGroup(session, logicalGroup, auditType);
                 // remove the cached query (possibly null) results so that the result after that is not null. 
                 NamedQueryDefinition namedQueryDefinition = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID);
                 if (namedQueryDefinition.isCacheable()) {
@@ -191,7 +192,11 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
 
             }
             if (result == null) {
-                throw new HibernateException("AuditLogicalGroup is null");
+            	if (createAuditLogicalGroupException != null) {
+            		throw createAuditLogicalGroupException;
+            	} else {
+            		throw new HibernateException("Unable to create and then retrieve AuditLogicalGroup: className=" + logicalGroup.getAuditType().getClassName() + ",externalId=" + logicalGroup.getExternalId());
+            	}
             }
             auditLogicalGroups.add(result);
         }
@@ -199,7 +204,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         return result;
     }
 
-    private void createAuditLogicalGroup(Session session, AuditLogicalGroup logicalGroup, AuditType auditType) {
+    private HibernateException createAuditLogicalGroup(Session session, AuditLogicalGroup logicalGroup, AuditType auditType) {
         Session newSession = null;
 
         TransactionManager txManager = null;
@@ -223,6 +228,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 logicalGroup.setLastUpdatedAuditTransactionId(Long.valueOf(0)); 
                 newSession.save(logicalGroup);
                 tx.commit();
+                
+                return null;
             } catch (HibernateException e) {
                 if (log.isEnabledFor(Level.DEBUG)) {
                     // log the exception is debug level because this most likely
@@ -239,6 +246,8 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                     } catch (HibernateException ignored) {
                     }
                 }
+                
+                return e;
             } finally {
                 if (newSession != null && newSession.isOpen()) {
                     try {
