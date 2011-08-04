@@ -29,6 +29,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.engine.NamedQueryDefinition;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
@@ -236,7 +237,17 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 
     private void updateMetaModel(Session session) {
         session.flush();
-        session.getSessionFactory().evictQueries(HibernateAudit.AUDIT_META_DATA_QUERY_CACHE_REGION);
+        NamedQueryDefinition selectAuditTypeNamedQueryDefinition = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_TYPE_BY_CLASS_NAME);
+        NamedQueryDefinition selectAuditTypeFieldNamedQueryDefinition = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_TYPE_FIELD_BY_CLASS_NAME_AND_PROPERTY_NAME);
+        
+        if (selectAuditTypeNamedQueryDefinition.isCacheable() && selectAuditTypeNamedQueryDefinition.getCacheRegion() != null) {
+            session.getSessionFactory().evictQueries(selectAuditTypeNamedQueryDefinition.getCacheRegion());
+        }
+        
+        if (selectAuditTypeFieldNamedQueryDefinition.isCacheable() && selectAuditTypeFieldNamedQueryDefinition.getCacheRegion() != null) {
+            session.getSessionFactory().evictQueries(selectAuditTypeFieldNamedQueryDefinition.getCacheRegion());
+        }
+        
         session.getSessionFactory().evictEntity(AuditType.class.getName());
         session.getSessionFactory().evictEntity(AuditTypeField.class.getName());
     }
