@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.engine.NamedQueryDefinition;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.type.AbstractComponentType;
@@ -176,12 +177,16 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
             if (result == null) {
                 createAuditLogicalGroup(session, logicalGroup, auditType);
                 // remove the cached query (possibly null) results so that the result after that is not null. 
-                String cacheRegion = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID).getCacheRegion();
-                if (cacheRegion != null) {
-                    session.getSessionFactory().evictQueries(cacheRegion);
-                } else {
-                    session.getSessionFactory().evictQueries();
+                NamedQueryDefinition namedQueryDefinition = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID);
+                if (namedQueryDefinition.isCacheable()) {
+                    String cacheRegion = ((SessionFactoryImplementor) session.getSessionFactory()).getNamedQuery(HibernateAudit.SELECT_AUDIT_LOCAL_GROUP_BY_AUDIT_TYPE_AND_EXTERNAL_ID).getCacheRegion();
+                    if (cacheRegion != null) {
+                        session.getSessionFactory().evictQueries(cacheRegion);
+                    } else {
+                        session.getSessionFactory().evictQueries();
+                    }
                 }
+                
                 result = HibernateAudit.getAuditLogicalGroup(session, auditType, externalId);
 
             }
