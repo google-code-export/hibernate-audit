@@ -432,20 +432,20 @@
 	</class>
 
 	<query
-		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup">
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.AuditLogicalGroup.query">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="externalId" type="java.lang.String"/>
 			from com.googlecode.hibernate.audit.model.AuditLogicalGroup where auditType = :auditType and externalId = :externalId 
 	</query>
 
 	<query
-		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditType" >
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditType" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.query" >
 			<query-param name="className" type="java.lang.String"/>
 			from com.googlecode.hibernate.audit.model.clazz.AuditType where className = :className
 	</query>
 
 	<query
-		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditField">
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditField" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.query" >
 			<query-param name="className" type="java.lang.String"/>
 			<query-param name="name" type="java.lang.String"/>
 			from com.googlecode.hibernate.audit.model.clazz.AuditTypeField where ownerType.className = :className and name = :name

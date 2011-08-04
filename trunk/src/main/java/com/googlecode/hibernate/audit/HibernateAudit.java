@@ -232,8 +232,8 @@ public final class HibernateAudit {
         query.setParameter("auditType", auditType);
         query.setParameter("externalId", externalId);
         
-        query.setCacheable(true);
-        query.setCacheRegion(AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION);
+        //query.setCacheable(true);
+        //query.setCacheRegion(AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION);
         
         AuditLogicalGroup storedAuditLogicalGroup = (AuditLogicalGroup) query.uniqueResult();
         return storedAuditLogicalGroup;
@@ -247,8 +247,8 @@ public final class HibernateAudit {
 	        Query query = session.getNamedQuery(SELECT_AUDIT_TYPE_BY_CLASS_NAME);
 	        query.setParameter("className", className);
 	
-	        query.setCacheable(true);
-	        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+	        //query.setCacheable(true);
+	        //query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
 	
 	        result = (AuditType) query.uniqueResult();
 	        
@@ -279,8 +279,8 @@ public final class HibernateAudit {
 	        query.setParameter("className", className);
 	        query.setParameter("name", propertyName);
 	
-	        query.setCacheable(true);
-	        query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
+	        //query.setCacheable(true);
+	        //query.setCacheRegion(AUDIT_META_DATA_QUERY_CACHE_REGION);
 	
 	        result = (AuditTypeField) query.uniqueResult();
 	        if (result != null) {
