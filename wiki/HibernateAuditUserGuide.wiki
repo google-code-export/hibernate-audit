@@ -106,6 +106,8 @@ hba.audited-model.dynamic-update=true
 This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. 
 You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not use hibernate annotations so you can control all mapping information from the HBM file only.
 
+=NOTE=
+Currently the provided HBM configuration works with Oracle database or any other compatible database ( see the SQL types used in the audit.hbm.xml) - If you want to use the project with different type of database then you need to supply a modified version of the audit.hbm.xml file with the correct databases column types.
 =Application Extensions=
 
 ===`AuditableInformationProvider`===
