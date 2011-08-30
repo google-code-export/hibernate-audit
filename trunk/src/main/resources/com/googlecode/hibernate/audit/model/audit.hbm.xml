@@ -118,7 +118,7 @@
 		</property>
 		<property name="entityId" lazy="false" not-null="true"
 			type="java.lang.String">
-			<column name="`TARGET_ENTITY_ID`" sql-type="NUMBER(30)"
+			<column name="`TARGET_ENTITY_ID`"
 				not-null="true" />
 		</property>
 		<bag name="auditObjects" cascade="all" inverse="true" lazy="true">
@@ -199,7 +199,7 @@
 
 			<property name="targetEntityId" lazy="false" type="java.lang.String"
 				not-null="true">
-				<column name="`TARGET_ENTITY_ID`" sql-type="NUMBER(30)" />
+				<column name="`TARGET_ENTITY_ID`" />
 			</property>
 		</subclass>
 
@@ -274,7 +274,7 @@
 			discriminator-value="E">
 
 			<property name="targetEntityId" lazy="false" type="java.lang.String">
-				<column name="`TARGET_ENTITY_ID`" sql-type="NUMBER(30)" />
+				<column name="`TARGET_ENTITY_ID`" />
 			</property>
 		</subclass>
 
