@@ -89,7 +89,11 @@ hba.configuration.observer.clazz=com.myapp.MyAppAuditSessionFactoryObserver
 
 Using a custom `AuditConfigurationObserver` the application can specify application specific implementation that controls all extensions. 
 The {{{AuditConfigurationObserver.auditConfigurationCreated}}} method will be invoked at the end of the `SessionFactory` initialization process - see [http://www.hibernate.org/hib_docs/v3/api/org/hibernate/event/Initializable.html#initialize(org.hibernate.cfg.Configuration) Initializable.initialize(org.hibernate.cfg.Configuration)]
- 
+
+===`hba.record.empty.collections.on.insert`===
+
+Controls if we are going to record empty collections on insert - the default is true - e.g. we will record empty collection - it is useful if you do know that all collections in your model can't be null and if you want to save some space in the database to set this property to false. Once this is set to true then the empty collections will be treated as a null collections - e.g. no record in the audit tables for this collection property. This is only useful for INSERTs and not for UPDATEs - updates will still record empty collections when those collections are changed.
+
 ===`hba.audited-model.dynamic-update`===
 
 `hba.audited-model.dynamic-update` controll whether the audit framework will set the dynamic-update for every audited entity to true - note that this property have effect only when its value is true. 
