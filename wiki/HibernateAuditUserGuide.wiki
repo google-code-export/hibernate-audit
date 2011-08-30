@@ -104,7 +104,81 @@ hba.audited-model.dynamic-update=true
 
 `hba.mappingfile` if set this specified the HBM location for the hibernate entities configuration. 
 This is useful only when the application want to specify a different mapping from the one that is provided with the audit framework. For example the application can change table names, column names and etc. 
-You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not use hibernate annotations so you can control all mapping information from the HBM file only.
+You can use the HBM file provided in the JAR file as a template and modify it according to your needs. Hibernate audit does not use hibernate annotations so you can control all mapping information from 
+the HBM file only.
+
+If the hba.mappingfile property is not specified the the following mapping resolution is going to be applied.
+
+1) Get the Hibernate dialect and try to search for a mapping file located in classpath resource com/googlecode/hibernate/audit/model/ with the name - 'dialect'-audit.hbm.xml - where the 'dialect' is computed using the following method
+
+{{{
+	protected String getDialectName(Dialect d) {
+		if (d instanceof Oracle8iDialect || d instanceof Oracle9Dialect) {
+			return "oracle";
+		} else if (d instanceof SQLServerDialect) {
+			return "sqlserver";
+		} else if (d instanceof MySQLDialect) {
+			return "mysql";
+		} else if (d instanceof Sybase11Dialect || d instanceof SybaseAnywhereDialect || d instanceof SybaseASE15Dialect || d instanceof SybaseDialect) {
+			return "sybase";
+		} else if (d instanceof Cache71Dialect) {
+			return "cache71";
+		} else if (d instanceof DB2Dialect) {
+			return "db2";
+		} else if (d instanceof FrontBaseDialect) {
+			return "frontbase";
+		} else if (d instanceof H2Dialect) {
+			return "h2";
+		} else if (d instanceof HSQLDialect) {
+			return "hsql";
+		} else if (d instanceof InformixDialect) {
+			return "informix";
+		} else if (d instanceof IngresDialect) {
+			return "ingres";
+		} else if (d instanceof InterbaseDialect) {
+			return "interbase";
+		} else if (d instanceof JDataStoreDialect) {
+			return "jdatastore";
+		} else if (d instanceof MckoiDialect) {
+			return "mckoi";
+		} else if (d instanceof MimerSQLDialect) {
+			return "mimersql";
+		} else if (d instanceof PointbaseDialect) {
+			return "pointbase";
+		} else if (d instanceof PostgreSQLDialect) {
+			return "postgresql";
+		} else if (d instanceof PostgreSQLDialect || d instanceof ProgressDialect) {
+			return "postgresql";
+		} else if (d instanceof RDMSOS2200Dialect) {
+			return "rdmsos2200";
+		} else if (d instanceof SAPDBDialect) {
+			return "sapdb";
+		} else if (d instanceof TeradataDialect) {
+			return "teradata";
+		} else if (d instanceof TimesTenDialect) {
+			return "timesten";
+		}
+		
+		return d.getClass().getSimpleName();
+	}
+
+}}}
+If we are unable to find this resource then the default mapping (which is part of the framework jar) is going to be used - the location is 
+
+com/googlecode/hibernate/audit/model/audit.hbm.xml
+
+ 2) if we can't find the dialect then the default mapping 
+
+com/googlecode/hibernate/audit/model/audit.hbm.xml
+
+will be used.
+
+The framework provides also oracle dialect specific  default mapping - located 
+com/googlecode/hibernate/audit/model/oracle-audit.hbm.xml
+
+So if you are using Oracle then this mapping will be used ( of course if the hba.mappingfile is not specified)
+
+Note that TARGET_ENTITY_ID column is String if you do know that all your entities PK are surrogate keys that are numbers (e.g. Java type can be mapped to NUMBER) then it is a good thing to provide your own mapping that the sql-type is specified as NUMBER instead of VARCHAR or whatever the DB supports for String type. This way you can save some space.
 
 =NOTE=
 Currently the provided HBM configuration works with Oracle database or any other compatible database ( see the SQL types used in the audit.hbm.xml) - If you want to use the project with different type of database then you need to supply a modified version of the audit.hbm.xml file with the correct databases column types.
