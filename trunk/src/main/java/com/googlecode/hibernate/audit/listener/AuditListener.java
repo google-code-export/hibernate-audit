@@ -24,8 +24,36 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
+import org.hibernate.MappingNotFoundException;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.dialect.Cache71Dialect;
+import org.hibernate.dialect.DB2Dialect;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.FrontBaseDialect;
+import org.hibernate.dialect.H2Dialect;
+import org.hibernate.dialect.HSQLDialect;
+import org.hibernate.dialect.InformixDialect;
+import org.hibernate.dialect.IngresDialect;
+import org.hibernate.dialect.InterbaseDialect;
+import org.hibernate.dialect.JDataStoreDialect;
+import org.hibernate.dialect.MckoiDialect;
+import org.hibernate.dialect.MimerSQLDialect;
+import org.hibernate.dialect.MySQLDialect;
+import org.hibernate.dialect.Oracle8iDialect;
+import org.hibernate.dialect.Oracle9Dialect;
+import org.hibernate.dialect.PointbaseDialect;
+import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.dialect.ProgressDialect;
+import org.hibernate.dialect.RDMSOS2200Dialect;
+import org.hibernate.dialect.SAPDBDialect;
+import org.hibernate.dialect.SQLServerDialect;
+import org.hibernate.dialect.Sybase11Dialect;
+import org.hibernate.dialect.SybaseASE15Dialect;
+import org.hibernate.dialect.SybaseAnywhereDialect;
+import org.hibernate.dialect.SybaseDialect;
+import org.hibernate.dialect.TeradataDialect;
+import org.hibernate.dialect.TimesTenDialect;
 import org.hibernate.event.Destructible;
 import org.hibernate.event.Initializable;
 import org.hibernate.event.PostCollectionRecreateEvent;
@@ -63,8 +91,10 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
     private static final Map<Configuration, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<Configuration, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
-
-    private static final String DEFAULT_AUDIT_MODEL_HBM_LOCATION = "com/googlecode/hibernate/audit/model/audit.hbm.xml";
+    
+    private static final String DEFAULT_AUDIT_MODEL_HBM_PATH = "com/googlecode/hibernate/audit/model/";
+    private static final String DEFAULT_AUDIT_MODEL_HBM_NAME = "audit.hbm.xml";
+    private static final String DEFAULT_AUDIT_MODEL_HBM_LOCATION = DEFAULT_AUDIT_MODEL_HBM_PATH + DEFAULT_AUDIT_MODEL_HBM_NAME;
 
     private AuditConfiguration auditConfiguration;
     private boolean recordEmptyCollectionsOnInsert = true;
@@ -88,8 +118,30 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
             if (conf.getProperty(HibernateAudit.AUDIT_MAPPING_FILE_PROPERTY) != null) {
                 conf.addResource(conf.getProperty(HibernateAudit.AUDIT_MAPPING_FILE_PROPERTY));
+    			if (log.isInfoEnabled()) {
+    				log.info("Loaded Hibernate Audit mapping file from:" + conf.getProperty(HibernateAudit.AUDIT_MAPPING_FILE_PROPERTY));
+    			}
             } else {
-                conf.addResource(DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+            	try {
+            		String dialectName = getDialectName(Dialect.getDialect(conf.getProperties()));
+            		try {
+            			conf.addResource(DEFAULT_AUDIT_MODEL_HBM_PATH + dialectName + "-" + DEFAULT_AUDIT_MODEL_HBM_NAME);
+            			if (log.isInfoEnabled()) {
+            				log.info("Loaded Hibernate Audit mapping file from:" + DEFAULT_AUDIT_MODEL_HBM_PATH + dialectName + "-" + DEFAULT_AUDIT_MODEL_HBM_NAME);
+            			}
+            		} catch (MappingNotFoundException e) {
+                        conf.addResource(DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+            			if (log.isInfoEnabled()) {
+            				log.info("Loaded Hibernate Audit mapping file from:" + DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+            			}
+            		}
+            	} catch (HibernateException e) {
+            		// can't find the dialect - procceed as usual.
+                    conf.addResource(DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+        			if (log.isInfoEnabled()) {
+        				log.info("Loaded Hibernate Audit mapping file from:" + DEFAULT_AUDIT_MODEL_HBM_LOCATION);
+        			}
+            	}
             }
             conf.buildMappings();
 
@@ -110,6 +162,56 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             throw e;
         }
     }
+
+	protected String getDialectName(Dialect d) {
+		if (d instanceof Oracle8iDialect || d instanceof Oracle9Dialect) {
+			return "oracle";
+		} else if (d instanceof SQLServerDialect) {
+			return "sqlserver";
+		} else if (d instanceof MySQLDialect) {
+			return "mysql";
+		} else if (d instanceof Sybase11Dialect || d instanceof SybaseAnywhereDialect || d instanceof SybaseASE15Dialect || d instanceof SybaseDialect) {
+			return "sybase";
+		} else if (d instanceof Cache71Dialect) {
+			return "cache71";
+		} else if (d instanceof DB2Dialect) {
+			return "db2";
+		} else if (d instanceof FrontBaseDialect) {
+			return "frontbase";
+		} else if (d instanceof H2Dialect) {
+			return "h2";
+		} else if (d instanceof HSQLDialect) {
+			return "hsql";
+		} else if (d instanceof InformixDialect) {
+			return "informix";
+		} else if (d instanceof IngresDialect) {
+			return "ingres";
+		} else if (d instanceof InterbaseDialect) {
+			return "interbase";
+		} else if (d instanceof JDataStoreDialect) {
+			return "jdatastore";
+		} else if (d instanceof MckoiDialect) {
+			return "mckoi";
+		} else if (d instanceof MimerSQLDialect) {
+			return "mimersql";
+		} else if (d instanceof PointbaseDialect) {
+			return "pointbase";
+		} else if (d instanceof PostgreSQLDialect) {
+			return "postgresql";
+		} else if (d instanceof PostgreSQLDialect || d instanceof ProgressDialect) {
+			return "postgresql";
+		} else if (d instanceof RDMSOS2200Dialect) {
+			return "rdmsos2200";
+		} else if (d instanceof SAPDBDialect) {
+			return "sapdb";
+		} else if (d instanceof TeradataDialect) {
+			return "teradata";
+		} else if (d instanceof TimesTenDialect) {
+			return "timesten";
+		}
+		
+		return d.getClass().getSimpleName();
+	}
 
     private void processDynamicUpdate(Configuration conf) {
         if (conf.getProperty(HibernateAudit.AUDIT_SET_DYNAMIC_UPDATE_FOR_AUDITED_MODEL_PROPERTY) != null
