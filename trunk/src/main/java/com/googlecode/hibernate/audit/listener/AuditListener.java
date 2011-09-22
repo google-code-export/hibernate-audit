@@ -107,8 +107,13 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
     public void initialize(Configuration conf) {
         try {
+            if (conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY) != null) {
+            	recordEmptyCollectionsOnInsert = Boolean.valueOf(conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY)).booleanValue();
+            }
+            
             if (CONFIGURATION_MAP.containsKey(conf)) {
-                // already initialized
+            	auditConfiguration = CONFIGURATION_MAP.get(conf);
+            	// already initialized
                 return;
             }
             Version.touch();
@@ -152,9 +157,6 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 
             processAuditConfigurationObserver(conf);
             
-            if (conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY) != null) {
-            	recordEmptyCollectionsOnInsert = Boolean.valueOf(conf.getProperty(HibernateAudit.AUDIT_RECORD_EMPTY_COLLECTIONS_ON_INSERT_PROPERTY)).booleanValue();
-            }
         } catch (RuntimeException e) {
             if (log.isEnabledFor(Level.ERROR)) {
                 log.error(e);
