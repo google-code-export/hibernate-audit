@@ -171,7 +171,7 @@
 		</id>
 
 		<discriminator>
-			<column name="DTYPE_CODE" not-null="true" sql-type="CHAR(1)"></column>
+			<column name="`DTYPE_CODE`" not-null="true" sql-type="CHAR(1)"></column>
 		</discriminator>
 
 		<many-to-one name="auditEvent"
@@ -185,7 +185,7 @@
 			not-null="true" lazy="proxy">
 			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
 		</many-to-one>
-		<bag name="auditObjectProperties" cascade="all" inverse="true" order-by="IDX"
+		<bag name="auditObjectProperties" cascade="all" inverse="true" order-by="`IDX`"
 			lazy="true">
 			<key column="`AUDIT_OBJECT_ID`" />
 			<one-to-many
@@ -234,7 +234,7 @@
 		</id>
 
 		<discriminator>
-			<column name="DTYPE_CODE" not-null="true" sql-type="CHAR(1)"></column>
+			<column name="`DTYPE_CODE`" not-null="true" sql-type="CHAR(1)"></column>
 		</discriminator>
 		<many-to-one name="auditObject"
 			class="com.googlecode.hibernate.audit.model.object.AuditObject"
