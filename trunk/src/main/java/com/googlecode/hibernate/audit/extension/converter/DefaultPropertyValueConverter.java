@@ -110,6 +110,10 @@ public class DefaultPropertyValueConverter implements PropertyValueConverter {
         } catch (InvocationTargetException e) {
         }
 
+        if (type.isEnum()) {
+        	return Enum.valueOf(type, str);
+        }
+        
         throw new IllegalArgumentException("Unable to construct new instance of " + type + " from string:" + str);
     }
 }
