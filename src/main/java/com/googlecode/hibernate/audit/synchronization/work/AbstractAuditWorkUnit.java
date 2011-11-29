@@ -26,8 +26,8 @@ import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -52,7 +52,7 @@ import com.googlecode.hibernate.audit.model.property.EntityObjectProperty;
 import com.googlecode.hibernate.audit.model.property.SimpleObjectProperty;
 
 public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
-    private static final Logger log = Logger.getLogger(AbstractAuditWorkUnit.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractAuditWorkUnit.class);
 
     protected abstract String getEntityName();
 
@@ -231,14 +231,14 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
                 
                 return null;
             } catch (HibernateException e) {
-                if (log.isEnabledFor(Level.DEBUG)) {
+                if (log.isDebugEnabled()) {
                     // log the exception is debug level because this most likely
                     // will indicate that there was a concurrent insert and we
                     // are prepared to handle such calls. If this is not the
                     // case and we want to troubleshoot where is the problem
                     // then at least log the exception is DEBUG level so we can
                     // see it.
-                    log.debug(e);
+                    log.debug("HibernateException occured while creating a new AuditLogicalGroup in new transaction", e);
                 }
                 if (tx != null) {
                     try {

@@ -5,8 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
 
@@ -26,13 +26,13 @@ import com.googlecode.hibernate.audit.model.object.EntityAuditObject;
 import com.googlecode.hibernate.audit.model.property.AuditObjectProperty;
 
 public class DefaultConcurrentModificationCheckProvider implements ConcurrentModificationCheckProvider {
-	protected final Logger log = Logger.getLogger(DefaultConcurrentModificationCheckProvider.class);
+	protected final Logger log = LoggerFactory.getLogger(DefaultConcurrentModificationCheckProvider.class);
 
 	public void concurrentModificationCheck(AuditConfiguration auditConfiguration, Session session, SortedSet<AuditLogicalGroup> auditLogicalGroups,
 			AuditTransaction auditTransaction, Long loadAuditTransactionId) {
 		if (loadAuditTransactionId != null) {
 			for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
-				if (log.isEnabledFor(Level.DEBUG)) {
+				if (log.isDebugEnabled()) {
 					log.debug("lock AuditLogicalGroup with id:" + storedAuditLogicalGroup.getId());
 				}
 				// session.lock(storedAuditLogicalGroup, LockMode.UPGRADE);
@@ -42,8 +42,8 @@ public class DefaultConcurrentModificationCheckProvider implements ConcurrentMod
 			try {
 				concurrentModificationCheck(auditConfiguration, session, auditTransaction, loadAuditTransactionId);
 			} catch (ConcurrentModificationException ce) {
-				if (log.isEnabledFor(Level.DEBUG)) {
-					log.debug(ce);
+				if (log.isDebugEnabled()) {
+					log.debug("Detected ConcurrentModificationException, will rethrow.", ce);
 				}
 				throw ce;
 			}
@@ -129,7 +129,7 @@ public class DefaultConcurrentModificationCheckProvider implements ConcurrentMod
 				throw new PropertyConcurrentModificationException(firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName(), firstDetectedmodifiedAuditTypeField.getName(),
 						firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel(), firstDetectedmodifiedAuditTypeField.getLabel(), e.getEntityId());
 			} else if (ConcurrentModificationBehavior.LOG.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-				if (log.isEnabledFor(Level.WARN)) {
+				if (log.isWarnEnabled()) {
 					log.warn("Concurrent modification detected: className=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getClassName() + ",field name="
 							+ firstDetectedmodifiedAuditTypeField.getName() + ",class label=" + firstDetectedmodifiedAuditTypeField.getOwnerType().getLabel() + ",field label="
 							+ firstDetectedmodifiedAuditTypeField.getLabel() + ",entity id=" + e.getEntityId());
@@ -175,7 +175,7 @@ public class DefaultConcurrentModificationCheckProvider implements ConcurrentMod
 				}
 				throw new ObjectConcurrentModificationException(auditType.getClassName(), auditType.getLabel(), targetEntityId);
 			} else if (ConcurrentModificationBehavior.LOG.equals(auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getCheckBehavior())) {
-				if (log.isEnabledFor(Level.WARN)) {
+				if (log.isWarnEnabled()) {
 					log.warn("Concurrent modification detected: className=" + auditType.getClassName() + ",label=" + auditType.getLabel() + ",targetEntityId=" + targetEntityId);
 				}
 			}

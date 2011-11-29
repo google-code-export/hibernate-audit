@@ -22,10 +22,11 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Version {
-	private static final Logger log = Logger.getLogger(Version.class);
+	private static final Logger log = LoggerFactory.getLogger(Version.class);
 
 	static {
 		String version = null;

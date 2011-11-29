@@ -21,8 +21,8 @@ package com.googlecode.hibernate.audit.listener;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingNotFoundException;
 import org.hibernate.SessionFactoryObserver;
@@ -87,7 +87,7 @@ import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 public class AuditListener implements PostInsertEventListener, PostUpdateEventListener, PostDeleteEventListener, PreCollectionUpdateEventListener, PreCollectionRemoveEventListener,
         PostCollectionRecreateEventListener, Initializable, Destructible {
 
-    private static final Logger log = Logger.getLogger(AuditListener.class);
+    private static final Logger log = LoggerFactory.getLogger(AuditListener.class);
 
     private static final Map<Configuration, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<Configuration, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
@@ -158,8 +158,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             processAuditConfigurationObserver(conf);
             
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeExcpetion occured during AuditListener initialization, will re-throw the exception", e);
             }
             throw e;
         }
@@ -273,8 +273,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPostInsert, will re-throw the exception", e);
             }
             throw e;
         }
@@ -291,8 +291,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPostUpdate, will re-throw the exception", e);
             }
             throw e;
         }
@@ -309,8 +309,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPostDelete, will re-throw the exception", e);
             }
             throw e;
         }
@@ -326,8 +326,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPostRecreateCollection, will re-throw the exception", e);
             }
             throw e;
         }
@@ -345,8 +345,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPreUpdateCollection, will re-throw the exception", e);
             }
             throw e;
         }
@@ -363,8 +363,8 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
                 sync.addWorkUnit(workUnit);
             }
         } catch (RuntimeException e) {
-            if (log.isEnabledFor(Level.ERROR)) {
-                log.error(e);
+            if (log.isErrorEnabled()) {
+                log.error("RuntimeException occured during onPreRemoveCollection, will re-throw the exception", e);
             }
             throw e;
         }

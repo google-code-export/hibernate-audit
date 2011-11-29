@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -40,7 +41,7 @@ import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.model.property.AuditObjectProperty;
 
 public final class HibernateAudit {
-    private static final Logger log = Logger.getLogger(HibernateAudit.class);
+    private static final Logger log = LoggerFactory.getLogger(HibernateAudit.class);
 
     public static final String AUDIT_CONFIGURATION_OBSERVER_PROPERTY = "hba.configuration.observer.clazz";
     public static final String AUDIT_SET_DYNAMIC_UPDATE_FOR_AUDITED_MODEL_PROPERTY = "hba.audited-model.dynamic-update";
