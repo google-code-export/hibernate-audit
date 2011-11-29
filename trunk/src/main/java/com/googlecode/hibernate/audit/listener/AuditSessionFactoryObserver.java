@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
@@ -48,7 +48,7 @@ import com.googlecode.hibernate.audit.model.clazz.AuditTypeField;
 import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 
 public class AuditSessionFactoryObserver implements SessionFactoryObserver {
-    private static final Logger log = Logger.getLogger(AuditSessionFactoryObserver.class);
+    private static final Logger log = LoggerFactory.getLogger(AuditSessionFactoryObserver.class);
 
     private static final Map<SessionFactory, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<SessionFactory, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
@@ -89,7 +89,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
     private void initializeAuditMetatdata(SessionFactory sessionFactory) {
         Collection<ClassMetadata> allClassMetadata = sessionFactory.getAllClassMetadata().values();
 
-        if (log.isEnabledFor(Level.INFO)) {
+        if (log.isInfoEnabled()) {
             log.info("Start building audit log metadata.");
         }
         Session session = null;
@@ -116,7 +116,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
                 }
             }
         } finally {
-            if (log.isEnabledFor(Level.INFO)) {
+            if (log.isInfoEnabled()) {
                 log.info("End building audit log metadata.");
             }
         }

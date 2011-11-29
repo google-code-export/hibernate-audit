@@ -30,8 +30,8 @@ import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -46,7 +46,7 @@ import com.googlecode.hibernate.audit.model.AuditTransactionAttribute;
 import com.googlecode.hibernate.audit.synchronization.work.AuditWorkUnit;
 
 public class AuditSynchronization implements Synchronization {
-	private static final Logger log = Logger.getLogger(AuditSynchronization.class);
+	private static final Logger log = LoggerFactory.getLogger(AuditSynchronization.class);
 
 	private final AuditSynchronizationManager manager;
 	private final Session auditedSession;
@@ -74,8 +74,8 @@ public class AuditSynchronization implements Synchronization {
 			try {
 				executeInSession(auditedSession);
 			} catch (RuntimeException e) {
-				if (log.isEnabledFor(Level.ERROR)) {
-					log.error(e);
+				if (log.isErrorEnabled()) {
+					log.error("RuntimeException occurred in beforeCompletion, will rollback and re-throw exception", e);
 				}
 				rollback();
 				throw e;
@@ -108,11 +108,11 @@ public class AuditSynchronization implements Synchronization {
 				((SessionFactoryImplementor) auditedSession.getSessionFactory()).getTransactionManager().setRollbackOnly();
 			}
 		} catch (Exception se) {
-			if (log.isEnabledFor(Level.WARN)) {
+			if (log.isWarnEnabled()) {
 				// this is the best that we can do - we've tried to mark
 				// the transaction as rolled back but we failed - the
 				// only thing left if to log the exception
-				log.warn(se);
+				log.warn("Exception occured during rollback, only logging the exception", se);
 			}
 		}
 	}
@@ -122,7 +122,7 @@ public class AuditSynchronization implements Synchronization {
 	}
 
 	private void executeInSession(Session session) {
-		if (log.isEnabledFor(Level.DEBUG)) {
+		if (log.isDebugEnabled()) {
 			log.debug("executeInSession begin");
 		}
 
@@ -143,14 +143,14 @@ public class AuditSynchronization implements Synchronization {
 			Principal principal = auditConfiguration.getExtensionManager().getSecurityInformationProvider().getPrincipal();
 			auditTransaction.setUsername(principal == null ? null : principal.getName());
 
-			if (log.isEnabledFor(Level.DEBUG)) {
+			if (log.isDebugEnabled()) {
 				log.debug("start workUnits perform");
 			}
 			while ((workUnit = workUnits.poll()) != null) {
 				workUnit.perform(session, auditConfiguration, auditTransaction);
 				auditLogicalGroups.addAll(workUnit.getAuditLogicalGroups());
 			}
-			if (log.isEnabledFor(Level.DEBUG)) {
+			if (log.isDebugEnabled()) {
 				log.debug("end workUnits perform");
 			}
 
@@ -175,7 +175,7 @@ public class AuditSynchronization implements Synchronization {
 				session.flush();
 			}
 		} finally {
-			if (log.isEnabledFor(Level.DEBUG)) {
+			if (log.isDebugEnabled()) {
 				log.debug("executeInSession end");
 			}
 		}
