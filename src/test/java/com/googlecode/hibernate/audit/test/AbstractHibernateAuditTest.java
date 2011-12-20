@@ -46,6 +46,7 @@ import org.eclipse.emf.teneo.hibernate.HbDataStore;
 import org.eclipse.emf.teneo.hibernate.HbDataStoreFactory;
 import org.eclipse.emf.teneo.hibernate.HbHelper;
 import org.eclipse.emf.teneo.hibernate.HbSessionDataStore;
+import org.hibernate.engine.transaction.SynchronizationRegistry;
 import org.hibernate.event.PostCollectionRecreateEventListener;
 import org.hibernate.event.PostDeleteEventListener;
 import org.hibernate.event.PostInsertEventListener;
@@ -67,7 +68,7 @@ public abstract class AbstractHibernateAuditTest {
         }
     };
 
-    private static final Logger HIBERNATE_TRANSACTION_LOG = Logger.getLogger(JDBCTransaction.class);
+    private static final Logger HIBERNATE_TRANSACTION_LOG = Logger.getLogger(SynchronizationRegistry.class);
 
     
     protected static final HbDataStore dataStore = init();

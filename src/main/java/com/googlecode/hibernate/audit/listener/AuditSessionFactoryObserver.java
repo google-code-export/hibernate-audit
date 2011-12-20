@@ -38,6 +38,7 @@ import org.hibernate.stat.Statistics;
 import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
@@ -151,7 +152,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         return auditType;
     }
 
-    private AuditType initializeComponentAuditType(Session session, AbstractComponentType type) {
+    private AuditType initializeComponentAuditType(Session session, CompositeType type) {
         Class returnedClass = type.getReturnedClass();
 
         AuditType componentAuditType = HibernateAudit.getAuditType(session, returnedClass.getName());

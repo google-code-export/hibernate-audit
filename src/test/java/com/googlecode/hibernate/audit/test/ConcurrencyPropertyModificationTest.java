@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
-import com.googlecode.hibernate.audit.exception.ObjectConcurrentModificationException;
 import com.googlecode.hibernate.audit.exception.PropertyConcurrentModificationException;
 import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationBehavior;
 import com.googlecode.hibernate.audit.extension.concurrent.ConcurrentModificationLevelCheck;
