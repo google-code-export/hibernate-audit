@@ -320,7 +320,7 @@
 			<dependency>
 				<groupId>org.eclipse.emf</groupId>
 				<artifactId>org.eclipse.emf.teneo.hibernate</artifactId>
-				<version>1.2.0.v201111160433</version>
+				<version>1.2.0.v201112061230</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -357,7 +357,7 @@
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-core</artifactId>
-				<version>3.6.8.Final</version>
+				<version>3.6.9.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>javassist</groupId>
@@ -368,7 +368,7 @@
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-ehcache</artifactId>
-				<version>3.6.8.Final</version>
+				<version>3.6.9.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>org.testng</groupId>
