@@ -220,7 +220,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
                     initializePrimitiveAuditType(session, elementType);
                 }
             } else if (type.isComponentType()) {
-                auditFieldType = initializeComponentAuditType(session, (AbstractComponentType) type);
+                auditFieldType = initializeComponentAuditType(session, (CompositeType) type);
             } else if (type.isEntityType()) {
                 auditFieldType = initializeEntityAuditType(session, ((EntityType) type).getName(), false);
             } else {
