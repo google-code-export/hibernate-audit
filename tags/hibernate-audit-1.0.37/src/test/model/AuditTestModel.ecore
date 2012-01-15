@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="test"
+    nsURI="http://hibernate-audit.googlecode.com/test/1.0.0" nsPrefix="test">
+  <eSubpackages name="model1" nsURI="http://hibernate-audit.googlecode.com/test/model1/1.0.0"
+      nsPrefix="model1">
+    <eClassifiers xsi:type="ecore:EClass" name="Model1Parent" eSuperTypes="#//model1/Model1Person">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
+          eType="#//model1/Model1Child" containment="true" eOpposite="#//model1/Model1Child/parent">
+        <eAnnotations source="teneo.jpa">
+          <details key="appinfo" value="@OneToMany(mappedBy = &quot;parent&quot;, indexed=false)"/>
+        </eAnnotations>
+      </eStructuralFeatures>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="Model1Child" eSuperTypes="#//model1/Model1Person">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="parent" lowerBound="1"
+          eType="#//model1/Model1Parent" eOpposite="#//model1/Model1Parent/children"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="Model1Person">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELongObject"
+          iD="true"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>
