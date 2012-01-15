@@ -23,6 +23,7 @@ import java.io.Serializable;
 import org.hibernate.Session;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.AbstractComponentType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.Type;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
@@ -112,7 +113,7 @@ public class InsertAuditWorkUnit extends AbstractAuditWorkUnit {
 
     @Override
     protected ComponentObjectProperty processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity,
-            String propertyName, Object component, AbstractComponentType componentType) {
+            String propertyName, Object component, CompositeType componentType) {
         if (component != null) {
             // only record not null values
             return super.processComponentValue(session, auditConfiguration, auditEvent, auditObject, entityName, entity, propertyName, component, componentType);
