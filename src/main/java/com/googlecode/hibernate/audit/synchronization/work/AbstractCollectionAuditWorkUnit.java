@@ -23,6 +23,7 @@ import java.io.Serializable;
 import org.hibernate.Session;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.type.AbstractComponentType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
@@ -59,7 +60,7 @@ public abstract class AbstractCollectionAuditWorkUnit extends AbstractAuditWorkU
             property.setIndex(new Long(index));
             ((EntityObjectProperty)property).setTargetEntityId(auditConfiguration.getExtensionManager().getPropertyValueConverter().toString(id));
         } else if (elementType.isComponentType()) {
-            AbstractComponentType componentType = (AbstractComponentType) elementType;
+        	CompositeType componentType = (CompositeType) elementType;
 
             property = new ComponentObjectProperty();
             property.setAuditObject(auditObject);

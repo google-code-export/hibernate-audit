@@ -35,6 +35,7 @@ import org.hibernate.engine.NamedQueryDefinition;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.engine.SessionImplementor;
 import org.hibernate.type.AbstractComponentType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
@@ -70,7 +71,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         } else if (propertyType.isCollectionType()) {
             // collection will be handled by collection event listeners
         } else if (propertyType.isComponentType()) {
-            property = processComponentValue(session, auditConfiguration, auditEvent, auditObject, getEntityName(), object, propertyName, propertyValue, (AbstractComponentType) propertyType);
+            property = processComponentValue(session, auditConfiguration, auditEvent, auditObject, getEntityName(), object, propertyName, propertyValue, (CompositeType) propertyType);
         } else {
             property = createSimpleValue(session, auditConfiguration, auditObject, getEntityName(), object, propertyName, propertyValue);
         }
@@ -111,7 +112,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
     }
 
     protected ComponentObjectProperty processComponentValue(Session session, AuditConfiguration auditConfiguration, AuditEvent auditEvent, AuditObject auditObject, String entityName, Object entity,
-            String propertyName, Object component, AbstractComponentType componentType) {
+            String propertyName, Object component, CompositeType componentType) {
         AuditTypeField auditField = HibernateAudit.getAuditField(session, entity.getClass().getName(), propertyName);
 
         ComponentObjectProperty property = new ComponentObjectProperty();

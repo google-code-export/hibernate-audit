@@ -26,6 +26,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
@@ -233,7 +234,7 @@ public final class HibernateAuditInstantiator {
                 try {
                     ComponentObjectProperty prop = (ComponentObjectProperty) property;
 
-                    AbstractComponentType componentType = (AbstractComponentType) classMetadata.getPropertyType(prop.getAuditField().getName());
+                    CompositeType componentType = (CompositeType) classMetadata.getPropertyType(prop.getAuditField().getName());
                     Object component = null;
                     if (componentType instanceof ComponentType) {
                         component = ((ComponentType) componentType).instantiate(EntityMode.POJO);
