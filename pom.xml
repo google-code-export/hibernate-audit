@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<version>1.0.36</version>
+	<version>1.0.37-SNAPSHOT</version>
 	<groupId>com.googlecode</groupId>
 	<artifactId>hibernate-audit</artifactId>
 	<packaging>jar</packaging>
@@ -48,9 +48,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:svn:http://hibernate-audit.googlecode.com/svn/tags/hibernate-audit-1.0.36</connection>
-		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/tags/hibernate-audit-1.0.36</developerConnection>
-		<url>scm:svn:https://hibernate-audit.googlecode.com/svn/tags/hibernate-audit-1.0.36</url>
+		<connection>scm:svn:http://hibernate-audit.googlecode.com/svn/trunk</connection>
+		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/trunk</developerConnection>
+		<url>https://hibernate-audit.googlecode.com/</url>
 	</scm>
 
 	<developers>
