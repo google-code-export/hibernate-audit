@@ -432,7 +432,7 @@
 	</class>
 
 	<query
-		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.AuditLogicalGroup.query">
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup">
 			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
 			<query-param name="externalId" type="java.lang.String"/>
 			from com.googlecode.hibernate.audit.model.AuditLogicalGroup where auditType = :auditType and externalId = :externalId 
