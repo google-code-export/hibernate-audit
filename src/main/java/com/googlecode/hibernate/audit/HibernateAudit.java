@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +74,8 @@ public final class HibernateAudit {
     public static final String AUDIT_META_DATA_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.query";
     public static final String AUDIT_LOGICAL_GROUP_QUERY_CACHE_REGION = "com.googlecode.hibernate.audit.model.AuditLogicalGroup.query";
 
-    private static final Map<String, AuditType> AUDIT_TYPE_CACHE = new HashMap<String, AuditType>();
-    private static final Map<String, AuditTypeField> AUDIT_TYPE_FIELD_CACHE = new HashMap<String, AuditTypeField>();
+    private static final Map<String, AuditType> AUDIT_TYPE_CACHE = new ConcurrentHashMap<String, AuditType>();
+    private static final Map<String, AuditTypeField> AUDIT_TYPE_FIELD_CACHE = new ConcurrentHashMap<String, AuditTypeField>();
     
     private HibernateAudit() {
     }
