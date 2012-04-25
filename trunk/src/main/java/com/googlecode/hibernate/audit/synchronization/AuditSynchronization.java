@@ -72,6 +72,9 @@ public class AuditSynchronization implements Synchronization {
 		}
 		if (!isMarkedForRollback(auditedSession)) {
 			try {
+				if (!FlushMode.isManualFlushMode(auditedSession.getFlushMode())) {
+					auditedSession.flush();
+				}
 				executeInSession(auditedSession);
 			} catch (RuntimeException e) {
 				if (log.isErrorEnabled()) {
@@ -163,8 +166,7 @@ public class AuditSynchronization implements Synchronization {
 				auditTransaction.getAuditTransactionAttributes().addAll(attributes);
 			}
 
-			Long loadAuditTransactionId = auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLoadAuditTransactionId();
-			auditConfiguration.getExtensionManager().getConcurrentModificationCheckProvider().concurrentModificationCheck(auditConfiguration, session, auditLogicalGroups, auditTransaction, loadAuditTransactionId);
+			concurrencyModificationCheck(session, auditLogicalGroups, auditTransaction);
 
 			session.save(auditTransaction);
 			for (AuditLogicalGroup storedAuditLogicalGroup : auditLogicalGroups) {
@@ -179,6 +181,12 @@ public class AuditSynchronization implements Synchronization {
 				log.debug("executeInSession end");
 			}
 		}
+	}
+
+	private void concurrencyModificationCheck(Session session, SortedSet<AuditLogicalGroup> auditLogicalGroups,
+			AuditTransaction auditTransaction) {
+		Long loadAuditTransactionId = auditConfiguration.getExtensionManager().getConcurrentModificationProvider().getLoadAuditTransactionId();
+		auditConfiguration.getExtensionManager().getConcurrentModificationCheckProvider().concurrentModificationCheck(auditConfiguration, session, auditLogicalGroups, auditTransaction, loadAuditTransactionId);
 	}
 
 
