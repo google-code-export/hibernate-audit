@@ -302,6 +302,9 @@ public final class HibernateAudit {
             String entityName = classMetadata.getEntityName();
             PersistentClass classMapping = configuration.getAuditedConfiguration().getClassMapping(entityName);
             Class mappedClass = classMapping.getMappedClass();
+            if (mappedClass == null) {
+            	mappedClass = classMapping.getProxyInterface();
+            }
             if (mappedClass.getName().equals(implementationClass)) {
                 return entityName;
             }
