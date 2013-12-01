@@ -126,7 +126,11 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
     private AuditType initializeEntityAuditType(Session session, String entityName, boolean initializeProperties) {
         PersistentClass classMapping = configuration.getClassMapping(entityName);
         Class mappedClass = classMapping.getMappedClass();
-
+        
+        if (mappedClass == null) {
+        	mappedClass = classMapping.getProxyInterface();
+        }
+        
         AuditType auditType = HibernateAudit.getAuditType(session, mappedClass.getName());
         if (auditType == null) {
             auditType = new AuditType();
