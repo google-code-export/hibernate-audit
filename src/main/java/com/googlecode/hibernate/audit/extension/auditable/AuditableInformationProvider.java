@@ -18,9 +18,16 @@
  */
 package com.googlecode.hibernate.audit.extension.auditable;
 
+import org.hibernate.Session;
+import org.hibernate.cfg.Configuration;
+
 public interface AuditableInformationProvider {
 
     boolean isAuditable(String entityName);
 
     boolean isAuditable(String entityName, String propertyName);
+    
+    String getAuditTypeClassName(Configuration configuration, String entityName);
+    String getEntityName(Configuration configuration, Session session, String auditTypeClassName);
+    String getAuditTypeClassName(Configuration configuration, org.hibernate.type.Type type);
 }

@@ -104,6 +104,10 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             CONFIGURATION_MAP.remove(auditConfiguration.getAuditedConfiguration());
         }
     }
+    
+    public static AuditConfiguration getAuditConfiguration(Configuration configuration) {
+    	return CONFIGURATION_MAP.get(configuration);
+    }
 
     public void initialize(Configuration conf) {
         try {

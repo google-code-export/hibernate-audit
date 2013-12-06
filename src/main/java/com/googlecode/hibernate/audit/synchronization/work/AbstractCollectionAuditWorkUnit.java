@@ -43,8 +43,10 @@ public abstract class AbstractCollectionAuditWorkUnit extends AbstractAuditWorkU
 
     protected void processElement(Session session, AuditConfiguration auditConfiguration, Object entityOwner, Object element, Type elementType, String propertyName, long index,
             EntityAuditObject auditObject, AuditEvent auditEvent) {
-
-        AuditTypeField auditField = HibernateAudit.getAuditField(session, entityOwner.getClass().getName(), propertyName);
+    	
+    	String entityName = session.getEntityName(entityOwner);
+    	
+        AuditTypeField auditField = HibernateAudit.getAuditField(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), entityName), propertyName);
         AuditObjectProperty property = null;
         
         if (elementType.isEntityType()) {
@@ -72,7 +74,7 @@ public abstract class AbstractCollectionAuditWorkUnit extends AbstractAuditWorkU
                 targetComponentAuditObject = new ComponentAuditObject();
                 targetComponentAuditObject.setAuditEvent(auditEvent);
                 targetComponentAuditObject.setParentAuditObject(auditObject);
-                AuditType auditComponentType = HibernateAudit.getAuditType(session, element.getClass().getName());
+                AuditType auditComponentType = HibernateAudit.getAuditType(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), elementType));
                 targetComponentAuditObject.setAuditType(auditComponentType);
 
                 for (int j = 0; j < componentType.getPropertyNames().length; j++) {

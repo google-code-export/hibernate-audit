@@ -75,7 +75,7 @@ public class InsertAuditWorkUnit extends AbstractAuditWorkUnit {
     }
 
     private void initializerAuditEvents(Session session, AuditConfiguration auditConfiguration) {
-        AuditType auditType = HibernateAudit.getAuditType(session, entity.getClass().getName());
+        AuditType auditType = HibernateAudit.getAuditType(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), entityName));
         auditEvent = new AuditEvent();
         auditEvent.setAuditType(auditType);
         auditEvent.setType(AuditEvent.INSERT_AUDIT_EVENT_TYPE);

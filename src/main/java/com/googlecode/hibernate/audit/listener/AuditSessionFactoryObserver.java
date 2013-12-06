@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
@@ -35,12 +33,13 @@ import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.stat.Statistics;
-import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
@@ -125,16 +124,12 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 
     private AuditType initializeEntityAuditType(Session session, String entityName, boolean initializeProperties) {
         PersistentClass classMapping = configuration.getClassMapping(entityName);
-        Class mappedClass = classMapping.getMappedClass();
+        String auditTypeClassName = auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(configuration, entityName);
         
-        if (mappedClass == null) {
-        	mappedClass = classMapping.getProxyInterface();
-        }
-        
-        AuditType auditType = HibernateAudit.getAuditType(session, mappedClass.getName());
+        AuditType auditType = HibernateAudit.getAuditType(session, auditTypeClassName);
         if (auditType == null) {
             auditType = new AuditType();
-            auditType.setClassName(mappedClass.getName());
+            auditType.setClassName(auditTypeClassName);
             auditType.setLabel(entityName);
             auditType.setType(AuditType.ENTITY_TYPE);
 
@@ -145,24 +140,24 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         if (initializeProperties) {
             Property identifierProperty = classMapping.getIdentifierProperty();
             if (identifierProperty != null) {
-                initializeAuditField(session, mappedClass, auditType, identifierProperty.getName(), identifierProperty.getType());
+                initializeAuditField(session, auditTypeClassName, auditType, identifierProperty.getName(), identifierProperty.getType());
             }
 
             for (Iterator propertyIterator = classMapping.getPropertyClosureIterator(); propertyIterator.hasNext();) {
                 Property property = (Property) propertyIterator.next();
-                initializeAuditField(session, mappedClass, auditType, property.getName(), property.getType());
+                initializeAuditField(session, auditTypeClassName, auditType, property.getName(), property.getType());
             }
         }
         return auditType;
     }
 
     private AuditType initializeComponentAuditType(Session session, CompositeType type) {
-        Class returnedClass = type.getReturnedClass();
+        String auditTypeClassName = auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(configuration, type);
 
-        AuditType componentAuditType = HibernateAudit.getAuditType(session, returnedClass.getName());
+        AuditType componentAuditType = HibernateAudit.getAuditType(session, auditTypeClassName);
         if (componentAuditType == null) {
             componentAuditType = new AuditType();
-            componentAuditType.setClassName(returnedClass.getName());
+            componentAuditType.setClassName(auditTypeClassName);
             componentAuditType.setType(AuditType.COMPONENT_TYPE);
             session.save(componentAuditType);
             updateMetaModel(session);
@@ -171,7 +166,7 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         String[] componentPropertyNames = type.getPropertyNames();
         if (componentPropertyNames != null) {
             for (int i = 0; i < componentPropertyNames.length; i++) {
-                AuditTypeField componentAuditField = initializeAuditField(session, returnedClass, componentAuditType, componentPropertyNames[i], type.getSubtypes()[i]);
+                AuditTypeField componentAuditField = initializeAuditField(session, auditTypeClassName, componentAuditType, componentPropertyNames[i], type.getSubtypes()[i]);
 
             }
         }
@@ -179,11 +174,12 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
     }
 
     private AuditType initializePrimitiveAuditType(Session session, Type type) {
-        AuditType auditType = HibernateAudit.getAuditType(session, type.getReturnedClass().getName());
+    	String auditTypeClassName = auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(configuration, type);
+    	AuditType auditType = HibernateAudit.getAuditType(session, auditTypeClassName);
 
         if (auditType == null) {
             auditType = new AuditType();
-            auditType.setClassName(type.getReturnedClass().getName());
+            auditType.setClassName(auditTypeClassName);
             if (type.isCollectionType()) {
                 auditType.setType(AuditType.COLLECTION_TYPE);
             } else {
@@ -196,9 +192,9 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         return auditType;
     }
 
-    private AuditTypeField initializeAuditField(Session session, Class ownerClass, AuditType auditType, String propertyName, Type type) {
+    private AuditTypeField initializeAuditField(Session session, String auditTypeClassName, AuditType auditType, String propertyName, Type type) {
 
-        AuditTypeField auditField = HibernateAudit.getAuditField(session, ownerClass.getName(), propertyName);
+        AuditTypeField auditField = HibernateAudit.getAuditField(session, auditTypeClassName, propertyName);
 
         if (auditField == null) {
             auditField = new AuditTypeField();
