@@ -1,17 +1,21 @@
 package com.googlecode.hibernate.audit.test;
 
+import org.eclipse.emf.teneo.mapping.strategy.EntityNameStrategy;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.testng.annotations.Test;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
+import com.googlecode.hibernate.audit.extension.auditable.AuditableInformationProvider;
 import com.googlecode.hibernate.audit.extension.event.AuditLogicalGroupProvider;
+import com.googlecode.hibernate.audit.listener.AuditListener;
 import com.googlecode.hibernate.audit.listener.AuditSessionFactoryObserver;
 import com.googlecode.hibernate.audit.model.AuditEvent;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.test.model1.Model1Factory;
+import com.googlecode.hibernate.audit.test.model1.Model1Package;
 import com.googlecode.hibernate.audit.test.model1.Model1Person;
 import com.googlecode.hibernate.audit.test.model1.impl.Model1PersonImpl;
 
@@ -23,10 +27,12 @@ public class AuditLogicalGroupTest extends AbstractHibernateAuditTest {
 		AuditConfiguration config = AuditSessionFactoryObserver.getAuditConfiguration(dataStore.getSessionFactory());
 		config.getExtensionManager().setAuditLogicalGroupProvider(new TestAuditLogicalGroupProvider());
 		
+    	EntityNameStrategy entityNameStrategy = dataStore.getExtensionManager().getExtension(EntityNameStrategy.class);
+    	AuditableInformationProvider auditableInformationProvider = AuditListener.getAuditConfiguration(dataStore.getHibernateConfiguration()).getExtensionManager().getAuditableInformationProvider();
 		
 		AuditLogicalGroup auditLogicalGroup = new AuditLogicalGroup();
 		AuditType auditType = new AuditType();
-		auditType.setClassName(Model1PersonImpl.class.getName());
+		auditType.setClassName(auditableInformationProvider.getAuditTypeClassName(dataStore.getHibernateConfiguration(), entityNameStrategy.toEntityName(Model1Package.eINSTANCE.getModel1Person())));
 		
 		auditLogicalGroup.setAuditType(auditType);
 		auditLogicalGroup.setExternalId("3252499999");
@@ -36,7 +42,7 @@ public class AuditLogicalGroupTest extends AbstractHibernateAuditTest {
 
 			Session s = dataStore.getSessionFactory().openSession();
 			Transaction t = s.beginTransaction();
-			HibernateAudit.getAuditType(s, Model1PersonImpl.class.getName());
+			HibernateAudit.getAuditType(s, auditableInformationProvider.getAuditTypeClassName(dataStore.getHibernateConfiguration(), entityNameStrategy.toEntityName(Model1Package.eINSTANCE.getModel1Person())));
 			t.commit();
 			s.close();
 

@@ -296,20 +296,8 @@ public final class HibernateAudit {
     	}
     }
 
-    public static String getEntityName(AuditConfiguration configuration, Session session, String implementationClass) {
-        Collection<ClassMetadata> allClassMetadata = session.getSessionFactory().getAllClassMetadata().values();
-        for (ClassMetadata classMetadata : allClassMetadata) {
-            String entityName = classMetadata.getEntityName();
-            PersistentClass classMapping = configuration.getAuditedConfiguration().getClassMapping(entityName);
-            Class mappedClass = classMapping.getMappedClass();
-            if (mappedClass == null) {
-            	mappedClass = classMapping.getProxyInterface();
-            }
-            if (mappedClass.getName().equals(implementationClass)) {
-                return entityName;
-            }
-        }
-        return implementationClass;
+    public static String getEntityName(AuditConfiguration configuration, Session session, String auditTypeClassName) {
+    	return configuration.getExtensionManager().getAuditableInformationProvider().getEntityName(configuration.getAuditedConfiguration(), session, auditTypeClassName);
     }
 
     public static AuditConfiguration getAuditConfiguration(Session session) {

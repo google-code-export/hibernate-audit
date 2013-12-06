@@ -78,7 +78,7 @@ public class RemoveCollectionAuditWorkUnit extends AbstractCollectionAuditWorkUn
             return;
         }
 
-        AuditType auditType = HibernateAudit.getAuditType(session, entity.getClass().getName());
+        AuditType auditType = HibernateAudit.getAuditType(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), entityName));
         auditEvent = new AuditEvent();
         auditEvent.setAuditType(auditType);
         auditEvent.setType(AuditEvent.REMOVE_AUDIT_EVENT_TYPE);

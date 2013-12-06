@@ -68,7 +68,7 @@ public class DeleteAuditWorkUnit extends AbstractAuditWorkUnit {
     }
 
     private void initializeAuditEvents(Session session, AuditConfiguration auditConfiguration) {
-        AuditType auditType = HibernateAudit.getAuditType(session, entity.getClass().getName());
+        AuditType auditType = HibernateAudit.getAuditType(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), entityName));
         auditEvent = new AuditEvent();
         auditEvent.setAuditType(auditType);
         auditEvent.setType(AuditEvent.DELETE_AUDIT_EVENT_TYPE);

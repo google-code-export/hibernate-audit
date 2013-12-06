@@ -18,6 +18,14 @@
  */
 package com.googlecode.hibernate.audit.extension.auditable;
 
+import java.util.Iterator;
+
+import org.hibernate.Session;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.mapping.PersistentClass;
+import org.hibernate.type.EntityType;
+import org.hibernate.type.Type;
+
 public class DefaultAuditableInformationProvider implements AuditableInformationProvider {
 
     private AuditableInformationProvider provider;
@@ -52,4 +60,44 @@ public class DefaultAuditableInformationProvider implements AuditableInformation
         return true;
     }
 
+    public String getAuditTypeClassName(Configuration configuration, String entityName) {
+        if (provider != null) {
+            return provider.getAuditTypeClassName(configuration, entityName);
+        }
+    	PersistentClass classMapping = configuration.getClassMapping(entityName);
+    	Class mappedClass = classMapping.getMappedClass();
+        
+        if (mappedClass == null) {
+        	mappedClass = classMapping.getProxyInterface();
+        }
+        return mappedClass.getName();
+    }
+    
+    
+    public String getEntityName(Configuration configuration, Session session, String auditTypeClassName) {
+        if (provider != null) {
+            return provider.getEntityName(configuration, session, auditTypeClassName);
+        }
+        for (Iterator<PersistentClass> iterator = configuration.getClassMappings(); iterator.hasNext();) {
+        	PersistentClass classMapping = iterator.next();
+            Class mappedClass = classMapping.getMappedClass();
+            if (mappedClass == null) {
+            	mappedClass = classMapping.getProxyInterface();
+            }
+            if (mappedClass.getName().equals(auditTypeClassName)) {
+                return classMapping.getEntityName();
+            }
+        }
+        return auditTypeClassName;
+    }
+    
+    public String getAuditTypeClassName(Configuration configuration, Type type) {
+        if (provider != null) {
+            return provider.getAuditTypeClassName(configuration, type);
+        }
+    	if (type.isEntityType()) {
+    		return getAuditTypeClassName(configuration, ((EntityType) type).getName());
+    	}
+		return type.getReturnedClass().getName();
+    }
 }

@@ -31,6 +31,8 @@ import org.testng.annotations.Test;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.HibernateAuditInstantiator;
+import com.googlecode.hibernate.audit.extension.auditable.AuditableInformationProvider;
+import com.googlecode.hibernate.audit.listener.AuditListener;
 import com.googlecode.hibernate.audit.model.clazz.AuditType;
 import com.googlecode.hibernate.audit.test.model1.Model1Child;
 import com.googlecode.hibernate.audit.test.model1.Model1Package;
@@ -47,7 +49,9 @@ public class InsertTest extends AbstractHibernateAuditTest {
 
     @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsert(String resource) {
-
+    	EntityNameStrategy entityNameStrategy = dataStore.getExtensionManager().getExtension(EntityNameStrategy.class);
+    	AuditableInformationProvider auditableInformationProvider = AuditListener.getAuditConfiguration(dataStore.getHibernateConfiguration()).getExtensionManager().getAuditableInformationProvider();
+    	
         String loadedXmi = loadResource(resource);
         EList<EObject> eObjects = EMFUtil.toEObject(loadedXmi, true, dataStore.getEPackages());
 
@@ -77,7 +81,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Assert.assertTrue(latestTransactionIdAfterInsert > latestTransactionIdBeforeInsert);
 
             for (EObject eObj : eObjects) {
-                AuditType auditType = HibernateAudit.getAuditType(session, eObj.getClass().getName());
+                AuditType auditType = HibernateAudit.getAuditType(session, auditableInformationProvider.getAuditTypeClassName(dataStore.getHibernateConfiguration(), entityNameStrategy.toEntityName(eObj.eClass())));
                 EObject auditEObject = (EObject) HibernateAuditInstantiator.getEntity(session, auditType, eObj.eGet(eObj.eClass().getEIDAttribute()) + "", latestTransactionIdAfterInsert);
 
                 assertEquals(resource, loadedXmi, EMFUtil.toXMI(auditEObject, dataStore.getEPackages()));
@@ -92,6 +96,8 @@ public class InsertTest extends AbstractHibernateAuditTest {
 
     @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsertUpdate(String resource) {
+    	EntityNameStrategy entityNameStrategy = dataStore.getExtensionManager().getExtension(EntityNameStrategy.class);
+    	AuditableInformationProvider auditableInformationProvider = AuditListener.getAuditConfiguration(dataStore.getHibernateConfiguration()).getExtensionManager().getAuditableInformationProvider();
 
         String loadedXmi = loadResource(resource);
         Model1Parent parent = (Model1Parent) EMFUtil.toEObject(loadedXmi, true, dataStore.getEPackages()).get(0);
@@ -127,7 +133,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Assert.assertNotNull(latestTransactionIdAfterInsert);
             Assert.assertTrue(latestTransactionIdAfterInsert > latestTransactionIdBeforeInsert);
 
-            AuditType auditType = HibernateAudit.getAuditType(session, parent.getClass().getName());
+            AuditType auditType = HibernateAudit.getAuditType(session, auditableInformationProvider.getAuditTypeClassName(dataStore.getHibernateConfiguration(), entityNameStrategy.toEntityName(parent.eClass())));
             Model1Parent auditEObject = (Model1Parent) HibernateAuditInstantiator.getEntity(session, auditType, parent.getId() + "", latestTransactionIdAfterInsert);
 
             assertEquals(resource, loadedXmi, EMFUtil.toXMI(auditEObject, dataStore.getEPackages()));
@@ -141,6 +147,8 @@ public class InsertTest extends AbstractHibernateAuditTest {
 
     @Test(dataProvider = "xmiTemplates", enabled = true)
     public void simpleInsertDelete(String resource) {
+    	EntityNameStrategy entityNameStrategy = dataStore.getExtensionManager().getExtension(EntityNameStrategy.class);
+    	AuditableInformationProvider auditableInformationProvider = AuditListener.getAuditConfiguration(dataStore.getHibernateConfiguration()).getExtensionManager().getAuditableInformationProvider();
 
         String loadedXmi = loadResource(resource);
         Model1Parent parent = (Model1Parent) EMFUtil.toEObject(loadedXmi, true, dataStore.getEPackages()).get(0);
@@ -178,7 +186,7 @@ public class InsertTest extends AbstractHibernateAuditTest {
             Assert.assertNotNull(latestTransactionIdAfterInsert);
             Assert.assertTrue(latestTransactionIdAfterInsert > latestTransactionIdBeforeInsert);
 
-            AuditType auditType = HibernateAudit.getAuditType(session, parent.getClass().getName());
+            AuditType auditType = HibernateAudit.getAuditType(session, auditableInformationProvider.getAuditTypeClassName(dataStore.getHibernateConfiguration(), entityNameStrategy.toEntityName(parent.eClass())));
             Model1Parent auditEObject = (Model1Parent) HibernateAuditInstantiator.getEntity(session, auditType, parent.getId() + "", latestTransactionIdAfterInsert);
 
             assertEquals(resource, loadedXmi, EMFUtil.toXMI(auditEObject, dataStore.getEPackages()));
