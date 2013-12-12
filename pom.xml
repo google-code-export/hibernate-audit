@@ -48,9 +48,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:svn:https://hibernate-audit.googlecode.com/svn/tags/1.0</connection>
-		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/tags/1.0</developerConnection>
-		<url>https://hibernate-audit.googlecode.com/svn/tags/1.0</url>
+		<connection>scm:svn:https://hibernate-audit.googlecode.com/svn/branches/1.0</connection>
+		<developerConnection>scm:svn:https://hibernate-audit.googlecode.com/svn/branches/1.0</developerConnection>
+		<url>https://hibernate-audit.googlecode.com/svn/branches/1.0</url>
 	</scm>
 
 	<developers>
