@@ -18,39 +18,25 @@
  */
 package com.googlecode.hibernate.audit.extension.syncronization;
 
-import javax.transaction.Status;
 import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Transaction;
-import org.hibernate.event.EventSource;
+import org.hibernate.event.spi.EventSource;
 
 public class DefaultTransactionSyncronization implements TransactionSyncronization {
 
-    public void registerSynchronization(EventSource eventSource, Synchronization synchronization) {
-        Transaction transaction = eventSource.getTransaction();
-        checkForActiveTransaction(eventSource);
+	public void registerSynchronization(EventSource eventSource, Synchronization synchronization) {
+		Transaction transaction = eventSource.getTransaction();
+		checkForActiveTransaction(eventSource);
 
-        transaction.registerSynchronization(synchronization);
-    }
+		transaction.registerSynchronization(synchronization);
+	}
 
-    private void checkForActiveTransaction(EventSource eventSource) {
-        try {
-            TransactionManager tm = eventSource.getFactory().getTransactionManager();
-            if (tm == null || eventSource.getFactory().getSettings().getTransactionFactory().areCallbacksLocalToHibernateTransactions()) {
-                if (!eventSource.getTransaction().isActive()) {
-                    throw new HibernateException("No active transaction.");
-                }
-            } else {
-                javax.transaction.Transaction tx = tm.getTransaction();
-                if (tx == null || tx.getStatus() == Status.STATUS_NO_TRANSACTION) {
-                    throw new HibernateException("No active transaction.");
-                }
-            }
-        } catch (SystemException ex) {
-            throw new HibernateException(ex);
-        }
-    }
+	private void checkForActiveTransaction(EventSource eventSource) {
+		if (!eventSource.isTransactionInProgress()) {
+			throw new HibernateException("No active transaction.");
+
+		}
+	}
 }

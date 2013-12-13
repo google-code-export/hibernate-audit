@@ -21,7 +21,7 @@ package com.googlecode.hibernate.audit.synchronization.work;
 import java.io.Serializable;
 
 import org.hibernate.Session;
-import org.hibernate.engine.SessionImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 
@@ -110,7 +110,7 @@ public class UpdateAuditWorkUnit extends AbstractAuditWorkUnit {
             if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName, propertyName)) {
 
                 Type propertyType = persister.getPropertyType(propertyName);
-                Object propertyValue = persister.getPropertyValue(entity, propertyName, persister.guessEntityMode(entity));
+                Object propertyValue = persister.getPropertyValue(entity, propertyName);
 
                 processProperty(session, auditConfiguration, auditEvent, entity, propertyName, propertyValue, propertyType, auditObject);
             }
