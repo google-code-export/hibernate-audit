@@ -21,8 +21,7 @@ package com.googlecode.hibernate.audit.synchronization.work;
 import java.io.Serializable;
 
 import org.hibernate.Session;
-import org.hibernate.engine.SessionImplementor;
-import org.hibernate.type.AbstractComponentType;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
@@ -53,7 +52,7 @@ public abstract class AbstractCollectionAuditWorkUnit extends AbstractAuditWorkU
             Serializable id = null;
 
             if (element != null) {
-                id = session.getSessionFactory().getClassMetadata(((EntityType) elementType).getAssociatedEntityName()).getIdentifier(element, session.getEntityMode());
+                id = session.getSessionFactory().getClassMetadata(((EntityType) elementType).getAssociatedEntityName()).getIdentifier(element, (SessionImplementor)session);
             }
 
             property = new EntityObjectProperty();

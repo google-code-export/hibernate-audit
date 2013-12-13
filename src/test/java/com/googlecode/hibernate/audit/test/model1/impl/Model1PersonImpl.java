@@ -33,243 +33,243 @@ import org.eclipse.emf.ecore.impl.EObjectImpl;
  */
 public class Model1PersonImpl extends EObjectImpl implements Model1Person {
     /**
-     * The default value of the '{@link #getId() <em>Id</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The default value of the '{@link #getId() <em>Id</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getId()
-     * @generated
-     * @ordered
-     */
+	 * @see #getId()
+	 * @generated
+	 * @ordered
+	 */
     protected static final Long ID_EDEFAULT = null;
 
     /**
-     * The cached value of the '{@link #getId() <em>Id</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The cached value of the '{@link #getId() <em>Id</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getId()
-     * @generated
-     * @ordered
-     */
+	 * @see #getId()
+	 * @generated
+	 * @ordered
+	 */
     protected Long id = ID_EDEFAULT;
 
     /**
-     * The default value of the '{@link #getFirstName() <em>First Name</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The default value of the '{@link #getFirstName() <em>First Name</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getFirstName()
-     * @generated
-     * @ordered
-     */
+	 * @see #getFirstName()
+	 * @generated
+	 * @ordered
+	 */
     protected static final String FIRST_NAME_EDEFAULT = null;
 
     /**
-     * The cached value of the '{@link #getFirstName() <em>First Name</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The cached value of the '{@link #getFirstName() <em>First Name</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getFirstName()
-     * @generated
-     * @ordered
-     */
+	 * @see #getFirstName()
+	 * @generated
+	 * @ordered
+	 */
     protected String firstName = FIRST_NAME_EDEFAULT;
 
     /**
-     * The default value of the '{@link #getLastName() <em>Last Name</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The default value of the '{@link #getLastName() <em>Last Name</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getLastName()
-     * @generated
-     * @ordered
-     */
+	 * @see #getLastName()
+	 * @generated
+	 * @ordered
+	 */
     protected static final String LAST_NAME_EDEFAULT = null;
 
     /**
-     * The cached value of the '{@link #getLastName() <em>Last Name</em>}' attribute.
-     * <!-- begin-user-doc -->
+	 * The cached value of the '{@link #getLastName() <em>Last Name</em>}' attribute.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getLastName()
-     * @generated
-     * @ordered
-     */
+	 * @see #getLastName()
+	 * @generated
+	 * @ordered
+	 */
     protected String lastName = LAST_NAME_EDEFAULT;
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     protected Model1PersonImpl() {
-        super();
-    }
+		super();
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     protected EClass eStaticClass() {
-        return Model1Package.Literals.MODEL1_PERSON;
-    }
+		return Model1Package.Literals.MODEL1_PERSON;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public Long getId() {
-        return id;
-    }
+		return id;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public void setId(Long newId) {
-        Long oldId = id;
-        id = newId;
-        if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__ID, oldId, id));
-    }
+		Long oldId = id;
+		id = newId;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__ID, oldId, id));
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public String getFirstName() {
-        return firstName;
-    }
+		return firstName;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public void setFirstName(String newFirstName) {
-        String oldFirstName = firstName;
-        firstName = newFirstName;
-        if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__FIRST_NAME, oldFirstName, firstName));
-    }
+		String oldFirstName = firstName;
+		firstName = newFirstName;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__FIRST_NAME, oldFirstName, firstName));
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public String getLastName() {
-        return lastName;
-    }
+		return lastName;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public void setLastName(String newLastName) {
-        String oldLastName = lastName;
-        lastName = newLastName;
-        if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__LAST_NAME, oldLastName, lastName));
-    }
+		String oldLastName = lastName;
+		lastName = newLastName;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, Model1Package.MODEL1_PERSON__LAST_NAME, oldLastName, lastName));
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public Object eGet(int featureID, boolean resolve, boolean coreType) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PERSON__ID:
-                return getId();
-            case Model1Package.MODEL1_PERSON__FIRST_NAME:
-                return getFirstName();
-            case Model1Package.MODEL1_PERSON__LAST_NAME:
-                return getLastName();
-        }
-        return super.eGet(featureID, resolve, coreType);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PERSON__ID:
+				return getId();
+			case Model1Package.MODEL1_PERSON__FIRST_NAME:
+				return getFirstName();
+			case Model1Package.MODEL1_PERSON__LAST_NAME:
+				return getLastName();
+		}
+		return super.eGet(featureID, resolve, coreType);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public void eSet(int featureID, Object newValue) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PERSON__ID:
-                setId((Long)newValue);
-                return;
-            case Model1Package.MODEL1_PERSON__FIRST_NAME:
-                setFirstName((String)newValue);
-                return;
-            case Model1Package.MODEL1_PERSON__LAST_NAME:
-                setLastName((String)newValue);
-                return;
-        }
-        super.eSet(featureID, newValue);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PERSON__ID:
+				setId((Long)newValue);
+				return;
+			case Model1Package.MODEL1_PERSON__FIRST_NAME:
+				setFirstName((String)newValue);
+				return;
+			case Model1Package.MODEL1_PERSON__LAST_NAME:
+				setLastName((String)newValue);
+				return;
+		}
+		super.eSet(featureID, newValue);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public void eUnset(int featureID) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PERSON__ID:
-                setId(ID_EDEFAULT);
-                return;
-            case Model1Package.MODEL1_PERSON__FIRST_NAME:
-                setFirstName(FIRST_NAME_EDEFAULT);
-                return;
-            case Model1Package.MODEL1_PERSON__LAST_NAME:
-                setLastName(LAST_NAME_EDEFAULT);
-                return;
-        }
-        super.eUnset(featureID);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PERSON__ID:
+				setId(ID_EDEFAULT);
+				return;
+			case Model1Package.MODEL1_PERSON__FIRST_NAME:
+				setFirstName(FIRST_NAME_EDEFAULT);
+				return;
+			case Model1Package.MODEL1_PERSON__LAST_NAME:
+				setLastName(LAST_NAME_EDEFAULT);
+				return;
+		}
+		super.eUnset(featureID);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public boolean eIsSet(int featureID) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PERSON__ID:
-                return ID_EDEFAULT == null ? id != null : !ID_EDEFAULT.equals(id);
-            case Model1Package.MODEL1_PERSON__FIRST_NAME:
-                return FIRST_NAME_EDEFAULT == null ? firstName != null : !FIRST_NAME_EDEFAULT.equals(firstName);
-            case Model1Package.MODEL1_PERSON__LAST_NAME:
-                return LAST_NAME_EDEFAULT == null ? lastName != null : !LAST_NAME_EDEFAULT.equals(lastName);
-        }
-        return super.eIsSet(featureID);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PERSON__ID:
+				return ID_EDEFAULT == null ? id != null : !ID_EDEFAULT.equals(id);
+			case Model1Package.MODEL1_PERSON__FIRST_NAME:
+				return FIRST_NAME_EDEFAULT == null ? firstName != null : !FIRST_NAME_EDEFAULT.equals(firstName);
+			case Model1Package.MODEL1_PERSON__LAST_NAME:
+				return LAST_NAME_EDEFAULT == null ? lastName != null : !LAST_NAME_EDEFAULT.equals(lastName);
+		}
+		return super.eIsSet(featureID);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public String toString() {
-        if (eIsProxy()) return super.toString();
+		if (eIsProxy()) return super.toString();
 
-        StringBuffer result = new StringBuffer(super.toString());
-        result.append(" (id: ");
-        result.append(id);
-        result.append(", firstName: ");
-        result.append(firstName);
-        result.append(", lastName: ");
-        result.append(lastName);
-        result.append(')');
-        return result.toString();
-    }
+		StringBuffer result = new StringBuffer(super.toString());
+		result.append(" (id: ");
+		result.append(id);
+		result.append(", firstName: ");
+		result.append(firstName);
+		result.append(", lastName: ");
+		result.append(lastName);
+		result.append(')');
+		return result.toString();
+	}
 
 } //Model1PersonImpl

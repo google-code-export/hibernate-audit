@@ -22,7 +22,6 @@ import java.io.Serializable;
 
 import org.hibernate.Session;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.AbstractComponentType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.Type;
 
@@ -94,7 +93,7 @@ public class InsertAuditWorkUnit extends AbstractAuditWorkUnit {
 
         for (String propertyName : persister.getPropertyNames()) {
             Type propertyType = persister.getPropertyType(propertyName);
-            Object propertyValue = persister.getPropertyValue(entity, propertyName, persister.guessEntityMode(entity));
+            Object propertyValue = persister.getPropertyValue(entity, propertyName);
 
             processProperty(session, auditConfiguration, auditEvent, entity, propertyName, propertyValue, propertyType, auditObject);
         }

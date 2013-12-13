@@ -21,7 +21,9 @@ package com.googlecode.hibernate.audit.synchronization;
 import java.util.Map;
 
 import org.hibernate.Transaction;
-import org.hibernate.event.EventSource;
+import org.hibernate.action.spi.AfterTransactionCompletionProcess;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.event.spi.EventSource;
 
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
@@ -37,21 +39,23 @@ public final class AuditSynchronizationManager {
     }
 
     public AuditSynchronization get(EventSource session) {
-        Transaction transaction = session.getTransaction();
+        final Transaction transaction = session.getTransaction();
 
         AuditSynchronization synchronization = syncronizations.get(transaction);
         if (synchronization == null) {
             synchronization = new AuditSynchronization(this, session);
             syncronizations.put(transaction, synchronization);
 
-            auditConfiguration.getExtensionManager().getTransactionSyncronization().registerSynchronization(session, synchronization);
+            session.getActionQueue().registerProcess(synchronization);
+            session.getActionQueue().registerProcess(new AfterTransactionCompletionProcess() {
+				public void doAfterTransactionCompletion(boolean success, SessionImplementor session) {
+					syncronizations.remove(transaction);
+				}
+			});
+            //auditConfiguration.getExtensionManager().getTransactionSyncronization().registerSynchronization(session, synchronization);
         }
 
         return synchronization;
-    }
-
-    public void remove(Transaction transaction) {
-        syncronizations.remove(transaction);
     }
 
     public AuditConfiguration getAuditConfiguration() {

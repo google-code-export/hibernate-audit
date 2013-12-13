@@ -28,22 +28,22 @@ import org.eclipse.emf.ecore.EObject;
  */
 public interface Model1Parent extends Model1Person {
     /**
-     * Returns the value of the '<em><b>Children</b></em>' containment reference list.
-     * The list contents are of type {@link com.googlecode.hibernate.audit.test.model1.Model1Child}.
-     * It is bidirectional and its opposite is '{@link com.googlecode.hibernate.audit.test.model1.Model1Child#getParent <em>Parent</em>}'.
-     * <!-- begin-user-doc -->
+	 * Returns the value of the '<em><b>Children</b></em>' containment reference list.
+	 * The list contents are of type {@link com.googlecode.hibernate.audit.test.model1.Model1Child}.
+	 * It is bidirectional and its opposite is '{@link com.googlecode.hibernate.audit.test.model1.Model1Child#getParent <em>Parent</em>}'.
+	 * <!-- begin-user-doc -->
      * <p>
      * If the meaning of the '<em>Children</em>' containment reference list isn't clear,
      * there really should be more of a description here...
      * </p>
      * <!-- end-user-doc -->
-     * @return the value of the '<em>Children</em>' containment reference list.
-     * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Parent_Children()
-     * @see com.googlecode.hibernate.audit.test.model1.Model1Child#getParent
-     * @model opposite="parent" containment="true"
-     *        annotation="teneo.jpa appinfo='@OneToMany(mappedBy = \"parent\", indexed=false)'"
-     * @generated
-     */
+	 * @return the value of the '<em>Children</em>' containment reference list.
+	 * @see com.googlecode.hibernate.audit.test.model1.Model1Package#getModel1Parent_Children()
+	 * @see com.googlecode.hibernate.audit.test.model1.Model1Child#getParent
+	 * @model opposite="parent" containment="true"
+	 *        annotation="teneo.jpa appinfo='@OneToMany(mappedBy = \"parent\", indexed=false)'"
+	 * @generated
+	 */
     EList<Model1Child> getChildren();
 
 } // Model1Parent

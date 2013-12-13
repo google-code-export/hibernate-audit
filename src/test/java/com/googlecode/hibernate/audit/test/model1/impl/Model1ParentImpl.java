@@ -39,133 +39,133 @@ import org.eclipse.emf.ecore.util.InternalEList;
  */
 public class Model1ParentImpl extends Model1PersonImpl implements Model1Parent {
     /**
-     * The cached value of the '{@link #getChildren() <em>Children</em>}' containment reference list.
-     * <!-- begin-user-doc -->
+	 * The cached value of the '{@link #getChildren() <em>Children</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getChildren()
-     * @generated
-     * @ordered
-     */
+	 * @see #getChildren()
+	 * @generated
+	 * @ordered
+	 */
     protected EList<Model1Child> children;
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     protected Model1ParentImpl() {
-        super();
-    }
+		super();
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     protected EClass eStaticClass() {
-        return Model1Package.Literals.MODEL1_PARENT;
-    }
+		return Model1Package.Literals.MODEL1_PARENT;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     public EList<Model1Child> getChildren() {
-        if (children == null) {
-            children = new EObjectContainmentWithInverseEList<Model1Child>(Model1Child.class, this, Model1Package.MODEL1_PARENT__CHILDREN, Model1Package.MODEL1_CHILD__PARENT);
-        }
-        return children;
-    }
+		if (children == null) {
+			children = new EObjectContainmentWithInverseEList<Model1Child>(Model1Child.class, this, Model1Package.MODEL1_PARENT__CHILDREN, Model1Package.MODEL1_CHILD__PARENT);
+		}
+		return children;
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @SuppressWarnings("unchecked")
     @Override
     public NotificationChain eInverseAdd(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                return ((InternalEList<InternalEObject>)(InternalEList<?>)getChildren()).basicAdd(otherEnd, msgs);
-        }
-        return super.eInverseAdd(otherEnd, featureID, msgs);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				return ((InternalEList<InternalEObject>)(InternalEList<?>)getChildren()).basicAdd(otherEnd, msgs);
+		}
+		return super.eInverseAdd(otherEnd, featureID, msgs);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                return ((InternalEList<?>)getChildren()).basicRemove(otherEnd, msgs);
-        }
-        return super.eInverseRemove(otherEnd, featureID, msgs);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				return ((InternalEList<?>)getChildren()).basicRemove(otherEnd, msgs);
+		}
+		return super.eInverseRemove(otherEnd, featureID, msgs);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public Object eGet(int featureID, boolean resolve, boolean coreType) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                return getChildren();
-        }
-        return super.eGet(featureID, resolve, coreType);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				return getChildren();
+		}
+		return super.eGet(featureID, resolve, coreType);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @SuppressWarnings("unchecked")
     @Override
     public void eSet(int featureID, Object newValue) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                getChildren().clear();
-                getChildren().addAll((Collection<? extends Model1Child>)newValue);
-                return;
-        }
-        super.eSet(featureID, newValue);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				getChildren().clear();
+				getChildren().addAll((Collection<? extends Model1Child>)newValue);
+				return;
+		}
+		super.eSet(featureID, newValue);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public void eUnset(int featureID) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                getChildren().clear();
-                return;
-        }
-        super.eUnset(featureID);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				getChildren().clear();
+				return;
+		}
+		super.eUnset(featureID);
+	}
 
     /**
-     * <!-- begin-user-doc -->
+	 * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @generated
-     */
+	 * @generated
+	 */
     @Override
     public boolean eIsSet(int featureID) {
-        switch (featureID) {
-            case Model1Package.MODEL1_PARENT__CHILDREN:
-                return children != null && !children.isEmpty();
-        }
-        return super.eIsSet(featureID);
-    }
+		switch (featureID) {
+			case Model1Package.MODEL1_PARENT__CHILDREN:
+				return children != null && !children.isEmpty();
+		}
+		return super.eIsSet(featureID);
+	}
 
 } //Model1ParentImpl

@@ -21,8 +21,6 @@ package com.googlecode.hibernate.audit.listener;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingNotFoundException;
 import org.hibernate.SessionFactoryObserver;
@@ -43,32 +41,30 @@ import org.hibernate.dialect.MySQLDialect;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.dialect.Oracle9Dialect;
 import org.hibernate.dialect.PointbaseDialect;
-import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.dialect.ProgressDialect;
 import org.hibernate.dialect.RDMSOS2200Dialect;
 import org.hibernate.dialect.SAPDBDialect;
 import org.hibernate.dialect.SQLServerDialect;
-import org.hibernate.dialect.Sybase11Dialect;
-import org.hibernate.dialect.SybaseASE15Dialect;
-import org.hibernate.dialect.SybaseAnywhereDialect;
 import org.hibernate.dialect.SybaseDialect;
 import org.hibernate.dialect.TeradataDialect;
 import org.hibernate.dialect.TimesTenDialect;
-import org.hibernate.event.Destructible;
-import org.hibernate.event.Initializable;
-import org.hibernate.event.PostCollectionRecreateEvent;
-import org.hibernate.event.PostCollectionRecreateEventListener;
-import org.hibernate.event.PostDeleteEvent;
-import org.hibernate.event.PostDeleteEventListener;
-import org.hibernate.event.PostInsertEvent;
-import org.hibernate.event.PostInsertEventListener;
-import org.hibernate.event.PostUpdateEvent;
-import org.hibernate.event.PostUpdateEventListener;
-import org.hibernate.event.PreCollectionRemoveEvent;
-import org.hibernate.event.PreCollectionRemoveEventListener;
-import org.hibernate.event.PreCollectionUpdateEvent;
-import org.hibernate.event.PreCollectionUpdateEventListener;
+import org.hibernate.event.spi.PostCollectionRecreateEvent;
+import org.hibernate.event.spi.PostCollectionRecreateEventListener;
+import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostDeleteEventListener;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostInsertEventListener;
+import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.event.spi.PreCollectionRemoveEvent;
+import org.hibernate.event.spi.PreCollectionRemoveEventListener;
+import org.hibernate.event.spi.PreCollectionUpdateEvent;
+import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.hibernate.mapping.PersistentClass;
+import org.hibernate.persister.entity.EntityPersister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.Version;
@@ -85,7 +81,7 @@ import com.googlecode.hibernate.audit.synchronization.work.UpdateCollectionAudit
 import com.googlecode.hibernate.audit.util.ConcurrentReferenceHashMap;
 
 public class AuditListener implements PostInsertEventListener, PostUpdateEventListener, PostDeleteEventListener, PreCollectionUpdateEventListener, PreCollectionRemoveEventListener,
-        PostCollectionRecreateEventListener, Initializable, Destructible {
+        PostCollectionRecreateEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(AuditListener.class);
 
@@ -116,7 +112,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             }
             
             if (CONFIGURATION_MAP.containsKey(conf)) {
-            	auditConfiguration = CONFIGURATION_MAP.get(conf);
+            	auditConfiguration = getAuditConfiguration(conf);
             	// already initialized
                 return;
             }
@@ -154,9 +150,6 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
             }
             conf.buildMappings();
 
-            SessionFactoryObserver sessionFactoryObserver = new AuditSessionFactoryObserver(conf.getSessionFactoryObserver(), auditConfiguration, conf);
-            conf.setSessionFactoryObserver(sessionFactoryObserver);
-
             CONFIGURATION_MAP.put(conf, auditConfiguration);
 
             processAuditConfigurationObserver(conf);
@@ -176,7 +169,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 			return "sqlserver";
 		} else if (d instanceof MySQLDialect) {
 			return "mysql";
-		} else if (d instanceof Sybase11Dialect || d instanceof SybaseAnywhereDialect || d instanceof SybaseASE15Dialect || d instanceof SybaseDialect) {
+		} else if (d instanceof SybaseDialect) {
 			return "sybase";
 		} else if (d instanceof Cache71Dialect) {
 			return "cache71";
@@ -202,9 +195,7 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
 			return "mimersql";
 		} else if (d instanceof PointbaseDialect) {
 			return "pointbase";
-		} else if (d instanceof PostgreSQLDialect) {
-			return "postgresql";
-		} else if (d instanceof PostgreSQLDialect || d instanceof ProgressDialect) {
+		} else if (d instanceof PostgreSQL81Dialect || d instanceof ProgressDialect) {
 			return "postgresql";
 		} else if (d instanceof RDMSOS2200Dialect) {
 			return "rdmsos2200";
@@ -320,6 +311,10 @@ public class AuditListener implements PostInsertEventListener, PostUpdateEventLi
         }
     }
 
+    public boolean requiresPostCommitHanding(EntityPersister persister) {
+    	return auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(persister.getEntityName());
+    }
+    
     public void onPostRecreateCollection(PostCollectionRecreateEvent event) {
         try {
             String entityName = event.getAffectedOwnerEntityName();

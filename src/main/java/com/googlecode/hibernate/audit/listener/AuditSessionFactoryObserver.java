@@ -27,8 +27,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.engine.NamedQueryDefinition;
-import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.engine.spi.NamedQueryDefinition;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.metadata.ClassMetadata;
@@ -53,12 +53,10 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
     private static final Map<SessionFactory, AuditConfiguration> CONFIGURATION_MAP = new ConcurrentReferenceHashMap<SessionFactory, AuditConfiguration>(16,
             ConcurrentReferenceHashMap.ReferenceType.WEAK, ConcurrentReferenceHashMap.ReferenceType.STRONG);
 
-    private SessionFactoryObserver observer;
     private AuditConfiguration auditConfiguration;
     private Configuration configuration;
 
-    public AuditSessionFactoryObserver(SessionFactoryObserver observer, AuditConfiguration auditConfiguration, Configuration configuration) {
-        this.observer = observer;
+    public AuditSessionFactoryObserver(AuditConfiguration auditConfiguration, Configuration configuration) {
         this.auditConfiguration = auditConfiguration;
         this.configuration = configuration;
     }
@@ -68,17 +66,10 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
 
         Statistics statistics = sessionfactory.getStatistics();
 
-        if (observer != null) {
-            observer.sessionFactoryCreated(sessionfactory);
-        }
-        
         CONFIGURATION_MAP.put(sessionfactory, auditConfiguration);
     }
 
     public void sessionFactoryClosed(SessionFactory sessionfactory) {
-        if (observer != null) {
-            observer.sessionFactoryClosed(sessionfactory);
-        }
         CONFIGURATION_MAP.remove(sessionfactory);
     }
 

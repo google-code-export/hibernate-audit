@@ -26,18 +26,21 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.transaction.Synchronization;
+import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hibernate.ConnectionReleaseMode;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.TransactionException;
-import org.hibernate.engine.SessionFactoryImplementor;
-import org.hibernate.util.JTAHelper;
+import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
 import com.googlecode.hibernate.audit.model.AuditLogicalGroup;
@@ -45,7 +48,7 @@ import com.googlecode.hibernate.audit.model.AuditTransaction;
 import com.googlecode.hibernate.audit.model.AuditTransactionAttribute;
 import com.googlecode.hibernate.audit.synchronization.work.AuditWorkUnit;
 
-public class AuditSynchronization implements Synchronization {
+public class AuditSynchronization implements BeforeTransactionCompletionProcess {
 	private static final Logger log = LoggerFactory.getLogger(AuditSynchronization.class);
 
 	private final AuditSynchronizationManager manager;
@@ -66,16 +69,29 @@ public class AuditSynchronization implements Synchronization {
 		workUnits.add(workUnit);
 	}
 
-	public void beforeCompletion() {
+	public void doBeforeTransactionCompletion(SessionImplementor session) {
 		if (workUnits.size() == 0) {
 			return;
 		}
 		if (!isMarkedForRollback(auditedSession)) {
 			try {
-				if (!FlushMode.isManualFlushMode(auditedSession.getFlushMode())) {
+				if (FlushMode.isManualFlushMode(auditedSession.getFlushMode())) {
+					 Session temporarySession = null;
+					try {
+						temporarySession = ((Session) session).sessionWithOptions().transactionContext()
+								.autoClose(false).connectionReleaseMode(ConnectionReleaseMode.AFTER_TRANSACTION)
+								.openSession();
+						executeInSession(temporarySession);
+						temporarySession.flush();
+					} finally {
+						if (temporarySession != null) {
+							temporarySession.close();
+						}
+					}
+				} else {
 					auditedSession.flush();
+					executeInSession(auditedSession);
 				}
-				executeInSession(auditedSession);
 			} catch (RuntimeException e) {
 				if (log.isErrorEnabled()) {
 					log.error("RuntimeException occurred in beforeCompletion, will rollback and re-throw exception", e);
@@ -87,10 +103,17 @@ public class AuditSynchronization implements Synchronization {
 	}
 
 	private boolean isMarkedForRollback(Session session) {
-		TransactionManager manager = ((SessionFactoryImplementor) session.getSessionFactory()).getTransactionManager();
+		JtaPlatform jtaPlatform = ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getSettings().getJtaPlatform();
+		TransactionManager manager = null;
+		if (jtaPlatform != null) {
+			manager = jtaPlatform.retrieveTransactionManager();
+		}
 		if (manager != null) {
 			try {
-				if (JTAHelper.isRollback(manager.getStatus())) {
+				int status = manager.getStatus();
+				if (status==Status.STATUS_MARKED_ROLLBACK ||
+					       status==Status.STATUS_ROLLING_BACK ||
+					       status==Status.STATUS_ROLLEDBACK) {
 					return true;
 				}
 			} catch (SystemException e) {
@@ -107,8 +130,11 @@ public class AuditSynchronization implements Synchronization {
 		try {
 			if (auditedSession != null && auditedSession.getTransaction() != null && auditedSession.getTransaction().isActive()) {
 				auditedSession.getTransaction().rollback();
-			} else if (auditedSession != null && ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getTransactionManager() != null) {
-				((SessionFactoryImplementor) auditedSession.getSessionFactory()).getTransactionManager().setRollbackOnly();
+			} else if (auditedSession != null && ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getSettings().getJtaPlatform() != null) {
+				TransactionManager transactionManager = ((SessionFactoryImplementor) auditedSession.getSessionFactory()).getSettings().getJtaPlatform().retrieveTransactionManager();
+				if (transactionManager != null) {
+					transactionManager.setRollbackOnly();
+				}
 			}
 		} catch (Exception se) {
 			if (log.isWarnEnabled()) {
@@ -118,10 +144,6 @@ public class AuditSynchronization implements Synchronization {
 				log.warn("Exception occured during rollback, only logging the exception", se);
 			}
 		}
-	}
-
-	public void afterCompletion(int arg0) {
-		manager.remove(transaction);
 	}
 
 	private void executeInSession(Session session) {

@@ -26,18 +26,18 @@ import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.engine.NamedQueryDefinition;
-import org.hibernate.engine.SessionFactoryImplementor;
-import org.hibernate.engine.SessionImplementor;
-import org.hibernate.type.AbstractComponentType;
+import org.hibernate.engine.spi.NamedQueryDefinition;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.googlecode.hibernate.audit.HibernateAudit;
 import com.googlecode.hibernate.audit.configuration.AuditConfiguration;
@@ -100,7 +100,7 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         AuditTypeField auditField = HibernateAudit.getAuditField(session, auditConfiguration.getExtensionManager().getAuditableInformationProvider().getAuditTypeClassName(auditConfiguration.getAuditedConfiguration(), getEntityName()), propertyName);
 
         if (propertyValue != null) {
-            id = session.getSessionFactory().getClassMetadata(entityName).getIdentifier(propertyValue, session.getEntityMode());
+            id = session.getSessionFactory().getClassMetadata(entityName).getIdentifier(propertyValue, (SessionImplementor)session);
         }
         EntityObjectProperty property = new EntityObjectProperty();
         property.setAuditObject(auditObject);
@@ -212,7 +212,11 @@ public abstract class AbstractAuditWorkUnit implements AuditWorkUnit {
         javax.transaction.Transaction suspendedTransaction = null;
 
         try {
-            txManager = ((SessionFactoryImplementor) session.getSessionFactory()).getTransactionManager();
+    		JtaPlatform jtaPlatform = ((SessionFactoryImplementor) session.getSessionFactory()).getSettings().getJtaPlatform();
+    		if (jtaPlatform != null) {
+    			txManager = jtaPlatform.retrieveTransactionManager();
+    		}
+            
             if (txManager != null) {
                 try {
                     suspendedTransaction = txManager.suspend();
