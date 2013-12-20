@@ -3,7 +3,13 @@
 Add `hibernate-audit.jar` in your Hibernate application classpath. You can get the jar file from the hibernate-audit maven repository located here: http://hibernate-audit.googlecode.com/svn/repository/releases
 
 =Activation=
+==hibernate-audit version 2.x==
 
+but default just adding the hibernate jar file should be enough to enable the hibenate audit. If you do not want to enable it then either do not include the jar file or you can specify the following property in your hibernate.properties file
+
+{{{com.googlecode.hibernate.audit.listener.autoRegister=false}}}
+
+==hibernate-audit verion 1.x==
 Register {{{com.googlecode.hibernate.audit.listener.AuditListener}}} as a listerner to your session factory for the following events:
 
     * post-insert
