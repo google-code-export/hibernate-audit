@@ -5,7 +5,7 @@ Add `hibernate-audit.jar` in your Hibernate application classpath. You can get t
 =Activation=
 ==hibernate-audit version 2.x==
 
-but default just adding the hibernate jar file should be enough to enable the hibenate audit. If you do not want to enable it then either do not include the jar file or you can specify the following property in your hibernate.properties file
+Including the hibernate audit jar file will activate the hibernate audit listener. If you do not want to activate the listener but to include the jar file then add the following property in hibernate.properties
 
 {{{com.googlecode.hibernate.audit.listener.autoRegister=false}}}
 
