@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model1:Model1Parent xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:model1="http://hibernate-audit.googlecode.com/test/model1/1.0.0" xsi:schemaLocation="http://hibernate-audit.googlecode.com/test/model1/1.0.0 ../../model/AuditTestModel.ecore#//model1" firstName="First Name" lastName="Last Name">
+  <children firstName="child1"/>
+  <children firstName="child2"/>
+</model1:Model1Parent>
