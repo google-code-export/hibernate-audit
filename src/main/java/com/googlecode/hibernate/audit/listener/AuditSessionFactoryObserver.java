@@ -22,6 +22,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.InvalidTransactionException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
+
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
@@ -29,6 +38,8 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.metadata.ClassMetadata;
@@ -88,19 +99,69 @@ public class AuditSessionFactoryObserver implements SessionFactoryObserver {
         try {
             try {
                 session = sessionFactory.openSession();
-                Transaction tx = session.beginTransaction();
-
-                for (ClassMetadata classMetadata : allClassMetadata) {
-                    String entityName = classMetadata.getEntityName();
-
-                    if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
-
-                        initializeEntityAuditType(session, entityName, true);
-                        session.flush();
-                    }
+                JtaPlatform jtaPlatform = ((SessionImplementor)session).getTransactionCoordinator().getTransactionContext().getTransactionEnvironment().getJtaPlatform();
+                TransactionManager jtaTransactionManager = null;
+                if (jtaPlatform != null) {
+                	jtaTransactionManager = jtaPlatform.retrieveTransactionManager();
                 }
+                
+                Transaction tx = null;
+                javax.transaction.Transaction jtaTransaction = null;
+                
+                try {
+					if (jtaTransactionManager != null) {
+						try {
+							jtaTransaction = jtaTransactionManager.suspend();
+							jtaTransactionManager.begin();
+						} catch (NotSupportedException e) {
+							throw new HibernateException(e);
+						} catch (SystemException e) {
+							throw new HibernateException(e);
+						}
+					} else {
+					    tx = session.beginTransaction();
+					}
 
-                tx.commit();
+					for (ClassMetadata classMetadata : allClassMetadata) {
+					    String entityName = classMetadata.getEntityName();
+					    if (auditConfiguration.getExtensionManager().getAuditableInformationProvider().isAuditable(entityName)) {
+					        initializeEntityAuditType(session, entityName, true);
+					        session.flush();
+					    }
+					}
+					
+					if (jtaTransactionManager != null) {
+						try {
+							jtaTransactionManager.commit();
+						} catch (SecurityException e) {
+							throw new HibernateException(e);
+						} catch (IllegalStateException e) {
+							throw new HibernateException(e);
+						} catch (RollbackException e) {
+							throw new HibernateException(e);
+						} catch (HeuristicMixedException e) {
+							throw new HibernateException(e);
+						} catch (HeuristicRollbackException e) {
+							throw new HibernateException(e);
+						} catch (SystemException e) {
+							throw new HibernateException(e);
+						}
+					} else if (tx != null) {
+						tx.commit();
+					}
+				} finally {
+	            	if (jtaTransactionManager != null && jtaTransaction != null) {
+            			try {
+							jtaTransactionManager.resume(jtaTransaction);
+						} catch (InvalidTransactionException e) {
+							throw new HibernateException(e);
+						} catch (IllegalStateException e) {
+							throw new HibernateException(e);
+						} catch (SystemException e) {
+							throw new HibernateException(e);
+						}
+	            	}
+				}
             } finally {
                 if (session != null && session.isOpen()) {
                     session.close();
