@@ -1,0 +1,553 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<!-- 
+
+   Copyright (C) 2009 Krasimir Chobantonov kchobantonov@yahoo.com
+   This file is part of  Hibernate Audit.
+
+   Hibernate Audit is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 3 of the License, or (at your
+   option) any later version.
+   
+   Hibernate Audit is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License along
+   with Hibernate Audit.  If not, see http://www.gnu.org/licenses/.
+
+-->
+
+<hibernate-mapping>
+	<class name="com.googlecode.hibernate.audit.model.AuditTransaction"
+		entity-name="com.googlecode.hibernate.audit.model.AuditTransaction"
+		table="`AUDIT_TRANSACTION`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TRANSACTION_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TRANSACTION_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">1</param>
+			</generator>
+		</id>
+		<property name="timestamp" lazy="false" type="java.util.Date"
+			not-null="true">
+			<column name="`TRANSACTION_TMSTP`" not-null="true" />
+		</property>
+		<property name="username" lazy="false" type="java.lang.String">
+			<column name="`TRANSACTION_USER_NAME`" length="255" />
+		</property>
+		<bag name="events" cascade="all" inverse="true" lazy="true" order-by="`AUDIT_EVENT_ID`">
+			<key column="`AUDIT_TRANSACTION_ID`" />
+			<one-to-many class="com.googlecode.hibernate.audit.model.AuditEvent" />
+		</bag>
+		<bag name="auditTransactionAttributes" cascade="all" inverse="true"
+			lazy="true">
+			<key column="`AUDIT_TRANSACTION_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.AuditTransactionAttribute" />
+		</bag>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.AuditTransactionAttribute"
+		entity-name="com.googlecode.hibernate.audit.model.AuditTransactionAttribute"
+		table="`AUDIT_TRANSACTION_ATTRIBUTE`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TRANSACTION_ATTRIBUTE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TRANS_ATTRIBUTE_ID_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditTransaction"
+			class="com.googlecode.hibernate.audit.model.AuditTransaction" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TRANSACTION_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<property name="attributeId" lazy="false" type="java.lang.Long"
+			not-null="true">
+			<column name="`ATTRIBUTE_REF_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</property>
+		<property name="attributeValue" lazy="false" type="java.lang.String"
+			not-null="true">
+			<column name="`ATTRIBUTE_VALUE_TXT`" length="4000" not-null="true" />
+		</property>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.AuditEvent"
+		entity-name="com.googlecode.hibernate.audit.model.AuditEvent" table="`AUDIT_EVENT`">
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_EVENT_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_EVENT_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditTransaction"
+			class="com.googlecode.hibernate.audit.model.AuditTransaction" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TRANSACTION_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditLogicalGroup"
+			class="com.googlecode.hibernate.audit.model.AuditLogicalGroup" lazy="proxy">
+			<column name="`AUDIT_LOGICAL_GROUP_ID`" sql-type="NUMBER(30)" />
+		</many-to-one>
+		<property name="type" lazy="false" not-null="true"
+			type="java.lang.String">
+			<column name="`EVENT_TYPE_NAME`" sql-type="CHAR(1)" not-null="true" />
+		</property>
+		<property name="entityId" lazy="false" not-null="true"
+			type="java.lang.String">
+			<column name="`TARGET_ENTITY_ID`"
+				not-null="true" />
+		</property>
+		<bag name="auditObjects" cascade="all" inverse="true" lazy="true">
+			<key column="`AUDIT_EVENT_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.object.AuditObject" />
+		</bag>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
+		entity-name="com.googlecode.hibernate.audit.model.AuditLogicalGroup"
+		lazy="true" table="`AUDIT_LOGICAL_GROUP`" mutable="true"> <!-- Note that mutable true is required because of the locking -->
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_LOGICAL_GROUP_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_LOGICAL_GROUP_ID_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditType" update="false"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
+			not-null="true" unique-key="`AUDIT_TYPE_ID_EXTERNAL_ID_IDX`" >
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</many-to-one>
+		<property name="externalId" lazy="false" not-null="true" update="false"
+			type="java.lang.String" unique-key="`AUDIT_TYPE_ID_EXTERNAL_ID_IDX`" >
+			<column name="`EXTERNAL_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</property>
+		<property name="lastUpdatedAuditTransactionId" lazy="false" not-null="true" update="true"
+			type="java.lang.Long">
+			<column name="`LAST_UPD_AUDIT_TRANSACTION_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</property>
+	</class>
+
+	<!--  OBJECT  -->
+	<class name="com.googlecode.hibernate.audit.model.object.AuditObject"
+		entity-name="com.googlecode.hibernate.audit.model.object.AuditObject"
+		abstract="true" table="`AUDIT_OBJECT`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_OBJECT_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_OBJECT_ID_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+
+		<discriminator>
+			<column name="`DTYPE_CODE`" not-null="true" sql-type="CHAR(1)"></column>
+		</discriminator>
+
+		<many-to-one name="auditEvent"
+			class="com.googlecode.hibernate.audit.model.AuditEvent" not-null="true"
+			lazy="proxy">
+			<column name="`AUDIT_EVENT_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType"
+			not-null="true" lazy="proxy">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</many-to-one>
+		<bag name="auditObjectProperties" cascade="all" inverse="true" order-by="`IDX`"
+			lazy="true">
+			<key column="`AUDIT_OBJECT_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.property.AuditObjectProperty" />
+		</bag>
+
+		<subclass
+			name="com.googlecode.hibernate.audit.model.object.EntityAuditObject"
+			entity-name="com.googlecode.hibernate.audit.model.object.EntityAuditObject"
+			discriminator-value="E">
+
+			<property name="targetEntityId" lazy="false" type="java.lang.String"
+				not-null="true">
+				<column name="`TARGET_ENTITY_ID`" />
+			</property>
+		</subclass>
+
+		<subclass
+			name="com.googlecode.hibernate.audit.model.object.ComponentAuditObject"
+			entity-name="com.googlecode.hibernate.audit.model.object.ComponentAuditObject"
+			discriminator-value="C">
+
+			<many-to-one name="parentAuditObject"
+				class="com.googlecode.hibernate.audit.model.object.AuditObject"
+				not-null="true" lazy="proxy">
+				<column name="`PARENT_AUDIT_OBJECT_ID`" sql-type="NUMBER(30)" />
+			</many-to-one>
+		</subclass>
+	</class>
+
+	<!-- PROPERTY -->
+
+	<class
+		name="com.googlecode.hibernate.audit.model.property.AuditObjectProperty"
+		entity-name="com.googlecode.hibernate.audit.model.property.AuditObjectProperty"
+		abstract="true" table="`AUDIT_OBJECT_PROPERTY`">
+
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_OBJECT_PROPERTY_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_OBJECT_PROPERTY_ID_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+
+		<discriminator>
+			<column name="`DTYPE_CODE`" not-null="true" sql-type="CHAR(1)"></column>
+		</discriminator>
+		<many-to-one name="auditObject"
+			class="com.googlecode.hibernate.audit.model.object.AuditObject"
+			not-null="true" lazy="proxy">
+			<column name="`AUDIT_OBJECT_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditField"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"
+			not-null="true" lazy="proxy">
+			<column name="`AUDIT_TYPE_FIELD_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy">
+			<column name="`RUNTIME_AUDIT_TYPE_ID`" sql-type="NUMBER(30)"/>
+		</many-to-one>
+		<property name="index" lazy="false" type="java.lang.Long">
+			<column name="`IDX`" sql-type="NUMBER(30)" />
+		</property>
+
+		<subclass
+			name="com.googlecode.hibernate.audit.model.property.ComponentObjectProperty"
+			entity-name="com.googlecode.hibernate.audit.model.property.ComponentObjectProperty"
+			discriminator-value="C">
+
+			<many-to-one name="targetComponentAuditObject" cascade="save-update"
+				class="com.googlecode.hibernate.audit.model.object.ComponentAuditObject"
+				lazy="proxy">
+				<column name="`TARGET_COMPONENT_AUDIT_OBJ_ID`" sql-type="NUMBER(30)" />
+			</many-to-one>
+		</subclass>
+
+		<subclass
+			name="com.googlecode.hibernate.audit.model.property.EntityObjectProperty"
+			entity-name="com.googlecode.hibernate.audit.model.property.EntityObjectProperty"
+			discriminator-value="E">
+
+			<property name="targetEntityId" lazy="false" type="java.lang.String">
+				<column name="`TARGET_ENTITY_ID`" />
+			</property>
+		</subclass>
+
+		<subclass
+			name="com.googlecode.hibernate.audit.model.property.SimpleObjectProperty"
+			entity-name="com.googlecode.hibernate.audit.model.property.SimpleObjectProperty"
+			discriminator-value="S">
+
+			<property name="value" lazy="false" type="java.lang.String">
+				<column name="`STRING_VALUE_TXT`" length="4000" />
+			</property>
+		</subclass>
+	</class>
+
+
+	<!--  META DATA -->
+
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditType"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditType"
+		lazy="true" table="`AUDIT_TYPE`" mutable="false">
+		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+
+		<property name="type" lazy="false" type="char" not-null="true">
+			<column name="`DTYPE_CODE`" not-null="true" />
+		</property>
+		<property name="className" lazy="false" not-null="true"
+			type="java.lang.String">
+			<column name="`CLASS_NAME`" length="255" not-null="true" />
+		</property>
+		<property name="label" lazy="false" type="java.lang.String">
+			<column name="`LABEL_NAME`" length="255" />
+		</property>
+		<bag name="auditFields" inverse="true" lazy="false" fetch="join">
+			<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+			<key column="`OWNER_AUDIT_TYPE_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeField" />
+		</bag>
+		<bag name="auditTypeAttributes" cascade="all" inverse="true"
+			lazy="true">
+			<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+			<key column="`AUDIT_TYPE_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute" />
+		</bag>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeAttribute"
+		table="`AUDIT_TYPE_ATTRIBUTE`">
+		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_ATTRIBUTE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_ATTRIBUTE_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<property name="attributeId" lazy="false" type="java.lang.Long"
+			not-null="true">
+			<column name="`ATTRIBUTE_REF_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</property>
+		<property name="attributeValue" lazy="false" type="java.lang.String"
+			not-null="true">
+			<column name="`ATTRIBUTE_VALUE_TXT`" length="4000" not-null="true" />
+		</property>
+	</class>
+	
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"
+		lazy="true" table="`AUDIT_TYPE_FIELD`" mutable="false">
+		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_FIELD_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_FIELD_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="ownerType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType"
+			not-null="true">
+			<column name="`OWNER_AUDIT_TYPE_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<many-to-one name="fieldType"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditType"
+			not-null="true">
+			<column name="`AUDIT_TYPE_ID`" sql-type="NUMBER(30)" not-null="true" />
+		</many-to-one>
+		<property name="name" lazy="false" not-null="true"
+			type="java.lang.String">
+			<column name="`FIELD_NAME`" length="255" not-null="true" />
+		</property>
+		<property name="label" lazy="false" type="java.lang.String">
+			<column name="`LABEL_NAME`" length="255" />
+		</property>
+		<bag name="auditTypeFieldAttributes" cascade="all" inverse="true"
+			lazy="true">
+			<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+			<key column="`AUDIT_TYPE_FIELD_ID`" />
+			<one-to-many
+				class="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute" />
+		</bag>
+	</class>
+
+	<class name="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute"
+		entity-name="com.googlecode.hibernate.audit.model.clazz.AuditTypeFieldAttribute"
+		table="`AUDIT_TYPE_FIELD_ATTRIBUTE`">
+		<cache usage="nonstrict-read-write" region="com.googlecode.hibernate.audit.model.clazz" />
+		<id name="id" type="java.lang.Long">
+			<column name="`AUDIT_TYPE_FIELD_ATTRIBUTE_ID`" sql-type="NUMBER(30)" />
+			<generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+				<param name="sequence_name">AUDIT_TYPE_FIELD_ATTRIBUTE_SEQ</param>
+				<param name="optimizer">pooled</param>
+				<param name="initial_value">1</param>
+				<param name="increment_size">50</param>
+			</generator>
+		</id>
+		<many-to-one name="auditTypeField"
+			class="com.googlecode.hibernate.audit.model.clazz.AuditTypeField" lazy="proxy"
+			not-null="true">
+			<column name="`AUDIT_TYPE_FIELD_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</many-to-one>
+		<property name="attributeId" lazy="false" type="java.lang.Long"
+			not-null="true">
+			<column name="`ATTRIBUTE_REF_ID`" sql-type="NUMBER(30)"
+				not-null="true" />
+		</property>
+		<property name="attributeValue" lazy="false" type="java.lang.String"
+			not-null="true">
+			<column name="`ATTRIBUTE_VALUE_TXT`" length="4000" not-null="true" />
+		</property>
+	</class>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditLogicalGroup">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			from com.googlecode.hibernate.audit.model.AuditLogicalGroup where auditType = :auditType and externalId = :externalId 
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditType" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.query" >
+			<query-param name="className" type="java.lang.String"/>
+			from com.googlecode.hibernate.audit.model.clazz.AuditType where className = :className
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditField" cacheable="true" cache-region="com.googlecode.hibernate.audit.model.query" >
+			<query-param name="className" type="java.lang.String"/>
+			<query-param name="name" type="java.lang.String"/>
+			from com.googlecode.hibernate.audit.model.clazz.AuditTypeField where ownerType.className = :className and name = :name
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionId">
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t 
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroup">
+			<query-param name="auditLogicalGroup" type="com.googlecode.hibernate.audit.model.AuditLogicalGroup"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event where event.auditLogicalGroup = :auditLogicalGroup
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByAuditLogicalGroupAndAfterAuditTransactionId">
+			<query-param name="auditLogicalGroup" type="com.googlecode.hibernate.audit.model.AuditLogicalGroup"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event where event.auditLogicalGroup = :auditLogicalGroup and t.id &gt; :afterAuditTransactionId
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntity">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.auditType = :auditType and auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId 
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByEntityAndAfterAuditTransactionId">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject where auditObject.auditType = :auditType and auditObject.class = com.googlecode.hibernate.audit.model.object.EntityAuditObject and auditObject.targetEntityId = :targetEntityId and t.id &gt; :afterAuditTransactionId  
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByProperty">
+			<query-param name="auditTypeField" type="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty where auditObjectProperty.auditField = :auditTypeField and event.entityId = :targetEntityId 
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getLatestAuditTransactionIdByPropertyAndAfterAuditTransactionId">
+			<query-param name="auditTypeField" type="com.googlecode.hibernate.audit.model.clazz.AuditTypeField"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			select max(t.id) from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty where auditObjectProperty.auditField = :auditTypeField and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
+	</query>
+
+	<query 
+		name="com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditObjectProperties">
+			<query-param name="auditTypeFields" type="java.util.List"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			
+			select distinct auditObjectProperty from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty join auditObjectProperty.auditField as auditField where auditField in (:auditTypeFields) and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
+	</query>
+
+	<query 
+		name="com.googlecode.hibernate.audit.HibernateAudit.getModifiedAuditTypeFields">
+			<query-param name="auditTypeFields" type="java.util.List"/>
+			<query-param name="targetEntityId" type="java.lang.String"/>
+			<query-param name="afterAuditTransactionId" type="java.lang.Long"/>
+			
+			select distinct auditField from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event join event.auditObjects as auditObject join auditObject.auditObjectProperties as auditObjectProperty join auditObjectProperty.auditField as auditField where auditField in (:auditTypeFields) and event.entityId = :targetEntityId and t.id &gt; :afterAuditTransactionId 
+	</query>
+
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAuditTransaction">
+			<query-param name="transactionId" type="java.lang.Long"/>
+			from com.googlecode.hibernate.audit.model.AuditTransaction where id = :transactionId
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsAfterTransactionId">
+			<query-param name="transactionId" type="java.lang.Long"/>
+			from com.googlecode.hibernate.audit.model.AuditTransaction where id > :transactionId order by id
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditTransactionsForEntity">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			select t from com.googlecode.hibernate.audit.model.AuditTransaction as t join t.events as event where event.auditType = :auditType and event.entityId = :externalId  order by t.id desc
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditEventsForEntity">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			select event from com.googlecode.hibernate.audit.model.AuditEvent as event where event.auditType = :auditType and event.entityId = :externalId  order by event.auditTransaction.id asc, event.id asc
+	</query>
+	
+	<query
+		name="com.googlecode.hibernate.audit.HibernateAudit.getAllAuditEventsForEntityUntilTransactionId">
+			<query-param name="auditType" type="com.googlecode.hibernate.audit.model.clazz.AuditType"/>
+			<query-param name="externalId" type="java.lang.String"/>
+			<query-param name="transactionId" type="java.lang.Long"/>
+			select event from com.googlecode.hibernate.audit.model.AuditEvent as event where event.auditType = :auditType and event.entityId = :externalId  and event.auditTransaction.id &lt;= :transactionId order by event.auditTransaction.id asc, event.id asc
+	</query>
+</hibernate-mapping>
